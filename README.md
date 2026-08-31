@@ -1,0 +1,69 @@
+# Casa Tile Card
+
+Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
+
+![versione](https://img.shields.io/badge/versione-1.67.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+
+---
+
+## Cosa fa
+
+- **Icona automatica**: la sceglie la card guardando l'entità (luce, presa, termosifone, telecamera, batteria, aspirapolvere, persona, meteo…). Se non ti va, ne scegli una tu.
+- **200 icone**: 45 disegnate a mano e animate + 156 prese dal set di Home Assistant, tutte colorate e con la ricerca in italiano ("tenda" trova la tapparella, "bolletta" trova l'euro).
+- Puoi anche usare **una qualsiasi icona di Home Assistant** o **un'immagine tua**, presa dal telefono o dal PC.
+- **Batteria vera**: il riempimento segue la percentuale, il colore va da verde a rosso e il fulmine compare solo se sta caricando davvero.
+- **Meteo**: l'icona segue il tempo che fa (sole, luna, nuvole, pioggia, neve, temporale, nebbia, vento) e lo sfondo diventa il cielo di quel momento.
+- **Musica**: copertina tonda, titolo e artista, onda del tempo, comandi, volume, scelta della cassa, gruppo multi-room e sorgente.
+- **Luci**: barra della luminosità e striscia del colore (arcobaleno o bianco caldo/freddo) dentro la casella.
+- **Valori impostabili** (`number`): barra per cambiarli, con la corsa che puoi accorciare.
+- **Pop-up tuo**: ci metti quante schede vuoi, sono quelle di Home Assistant, con il loro pannello di impostazioni.
+- **Effetti**: 19 modi di illuminarsi, intensità e velocità regolabili, sfondo a tinta, foto o meteo.
+- Si adatta da sola alla larghezza della casella e al dito.
+
+## Installazione con HACS
+
+1. HACS → **Frontend** → menù in alto a destra → **Repository personalizzate**
+2. Indirizzo: `https://github.com/<utente>/casa-tile-card` — categoria: **Lovelace**
+3. Cerca **Casa Tile Card**, scaricala, poi ricarica la pagina (Ctrl+F5).
+
+## Installazione a mano
+
+1. Copia `dist/casa-tile-card.js` in `config/www/`
+2. Impostazioni → Plance → menù → **Risorse** → aggiungi `/local/casa-tile-card.js` come **Modulo JavaScript**
+
+## Come si usa
+
+Aggiungi una scheda alla dashboard e cerca **Casa · casella animata**. Poi tutto a clic:
+
+| Scheda | Cosa c'è |
+|---|---|
+| **Base** | entità, nome, icona (automatica, dal catalogo, di Home Assistant o tua), colore |
+| **Aspetto** | disposizione (classica, persona, musica), casella grande, meteo |
+| **Dettagli** | misure in basso, barre (luminosità, colore, valori), comandi della musica, casse |
+| **Effetti** | 19 effetti, intensità, velocità |
+| **Sfondo** | tinta, trasparenza, foto tua, cielo del meteo |
+| **Tocco** | cosa fa quando la tocchi: accendi/spegni, dettagli, pop-up tuo, mappa, indirizzo web, servizio |
+
+### Esempio minimo
+
+```yaml
+type: custom:casa-tile
+entity: light.salotto
+```
+
+### Esempio con pop-up
+
+```yaml
+type: custom:casa-tile
+entity: sensor.batteria_casa
+name: Casa Batteria
+azione: finestra
+finestra_titolo: Casa Batteria
+finestra_cards:
+  - type: custom:power-flow-card-plus
+    entities: {}
+```
+
+## Licenza
+
+MIT
