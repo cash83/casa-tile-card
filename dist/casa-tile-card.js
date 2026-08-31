@@ -1,7 +1,7 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.78.0
+ * v1.78.1
  */
 
 const COLORI = {
@@ -5223,8 +5223,14 @@ class CasaTileEditor extends HTMLElement {
   }
 }
 
-customElements.define("casa-tile", CasaTile);
-customElements.define("casa-tile-editor", CasaTileEditor);
+// se il file viene caricato due volte (vecchia risorsa /local rimasta
+// insieme a quella di HACS) il secondo giro non deve buttare giu' la plancia
+if (!customElements.get("casa-tile")) {
+  customElements.define("casa-tile", CasaTile);
+}
+if (!customElements.get("casa-tile-editor")) {
+  customElements.define("casa-tile-editor", CasaTileEditor);
+}
 
 window.customCards = window.customCards || [];
 window.customCards.push({
@@ -5235,5 +5241,5 @@ window.customCards.push({
   documentationURL: "https://www.home-assistant.io/dashboards/",
 });
 
-console.info("%c CASA-TILE %c v1.78.0 ", "background:#5ec8ff;color:#0b1220;font-weight:700",
+console.info("%c CASA-TILE %c v1.78.1 ", "background:#5ec8ff;color:#0b1220;font-weight:700",
              "background:#111a27;color:#eaf1fb");
