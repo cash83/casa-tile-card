@@ -1,7 +1,7 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.62.0
+ * v1.78.0
  */
 
 const COLORI = {
@@ -936,13 +936,15 @@ ha-card::after {
 }
 :host([acceso]) ha-card::after { opacity: 1; }
 .testa { display: flex; align-items: flex-start; gap: 8px; }
-.nome { font-size: 13.5px; font-weight: 600; line-height: 1.25; color: var(--primary-text-color, #eaf1fb); }
+.nome { font-size: 13.5px; font-weight: 600; line-height: 1.25;
+  color: var(--testo, var(--primary-text-color, #eaf1fb)); }
 .sotto {
-  font-size: 11.5px; color: var(--secondary-text-color, #6d8099); margin-top: 2px;
+  font-size: 11.5px; color: var(--testo2, var(--secondary-text-color, #6d8099)); margin-top: 2px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden; line-height: 1.3;
 }
-:host([acceso]) .sotto { color: color-mix(in srgb, var(--c) 32%, var(--secondary-text-color, #a9b6c7)); }
+:host([acceso]) .sotto {
+  color: var(--testo2, color-mix(in srgb, var(--c) 32%, var(--secondary-text-color, #a9b6c7))); }
 .riga { display: flex; align-items: flex-end; gap: 10px; margin-top: auto; }
 .iconaFoto { width: 54px; height: 54px; flex: 0 0 54px; object-fit: contain;
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
@@ -1008,10 +1010,18 @@ img.ritratto {
   text-overflow: ellipsis; white-space: nowrap;
 }
 .cursore { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
+.cursore .muto { appearance: none; border: none; cursor: pointer; flex: none; padding: 0;
+  width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(12,18,28,.55); color: var(--primary-text-color, #eaf1fb); }
+.cursore .muto svg { width: 17px; height: 17px; fill: currentColor; pointer-events: none; }
+.cursore .muto[hidden] { display: none !important; }
+.cursore .muto[zitto] { background: color-mix(in srgb, var(--c) 34%, rgba(12,18,28,.6));
+  color: #fff; }
 .cursore[hidden] { display: none !important; }
 .cursore input, .pannello .vol {
   flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 99px;
-  cursor: pointer; background: rgba(255,255,255,.16); outline: none;
+  cursor: pointer; background: rgba(10,15,24,.55); outline: none;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.10);
   background-image: linear-gradient(var(--c), var(--c));
   background-size: var(--riempito, 0%) 100%; background-repeat: no-repeat;
 }
@@ -1031,9 +1041,9 @@ img.ritratto {
 .valore {
   margin-left: auto; font-size: 20px; font-weight: 700; line-height: 1;
   letter-spacing: -.02em; font-variant-numeric: tabular-nums;
-  color: var(--disabled-text-color, #7b8ba3);
+  color: var(--testo2, var(--disabled-text-color, #7b8ba3));
 }
-:host([acceso]) .valore { color: var(--c); }
+:host([acceso]) .valore { color: var(--testo, var(--c)); }
 :host([grande]) svg.icona { width: 84px; height: 84px; flex: 0 0 84px; }
 :host([grande]) .valore { font-size: 27px; }
 :host([grande]) ha-card { min-height: 152px; }
@@ -1088,15 +1098,23 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 
 :host([effetto="neon"][acceso]) ha-card {
   border-color: var(--c);
-  box-shadow: inset 0 0 24px var(--alone1), 0 0 24px var(--alone2), 0 16px 44px var(--alone2);
+  box-shadow: 0 0 24px var(--alone2), 0 16px 44px var(--alone2);
+}
+:host([effetto="neon"][acceso]) ha-card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 24px var(--alone1), inset 0 0 0 1px var(--alone1);
 }
 :host([effetto="neon"][acceso]) .nome { text-shadow: 0 0 14px var(--alone2); }
 
 :host([effetto="vetro"]) ha-card {
+  border-color: rgba(255,255,255,.22);
+  box-shadow: 0 12px 34px rgba(0,0,0,.4);
+}
+:host([effetto="vetro"]) ha-card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
   background: linear-gradient(160deg, rgba(255,255,255,.16), rgba(255,255,255,.05));
   backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border-color: rgba(255,255,255,.22);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 12px 34px rgba(0,0,0,.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
 }
 
 @keyframes casa-scia {
@@ -1125,6 +1143,14 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
   }
 }
 
+/* "Quando si muove l'icona" vale per tutta la casella: se dice di no,
+   si fermano anche gli effetti, non solo l'icona */
+:host(:not([anima])) ha-card,
+:host(:not([anima])) ha-card::before,
+:host(:not([anima])) ha-card::after,
+:host(:not([anima])) img.ritratto,
+:host(:not([anima])) .cielo * { animation: none !important; }
+
 /* --- alone grande e sfocato dietro la casella --- */
 @keyframes casa-respiro-lento { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
 :host([effetto="bagliore"][acceso]) ha-card {
@@ -1135,7 +1161,7 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 /* --- luce che gira lungo il bordo --- */
 @keyframes casa-gira { to { transform: rotate(360deg); } }
 :host([effetto="bordo"][acceso]) ha-card::before {
-  content: ""; position: absolute; inset: -60%; pointer-events: none; z-index: 0;
+  content: ""; position: absolute; inset: -60%; pointer-events: none; z-index: 1;
   background: conic-gradient(transparent 0 62%, var(--c) 80%, transparent 100%);
   opacity: .7; animation: casa-gira calc(4s / var(--vel, 1)) linear infinite;
   filter: blur(2px);
@@ -1144,15 +1170,17 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 :host([effetto="bordo"][acceso]) .riga { position: relative; z-index: 1; }
 
 /* --- sfondo tinto del colore --- */
-:host([effetto="sfondo"][acceso]) ha-card {
-  background: linear-gradient(155deg, var(--alone2), var(--velo) 45%, transparent 85%),
-              linear-gradient(160deg, #111a27 0%, #0d1420 100%);
+:host([effetto="sfondo"][acceso]) ha-card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(155deg, var(--alone2), var(--velo) 45%, transparent 85%);
 }
 
 /* --- sfondo che si muove piano --- */
 @keyframes casa-sfondo { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-:host([effetto="sfondo_mosso"][acceso]) ha-card {
-  background: linear-gradient(110deg, #0d1420, var(--velo), #111a27, var(--velo), #0d1420);
+:host([effetto="sfondo_mosso"][acceso]) ha-card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(110deg, transparent, var(--velo) 25%, transparent 50%,
+              var(--velo) 75%, transparent);
   background-size: 320% 100%;
   animation: casa-sfondo calc(7s / var(--vel, 1)) linear infinite alternate;
 }
@@ -1200,8 +1228,11 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 }
 
 /* --- incavo, come premuta dentro --- */
-:host([effetto="incavo"][acceso]) ha-card {
+:host([effetto="incavo"][acceso]:not([sfondo-foto])) ha-card {
   background: linear-gradient(160deg, #0b111b 0%, #0e1622 100%);
+}
+:host([effetto="incavo"][acceso]) ha-card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
   box-shadow: inset 0 6px 18px rgba(0,0,0,.75), inset 0 -3px 0 var(--alone1),
               inset 0 0 0 1px var(--alone1);
 }
@@ -1259,9 +1290,23 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 :host([disposizione="persona"]) .cursore { grid-area: cursore; }
 :host([disposizione="persona"]) .nome { font-size: 15px; }
 :host([disposizione="persona"]) .sotto { -webkit-line-clamp: 3; }
-.sotto .stato { color: var(--c); font-weight: 600; }
+.sotto .stato { color: var(--testo, var(--c)); font-weight: 600; }
 :host(:not([acceso])) .sotto .stato { color: var(--secondary-text-color, #8b98ab); }
 .sotto .via { display: block; margin-top: 2px; }
+
+/* --- la copertina del disco come sfondo sfocato --- */
+.copertina {
+  position: absolute; inset: -14%; z-index: 0; pointer-events: none;
+  background-size: cover; background-position: center;
+  filter: blur(var(--sfoca, 8px)) saturate(1.2) brightness(var(--luce-cop, .62));
+  transform: scale(1.04);
+  transition: background-image .5s ease;
+}
+.copertina[hidden] { display: none !important; }
+/* gli effetti sono disegnati con ::before e ::after: devono restare
+   sopra la copertina (i contenuti, che stanno a z-index 1 e vengono
+   dopo nel documento, restano comunque sopra tutti e due) */
+ha-card::before, ha-card::after { z-index: 1; }
 
 /* --- il meteo come sfondo --- */
 .cielo {
@@ -1274,7 +1319,8 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
   background: radial-gradient(130% 100% at 50% -12%, rgba(0,0,0,0) 48%, rgba(0,0,0,.30) 100%);
 }
 .testa, .chips, .cursore, svg.icona, img.ritratto, .valore,
-.lettori, .extra, .pannello { position: relative; z-index: 1; }
+.lettori, .extra, .pannello, .tempo, .comandi, .colori,
+.iconaHa, .iconaFoto { position: relative; z-index: 1; }
 
 @keyframes casa-nuvole { from { transform: translateX(-18%); } to { transform: translateX(18%); } }
 .cielo .nuvola {
@@ -1336,14 +1382,16 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 .tempo .binario { flex: 1; height: 4px; border-radius: 99px; background: rgba(255,255,255,.16); overflow: hidden; }
 .tempo .binario i { display: block; height: 100%; border-radius: 99px; background: var(--c);
   transition: width .9s linear; }
-.tempo .orologio { font-size: 11px; color: var(--secondary-text-color, #9fb0c6);
+.tempo .orologio { font-size: 11px; color: var(--testo2, var(--secondary-text-color, #9fb0c6));
   font-variant-numeric: tabular-nums; white-space: nowrap; }
 .comandi { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; }
 .comandi[hidden] { display: none !important; }
 .comandi button {
   appearance: none; border: none; cursor: pointer; font: inherit; font-size: 15px;
   width: 34px; height: 34px; border-radius: 50%; line-height: 1;
-  background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb);
+  background: rgba(12,18,28,.55); color: #fff;
+  border: 1px solid rgba(255,255,255,.14);
+  backdrop-filter: blur(4px);
   display: grid; place-items: center;
 }
 .comandi button[hidden] { display: none !important; }
@@ -1381,7 +1429,8 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 .comandi button.grosso svg { width: 23px; height: 23px; }
 .comandi button:hover { background: rgba(255,255,255,.18); }
 .comandi button.grosso { width: 40px; height: 40px; font-size: 17px;
-  background: color-mix(in srgb, var(--c) 30%, transparent); }
+  background: color-mix(in srgb, var(--c) 55%, rgba(12,18,28,.6));
+  border-color: color-mix(in srgb, var(--c) 60%, transparent); }
 
 /* --- disposizione "musica": copertina, titolo, comandi incolonnati --- */
 :host([disposizione="musica"]) ha-card {
@@ -1405,11 +1454,11 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 :host([disposizione="musica"]) .cursore { grid-area: cursore; }
 :host([disposizione="musica"]) .nome {
   font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
-  color: var(--secondary-text-color, #8ea0b8);
+  color: var(--testo2, var(--secondary-text-color, #8ea0b8));
 }
 :host([disposizione="musica"]) .sotto {
   font-size: 14.5px; font-weight: 600; line-height: 1.25; margin-top: 3px;
-  color: var(--primary-text-color, #eaf1fb); -webkit-line-clamp: 2;
+  color: var(--testo, var(--primary-text-color, #eaf1fb)); -webkit-line-clamp: 2;
 }
 :host([disposizione="musica"]) .comandi { margin-top: 12px; }
 :host([disposizione="musica"]) .cursore { margin-top: 8px; }
@@ -1417,8 +1466,10 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 /* --- l'onda del tempo (disposizione vinile) --- */
 .ondabox { display: none; position: relative; height: 26px; }
 .ondabox svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.ondabox path { fill: none; stroke-width: 2.4; stroke-linecap: round;
-  vector-effect: non-scaling-stroke; }
+/* NIENTE vector-effect qui: con la riga stirata farebbe contare i trattini
+   in pixel di schermo mentre pathLength li conta nel disegno, e il pezzo
+   colorato resterebbe indietro rispetto al pallino */
+.ondabox path { fill: none; stroke-width: 2.4; stroke-linecap: round; }
 .ondabox path.fondo { stroke: rgba(255,255,255,.17); }
 .ondabox path.fatta { stroke: url(#grOnda); transition: stroke-dasharray .9s linear; }
 .ondabox .s1 { stop-color: var(--c); }
@@ -1456,17 +1507,17 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 :host([disposizione="vinile"]) .testa .testi { text-align: center; }
 :host([disposizione="vinile"]) .nome {
   font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
-  color: var(--secondary-text-color, #8ea0b8);
+  color: var(--testo2, var(--secondary-text-color, #8ea0b8));
 }
 :host([disposizione="vinile"]) .sotto { display: block; margin-top: 4px; }
 :host([disposizione="vinile"]) .sotto .brano {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   font-size: 15px; font-weight: 700; line-height: 1.22;
-  color: var(--primary-text-color, #eaf1fb);
+  color: var(--testo, var(--primary-text-color, #eaf1fb));
 }
 :host([disposizione="vinile"]) .sotto .artista {
   display: block; margin-top: 2px; font-size: 12px; font-weight: 500;
-  color: var(--secondary-text-color, #8ea0b8);
+  color: var(--testo2, var(--secondary-text-color, #8ea0b8));
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 :host([disposizione="vinile"]) .chips { grid-area: misure; width: 100%;
@@ -1479,11 +1530,11 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 :host([disposizione="vinile"]) .comandi { grid-area: comandi; gap: 10px; margin-top: 12px; }
 :host([disposizione="vinile"]) .comandi button {
   width: 52px; height: 34px; border-radius: 11px; font-size: 15px;
-  background: rgba(255,255,255,.07);
+  background: rgba(12,18,28,.55);
 }
 :host([disposizione="vinile"]) .comandi button.grosso {
   width: 64px; height: 40px; border-radius: 13px; font-size: 18px;
-  background: color-mix(in srgb, var(--c) 26%, rgba(255,255,255,.06));
+  background: color-mix(in srgb, var(--c) 55%, rgba(12,18,28,.6));
 }
 :host([disposizione="vinile"]) .cursore { grid-area: cursore; width: 100%; margin-top: 10px; }
 
@@ -1820,6 +1871,14 @@ const PAROLE = {
   on: "Acceso", off: "Spento", none: "-", wired: "Via cavo", disconnected: "Scollegato",
 };
 
+// la foto dell'entita': meglio quella che passa da Home Assistant
+// (`entity_picture_local`), perche' l'altra puo' essere un indirizzo che
+// da fuori casa non si raggiunge o che il browser blocca se e' http
+function fotoDi(st) {
+  if (!st || !st.attributes) return null;
+  return st.attributes.entity_picture_local || st.attributes.entity_picture || null;
+}
+
 const SPENTI = ["off", "unavailable", "unknown", "not_home", "idle", "docked",
                 "standby", "paused", "closed", "disarmed", "none"];
 
@@ -2051,6 +2110,14 @@ const SEGNI = {
   bianco: "M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8M12,18A6,6 0 "
     + "0,1 6,12A6,6 0 0,1 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,"
     + "4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z",
+  volume: "M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,"
+    + "19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,"
+    + "15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z",
+  muto: "M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,"
+    + "18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,"
+    + "10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 "
+    + "18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,"
+    + "12.63C16.5,12.43 16.5,12.21 16.5,12Z",
   spegni: "M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,"
     + "9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,"
     + "12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13V3Z",
@@ -2178,6 +2245,7 @@ class CasaTile extends HTMLElement {
     root.innerHTML = `<style>${STILE}</style>
       <ha-card tabindex="0">
         <div class="cielo" hidden></div>
+        <div class="copertina" hidden></div>
         <div class="lettori" hidden></div>
         <div class="testa"><div class="testi"><div class="nome"></div><div class="sotto"></div></div><div class="meteo" hidden><div class="gradi"></div><div class="cond"></div></div></div>
         <div class="riga"><svg class="icona" viewBox="0 0 64 64" fill="none"></svg><ha-icon class="iconaHa" hidden></ha-icon><img class="iconaFoto" alt="" hidden><img class="ritratto" alt="" hidden><div class="valore"></div></div>
@@ -2202,7 +2270,7 @@ class CasaTile extends HTMLElement {
           <button class="succ" title="Successivo">${segno("succ")}</button>
           <button class="stop" title="Ferma">${segno("stop")}</button>
         </div>
-        <div class="cursore" hidden><input type="range" min="0" max="100" step="1"><span class="quanto"></span></div>
+        <div class="cursore" hidden><button class="muto" type="button" hidden></button><input type="range" min="0" max="100" step="1"><span class="quanto"></span></div>
         <div class="colori" hidden>
           <input class="tinta" type="range" min="0" max="360" step="1">
           <input class="calore" type="range" min="2000" max="6500" step="50">
@@ -2237,6 +2305,7 @@ class CasaTile extends HTMLElement {
     this._sotto = root.querySelector(".sotto");
     this._meteo = root.querySelector(".meteo");
     this._cielo = root.querySelector(".cielo");
+    this._copertina = root.querySelector(".copertina");
     const apriMeteo = (e) => {
       const eid = this._config.meteo_entita;
       if (!eid) return;
@@ -2335,6 +2404,17 @@ class CasaTile extends HTMLElement {
     this._bGruppo.addEventListener("click", () => this._apriPannello("gruppo"));
     this._bFonte.addEventListener("click", () => this._apriPannello("fonti"));
     this._cursore = root.querySelector(".cursore");
+    this._muto = root.querySelector(".cursore .muto");
+    ["click", "pointerdown"].forEach((ev) =>
+      this._muto.addEventListener(ev, (e) => e.stopPropagation()));
+    this._muto.addEventListener("click", () => {
+      const st = this._hass ? this._hass.states[this._config.entity] : null;
+      if (!st) return;
+      this._hass.callService("media_player", "volume_mute", {
+        entity_id: this._config.entity,
+        is_volume_muted: !st.attributes.is_volume_muted,
+      });
+    });
     this._range = root.querySelector(".cursore input");
     this._quanto = root.querySelector(".cursore .quanto");
     ["click", "pointerdown", "touchstart"].forEach((ev) =>
@@ -2654,9 +2734,19 @@ class CasaTile extends HTMLElement {
     this._binario.style.width = fatto.toFixed(1) + "%";
     if (this._fatta) {
       this._fatta.setAttribute("stroke-dasharray", fatto.toFixed(2) + " 100");
-      // dove sta il pallino sull'onda: y = 13 - 7 * sin(2pi * x / 75)
-      const y = 13 - 7 * Math.sin(2 * Math.PI * (fatto * 3) / 75);
-      this._pallino.style.left = fatto.toFixed(2) + "%";
+      // il pallino va messo dove finisce davvero la riga colorata: glielo
+      // chiedo alla riga stessa, cosi' i due non litigano mai
+      let x = fatto * 3;
+      let y = 13 - 7 * Math.sin(2 * Math.PI * (fatto * 3) / 75);
+      try {
+        const lung = this._fatta.getTotalLength();
+        if (lung > 0) {
+          const punto = this._fatta.getPointAtLength(lung * fatto / 100);
+          x = punto.x;
+          y = punto.y;
+        }
+      } catch (e) { /* certi browser non ce la fanno: resta il conto a mano */ }
+      this._pallino.style.left = (x / 300 * 100).toFixed(2) + "%";
       this._pallino.style.top = (y / 26 * 100).toFixed(2) + "%";
     }
     this._orologio.textContent = this._mmss(dove) + " / " + this._mmss(totale);
@@ -2683,6 +2773,12 @@ class CasaTile extends HTMLElement {
   connectedCallback() {
     // solo ora posso sapere se sto dentro il riquadro di anteprima
     if (this._costruito) this._disegnaAntPopup();
+    // staccando la casella (cambio pagina, scorrimento) l'orologio si ferma:
+    // qui torna in vita, se no la riga della musica resta indietro
+    if (this._costruito && this._hass && this._config && this._config.entity) {
+      const st = this._hass.states[this._config.entity];
+      if (st) this._disegnaTempo(st);
+    }
   }
 
   _disegnaComandi(st) {
@@ -3247,6 +3343,18 @@ class CasaTile extends HTMLElement {
     this._range.max = "100";
     this._range.step = "1";
 
+    // il tasto del muto sta accanto al volume, solo per la musica
+    const puoMuto = dominio === "media_player"
+      && (!st.attributes.supported_features
+          || (Number(st.attributes.supported_features) & 8));
+    this._muto.hidden = !puoMuto;
+    if (puoMuto) {
+      const zitto = !!st.attributes.is_volume_muted;
+      this._muto.toggleAttribute("zitto", zitto);
+      this._muto.innerHTML = segno(zitto ? "muto" : "volume");
+      this._muto.title = zitto ? "Riattiva l'audio" : "Silenzia";
+    }
+
     let valore = 0;
     if (dominio === "light") {
       valore = st.attributes.brightness ? Math.round(st.attributes.brightness / 2.55) : 0;
@@ -3403,6 +3511,13 @@ class CasaTile extends HTMLElement {
     if (!isNaN(n) && st.state.trim() !== "" && !["light", "switch", "fan"].includes(c.entity.split(".")[0])) {
       return n > (c.soglia !== undefined && c.soglia !== null ? Number(c.soglia) : 0);
     }
+    // la musica in pausa e' comunque accesa: il brano c'e' ancora, quindi
+    // bordo, alone ed effetti devono restare. Spenta solo se e' davvero
+    // spenta, ferma o non raggiungibile.
+    if (c.entity.split(".")[0] === "media_player") {
+      return ["playing", "paused", "buffering", "on"]
+        .includes(String(st.state).toLowerCase());
+    }
     return !SPENTI.includes(String(st.state).toLowerCase());
   }
 
@@ -3437,6 +3552,16 @@ class CasaTile extends HTMLElement {
       }
     }
 
+    // la scritta puo' avere un colore suo, staccato da quello degli effetti
+    const scritta = Array.isArray(c.colore_testo) ? daRgb(c.colore_testo) : null;
+    if (scritta) {
+      this.style.setProperty("--testo", scritta);
+      this.style.setProperty("--testo2", conAlfa(scritta, 0.72));
+    } else {
+      this.style.removeProperty("--testo");
+      this.style.removeProperty("--testo2");
+    }
+
     // sfondo della casella: tinta, foto o quello di serie, con trasparenza
     const opaco = 1 - (c.trasparenza === undefined ? 0 : Number(c.trasparenza)) / 100;
     const tinta = Array.isArray(c.sfondo_colore) ? daRgb(c.sfondo_colore) : null;
@@ -3461,8 +3586,11 @@ class CasaTile extends HTMLElement {
     }
     if (c.sfondo_immagine) {
       const velo = (c.sfondo_velo === undefined ? 45 : Number(c.sfondo_velo)) / 100;
+      // come si adatta: riempie tagliando, ci sta tutta, o grandezza vera
+      const adatta = c.sfondo_adatta === "intera" ? "center/contain"
+        : (c.sfondo_adatta === "vera" ? "center/auto" : "center/cover");
       fondo = "linear-gradient(rgba(6,9,14," + velo + "), rgba(6,9,14," + velo + ")), "
-        + 'url("' + c.sfondo_immagine + '") center/cover no-repeat';
+        + 'url("' + c.sfondo_immagine + '") ' + adatta + ' no-repeat';
     }
     const forza = (c.meteo_forza === undefined || c.meteo_forza === null
       ? 92 : Number(c.meteo_forza)) / 100;
@@ -3556,10 +3684,40 @@ class CasaTile extends HTMLElement {
     this._disegnaExtra(st);
     this._disegnaColori(st);
     this._disegnaAntPopup();
+    if (this._copertina) {
+      const suaCop = fotoDi(st);
+      const cop = c.sfondo_copertina && !!suaCop && !c.sfondo_immagine;
+      this._copertina.hidden = !cop;
+      if (cop) {
+        const quanto = (c.sfondo_sfocatura === undefined || c.sfondo_sfocatura === null)
+          ? 8 : Number(c.sfondo_sfocatura);
+        this.style.setProperty("--sfoca", quanto + "px");
+        // niente doppio scurimento: a scurire ci pensa solo il velo qui sotto
+        this.style.setProperty("--luce-cop", "0.95");
+        // quanto scurirla lo decide lui con "Velo scuro sulla foto"
+        const velo = (c.sfondo_velo === undefined ? 30 : Number(c.sfondo_velo)) / 100;
+        // il velo sta nella stessa proprieta' della foto: cosi' viene sfocato
+        // insieme a lei e il titolo resta leggibile
+        const url = "linear-gradient(180deg, rgba(8,12,20," + (velo * 0.7).toFixed(2)
+          + "), rgba(8,12,20," + Math.min(0.92, velo + 0.16).toFixed(2) + ")), "
+          + 'url("' + suaCop + '")';
+        if (this._copertina.style.backgroundImage !== url) {
+          this._copertina.style.backgroundImage = url;
+        }
+      }
+    }
     this._disegnaMeteo();
     this._disegnaChips();
     this._disegnaCursore(st);
-    const foto = (st && st.attributes && st.attributes.entity_picture) || null;
+    const foto = fotoDi(st);
+    // se non la vuole, via l'icona in tutte le sue forme
+    if (c.mostra_icona === false) {
+      this._ritratto.hidden = true;
+      this._svg.style.display = "none";
+      if (this._svgHa) this._svgHa.hidden = true;
+      if (this._svgFoto) this._svgFoto.hidden = true;
+      return;
+    }
     const usaFoto = foto && c.usa_foto !== false;
     this._ritratto.hidden = !usaFoto;
     this._svg.style.display = usaFoto ? "none" : "";
@@ -3630,6 +3788,7 @@ const SEZIONI = [
       {
         type: "grid", name: "", schema: [
           { name: "grande", selector: { boolean: {} } },
+          { name: "mostra_icona", selector: { boolean: {} } },
           { name: "usa_foto", selector: { boolean: {} } },
           { name: "nascondi_valore", selector: { boolean: {} } },
           { name: "acceso_sempre", selector: { boolean: {} } },
@@ -3699,6 +3858,7 @@ const SEZIONI = [
       ] } } },
       { name: "intensita", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
       { name: "velocita", selector: { number: { min: 25, max: 300, step: 5, mode: "slider" } } },
+      { name: "colore_testo", selector: { color_rgb: {} } },
     ],
   },
   {
@@ -3710,9 +3870,16 @@ const SEZIONI = [
           { name: "trasparenza", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
         ],
       },
+      { name: "sfondo_copertina", selector: { boolean: {} } },
+      { name: "sfondo_sfocatura", selector: { number: { min: 0, max: 24, step: 1, mode: "slider" } } },
       { name: "sfondo_meteo", selector: { boolean: {} } },
       { name: "meteo_forza", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
       { name: "sfondo_immagine", selector: { text: {} } },
+      { name: "sfondo_adatta", selector: { select: { mode: "dropdown", options: [
+        { value: "riempi", label: "Riempie la casella (taglia i bordi)" },
+        { value: "intera", label: "Tutta intera dentro la casella" },
+        { value: "vera", label: "Grandezza vera della foto" },
+      ] } } },
       { name: "sfondo_velo", selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
     ],
   },
@@ -3749,6 +3916,8 @@ const SOLO_PER = {
   usa_foto: ["person", "device_tracker", "media_player", "camera"],
   mostra_cursore: ["light", "fan", "media_player", "number", "input_number"],
   cursore_colore: ["light"],
+  sfondo_copertina: ["media_player"],
+  sfondo_sfocatura: ["media_player"],
   cursore_min: ["number", "input_number"],
   cursore_max: ["number", "input_number"],
   colore_striscia: ["light"],
@@ -3759,7 +3928,8 @@ const SOLO_PER = {
   multiroom: ["media_player"],
   sorgente: ["media_player"],
   soglia: ["sensor", "number", "input_number", "counter"],
-  acceso_sempre: ["sensor", "binary_sensor", "weather", "number", "input_number", "counter"],
+  acceso_sempre: ["sensor", "binary_sensor", "weather", "number", "input_number",
+                  "counter", "media_player"],
 };
 
 const ETICHETTE = {
@@ -3772,13 +3942,18 @@ const ETICHETTE = {
   disposizione: "Come e disposta la casella",
   azione: "Cosa fa quando la tocchi", anima: "Quando si muove l'icona",
   effetto: "Effetto della casella", intensita: "Intensita del colore (%)",
+  anima: "Quando si muove (icona ed effetti)",
+  colore_testo: "Colore della scritta (lascialo vuoto per quello del tema)",
   colore_rgb: "Colore personalizzato (vale solo scegliendo \"personalizzato\" qui sopra)",
   sfondo_colore: "Sfondo della casella (tinta)",
   trasparenza: "Trasparenza della casella (%)",
   sfondo_meteo: "Usa il meteo come sfondo di tutta la casella",
   meteo_forza: "Quanto si vede la scena meteo (%) - 0 lascia solo il colore",
   sfondo_immagine: "Foto di sfondo - indirizzo, es. /local/foto.jpg",
-  sfondo_velo: "Velo scuro sulla foto (%) - serve a leggere il testo",
+  sfondo_adatta: "Come si adatta la foto",
+  sfondo_copertina: "Copertina del disco come sfondo",
+  sfondo_sfocatura: "Quanto sfocarla (0 = nitida)",
+  sfondo_velo: "Velo scuro sulla foto o sulla copertina (%) - serve a leggere il testo",
   velocita: "Velocita dell'effetto (%) - 100 e normale",
   popup: "Pop-up bubble-card da aprire (es. #luci)",
   info_entita: "Misure mostrate in basso (aggiungine altre da qui)",
@@ -3794,8 +3969,9 @@ const ETICHETTE = {
   multiroom: "Tasto Casse: unisci gli altoparlanti e regola i volumi",
   sorgente: "Tasto Sorgente: scegli l'ingresso del lettore",
   grande: "Casella grande",
+  mostra_icona: "Mostra l'icona (toglila per lasciare solo le scritte)",
   usa_foto: "Usa la foto dell'entita, se ce l'ha (persone, copertine)",
-  acceso_sempre: "Sempre a colori (per i sensori)",
+  acceso_sempre: "Sempre a colori (anche da spenta)",
   icona_ha: "Icona di Home Assistant (cercala qui; vince su quella sotto)",
   nascondi_valore: "Nascondi il valore", soglia: "Soglia di accensione (W)",
   acceso_se: "Si accende solo quando l'entita' vale esattamente (es. 95)",
@@ -4075,6 +4251,8 @@ class CasaTileEditor extends HTMLElement {
       this._sensori.className = "blocco";
       this._scelte = document.createElement("div");
       this._scelte.className = "scelte";
+      this._tinte = document.createElement("div");
+      this._tinte.className = "scelte";
 
       this._barra = document.createElement("div");
       this._barra.className = "schede";
@@ -4119,6 +4297,7 @@ class CasaTileEditor extends HTMLElement {
         pannello.appendChild(form);
 
         if (sez.chiave === "base") pannello.appendChild(this._scelte);
+        if (sez.chiave === "effetti") pannello.appendChild(this._tinte);
         if (sez.chiave === "dettagli") pannello.appendChild(this._sensori);
         if (sez.chiave === "sfondo") pannello.appendChild(this._foto);
         if (sez.chiave === "tocco") pannello.appendChild(this._blocco);
@@ -4140,6 +4319,7 @@ class CasaTileEditor extends HTMLElement {
   // icona e colore si scelgono guardandoli
   _costruisciScelte() {
     const box = this._scelte;
+    const tin = this._tinte;
     if (!box) return;
     if (!box._fatto) {
       box._fatto = true;
@@ -4148,10 +4328,7 @@ class CasaTileEditor extends HTMLElement {
         + "l'icona la decide il tempo che fa (sole, nuvole, pioggia, neve, "
         + "temporale, nebbia, vento) e cambia da sola.</p>"
         + "<input class='cercaIcona' type='search' placeholder='Cerca l&apos;icona: luce, presa, porta, auto...'>"
-        + "<div class='iconePicker'></div>"
-        + "<h4>Colore quando e accesa</h4>"
-        + "<p class='aiuto'>Tocca la ruota per scegliere il colore che vuoi.</p>"
-        + "<div class='coloriPicker'></div>";
+        + "<div class='iconePicker'></div>";
 
       const griglia = box.querySelector(".iconePicker");
       // del meteo ne basta una: tanto poi la sceglie il tempo che fa
@@ -4194,7 +4371,11 @@ class CasaTileEditor extends HTMLElement {
         griglia.appendChild(b);
       });
 
-      const fila = box.querySelector(".coloriPicker");
+      tin.innerHTML = "<h4>Colore quando e accesa</h4>"
+        + "<p class='aiuto'>Tocca la ruota per scegliere il colore che vuoi: "
+        + "e' quello dell'alone, del bordo e di tutti gli effetti.</p>"
+        + "<div class='coloriPicker'></div>";
+      const fila = tin.querySelector(".coloriPicker");
       // niente piu' pallini fissi: bastano la ruota e "come la lampada"
       [].forEach((nome) => {
         const b = document.createElement("button");
@@ -4224,7 +4405,7 @@ class CasaTileEditor extends HTMLElement {
         this._costruisciScelte();
       });
       fila.appendChild(lampada);
-      box._lampada = lampada;
+      tin._lampada = lampada;
 
       const libero = document.createElement("button");
       libero.type = "button";
@@ -4243,8 +4424,8 @@ class CasaTileEditor extends HTMLElement {
       });
       libero.appendChild(scelta);
       fila.appendChild(libero);
-      box._libero = libero;
-      box._scelta = scelta;
+      tin._libero = libero;
+      tin._scelta = scelta;
 
       // un'icona tutta sua, presa dal telefono o dal PC
       const suaRiga = document.createElement("div");
@@ -4301,15 +4482,15 @@ class CasaTileEditor extends HTMLElement {
       nota.hidden = suoDominio !== "weather";
       griglia.hidden = suoDominio === "weather";
     }
-    if (box._lampada) {
+    if (tin && tin._lampada) {
       const dom = String(c.entity || "").split(".")[0];
       const st = this._hass ? this._hass.states[c.entity] : null;
       const modi = st ? (st.attributes.supported_color_modes || []) : [];
       const aColori = dom === "light" && modi.some((m) =>
         ["rgb", "rgbw", "rgbww", "hs", "xy", "color_temp"].includes(m));
-      box._lampada.hidden = !aColori;
+      tin._lampada.hidden = !aColori;
       const rgb = st && st.attributes.rgb_color;
-      box._lampada.style.background = Array.isArray(rgb)
+      tin._lampada.style.background = Array.isArray(rgb)
         ? daRgb(coloreLampada(rgb))
         : "linear-gradient(135deg, #ff5f5f, #ffc046, #5ec8ff)";
     }
@@ -4335,16 +4516,18 @@ class CasaTileEditor extends HTMLElement {
           .replace(/url\(#([a-z0-9]+)\)/g, "url(#$1_auto)")
         + "</svg>";
     }
-    box.querySelectorAll(".sceltaColore").forEach((b) =>
-      b.toggleAttribute("scelta", b.dataset.nome === (c.colore || "ambra")));
-    if (Array.isArray(c.colore_rgb)) {
+    if (tin) {
+      tin.querySelectorAll(".sceltaColore").forEach((b) =>
+        b.toggleAttribute("scelta", b.dataset.nome === (c.colore || "ambra")));
+    }
+    if (Array.isArray(c.colore_rgb) && tin && tin._libero) {
       const tinta = daRgb(c.colore_rgb);
       if (tinta) {
-        box._libero.style.background = tinta;
-        box._scelta.value = tinta;
+        tin._libero.style.background = tinta;
+        tin._scelta.value = tinta;
       }
-    } else if (box._libero) {
-      box._libero.style.background =
+    } else if (tin && tin._libero) {
+      tin._libero.style.background =
         "conic-gradient(#ff5f5f, #ffc046, #3fd98a, #4fe0c8, #5ec8ff, #9b6bff, #ff5f5f)";
     }
   }
@@ -5052,5 +5235,5 @@ window.customCards.push({
   documentationURL: "https://www.home-assistant.io/dashboards/",
 });
 
-console.info("%c CASA-TILE %c v1.62.0 ", "background:#5ec8ff;color:#0b1220;font-weight:700",
+console.info("%c CASA-TILE %c v1.78.0 ", "background:#5ec8ff;color:#0b1220;font-weight:700",
              "background:#111a27;color:#eaf1fb");
