@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.83.0
+ * v1.84.0
  */
 
-const VERSIONE = "1.83.0";
+const VERSIONE = "1.84.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1909,6 +1909,11 @@ function fotoDi(st) {
   return st.attributes.entity_picture_local || st.attributes.entity_picture || null;
 }
 
+// quale riquadro (casse / sorgenti) era aperto, per entita'. Sta fuori
+// dall'elemento apposta: serve a ritrovarlo se Home Assistant, mentre si
+// modificano le impostazioni, rifa' la casella da zero.
+const PANNELLI_APERTI = new Map();
+
 const SPENTI = ["off", "unavailable", "unknown", "not_home", "idle", "docked",
                 "standby", "paused", "closed", "disarmed", "none"];
 
@@ -2804,12 +2809,11 @@ class CasaTile extends HTMLElement {
   connectedCallback() {
     // solo ora posso sapere se sto dentro il riquadro di anteprima
     if (this._costruito) this._disegnaAntPopup();
-    // staccando la casella (cambio pagina, scorrimento) l'orologio si ferma:
-    // qui torna in vita, se no la riga della musica resta indietro
-    if (this._costruito && this._hass && this._config && this._config.entity) {
-      const st = this._hass.states[this._config.entity];
-      if (st) this._disegnaTempo(st);
-    }
+    // Solo ora sono attaccato alla pagina, quindi solo ora posso sapere se
+    // sono nell'anteprima delle impostazioni: rifaccio il giro completo, che
+    // rimette in moto l'orologio della musica e riapre il riquadro che era
+    // aperto prima che Home Assistant rifacesse la casella.
+    if (this._costruito && this._hass && this._config) this._render();
   }
 
   _disegnaComandi(st) {
@@ -2860,12 +2864,23 @@ class CasaTile extends HTMLElement {
     this._panFonti.hidden = gruppo ? true : eraAperto;
     this._bGruppo.toggleAttribute("aperto", !this._panGruppo.hidden);
     this._bFonte.toggleAttribute("aperto", !this._panFonti.hidden);
+    this._ricordaPannello();
     this._render();
+  }
+
+  // me lo segno fuori dall'elemento, cosi' sopravvive a un rifacimento
+  _ricordaPannello() {
+    const chi = (this._config && this._config.entity) || "";
+    const quale = !this._panGruppo.hidden
+      ? "gruppo" : (!this._panFonti.hidden ? "fonti" : null);
+    if (quale) PANNELLI_APERTI.set(chi, quale);
+    else PANNELLI_APERTI.delete(chi);
   }
 
   _chiudiPannelli() {
     this._panGruppo.hidden = true;
     this._panFonti.hidden = true;
+    PANNELLI_APERTI.delete((this._config && this._config.entity) || "");
     this._bGruppo.removeAttribute("aperto");
     this._bFonte.removeAttribute("aperto");
     this._render();
@@ -3009,6 +3024,16 @@ class CasaTile extends HTMLElement {
     if (!conFonti && !this._panFonti.hidden) {
       this._panFonti.hidden = true;
       this._bFonte.removeAttribute("aperto");
+    }
+    // nell'anteprima delle impostazioni la casella viene rifatta in
+    // continuazione: rimetto aperto il riquadro che stava aperto, se no
+    // a ogni ritocco si chiude e tocca riaprirlo
+    if (this._dentroAnteprima()) {
+      const quale = PANNELLI_APERTI.get(c.entity) || null;
+      this._panGruppo.hidden = !(quale === "gruppo" && conGruppo);
+      this._panFonti.hidden = !(quale === "fonti" && conFonti);
+      this._bGruppo.toggleAttribute("aperto", !this._panGruppo.hidden);
+      this._bFonte.toggleAttribute("aperto", !this._panFonti.hidden);
     }
     if (!this._panGruppo.hidden) this._disegnaGruppo(st);
     if (!this._panFonti.hidden) this._disegnaFonti(st);
