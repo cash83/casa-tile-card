@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.96.0
+ * v2.2.0
  */
 
-const VERSIONE = "1.96.0";
+const VERSIONE = "2.2.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -951,21 +951,26 @@ ha-card::after {
 :host([acceso]) .sotto {
   color: var(--testo2, color-mix(in srgb, var(--c) 32%, var(--secondary-text-color, #a9b6c7))); }
 .riga { display: flex; align-items: flex-end; gap: 10px; margin-top: auto; }
-.iconaFoto { width: 54px; height: 54px; flex: 0 0 54px; object-fit: contain;
+.iconaFoto { width: auto; height: 54px; aspect-ratio: 1; max-height: 100%;
+  flex: 0 1 auto; object-fit: contain;
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) .iconaFoto { filter: drop-shadow(0 0 9px var(--alone2, transparent)); }
 .iconaFoto[hidden] { display: none !important; }
 :host([grande]) .iconaFoto { width: 84px; height: 84px; flex: 0 0 84px; }
-.iconaHa { --mdc-icon-size: 46px; width: 54px; height: 54px; flex: 0 0 54px;
+.iconaHa { --mdc-icon-size: 46px; width: auto; height: 54px; aspect-ratio: 1;
+  max-height: 100%; flex: 0 1 auto;
   display: grid; place-items: center; color: var(--c);
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) .iconaHa { filter: drop-shadow(0 0 10px var(--alone2, transparent)); }
 .iconaHa[hidden] { display: none !important; }
 :host([grande]) .iconaHa { width: 84px; height: 84px; flex: 0 0 84px; --mdc-icon-size: 72px; }
-svg.icona { width: 54px; height: 54px; flex: 0 0 54px; filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
+svg.icona { width: auto; height: 54px; aspect-ratio: 1; max-height: 100%;
+  min-height: 30px; flex: 0 1 auto;
+  filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) svg.icona { filter: none; }
 img.ritratto {
-  width: 54px; height: 54px; flex: 0 0 54px; border-radius: 50%; object-fit: cover;
+  width: auto; height: 54px; aspect-ratio: 1; max-height: 100%; flex: 0 1 auto;
+  border-radius: 50%; object-fit: cover;
   border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06);
   filter: grayscale(.75) brightness(.7); transition: filter .35s ease, border-color .35s ease;
 }
@@ -991,31 +996,50 @@ img.ritratto {
 }
 :host([grande]) .meteo .gradi { font-size: 26px; }
 /* nessun pezzo si gonfia: l'altezza la comanda la plancia */
-.testa, .riga, .chips, .tempo, .comandi, .cursore, .colori, .extra { flex: none; }
+.testa, .chips, .tempo, .comandi, .cursore, .colori, .extra { flex: none; }
+/* la riga dell'icona e' l'unica elastica: se il posto e' poco si stringe
+   lei, cosi' le misure in basso non vengono mai tagliate */
+.riga { flex: 0 1 auto; min-height: 0; }
+/* le misure in piu' stanno in alto a destra, accanto al nome: cosi' non
+   rubano altezza e la casella resta della misura che le hai dato */
 .chips {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
-  gap: 8px; margin-top: 12px;
+  display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center;
+  gap: 4px 6px; margin-left: auto; max-width: 56%; min-width: 0;
+}
+/* nella casella delle persone l'indirizzo viene prima: le pastiglie
+   vanno a capo, sotto al nome, dove c'e' spazio */
+:host([disposizione="persona"]) .testa { flex-wrap: wrap; align-items: flex-start; }
+:host([disposizione="persona"]) .testi { flex: 1 1 auto; min-width: 0; }
+:host([disposizione="persona"]) .meteo { order: 2; }
+:host([disposizione="persona"]) .chips {
+  order: 3; width: 100%; max-width: 100%;
+  justify-content: flex-start; margin: 7px 0 0;
 }
 .chips:empty { display: none; }
+/* casella bassa: si stringe tutto invece di tagliare qualcosa */
+:host([compatta]) .riga { margin-top: 6px; }
+:host([compatta]) svg.icona, :host([compatta]) img.ritratto,
+:host([compatta]) .iconaHa, :host([compatta]) .iconaFoto { height: 34px; min-height: 30px; }
+:host([compatta]) .valore { font-size: 17px; }
+:host([compatta]) .chips .metrica { padding: 1px 6px 1px 4px; }
+:host([compatta]) .metrica .num { font-size: 11px; }
+:host([compatta]) .sotto { -webkit-line-clamp: 1; }
 .metrica {
-  display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0;
-  cursor: pointer; border-radius: 10px; padding: 4px 2px;
+  display: flex; flex-direction: row; align-items: center; gap: 4px; min-width: 0;
+  cursor: pointer; border-radius: 99px; padding: 2px 7px 2px 5px;
+  background: rgba(255,255,255,.06);
   transition: background .2s ease;
 }
 .metrica:hover { background: rgba(255,255,255,.09); }
 .metrica:focus-visible { outline: 2px solid var(--c); outline-offset: 1px; }
-.metrica .simbolo { font-size: 14px; line-height: 1; opacity: .95; }
+.metrica .simbolo { font-size: 12.5px; line-height: 1; opacity: .95; }
 .metrica .num {
-  font-size: 13.5px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums;
+  font-size: 11.5px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums;
   color: var(--secondary-text-color, #9fb0c6); max-width: 100%; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
 }
 :host([acceso]) .metrica .num { color: var(--c); }
-.metrica .eti {
-  font-size: 9px; letter-spacing: .07em; text-transform: uppercase;
-  color: var(--disabled-text-color, #6d7a8d); max-width: 100%; overflow: hidden;
-  text-overflow: ellipsis; white-space: nowrap;
-}
+.metrica .eti { display: none; }
 .cursore { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
 .cursore .muto { appearance: none; border: none; cursor: pointer; flex: none; padding: 0;
   width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
@@ -1298,11 +1322,17 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 .testa .testi { min-width: 0; flex: 1 1 auto; }
 :host([disposizione="persona"]) svg.icona,
 :host([disposizione="persona"]) img.ritratto { grid-area: foto; width: 54px; height: 54px; flex: none; }
+/* l'anello attorno alla foto dice dove si trova: casa, fuori, un'altra zona */
+:host([dove]) img.ritratto {
+  border: 2.5px solid var(--zona, var(--c));
+  box-shadow: 0 0 0 2px rgba(0,0,0,.25), 0 0 14px var(--zona, var(--c));
+}
+.sotto .quando { display: block; margin-top: 1px; font-size: 10.5px;
+  color: var(--disabled-text-color, #7b8ba3); }
 :host([disposizione="persona"][grande]) svg.icona,
 :host([disposizione="persona"][grande]) img.ritratto { width: 66px; height: 66px; }
 :host([disposizione="persona"]) img.ritratto { border-width: 2px; }
 :host([disposizione="persona"]) .valore { display: none; }
-:host([disposizione="persona"]) .chips { grid-area: misure; margin-top: 12px; }
 :host([disposizione="persona"]) .cursore { grid-area: cursore; }
 :host([disposizione="persona"]) .nome { font-size: 15px; }
 :host([disposizione="persona"]) .sotto { -webkit-line-clamp: 3; }
@@ -1338,59 +1368,142 @@ ha-card::before, ha-card::after { z-index: 1; }
 .lettori, .extra, .pannello, .tempo, .comandi, .colori,
 .iconaHa, .iconaFoto { position: relative; z-index: 1; }
 
-@keyframes casa-nuvole { from { transform: translateX(-18%); } to { transform: translateX(18%); } }
-.cielo .nuvola {
-  position: absolute; border-radius: 50%; background: rgba(255,255,255,.26);
-  filter: blur(11px); animation: casa-nuvole 26s ease-in-out infinite alternate;
-}
-.cielo .nuvola.due { animation-duration: 38s; animation-direction: alternate-reverse; }
+/* --- il cielo del meteo, fatto di pezzi veri --- */
 
-@keyframes casa-pioggia { to { background-position: -14px 110px, 10px 96px, -6px 128px; } }
-.cielo .pioggia {
-  position: absolute; inset: -20px; opacity: .5;
-  background-image:
-    radial-gradient(1.3px 7px at 18% 0, rgba(220,240,255,.75), transparent),
-    radial-gradient(1.3px 6px at 54% 0, rgba(220,240,255,.55), transparent),
-    radial-gradient(1.3px 8px at 82% 0, rgba(220,240,255,.65), transparent);
-  background-size: 74px 110px, 104px 96px, 88px 128px;
-  animation: casa-pioggia 1.5s linear infinite;
+/* nuvole: ogni nuvola e' un gruppo di gobbe che passa piano */
+@keyframes casa-nube { from { transform: translateX(-14%); } to { transform: translateX(14%); } }
+.cielo .nube { position: absolute; animation: casa-nube 34s ease-in-out infinite alternate; }
+.cielo .nube i {
+  position: absolute; bottom: 0; border-radius: 50%;
+  background: rgba(255,255,255,.30); filter: blur(7px);
+}
+.cielo .nube.lenta { animation-duration: 52s; animation-direction: alternate-reverse; }
+.cielo .nube.scura i { background: rgba(196,208,224,.34); }
+
+/* stelle: grandezze, luminosita' e tempi tutti diversi */
+@keyframes casa-luccica {
+  0%, 100% { opacity: .25; transform: scale(.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
+.cielo .stella {
+  position: absolute; border-radius: 50%; background: #fff;
+  animation: casa-luccica 3.4s ease-in-out infinite;
+}
+@keyframes casa-cadente {
+  0% { transform: translate(0, 0) scaleX(1); opacity: 0; }
+  4% { opacity: 1; }
+  16% { transform: translate(120px, 70px) scaleX(1); opacity: 0; }
+  100% { transform: translate(120px, 70px); opacity: 0; }
+}
+.cielo .cadente {
+  position: absolute; width: 44px; height: 1.4px; border-radius: 99px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.95));
+  transform-origin: left center; rotate: 30deg;
+  animation: casa-cadente 9s linear infinite;
 }
 
-@keyframes casa-neve { to { background-position: 0 200px, 40px 200px; } }
-.cielo .neve {
-  position: absolute; inset: -20px; opacity: .8;
-  background-image:
-    radial-gradient(circle, rgba(255,255,255,.9) 1.4px, transparent 1.8px),
-    radial-gradient(circle, rgba(255,255,255,.6) 1.1px, transparent 1.5px);
-  background-size: 46px 46px, 70px 70px;
-  animation: casa-neve 6s linear infinite;
+/* luna con i crateri */
+@keyframes casa-luna { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12); } }
+.cielo .luna {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle at 34% 32%, #fdf7e2, #e8dfc0 62%, #cdc3a2);
+  box-shadow: 0 0 22px 6px rgba(240,236,205,.35), inset -6px -4px 0 rgba(0,0,0,.10);
+  animation: casa-luna 6s ease-in-out infinite;
+}
+.cielo .luna i {
+  position: absolute; border-radius: 50%; background: rgba(150,142,116,.35);
 }
 
-@keyframes casa-stelle { 0%, 100% { opacity: .45; } 50% { opacity: .95; } }
-.cielo .stelle {
+/* sole: nucleo, alone che respira e raggi */
+@keyframes casa-alone { 0%, 100% { transform: scale(1); opacity: .55; } 50% { transform: scale(1.08); opacity: .85; } }
+@keyframes casa-raggi { to { transform: rotate(360deg); } }
+.cielo .sole { position: absolute; }
+.cielo .sole .cuore {
+  position: absolute; inset: 26%; border-radius: 50%;
+  background: radial-gradient(circle at 40% 38%, #fff6d0, #ffd257 55%, #ffab35);
+  box-shadow: 0 0 26px 10px rgba(255,196,84,.45);
+}
+.cielo .sole .alone {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,214,132,.55), rgba(255,190,90,0) 66%);
+  animation: casa-alone 6s ease-in-out infinite;
+}
+.cielo .sole .raggi { position: absolute; inset: -14%; animation: casa-raggi 90s linear infinite; }
+.cielo .sole .raggi i {
+  position: absolute; left: 50%; top: 50%; width: 2px; border-radius: 99px;
+  background: linear-gradient(180deg, rgba(255,222,140,.55), rgba(255,222,140,0));
+  transform-origin: top center;
+}
+
+/* pioggia: gocce inclinate, ognuna con la sua velocita' */
+@keyframes casa-goccia {
+  0% { transform: translate(0, -20%); opacity: 0; }
+  10% { opacity: .9; }
+  100% { transform: translate(-16px, 130%); opacity: 0; }
+}
+.cielo .goccia {
+  position: absolute; top: -10%; width: 1.4px; border-radius: 99px;
+  background: linear-gradient(180deg, rgba(200,228,255,0), rgba(210,235,255,.95));
+  animation: casa-goccia 1.1s linear infinite;
+}
+.cielo .schizzo {
+  position: absolute; bottom: 2px; width: 7px; height: 2px; border-radius: 50%;
+  background: rgba(200,228,255,.5); opacity: 0;
+  animation: casa-schizzo 1.1s linear infinite;
+}
+@keyframes casa-schizzo {
+  0%, 84% { opacity: 0; transform: scaleX(.4); }
+  92% { opacity: .7; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.4); }
+}
+
+/* neve: fiocchi che ondeggiano scendendo */
+@keyframes casa-fiocco {
+  0% { transform: translate(0, -20%) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translate(10px, 55%) rotate(180deg); }
+  100% { transform: translate(-8px, 130%) rotate(360deg); opacity: .1; }
+}
+.cielo .fiocco {
+  position: absolute; top: -10%; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 4px rgba(255,255,255,.8);
+  animation: casa-fiocco 7s linear infinite;
+}
+
+/* temporale */
+@keyframes casa-lampo {
+  0%, 88%, 100% { opacity: 0; }
+  89% { opacity: .85; }
+  91% { opacity: .05; }
+  93% { opacity: .55; }
+  95% { opacity: 0; }
+}
+.cielo .lampo {
   position: absolute; inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,.95) 1px, transparent 1.4px);
-  background-size: 54px 42px;
-  animation: casa-stelle 4s ease-in-out infinite;
+  background: radial-gradient(120% 80% at 60% 0, rgba(236,244,255,.95), rgba(236,244,255,0) 70%);
+  animation: casa-lampo 7s linear infinite;
 }
 
-@keyframes casa-sole { 0%, 100% { opacity: .55; } 50% { opacity: .9; } }
-.cielo .sole {
-  position: absolute; top: -30%; right: -12%; width: 150px; height: 150px; z-index: -1;
-  border-radius: 50%; background: radial-gradient(circle, rgba(255,225,150,.7), transparent 62%);
-  animation: casa-sole 5s ease-in-out infinite;
+/* nebbia: bande morbide che scorrono */
+@keyframes casa-banda { from { transform: translateX(-12%); } to { transform: translateX(12%); } }
+.cielo .banda {
+  position: absolute; left: -20%; right: -20%; height: 22%; border-radius: 50%;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.34), rgba(255,255,255,0));
+  filter: blur(6px); animation: casa-banda 22s ease-in-out infinite alternate;
 }
 
-@keyframes casa-lampo { 0%, 92%, 100% { opacity: 0; } 94% { opacity: .75; } 96% { opacity: .1; } 98% { opacity: .5; } }
-.cielo .lampo { position: absolute; inset: 0; background: rgba(226,236,255,.9);
-  animation: casa-lampo 6s linear infinite; }
-
-.cielo .nebbia {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,.28), transparent 55%,
-    rgba(255,255,255,.22));
-  animation: casa-nuvole 30s ease-in-out infinite alternate;
+/* vento */
+@keyframes casa-soffio {
+  0% { transform: translateX(-30%); opacity: 0; }
+  20% { opacity: .7; }
+  100% { transform: translateX(130%); opacity: 0; }
 }
+.cielo .soffio {
+  position: absolute; height: 1.6px; border-radius: 99px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.7), rgba(255,255,255,0));
+  animation: casa-soffio 4.5s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) { .cielo * { animation: none !important; } }
 
 .tempo { margin-top: 10px; display: flex; align-items: center; gap: 9px; }
@@ -1411,6 +1524,8 @@ ha-card::before, ha-card::after { z-index: 1; }
   display: grid; place-items: center;
 }
 .comandi button[hidden] { display: none !important; }
+.comandi button[acceso] { background: color-mix(in srgb, var(--c) 55%, rgba(12,18,28,.6)); }
+.comandi button:disabled { opacity: .35; cursor: default; }
 .colori { margin-top: 9px; display: grid; gap: 7px;
   grid-template-columns: 1fr auto; align-items: center; }
 .colori input { grid-column: 1; }
@@ -1465,7 +1580,6 @@ ha-card::before, ha-card::after { z-index: 1; }
 :host([disposizione="musica"]) img.ritratto { border-width: 1px; object-fit: cover; }
 :host([disposizione="musica"]) .testa { grid-area: testo; align-items: flex-start; }
 :host([disposizione="musica"]) .valore { display: none; }
-:host([disposizione="musica"]) .chips { grid-area: misure; margin-top: 10px; }
 :host([disposizione="musica"]) .tempo { grid-area: tempo; }
 :host([disposizione="musica"]) .comandi { grid-area: comandi; }
 :host([disposizione="musica"]) .cursore { grid-area: cursore; }
@@ -1479,6 +1593,34 @@ ha-card::before, ha-card::after { z-index: 1; }
 }
 :host([disposizione="musica"]) .comandi { margin-top: 12px; }
 :host([disposizione="musica"]) .cursore { margin-top: 8px; }
+
+/* minimo e massimo del periodo, piccoli agli estremi */
+.estremi { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+  min-height: 24px; max-height: 72px; z-index: 1; pointer-events: none;
+  font-size: 9.5px; font-variant-numeric: tabular-nums;
+  color: var(--testo2, var(--secondary-text-color, #8ea0b8)); }
+.estremi[hidden] { display: none !important; }
+.estremi .alto { position: absolute; top: 0; left: 2px; }
+.estremi .basso { position: absolute; bottom: 0; left: 2px; }
+
+/* --- il mirino sul grafico: dice quanto e quando --- */
+.mirino { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+  min-height: 24px; max-height: 72px; z-index: 2; pointer-events: none; }
+.mirino[hidden] { display: none !important; }
+.mirino .mira { position: absolute; top: 0; bottom: 0; width: 1px;
+  background: color-mix(in srgb, var(--c) 70%, transparent); }
+.mirino .palla { position: absolute; width: 8px; height: 8px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 8px var(--c); transform: translate(-50%, -50%); }
+/* il cartellino sta appena sopra al grafico e segue il dito */
+.cartellino { position: absolute; bottom: calc(46% + 6px); left: 50%;
+  transform: translateX(-50%);
+  z-index: 3; pointer-events: none; white-space: nowrap;
+  background: rgba(8,12,20,.92); border: 1px solid rgba(255,255,255,.14);
+  border-radius: 8px; padding: 3px 8px; font-size: 11px; line-height: 1.35;
+  color: var(--primary-text-color, #eaf1fb); box-shadow: 0 6px 18px rgba(0,0,0,.5); }
+.cartellino b { color: var(--c); font-variant-numeric: tabular-nums; }
+.cartellino span { color: var(--secondary-text-color, #9fb0c6); margin-left: 6px; }
+.cartellino[hidden] { display: none !important; }
 
 /* --- il grafichino dell'andamento --- */
 /* il grafico non ruba spazio: sta sul fondo della casella, dietro alle
@@ -1958,6 +2100,33 @@ const PAROLE = {
   on: "Acceso", off: "Spento", none: "-", wired: "Via cavo", disconnected: "Scollegato",
 };
 
+// da quanto tempo dura questo stato, detto come lo direbbe uno
+function daQuanto(quando) {
+  const t = Date.parse(quando);
+  if (isNaN(t)) return "";
+  const sec = Math.max(0, (Date.now() - t) / 1000);
+  if (sec < 60) return "da poco";
+  const min = Math.round(sec / 60);
+  if (min < 60) return "da " + min + " min";
+  const ore = Math.floor(min / 60);
+  const resto = min % 60;
+  if (ore < 24) return "da " + ore + " h" + (resto ? " " + resto : "");
+  const giorni = Math.round(ore / 24);
+  return giorni === 1 ? "da un giorno" : "da " + giorni + " giorni";
+}
+
+// quanto e' lontano, in linea d'aria (formula dell'emisenoverso)
+function quantoLontano(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const g = Math.PI / 180;
+  const dLat = (lat2 - lat1) * g;
+  const dLon = (lon2 - lon1) * g;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+    + Math.cos(lat1 * g) * Math.cos(lat2 * g)
+    * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // la foto dell'entita': meglio quella che passa da Home Assistant
 // (`entity_picture_local`), perche' l'altra puo' essere un indirizzo che
 // da fuori casa non si raggiunge o che il browser blocca se e' http
@@ -2210,6 +2379,16 @@ const SEGNI = {
     + "10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 "
     + "18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,"
     + "12.63C16.5,12.43 16.5,12.21 16.5,12Z",
+  su: "M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z",
+  giu: "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z",
+  serra: "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17"
+    + "M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6"
+    + "A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z",
+  apri: "M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H15V6"
+    + "A3,3 0 0,0 12,3A3,3 0 0,0 9,6H7A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,17"
+    + "A2,2 0 0,0 14,15A2,2 0 0,0 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17Z",
+  base: "M12,2A9,9 0 0,0 3,11V22H5V11A7,7 0 0,1 12,4A7,7 0 0,1 19,11V22H21V11A9,9 0 0,0 12,2"
+    + "M12,8A3,3 0 0,0 9,11A3,3 0 0,0 12,14A3,3 0 0,0 15,11A3,3 0 0,0 12,8Z",
   spegni: "M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,"
     + "9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,"
     + "12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13V3Z",
@@ -2342,12 +2521,15 @@ class CasaTile extends HTMLElement {
         <div class="cielo" hidden></div>
         <div class="copertina" hidden></div>
         <div class="lettori" hidden></div>
-        <div class="testa"><div class="testi"><div class="nome"></div><div class="sotto"></div></div><div class="meteo" hidden><div class="gradi"></div><div class="cond"></div></div></div>
+        <div class="testa"><div class="testi"><div class="nome"></div><div class="sotto"></div></div><div class="chips"></div><div class="meteo" hidden><div class="gradi"></div><div class="cond"></div></div></div>
         <div class="riga"><svg class="icona" viewBox="0 0 64 64" fill="none"></svg><ha-icon class="iconaHa" hidden></ha-icon><img class="iconaFoto" alt="" hidden><img class="ritratto" alt="" hidden><div class="valore"></div></div>
-        <div class="chips"></div>
         <svg class="andamento" viewBox="0 0 100 30" preserveAspectRatio="none" hidden>
+          <defs><linearGradient class="scala" x1="0" y1="1" x2="0" y2="0"></linearGradient></defs>
           <path class="pieno"></path><path class="riga"></path>
         </svg>
+        <div class="estremi" hidden><span class="alto"></span><span class="basso"></span></div>
+        <div class="mirino" hidden><i class="mira"></i><b class="palla"></b></div>
+        <div class="cartellino" hidden></div>
         <div class="tempo" hidden>
           <div class="binario"><i></i></div>
           <div class="ondabox">
@@ -2367,6 +2549,14 @@ class CasaTile extends HTMLElement {
           <button class="play grosso" title="Play / pausa">${segno("play")}</button>
           <button class="succ" title="Successivo">${segno("succ")}</button>
           <button class="stop" title="Ferma">${segno("stop")}</button>
+          <button class="su" title="Apri">${segno("su")}</button>
+          <button class="fermo" title="Ferma">${segno("stop")}</button>
+          <button class="giu" title="Chiudi">${segno("giu")}</button>
+          <button class="chiudi" title="Chiudi a chiave">${segno("serra")}</button>
+          <button class="sblocca" title="Apri">${segno("apri")}</button>
+          <button class="via" title="Avvia">${segno("play")}</button>
+          <button class="sosta" title="Pausa">${segno("pausa")}</button>
+          <button class="casa" title="Torna alla base">${segno("base")}</button>
         </div>
         <div class="cursore" hidden><button class="muto" type="button" hidden></button><input type="range" min="0" max="100" step="1"><span class="quanto"></span></div>
         <div class="colori" hidden>
@@ -2427,6 +2617,15 @@ class CasaTile extends HTMLElement {
     this._valore = root.querySelector(".valore");
     this._chips = root.querySelector(".chips");
     this._andamento = root.querySelector(".andamento");
+    this._mirino = root.querySelector(".mirino");
+    this._estremi = root.querySelector(".estremi");
+    this._scala = root.querySelector(".andamento .scala");
+    this._cartellino = root.querySelector(".cartellino");
+    const card0 = root.querySelector("ha-card");
+    ["pointermove", "pointerdown"].forEach((ev) =>
+      card0.addEventListener(ev, (e) => this._muoviMirino(e)));
+    ["pointerleave", "pointercancel", "pointerup"].forEach((ev) =>
+      card0.addEventListener(ev, () => this._nascondiMirino()));
     this._tempo = root.querySelector(".tempo");
     this._binario = root.querySelector(".tempo .binario i");
     this._fatta = root.querySelector(".ondabox path.fatta");
@@ -2519,6 +2718,25 @@ class CasaTile extends HTMLElement {
         el.addEventListener(ev, (e) => e.stopPropagation())));
     root.querySelectorAll(".p-chiudi").forEach((b) =>
       b.addEventListener("click", () => this._chiudiPannelli()));
+    // i comandi rapidi: ogni tasto il suo servizio
+    const rapido = (classe, dominio, servizio) => {
+      const b = root.querySelector(".comandi ." + classe);
+      if (!b) return;
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!this._hass || !this._config.entity) return;
+        this._hass.callService(dominio, servizio, { entity_id: this._config.entity });
+      });
+    };
+    rapido("su", "cover", "open_cover");
+    rapido("fermo", "cover", "stop_cover");
+    rapido("giu", "cover", "close_cover");
+    rapido("chiudi", "lock", "lock");
+    rapido("sblocca", "lock", "unlock");
+    rapido("via", "vacuum", "start");
+    rapido("sosta", "vacuum", "pause");
+    rapido("casa", "vacuum", "return_to_base");
+
     this._bGruppo.addEventListener("click", () => this._apriPannello("gruppo"));
     this._bFonte.addEventListener("click", () => this._apriPannello("fonti"));
     this._cursore = root.querySelector(".cursore");
@@ -2788,40 +3006,209 @@ class CasaTile extends HTMLElement {
 
   _disegnaCielo(tipo) {
     if (!this._cielo) return;
-    if (!tipo) { this._cielo.hidden = true; this._cielo.innerHTML = ""; this._cieloOra = null; return; }
+    if (!tipo) {
+      this._cielo.hidden = true;
+      this._cielo.innerHTML = "";
+      this._cieloOra = null;
+      return;
+    }
     this._cielo.hidden = false;
     if (this._cieloOra === tipo) return;
     this._cieloOra = tipo;
     this._cielo.innerHTML = "";
-    const metti = (classe, stile) => {
+
+    const caso = (min, max) => min + Math.random() * (max - min);
+    const metti = (classe, stile, dentro) => {
       const d = document.createElement("div");
       d.className = classe;
       if (stile) d.setAttribute("style", stile);
+      if (dentro) d.innerHTML = dentro;
       this._cielo.appendChild(d);
+      return d;
     };
-    if (tipo === "sole_nuvole") {
-      metti("sole", "width:120px;height:120px;top:-34%;right:6%");
-      metti("nuvola", "width:86px;height:30px;top:12%;left:-8%");
-      metti("nuvola due", "width:60px;height:22px;top:34%;left:48%");
-    } else if (tipo === "nuvole") {
-      metti("nuvola", "width:86px;height:30px;top:6%;left:-8%");
-      metti("nuvola due", "width:64px;height:24px;top:26%;left:52%");
-    } else if (tipo === "pioggia") {
-      metti("nuvola", "width:100px;height:30px;top:-4%;left:-6%");
-      metti("pioggia");
-    } else if (tipo === "neve") {
-      metti("neve");
-    } else if (tipo === "stelle") {
-      metti("stelle");
+
+    // una nuvola e' un gruppo di gobbe: cosi' sembra una nuvola vera
+    const nuvola = (x, y, largo, classe) => {
+      const alto = largo * 0.42;
+      const gobbe = [
+        [0, 0, largo * 0.52, alto * 0.72],
+        [largo * 0.26, -alto * 0.34, largo * 0.56, alto],
+        [largo * 0.58, -alto * 0.12, largo * 0.46, alto * 0.82],
+      ].map((g) => '<i style="left:' + g[0].toFixed(0) + "px;bottom:"
+        + (-g[1]).toFixed(0) + "px;width:" + g[2].toFixed(0) + "px;height:"
+        + g[3].toFixed(0) + 'px"></i>').join("");
+      metti("nube" + (classe ? " " + classe : ""),
+        "left:" + x + "%;top:" + y + "%;width:" + largo + "px;height:"
+        + alto.toFixed(0) + "px;animation-delay:" + caso(-20, 0).toFixed(1) + "s",
+        gobbe);
+    };
+
+    const stelle = (quante, altezzaMax) => {
+      for (let i = 0; i < quante; i += 1) {
+        const d = caso(1, 2.4);
+        metti("stella", "left:" + caso(2, 97).toFixed(1) + "%;top:"
+          + caso(3, altezzaMax).toFixed(1) + "%;width:" + d.toFixed(1)
+          + "px;height:" + d.toFixed(1) + "px;opacity:" + caso(.35, 1).toFixed(2)
+          + ";box-shadow:0 0 " + (d * 2.4).toFixed(1)
+          + "px rgba(214,226,255,.9);animation-delay:" + caso(0, 4).toFixed(1)
+          + "s;animation-duration:" + caso(2.4, 5.2).toFixed(1) + "s");
+      }
+    };
+
+    const luna = () => {
+      const d = 30;
+      const crateri = [[30, 26, 8], [52, 52, 6], [24, 58, 5]]
+        .map((c) => '<i style="left:' + c[0] + "%;top:" + c[1] + "%;width:"
+          + c[2] + "px;height:" + c[2] + 'px"></i>').join("");
+      metti("luna", "right:9%;top:10%;width:" + d + "px;height:" + d + "px", crateri);
+    };
+
+    const pioggia = (quante, velocita) => {
+      for (let i = 0; i < quante; i += 1) {
+        const x = caso(-4, 100);
+        metti("goccia", "left:" + x.toFixed(1) + "%;height:"
+          + caso(9, 17).toFixed(0) + "px;animation-duration:"
+          + caso(velocita * 0.75, velocita * 1.3).toFixed(2)
+          + "s;animation-delay:" + caso(-2, 0).toFixed(2) + "s;opacity:"
+          + caso(.5, 1).toFixed(2));
+      }
+    };
+
+    if (tipo === "stelle") {
+      stelle(26, 82);
+      luna();
+      metti("cadente", "left:8%;top:14%;animation-delay:3s");
+      metti("cadente", "left:52%;top:6%;animation-delay:11s;animation-duration:13s");
     } else if (tipo === "sole") {
-      metti("sole");
-      metti("nuvola", "width:70px;height:24px;top:62%;left:-4%;opacity:.45");
+      const raggi = [];
+      for (let i = 0; i < 12; i += 1) {
+        raggi.push('<i style="height:' + caso(16, 30).toFixed(0)
+          + "px;transform:rotate(" + (i * 30) + "deg) translate(-50%, 26px)"
+          + ";opacity:" + caso(.25, .6).toFixed(2) + '"></i>');
+      }
+      metti("sole", "right:-6%;top:-26%;width:150px;height:150px",
+        '<div class="alone"></div><div class="raggi">' + raggi.join("")
+        + '</div><div class="cuore"></div>');
+      nuvola(-12, 62, 74, "lenta");
+    } else if (tipo === "sole_nuvole") {
+      const raggi = [];
+      for (let i = 0; i < 10; i += 1) {
+        raggi.push('<i style="height:' + caso(14, 26).toFixed(0)
+          + "px;transform:rotate(" + (i * 36) + "deg) translate(-50%, 22px)"
+          + ";opacity:" + caso(.2, .5).toFixed(2) + '"></i>');
+      }
+      metti("sole", "right:2%;top:-30%;width:120px;height:120px",
+        '<div class="alone"></div><div class="raggi">' + raggi.join("")
+        + '</div><div class="cuore"></div>');
+      nuvola(-14, 30, 96);
+      nuvola(46, 52, 70, "lenta");
+    } else if (tipo === "nuvole") {
+      nuvola(-16, 18, 104, "scura");
+      nuvola(38, 40, 84, "lenta scura");
+      nuvola(12, 64, 62, "scura");
+    } else if (tipo === "pioggia") {
+      nuvola(-14, 2, 108, "scura");
+      nuvola(44, 12, 80, "lenta scura");
+      pioggia(26, 1.1);
+      for (let i = 0; i < 5; i += 1) {
+        metti("schizzo", "left:" + caso(6, 92).toFixed(1)
+          + "%;animation-delay:" + caso(-1, 0).toFixed(2) + "s");
+      }
     } else if (tipo === "lampo") {
-      metti("nuvola", "width:100px;height:32px;top:-4%;left:-6%");
+      nuvola(-14, 0, 112, "scura");
+      nuvola(42, 10, 86, "lenta scura");
+      pioggia(34, 0.85);
       metti("lampo");
+    } else if (tipo === "neve") {
+      nuvola(-12, 2, 100, "scura");
+      for (let i = 0; i < 20; i += 1) {
+        const d = caso(2, 4.2);
+        metti("fiocco", "left:" + caso(0, 98).toFixed(1) + "%;width:"
+          + d.toFixed(1) + "px;height:" + d.toFixed(1) + "px;animation-duration:"
+          + caso(5, 11).toFixed(1) + "s;animation-delay:" + caso(-6, 0).toFixed(1)
+          + "s;opacity:" + caso(.6, 1).toFixed(2));
+      }
     } else if (tipo === "nebbia") {
-      metti("nebbia");
+      metti("banda", "top:12%");
+      metti("banda", "top:42%;animation-duration:30s;animation-direction:alternate-reverse");
+      metti("banda", "top:70%;animation-duration:26s");
+      nuvola(-10, 30, 90, "lenta");
+    } else if (tipo === "vento") {
+      nuvola(-14, 16, 92, "lenta");
+      for (let i = 0; i < 6; i += 1) {
+        metti("soffio", "top:" + caso(12, 88).toFixed(1) + "%;left:"
+          + caso(-10, 20).toFixed(1) + "%;width:" + caso(30, 70).toFixed(0)
+          + "px;animation-delay:" + caso(-4, 0).toFixed(1)
+          + "s;animation-duration:" + caso(3.2, 6).toFixed(1) + "s");
+      }
     }
+  }
+
+  // quanti km da casa, se l'entita' dice dove si trova
+  _quantoLontanoDaCasa(st) {
+    const c = this._config;
+    if (c.mostra_distanza === false) return "";
+    if (!st || !this._hass) return "";
+    // a casa la distanza non serve: Waze risponderebbe 0 km e 0 minuti
+    if (String(st.state).toLowerCase() === "home") return "";
+    // se ha un sensore del percorso (Waze, Google) vince quello: sono i
+    // chilometri veri su strada, non quelli in linea d'aria
+    if (c.distanza_entita) {
+      const suo = this._hass.states[c.distanza_entita];
+      if (suo && !["unknown", "unavailable"].includes(String(suo.state))) {
+        const pezzi = [];
+        // Waze e Google: i km stanno negli attributi, i minuti nello stato
+        const km = parseFloat(suo.attributes.distance);
+        if (!isNaN(km) && km < 0.3) return "";
+        if (!isNaN(km)) {
+          pezzi.push((km < 100 ? (Math.round(km * 10) / 10) : Math.round(km))
+            .toLocaleString("it-IT") + " km");
+        }
+        const n2 = parseFloat(suo.state);
+        const u2 = suo.attributes.unit_of_measurement || "";
+        if (!isNaN(n2) && u2 === "min") {
+          const ore = Math.floor(n2 / 60);
+          const min = Math.round(n2 % 60);
+          pezzi.push(ore ? ore + " h" + (min ? " " + (min < 10 ? "0" : "") + min : "")
+            : min + " min");
+        } else if (!isNaN(n2)) {
+          pezzi.push((Math.round(n2 * 10) / 10).toLocaleString("it-IT")
+            + (u2 ? " " + u2 : ""));
+        } else {
+          pezzi.push(suo.state);
+        }
+        return pezzi.join(" · ") + " da casa";
+      }
+    }
+    const lat = st.attributes.latitude;
+    const lon = st.attributes.longitude;
+    if (lat === undefined || lon === undefined) return "";
+    const casa = this._hass.states["zone.home"];
+    if (!casa || casa.attributes.latitude === undefined) return "";
+    const km = quantoLontano(lat, lon, casa.attributes.latitude,
+      casa.attributes.longitude);
+    if (!isFinite(km)) return "";
+    if (km < 0.15) return "";
+    if (km < 1) return Math.round(km * 1000) + " m da casa";
+    // sopra i 30 km la differenza con la strada si sente: lo dico
+    const numero = km < 100
+      ? (Math.round(km * 10) / 10).toLocaleString("it-IT")
+      : Math.round(km).toLocaleString("it-IT");
+    return numero + " km da casa" + (km > 30 ? " in linea d’aria" : "");
+  }
+
+  // il "da quanto" va rinfrescato ogni tanto, se no resta fermo
+  _avviaTicchettio(serve) {
+    if (!serve) {
+      if (this._ticchettio) { clearInterval(this._ticchettio); this._ticchettio = null; }
+      return;
+    }
+    if (this._ticchettio) return;
+    this._ticchettio = setInterval(() => {
+      if (!this.isConnected) return;
+      const st = this._hass ? this._hass.states[this._config.entity] : null;
+      if (st) this._render();
+    }, 30000);
   }
 
   _mmss(secondi) {
@@ -2886,7 +3273,23 @@ class CasaTile extends HTMLElement {
     if (this._orologioId) { clearInterval(this._orologioId); this._orologioId = null; }
   }
 
-  disconnectedCallback() { this._fermaOrologio(); }
+  disconnectedCallback() {
+    this._fermaOrologio();
+    if (this._ticchettio) { clearInterval(this._ticchettio); this._ticchettio = null; }
+    if (this._osserva) { this._osserva.disconnect(); this._osserva = null; }
+  }
+
+  // guardo quanto sono alta davvero: sotto una certa misura passo al modo
+  // compatto, cosi' non serve ne' crescere ne' tagliare
+  _controllaMisura() {
+    const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
+    if (!card) return;
+    const h = card.getBoundingClientRect().height;
+    if (!h) return;
+    const quante = (this._config.info_entita || []).length;
+    const soglia = quante ? 168 : 132;
+    this.toggleAttribute("compatta", h < soglia);
+  }
 
   connectedCallback() {
     // solo ora posso sapere se sto dentro il riquadro di anteprima
@@ -2896,14 +3299,72 @@ class CasaTile extends HTMLElement {
     // rimette in moto l'orologio della musica e riapre il riquadro che era
     // aperto prima che Home Assistant rifacesse la casella.
     if (this._costruito && this._hass && this._config) this._render();
+    if (!this._osserva && window.ResizeObserver) {
+      this._osserva = new ResizeObserver(() => this._controllaMisura());
+      const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
+      if (card) this._osserva.observe(card);
+    }
+    this._controllaMisura();
   }
 
   _disegnaComandi(st) {
     const c = this._config;
+    const dom = c.entity ? c.entity.split(".")[0] : "";
+    const rapidi = ["cover", "lock", "vacuum"].includes(dom)
+      && !!st && c.comandi_rapidi !== false;
+    // i tasti giusti per il tipo di apparecchio
+    const mostra = {
+      prec: false, play: false, succ: false, stop: false,
+      su: false, fermo: false, giu: false,
+      chiudi: false, sblocca: false, via: false, sosta: false, casa: false,
+    };
+    if (rapidi) {
+      if (dom === "cover") {
+        mostra.su = true;
+        mostra.fermo = true;
+        mostra.giu = true;
+      } else if (dom === "lock") {
+        mostra.chiudi = true;
+        mostra.sblocca = true;
+      } else {
+        mostra.via = true;
+        mostra.sosta = true;
+        mostra.casa = true;
+      }
+      Object.keys(mostra).forEach((k) => {
+        const b = this._comandi.querySelector("." + k);
+        if (b) b.hidden = !mostra[k];
+      });
+      this._comandi.hidden = false;
+      // il tasto della tapparella si accende quando e' gia' a fine corsa
+      if (dom === "cover") {
+        const dove = st.attributes.current_position;
+        this._comandi.querySelector(".su").disabled = dove === 100
+          || st.state === "open" && dove === undefined;
+        this._comandi.querySelector(".giu").disabled = dove === 0
+          || st.state === "closed" && dove === undefined;
+      }
+      if (dom === "lock") {
+        const chiusa = st.state === "locked";
+        this._comandi.querySelector(".chiudi").toggleAttribute("acceso", chiusa);
+        this._comandi.querySelector(".sblocca").toggleAttribute("acceso", !chiusa);
+      }
+      return;
+    }
+    ["su", "fermo", "giu", "chiudi", "sblocca", "via", "sosta", "casa"]
+      .forEach((k) => {
+        const b = this._comandi.querySelector("." + k);
+        if (b) b.hidden = true;
+      });
+
     const ok = !!c.comandi_media && !!c.entity
-      && c.entity.split(".")[0] === "media_player" && !!st;
+      && dom === "media_player" && !!st;
     this._comandi.hidden = !ok;
     if (!ok) return;
+    ["prec", "play", "succ", "stop"].forEach((k) => {
+      const b = this._comandi.querySelector("." + k);
+      if (b) b.hidden = false;
+    });
 
     // cosa sa fare questo lettore (0 = non lo dice, mostriamo tutto)
     const puo = Number(st.attributes.supported_features) || 0;
@@ -3379,9 +3840,15 @@ class CasaTile extends HTMLElement {
   // due strade per lo storico: prima il websocket, poi l'indirizzo normale
   // (su certe installazioni la prima non risponde)
   async _chiediStoria(chi, da, a) {
-    const numeri = (righe) => righe
-      .map((r) => parseFloat(r && r.s !== undefined ? r.s : (r || {}).state))
-      .filter((x) => !isNaN(x));
+    // di ogni lettura tengo il valore E il momento
+    const numeri = (righe) => righe.map((r) => {
+      const g = r || {};
+      const v = parseFloat(g.s !== undefined ? g.s : g.state);
+      let t = g.lu !== undefined ? g.lu * 1000
+        : (g.last_updated || g.last_changed || null);
+      if (typeof t === "string") t = Date.parse(t);
+      return { v: v, t: Number(t) || 0 };
+    }).filter((x) => !isNaN(x.v));
 
     try {
       const risposta = await this._hass.callWS({
@@ -3433,27 +3900,113 @@ class CasaTile extends HTMLElement {
     const box = this._andamento;
     if (!box) return;
     const punti = (this._storia || []).slice();
-    if (st && !isNaN(parseFloat(st.state))) punti.push(parseFloat(st.state));
+    if (st && !isNaN(parseFloat(st.state))) {
+      punti.push({ v: parseFloat(st.state), t: Date.now() });
+    }
     if (punti.length < 2) { box.toggleAttribute("hidden", true); return; }
     box.toggleAttribute("hidden", false);
     // ne bastano un centinaio: se sono di piu' li assottiglio
     const max = 120;
     const scelti = punti.length <= max ? punti
       : punti.filter((x, i) => i % Math.ceil(punti.length / max) === 0);
-    const basso = Math.min.apply(null, scelti);
-    const alto = Math.max.apply(null, scelti);
+    const valori = scelti.map((x) => x.v);
+    const basso = Math.min.apply(null, valori);
+    const alto = Math.max.apply(null, valori);
     const campo = alto - basso || 1;
     const passo = 100 / (scelti.length - 1);
-    const coord = scelti.map((v, i) =>
-      [i * passo, 28 - ((v - basso) / campo) * 26]);
+    const coord = scelti.map((x, i) =>
+      [i * passo, 28 - ((x.v - basso) / campo) * 26]);
+    // me li tengo da parte: servono al mirino
+    this._disegnati = scelti;
+    this._coord = coord;
     const riga = coord.map((xy, i) =>
       (i ? "L" : "M") + xy[0].toFixed(2) + " " + xy[1].toFixed(2)).join(" ");
     box.querySelector(".riga").setAttribute("d", riga);
-    box.querySelector(".pieno").setAttribute("d",
-      riga + " L100 30 L0 30 Z");
+    const pieno = box.querySelector(".pieno");
+    pieno.setAttribute("d", riga + " L100 30 L0 30 Z");
+    // area piena o solo la riga
+    const soloRiga = this._config.grafico_stile === "linea";
+    pieno.style.display = soloRiga ? "none" : "";
+
+    // sulle temperature la riga cambia colore col valore
+    const suoSt = this._hass ? this._hass.states[this._config.entity] : null;
+    const aTemperatura = this._config.colore === "termometro"
+      || (!!suoSt && suoSt.attributes.device_class === "temperature");
+    if (this._scala) {
+      if (aTemperatura) {
+        const passi = 5;
+        let dentro = "";
+        for (let i = 0; i <= passi; i += 1) {
+          const q = i / passi;
+          const tinta = coloreTemperatura(basso + campo * q) || "currentColor";
+          dentro += '<stop offset="' + (q * 100).toFixed(0) + '%" stop-color="'
+            + tinta + '"></stop>';
+        }
+        if (this._scala.innerHTML !== dentro) this._scala.innerHTML = dentro;
+        if (!this._scala.id) this._scala.id = "scala-" + Math.random().toString(36).slice(2, 8);
+        box.querySelector(".riga").style.stroke = "url(#" + this._scala.id + ")";
+      } else {
+        this._scala.innerHTML = "";
+        box.querySelector(".riga").style.stroke = "";
+      }
+    }
+
+    // minimo e massimo del periodo
+    if (this._estremi) {
+      const vuole = !!this._config.grafico_estremi;
+      this._estremi.hidden = !vuole;
+      if (vuole) {
+        const u = suoSt ? (suoSt.attributes.unit_of_measurement || "") : "";
+        const scrivi = (n2) => (Math.round(n2 * 10) / 10).toLocaleString("it-IT")
+          + (u ? " " + u : "");
+        this._estremi.querySelector(".alto").textContent = scrivi(alto);
+        this._estremi.querySelector(".basso").textContent = scrivi(basso);
+      }
+    }
     box.title = "Ultime " + (Number(this._config.grafico_ore) > 0
       ? Number(this._config.grafico_ore) : 24) + " ore: da "
       + (Math.round(basso * 10) / 10) + " a " + (Math.round(alto * 10) / 10);
+  }
+
+  // il mirino segue il dito o il mouse sopra al grafico
+  _muoviMirino(e) {
+    if (!this._mirino || !this._andamento || this._andamento.hasAttribute("hidden")
+        || !this._coord || !this._coord.length) return;
+    const q = this._andamento.getBoundingClientRect();
+    const x = e.clientX - q.left;
+    if (x < 0 || x > q.width || !q.width) { this._nascondiMirino(); return; }
+    const quota = (x / q.width) * 100;
+    let vicino = 0;
+    for (let i = 1; i < this._coord.length; i += 1) {
+      if (Math.abs(this._coord[i][0] - quota)
+          < Math.abs(this._coord[vicino][0] - quota)) vicino = i;
+    }
+    const punto = this._disegnati[vicino];
+    const xy = this._coord[vicino];
+    this._mirino.hidden = false;
+    this._mirino.querySelector(".mira").style.left = xy[0] + "%";
+    const palla = this._mirino.querySelector(".palla");
+    palla.style.left = xy[0] + "%";
+    palla.style.top = (xy[1] / 30 * 100) + "%";
+
+    const u = this._hass && this._config.entity
+      && this._hass.states[this._config.entity]
+      ? (this._hass.states[this._config.entity].attributes.unit_of_measurement || "")
+      : "";
+    const quando = punto.t
+      ? new Date(punto.t).toLocaleString("it-IT",
+          { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+      : "";
+    this._cartellino.hidden = false;
+    this._cartellino.style.left = Math.min(85, Math.max(15, xy[0])) + "%";
+    this._cartellino.innerHTML = "<b>" + (Math.round(punto.v * 10) / 10)
+      .toLocaleString("it-IT") + (u ? " " + u : "") + "</b>"
+      + (quando ? "<span>" + quando + "</span>" : "");
+  }
+
+  _nascondiMirino() {
+    if (this._mirino) this._mirino.hidden = true;
+    if (this._cartellino) this._cartellino.hidden = true;
   }
 
   _disegnaChips() {
@@ -3563,13 +4116,16 @@ class CasaTile extends HTMLElement {
     } else if (dominio === "number" || dominio === "input_number") {
       this._hass.callService(dominio, "set_value",
         { entity_id: c.entity, value: valore });
+    } else if (dominio === "cover") {
+      this._hass.callService("cover", "set_cover_position",
+        { entity_id: c.entity, position: valore });
     }
   }
 
   _disegnaCursore(st) {
     const c = this._config;
     const dominio = c.entity ? c.entity.split(".")[0] : "";
-    const buono = ["light", "fan", "media_player", "number", "input_number"]
+    const buono = ["light", "fan", "media_player", "number", "input_number", "cover"]
       .includes(dominio);
     const mostra = !!c.mostra_cursore && buono && !!st;
     this._cursore.hidden = !mostra;
@@ -3617,6 +4173,16 @@ class CasaTile extends HTMLElement {
     }
 
     let valore = 0;
+    if (dominio === "cover") {
+      const dove = st.attributes.current_position;
+      if (dove === undefined) { this._cursore.hidden = true; return; }
+      if (!this._trascino) {
+        this._range.value = String(Math.round(dove));
+        this._quanto.textContent = Math.round(dove) + "%";
+        this._range.style.setProperty("--riempito", Math.round(dove) + "%");
+      }
+      return;
+    }
     if (dominio === "light") {
       valore = st.attributes.brightness ? Math.round(st.attributes.brightness / 2.55) : 0;
     } else if (dominio === "fan") {
@@ -3976,7 +4542,15 @@ class CasaTile extends HTMLElement {
     } else if (comePersona) {
       const parti = [];
       if (st) {
+        const quanto = c.mostra_da_quanto === false ? "" : daQuanto(st.last_changed);
+        const via = this._quantoLontanoDaCasa(st);
         parti.push('<span class="stato">' + this._valoreDi(st) + "</span>");
+        const extra = [quanto, via].filter(Boolean).join(" \u00b7 ");
+        if (extra) {
+          parti.push('<span class="quando" title="Distanza in linea d’aria dal '
+            + 'punto che Home Assistant considera casa: su strada e sempre di piu">'
+            + extra + "</span>");
+        }
       }
       if (sotto) parti.push('<span class="via">\uD83D\uDCCD ' + sotto + "</span>");
       this._sotto.innerHTML = parti.join("");
@@ -3985,6 +4559,30 @@ class CasaTile extends HTMLElement {
       this._sotto.textContent = sotto;
       this._sotto.style.display = sotto ? "" : "none";
     }
+    // l'anello attorno alla foto dice dove si trova
+    if (comePersona && st) {
+      const dove = String(st.state).toLowerCase();
+      const zona = dove === "home" ? "#3fd98a"
+        : (dove === "not_home" ? "#ffc046" : "#5ec8ff");
+      this.style.setProperty("--zona", zona);
+      this.setAttribute("dove", dove === "home" ? "casa"
+        : (dove === "not_home" ? "fuori" : "zona"));
+    } else {
+      this.removeAttribute("dove");
+    }
+
+    // "da quanto" sotto al nome, per qualsiasi entita'
+    if (!comePersona && c.mostra_da_quanto && st && modo !== "vinile") {
+      const quanto = daQuanto(st.last_changed);
+      if (quanto) {
+        const pezzi = [this._valoreDi(st) + " " + quanto];
+        if (sotto) pezzi.push(sotto);
+        this._sotto.textContent = pezzi.join(" \u00b7 ");
+        this._sotto.style.display = "";
+      }
+    }
+    this._avviaTicchettio(!!(c.mostra_da_quanto || comePersona));
+
     const scritto = (c.nascondi_valore || !c.entity) ? "" : this._valoreDi(st);
     const sparito = !!st
       && ["unavailable", "unknown"].includes(String(st.state).toLowerCase());
@@ -4027,6 +4625,7 @@ class CasaTile extends HTMLElement {
     this._disegnaMeteo();
     this._disegnaChips();
     this._disegnaAndamento(st);
+    this._controllaMisura();
     this._disegnaCursore(st);
     const foto = fotoDi(st);
     // se non la vuole, via l'icona in tutte le sue forme
@@ -4098,6 +4697,7 @@ const SEZIONI = [
         { name: "sottotitolo", selector: { text: {} } },
         { name: "sottotitolo_entita", selector: { entity: {} } },
         { name: "nascondi_valore", selector: { boolean: {} } },
+        { name: "mostra_da_quanto", selector: { boolean: {} } },
         { name: "info_entita", selector: { entity: { multiple: true } } },
       ] },
       { titolo: "Quando la casella e accesa", schema: [
@@ -4200,7 +4800,7 @@ const SEZIONI = [
     ],
   },
   {
-    chiave: "barre", titolo: "Barre", segno: "🎚",
+    chiave: "comandi", titolo: "Comandi", segno: "🎚",
     gruppi: [
       { titolo: "Barra dentro la casella", schema: [
         { name: "mostra_cursore", selector: { boolean: {} } },
@@ -4211,10 +4811,8 @@ const SEZIONI = [
           ],
         },
       ] },
-      { titolo: "Grafico dell'andamento", schema: [
-        { name: "grafico", selector: { boolean: {} } },
-        { name: "grafico_ore",
-          selector: { number: { min: 1, max: 168, step: 1, mode: "box" } } },
+      { titolo: "Tasti rapidi", schema: [
+        { name: "comandi_rapidi", selector: { boolean: {} } },
       ] },
       { titolo: "Striscia del colore (luci)", schema: [
         { name: "cursore_colore", selector: { boolean: {} } },
@@ -4223,6 +4821,21 @@ const SEZIONI = [
           { value: "bianco", label: "Solo il bianco caldo/freddo" },
           { value: "tutte", label: "Tutte e due le strisce" },
         ] } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "grafico", titolo: "Grafico", segno: "📈",
+    gruppi: [
+      { schema: [
+        { name: "grafico", selector: { boolean: {} } },
+        { name: "grafico_ore",
+          selector: { number: { min: 1, max: 168, step: 1, mode: "box" } } },
+        { name: "grafico_stile", selector: { select: { mode: "dropdown", options: [
+          { value: "area", label: "Area piena" },
+          { value: "linea", label: "Solo la linea" },
+        ] } } },
+        { name: "grafico_estremi", selector: { boolean: {} } },
       ] },
     ],
   },
@@ -4249,6 +4862,15 @@ const SEZIONI = [
         { name: "pannello_sfondo", selector: { color_rgb: {} } },
         { name: "pannello_trasparenza",
           selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "persone", titolo: "Persone", segno: "🧭",
+    gruppi: [
+      { titolo: "Dove si trova", schema: [
+        { name: "mostra_distanza", selector: { boolean: {} } },
+        { name: "distanza_entita", selector: { entity: {} } },
       ] },
     ],
   },
@@ -4285,7 +4907,9 @@ const SOLO_AZIONE = {
 const SOLO_PER = {
   disposizione: ["person", "device_tracker", "media_player"],
   usa_foto: ["person", "device_tracker", "media_player", "camera"],
-  mostra_cursore: ["light", "fan", "media_player", "number", "input_number"],
+  mostra_distanza: ["person", "device_tracker"],
+  distanza_entita: ["person", "device_tracker"],
+  mostra_cursore: ["light", "fan", "media_player", "number", "input_number", "cover"],
   cursore_colore: ["light"],
   sfondo_copertina: ["media_player"],
   sfondo_sfocatura: ["media_player"],
@@ -4297,6 +4921,11 @@ const SOLO_PER = {
   lettori: ["media_player"],
   pannello_sfondo: ["media_player"],
   pannello_trasparenza: ["media_player"],
+  comandi_rapidi: ["cover", "lock", "vacuum"],
+  grafico: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  grafico_ore: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  grafico_stile: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  grafico_estremi: ["sensor", "number", "input_number", "counter", "climate", "light"],
   gira_copertina: ["media_player"],
   segui_attivo: ["media_player"],
   multiroom: ["media_player"],
@@ -4342,8 +4971,11 @@ const ETICHETTE = {
   pannello_sfondo: "Sfondo del riquadro casse e sorgenti (vuoto = scuro di serie; "
     + "le scritte seguono il colore della scritta)",
   pannello_trasparenza: "Trasparenza del riquadro casse e sorgenti (%)",
+  comandi_rapidi: "Tasti rapidi (tapparelle, serrature, aspirapolvere)",
   grafico: "Mostra il grafico dell'andamento dentro la casella",
   grafico_ore: "Quante ore di storia (di serie 24)",
+  grafico_stile: "Come si disegna",
+  grafico_estremi: "Scrivi il minimo e il massimo del periodo",
   gira_copertina: "Fai girare la copertina tonda come un disco",
   segui_attivo: "Passa da sola alla cassa che sta suonando",
   multiroom: "Tasto Casse: unisci gli altoparlanti e regola i volumi",
@@ -4353,6 +4985,9 @@ const ETICHETTE = {
   usa_foto: "Usa la foto dell'entita, se ce l'ha (persone, copertine)",
   acceso_sempre: "Sempre a colori (anche da spenta)",
   icona_ha: "Icona di Home Assistant (cercala qui; vince su quella sotto)",
+  mostra_da_quanto: "Scrivi da quanto tempo e in questo stato",
+  mostra_distanza: "Quanti chilometri da casa, in linea d'aria (persone)",
+  distanza_entita: "Sensore del percorso (Waze, Google): se c'e, usa i km su strada",
   nascondi_valore: "Nascondi il valore", soglia: "Soglia di accensione (W)",
   acceso_se: "Si accende solo quando l'entita' vale esattamente (es. 95)",
   servizio: "Servizio da chiamare (es. number.set_value)",
@@ -4431,6 +5066,27 @@ const STILE_EDITOR = `
 .targhetta { margin-left: auto; align-self: center; font-size: 10.5px;
   color: var(--secondary-text-color, #8ea0b8); opacity: .7;
   font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.cercaOpz {
+  width: 100%; box-sizing: border-box; margin: 0 0 8px; padding: 9px 12px;
+  border-radius: 12px; font: inherit; font-size: 13px;
+  border: 1px solid var(--divider-color, #2a3a4f);
+  background: var(--secondary-background-color, #16202c);
+  color: var(--primary-text-color, #eaf1fb);
+}
+.trovate { display: grid; gap: 4px; margin-bottom: 10px; }
+.trovate[hidden] { display: none !important; }
+.trovata {
+  appearance: none; text-align: left; cursor: pointer; font: inherit;
+  border: 1px solid var(--divider-color, #2a3a4f); border-radius: 10px;
+  background: var(--secondary-background-color, #16202c); padding: 7px 10px;
+  color: var(--primary-text-color, #eaf1fb); display: grid; gap: 1px;
+}
+.trovata b { font-size: 12.5px; font-weight: 600; }
+.trovata span { font-size: 11px; color: var(--secondary-text-color, #8ea0b8); }
+.trovata.niente { cursor: default; color: var(--secondary-text-color, #8ea0b8);
+  font-size: 12px; }
+ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
+  outline-offset: 4px; border-radius: 10px; }
 .titoloGruppo { margin: 16px 0 2px; font-size: 12px; font-weight: 700;
   letter-spacing: .05em; text-transform: uppercase;
   color: var(--secondary-text-color, #8ea0b8); }
@@ -4645,6 +5301,18 @@ class CasaTileEditor extends HTMLElement {
       this._tinte = document.createElement("div");
       this._tinte.className = "scelte";
 
+      // la ricerca: con quasi sessanta impostazioni, trovarle e' il problema
+      this._cerca = document.createElement("input");
+      this._cerca.className = "cercaOpz";
+      this._cerca.type = "search";
+      this._cerca.placeholder = "Cerca un'impostazione: meteo, colore, km...";
+      this._trovate = document.createElement("div");
+      this._trovate.className = "trovate";
+      this._trovate.hidden = true;
+      this._cerca.addEventListener("input", () => this._cercaOpzioni());
+      this.appendChild(this._cerca);
+      this.appendChild(this._trovate);
+
       this._barra = document.createElement("div");
       this._barra.className = "schede";
       const targa = document.createElement("span");
@@ -4698,8 +5366,9 @@ class CasaTileEditor extends HTMLElement {
               this._costruisciBlocco(true);
               this._aggiornaSchemi();
             }
-            if (sez.chiave === "sfondo" || sez.chiave === "aspetto"
-                || sez.chiave === "musica") this._costruisciFoto();
+            if (["sfondo", "aspetto", "musica", "persone"].includes(sez.chiave)) {
+            this._costruisciFoto();
+          }
             if (sez.chiave === "base") {
               this._costruisciTrovati();
               this._aggiornaSchemi();
@@ -5116,6 +5785,16 @@ class CasaTileEditor extends HTMLElement {
       });
       // certe schede hanno anche i riquadri fatti a mano, quindi restano
       const conBlocchi = ["icona", "sfondo", "tocco", "aspetto"].includes(sez.chiave);
+      if (sez.chiave === "grafico" || sez.chiave === "persone") {
+        // queste due valgono solo dove hanno senso: se non hanno campi,
+        // la scheda sparisce del tutto
+        if (campi === 0) {
+          const b0 = this._tasti[i];
+          if (b0) b0.style.display = "none";
+          this._pannelli[i].setAttribute("nascosto", "");
+          return;
+        }
+      }
       const utile = campi > 0 || conBlocchi;
       const bottone = this._tasti[i];
       if (bottone) bottone.style.display = utile ? "" : "none";
@@ -5125,6 +5804,64 @@ class CasaTileEditor extends HTMLElement {
     const scelta = this._tasti.findIndex(
       (b) => b.hasAttribute("scelta") && b.style.display !== "none");
     if (scelta === -1 && primaValida !== -1) this._scegliScheda(primaValida);
+  }
+
+  // cerca fra tutte le impostazioni e dice dove stanno
+  _cercaOpzioni() {
+    const q = (this._cerca.value || "").trim().toLowerCase();
+    this._trovate.innerHTML = "";
+    this._trovate.hidden = q.length < 2;
+    if (q.length < 2) return;
+    const senzaAccenti = (t) => String(t).toLowerCase()
+      .replace(/[\u00e0\u00e1]/g, "a").replace(/[\u00e8\u00e9]/g, "e")
+      .replace(/[\u00ec\u00ed]/g, "i").replace(/[\u00f2\u00f3]/g, "o")
+      .replace(/[\u00f9\u00fa]/g, "u");
+    const parola = senzaAccenti(q);
+    let quante = 0;
+    SEZIONI.forEach((sez, i) => {
+      const tasto = this._tasti[i];
+      if (tasto && tasto.style.display === "none") return;
+      (this._gruppi[i] || []).forEach((g) => {
+        if (g.form.hidden) return;
+        const dentro = [];
+        const guarda = (elenco) => elenco.forEach((voce) => {
+          if (voce.schema) { guarda(voce.schema); return; }
+          if (!voce.name) return;
+          const eti = ETICHETTE[voce.name] || voce.name;
+          if (senzaAccenti(eti + " " + voce.name).includes(parola)) dentro.push(eti);
+        });
+        guarda(g.form.schema || []);
+        dentro.forEach((eti) => {
+          quante += 1;
+          const riga = document.createElement("button");
+          riga.type = "button";
+          riga.className = "trovata";
+          riga.innerHTML = "<b></b><span></span>";
+          riga.querySelector("b").textContent = eti;
+          riga.querySelector("span").textContent = sez.titolo
+            + (g.gruppo.titolo ? " \u203a " + g.gruppo.titolo : "");
+          riga.addEventListener("click", () => {
+            this._scegliScheda(i);
+            this._cerca.value = "";
+            this._trovate.hidden = true;
+            this._trovate.innerHTML = "";
+            const dove = g.titolo || g.form;
+            if (dove && dove.scrollIntoView) {
+              dove.scrollIntoView({ block: "center", behavior: "smooth" });
+            }
+            g.form.setAttribute("acceso", "");
+            setTimeout(() => g.form.removeAttribute("acceso"), 1400);
+          });
+          this._trovate.appendChild(riga);
+        });
+      });
+    });
+    if (!quante) {
+      const vuoto = document.createElement("div");
+      vuoto.className = "trovata niente";
+      vuoto.textContent = "Nessuna impostazione con \u00ab" + q + "\u00bb";
+      this._trovate.appendChild(vuoto);
+    }
   }
 
   _scegliScheda(i) {
