@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.81.0
+ * v1.82.0
  */
 
-const VERSIONE = "1.81.0";
+const VERSIONE = "1.82.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1568,9 +1568,13 @@ ha-card::before, ha-card::after { z-index: 1; }
 .extra { display: flex; gap: 8px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
 .extra[hidden] { display: none !important; }
 .extra button {
-  appearance: none; border: none; cursor: pointer; font: inherit; font-size: 11.5px;
+  appearance: none; cursor: pointer; font: inherit; font-size: 11.5px;
   font-weight: 600; padding: 6px 12px; border-radius: 99px;
-  background: rgba(255,255,255,.07); color: var(--secondary-text-color, #8ea0b8);
+  /* fondo scuro come i comandi: sopra a una copertina chiara si devono
+     leggere lo stesso */
+  background: rgba(12,18,28,.55); color: var(--testo, #eaf1fb);
+  border: 1px solid rgba(255,255,255,.14);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   display: inline-flex; align-items: center; gap: 6px;
 }
 .extra button[hidden] { display: none !important; }
@@ -1798,6 +1802,18 @@ function daRgb(rgb) {
   return "#" + rgb.slice(0, 3)
     .map((x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0"))
     .join("");
+}
+
+// lo stesso colore, ma piu' scuro (quanto: 1 = uguale, 0 = nero)
+function scurisci(colore, quanto) {
+  const h = String(colore || "").replace("#", "");
+  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
+  if (pieno.length !== 6) return colore;
+  const n = parseInt(pieno, 16);
+  const r = Math.round(((n >> 16) & 255) * quanto);
+  const g = Math.round(((n >> 8) & 255) * quanto);
+  const b = Math.round((n & 255) * quanto);
+  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
 function conAlfa(colore, a) {
@@ -3568,9 +3584,13 @@ class CasaTile extends HTMLElement {
 
     // lo sfondo del riquadro delle casse/sorgenti, se l'ha scelto lui
     const panTinta = Array.isArray(c.pannello_sfondo) ? daRgb(c.pannello_sfondo) : null;
-    if (panTinta) {
-      this.style.setProperty("--pan-bg", "linear-gradient(160deg, " + panTinta
-        + " 0%, color-mix(in srgb, " + panTinta + " 62%, #000) 100%)");
+    const panOpaco = 1 - (c.pannello_trasparenza === undefined
+      ? 0 : Number(c.pannello_trasparenza)) / 100;
+    if (panTinta || panOpaco < 1) {
+      const alto = panTinta || "#141d2b";
+      const basso = panTinta ? scurisci(panTinta, 0.62) : "#0a1019";
+      this.style.setProperty("--pan-bg", "linear-gradient(160deg, "
+        + conAlfa(alto, panOpaco) + " 0%, " + conAlfa(basso, panOpaco) + " 100%)");
     } else {
       this.style.removeProperty("--pan-bg");
     }
@@ -3850,7 +3870,6 @@ const SEZIONI = [
       { name: "segui_attivo", selector: { boolean: {} } },
       { name: "multiroom", selector: { boolean: {} } },
       { name: "sorgente", selector: { boolean: {} } },
-      { name: "pannello_sfondo", selector: { color_rgb: {} } },
     ],
   },
   {
@@ -3908,6 +3927,9 @@ const SEZIONI = [
         { value: "vera", label: "Grandezza vera della foto" },
       ] } } },
       { name: "sfondo_velo", selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+      { name: "pannello_sfondo", selector: { color_rgb: {} } },
+      { name: "pannello_trasparenza",
+        selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
     ],
   },
   {
@@ -3952,6 +3974,7 @@ const SOLO_PER = {
   tempo_media: ["media_player"],
   lettori: ["media_player"],
   pannello_sfondo: ["media_player"],
+  pannello_trasparenza: ["media_player"],
   gira_copertina: ["media_player"],
   segui_attivo: ["media_player"],
   multiroom: ["media_player"],
@@ -3996,6 +4019,7 @@ const ETICHETTE = {
   lettori: "Casse tra cui scegliere (i tastini in alto nella casella)",
   pannello_sfondo: "Sfondo del riquadro casse e sorgenti (vuoto = scuro di serie; "
     + "le scritte seguono il colore della scritta)",
+  pannello_trasparenza: "Trasparenza del riquadro casse e sorgenti (%)",
   gira_copertina: "Fai girare la copertina tonda come un disco",
   segui_attivo: "Passa da sola alla cassa che sta suonando",
   multiroom: "Tasto Casse: unisci gli altoparlanti e regola i volumi",
