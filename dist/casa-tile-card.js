@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.87.0
+ * v1.88.0
  */
 
-const VERSIONE = "1.87.0";
+const VERSIONE = "1.88.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2429,9 +2429,19 @@ class CasaTile extends HTMLElement {
       // striscia, rimette proprio la luce bianca
       if (this._scambio._soloBianco) {
         const st = this._hass ? this._hass.states[this._config.entity] : null;
-        const lum = (st && st.attributes.brightness) || 255;
-        this._hass.callService("light", "turn_on",
-          { entity_id: this._config.entity, white: lum });
+        if (!st) return;
+        if (st.attributes.color_mode === "white") {
+          // e' bianca: la coloro con la tinta che sta sulla striscia
+          const hs = st.attributes.hs_color;
+          const tono = Number(this._tinta.value)
+            || (Array.isArray(hs) ? hs[0] : 30);
+          this._hass.callService("light", "turn_on",
+            { entity_id: this._config.entity, hs_color: [tono, 100] });
+        } else {
+          const lum = st.attributes.brightness || 255;
+          this._hass.callService("light", "turn_on",
+            { entity_id: this._config.entity, white: lum });
+        }
         return;
       }
       this._modoColore = this._modoColore === "bianco" ? "tinta" : "bianco";
@@ -3005,10 +3015,11 @@ class CasaTile extends HTMLElement {
     if (!this._scambio.hidden) {
       if (soloBianco) {
         const eBianca = st.attributes.color_mode === "white";
-        this._scambio.innerHTML = segno("bianco");
+        // l'icona dice cosa succede al prossimo tocco
+        this._scambio.innerHTML = segno(eBianca ? "tavolozza" : "bianco");
         this._scambio.toggleAttribute("acceso", eBianca);
         this._scambio.title = eBianca
-          ? "E gia' bianca (tocca la striscia per colorarla)"
+          ? "Adesso e bianca: toccami per colorarla"
           : "Torna alla luce bianca";
       } else {
         this._scambio.removeAttribute("acceso");
