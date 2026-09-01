@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.85.0
+ * v1.86.0
  */
 
-const VERSIONE = "1.85.0";
+const VERSIONE = "1.86.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -3840,141 +3840,184 @@ class CasaTile extends HTMLElement {
 /* ----------------------------------------------------------------- editor */
 const SEZIONI = [
   {
-    chiave: "base", titolo: "Base", segno: "\u2699", aperta: true,
-    schema: [
-      { name: "entity", selector: { entity: {} } },
-      { name: "name", selector: { text: {} } },
-      { name: "icona_ha", selector: { icon: {} } },
+    chiave: "base", titolo: "Base", segno: "⚙", aperta: true,
+    gruppi: [
+      { schema: [
+        { name: "entity", selector: { entity: {} } },
+        { name: "name", selector: { text: {} } },
+      ] },
+      { titolo: "Cosa c'e scritto", schema: [
+        { name: "sottotitolo", selector: { text: {} } },
+        { name: "sottotitolo_entita", selector: { entity: {} } },
+        { name: "nascondi_valore", selector: { boolean: {} } },
+        { name: "info_entita", selector: { entity: { multiple: true } } },
+      ] },
+      { titolo: "Quando la casella e accesa", schema: [
+        { name: "acceso_sempre", selector: { boolean: {} } },
+        { name: "acceso_se", selector: { text: {} } },
+        { name: "soglia", selector: { number: { mode: "box", min: 0, step: 1 } } },
+      ] },
     ],
   },
   {
-    chiave: "aspetto", titolo: "Aspetto", segno: "\uD83C\uDFA8",
-    schema: [
-      { name: "disposizione", selector: { select: { mode: "dropdown", options: [
-        { value: "classica", label: "Classica - icona in basso, valore a destra" },
-        { value: "persona", label: "Persona - foto a sinistra, stato e via accanto" },
-        { value: "vinile", label: "Musica - copertina tonda grande e onda del tempo" },
-        { value: "musica", label: "Musica compatta - copertina piccola di lato" },
-      ] } } },
-      {
-        type: "grid", name: "", schema: [
-          { name: "grande", selector: { boolean: {} } },
-          { name: "mostra_icona", selector: { boolean: {} } },
-          { name: "usa_foto", selector: { boolean: {} } },
-          { name: "nascondi_valore", selector: { boolean: {} } },
-          { name: "acceso_sempre", selector: { boolean: {} } },
-        ],
-      },
-      { name: "soglia", selector: { number: { mode: "box", min: 0, step: 1 } } },
-      { name: "acceso_se", selector: { text: {} } },
-      { name: "meteo_entita", selector: { entity: { domain: "weather" } } },
-      { name: "sottotitolo", selector: { text: {} } },
-      { name: "sottotitolo_entita", selector: { entity: {} } },
+    chiave: "icona", titolo: "Icona", segno: "✦",
+    gruppi: [
+      { schema: [
+        {
+          type: "grid", name: "", schema: [
+            { name: "mostra_icona", selector: { boolean: {} } },
+            { name: "usa_foto", selector: { boolean: {} } },
+          ],
+        },
+        { name: "icona_ha", selector: { icon: {} } },
+      ] },
     ],
   },
   {
-    chiave: "dettagli", titolo: "Dettagli", segno: "\uD83D\uDCCA",
-    schema: [
-      { name: "info_entita", selector: { entity: { multiple: true } } },
-      { name: "mostra_cursore", selector: { boolean: {} } },
-      { name: "cursore_colore", selector: { boolean: {} } },
-      {
-        type: "grid", name: "", schema: [
-          { name: "cursore_min", selector: { number: { mode: "box" } } },
-          { name: "cursore_max", selector: { number: { mode: "box" } } },
-        ],
-      },
-      { name: "colore_striscia", selector: { select: { mode: "dropdown", options: [
-        { value: "tinta", label: "Solo la tinta (arcobaleno)" },
-        { value: "bianco", label: "Solo il bianco caldo/freddo" },
-        { value: "tutte", label: "Tutte e due le strisce" },
-      ] } } },
-      { name: "comandi_media", selector: { boolean: {} } },
-      { name: "tempo_media", selector: { boolean: {} } },
-      { name: "lettori", selector: { entity: { domain: "media_player", multiple: true } } },
-      { name: "gira_copertina", selector: { boolean: {} } },
-      { name: "segui_attivo", selector: { boolean: {} } },
-      { name: "multiroom", selector: { boolean: {} } },
-      { name: "sorgente", selector: { boolean: {} } },
+    chiave: "aspetto", titolo: "Aspetto", segno: "🎨",
+    gruppi: [
+      { titolo: "Come e fatta", schema: [
+        { name: "disposizione", selector: { select: { mode: "dropdown", options: [
+          { value: "classica", label: "Classica - icona in basso, valore a destra" },
+          { value: "persona", label: "Persona - foto a sinistra, stato e via accanto" },
+          { value: "vinile", label: "Musica - copertina tonda grande e onda del tempo" },
+          { value: "musica", label: "Musica compatta - copertina piccola di lato" },
+        ] } } },
+        { name: "grande", selector: { boolean: {} } },
+      ] },
+      { titolo: "Effetti", schema: [
+        { name: "effetto", selector: { select: { mode: "dropdown", options: [
+          { value: "alone", label: "Alone - morbido" },
+          { value: "pulsa", label: "Alone - che respira" },
+          { value: "bagliore", label: "Alone - diffuso e grande" },
+          { value: "doppio", label: "Alone - doppio bordo" },
+          { value: "neon", label: "Luce - neon dentro e fuori" },
+          { value: "bordo", label: "Luce - che gira sul bordo" },
+          { value: "scia", label: "Luce - riflesso che scorre" },
+          { value: "spia", label: "Luce - spia lampeggiante" },
+          { value: "lampeggio", label: "Luce - lampeggio (per gli avvisi)" },
+          { value: "vetro", label: "Superficie - vetro smerigliato" },
+          { value: "sfondo", label: "Superficie - sfondo tinto" },
+          { value: "sfondo_mosso", label: "Superficie - sfondo che si muove" },
+          { value: "incavo", label: "Superficie - incavo" },
+          { value: "onda", label: "Movimento - onda che sale" },
+          { value: "battito", label: "Movimento - battito" },
+          { value: "fluttua", label: "Movimento - icona che fluttua" },
+          { value: "icona_pulsa", label: "Movimento - icona che pulsa" },
+          { value: "ingrandisce", label: "Al passaggio - si ingrandisce" },
+          { value: "inclina", label: "Al passaggio - si inclina" },
+          { value: "nessuno", label: "Nessun effetto" },
+        ] } } },
+        { name: "anima", selector: { select: { mode: "dropdown", options: [
+          { value: "attiva", label: "Si muove solo quando e attiva" },
+          { value: "sempre", label: "Si muove sempre" },
+          { value: "mai", label: "Non si muove mai" },
+        ] } } },
+        { name: "intensita", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
+        { name: "velocita", selector: { number: { min: 25, max: 300, step: 5, mode: "slider" } } },
+      ] },
+      { titolo: "Colore della scritta", schema: [
+        { name: "colore_testo", selector: { color_rgb: {} } },
+      ] },
     ],
   },
   {
-    chiave: "effetti", titolo: "Effetti", segno: "\u2728",
-    schema: [
-      { name: "effetto", selector: { select: { mode: "dropdown", options: [
-        { value: "alone", label: "Alone - morbido" },
-        { value: "pulsa", label: "Alone - che respira" },
-        { value: "bagliore", label: "Alone - diffuso e grande" },
-        { value: "doppio", label: "Alone - doppio bordo" },
-        { value: "neon", label: "Luce - neon dentro e fuori" },
-        { value: "bordo", label: "Luce - che gira sul bordo" },
-        { value: "scia", label: "Luce - riflesso che scorre" },
-        { value: "spia", label: "Luce - spia lampeggiante" },
-        { value: "lampeggio", label: "Luce - lampeggio (per gli avvisi)" },
-        { value: "vetro", label: "Superficie - vetro smerigliato" },
-        { value: "sfondo", label: "Superficie - sfondo tinto" },
-        { value: "sfondo_mosso", label: "Superficie - sfondo che si muove" },
-        { value: "incavo", label: "Superficie - incavo" },
-        { value: "onda", label: "Movimento - onda che sale" },
-        { value: "battito", label: "Movimento - battito" },
-        { value: "fluttua", label: "Movimento - icona che fluttua" },
-        { value: "icona_pulsa", label: "Movimento - icona che pulsa" },
-        { value: "ingrandisce", label: "Al passaggio - si ingrandisce" },
-        { value: "inclina", label: "Al passaggio - si inclina" },
-        { value: "nessuno", label: "Nessun effetto" },
-      ] } } },
-      { name: "anima", selector: { select: { mode: "dropdown", options: [
-        { value: "attiva", label: "Si muove solo quando e attiva" },
-        { value: "sempre", label: "Si muove sempre" },
-        { value: "mai", label: "Non si muove mai" },
-      ] } } },
-      { name: "intensita", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
-      { name: "velocita", selector: { number: { min: 25, max: 300, step: 5, mode: "slider" } } },
-      { name: "colore_testo", selector: { color_rgb: {} } },
+    chiave: "sfondo", titolo: "Sfondo", segno: "🖼",
+    gruppi: [
+      { titolo: "Tinta della casella", schema: [
+        {
+          type: "grid", name: "", schema: [
+            { name: "sfondo_colore", selector: { color_rgb: {} } },
+            { name: "trasparenza",
+              selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
+          ],
+        },
+      ] },
+      { titolo: "Foto di sfondo", schema: [
+        { name: "sfondo_immagine", selector: { text: {} } },
+        { name: "sfondo_adatta", selector: { select: { mode: "dropdown", options: [
+          { value: "riempi", label: "Riempie la casella (taglia i bordi)" },
+          { value: "intera", label: "Tutta intera dentro la casella" },
+          { value: "vera", label: "Grandezza vera della foto" },
+        ] } } },
+        { name: "sfondo_velo",
+          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+      ] },
+      { titolo: "Il cielo del meteo", schema: [
+        { name: "sfondo_meteo", selector: { boolean: {} } },
+        { name: "meteo_forza",
+          selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
+        { name: "meteo_entita", selector: { entity: { domain: "weather" } } },
+      ] },
     ],
   },
   {
-    chiave: "sfondo", titolo: "Sfondo", segno: "\uD83D\uDDBC",
-    schema: [
-      {
-        type: "grid", name: "", schema: [
-          { name: "sfondo_colore", selector: { color_rgb: {} } },
-          { name: "trasparenza", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
-        ],
-      },
-      { name: "sfondo_copertina", selector: { boolean: {} } },
-      { name: "sfondo_sfocatura", selector: { number: { min: 0, max: 24, step: 1, mode: "slider" } } },
-      { name: "sfondo_meteo", selector: { boolean: {} } },
-      { name: "meteo_forza", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
-      { name: "sfondo_immagine", selector: { text: {} } },
-      { name: "sfondo_adatta", selector: { select: { mode: "dropdown", options: [
-        { value: "riempi", label: "Riempie la casella (taglia i bordi)" },
-        { value: "intera", label: "Tutta intera dentro la casella" },
-        { value: "vera", label: "Grandezza vera della foto" },
-      ] } } },
-      { name: "sfondo_velo", selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
-      { name: "pannello_sfondo", selector: { color_rgb: {} } },
-      { name: "pannello_trasparenza",
-        selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+    chiave: "barre", titolo: "Barre", segno: "🎚",
+    gruppi: [
+      { titolo: "Barra dentro la casella", schema: [
+        { name: "mostra_cursore", selector: { boolean: {} } },
+        {
+          type: "grid", name: "", schema: [
+            { name: "cursore_min", selector: { number: { mode: "box" } } },
+            { name: "cursore_max", selector: { number: { mode: "box" } } },
+          ],
+        },
+      ] },
+      { titolo: "Striscia del colore (luci)", schema: [
+        { name: "cursore_colore", selector: { boolean: {} } },
+        { name: "colore_striscia", selector: { select: { mode: "dropdown", options: [
+          { value: "tinta", label: "Solo la tinta (arcobaleno)" },
+          { value: "bianco", label: "Solo il bianco caldo/freddo" },
+          { value: "tutte", label: "Tutte e due le strisce" },
+        ] } } },
+      ] },
     ],
   },
   {
-    chiave: "tocco", titolo: "Tocco", segno: "\uD83D\uDC46",
-    schema: [
-      { name: "azione", selector: { select: { mode: "dropdown", options: [
-        { value: "toggle", label: "Accendi / spegni" },
-        { value: "servizio", label: "Esegui un servizio (es. imposta un valore)" },
-        { value: "more-info", label: "Apri i dettagli" },
-        { value: "finestra", label: "Apri un pop-up mio" },
-        { value: "mappa", label: "Apri Google Maps sulla posizione" },
-        { value: "link", label: "Apri un indirizzo web" },
-        { value: "popup", label: "Apri un pop-up bubble-card (#nome)" },
-      ] } } },
-      { name: "servizio", selector: { text: {} } },
-      { name: "servizio_dati", selector: { text: { multiline: true } } },
-      { name: "indirizzo_web", selector: { text: {} } },
-      { name: "popup", selector: { text: {} } },
-      { name: "finestra_titolo", selector: { text: {} } },
+    chiave: "musica", titolo: "Musica", segno: "🎵",
+    gruppi: [
+      { titolo: "Comandi", schema: [
+        { name: "comandi_media", selector: { boolean: {} } },
+        { name: "tempo_media", selector: { boolean: {} } },
+        { name: "gira_copertina", selector: { boolean: {} } },
+      ] },
+      { titolo: "La copertina come sfondo", schema: [
+        { name: "sfondo_copertina", selector: { boolean: {} } },
+        { name: "sfondo_sfocatura",
+          selector: { number: { min: 0, max: 24, step: 1, mode: "slider" } } },
+      ] },
+      { titolo: "Casse e sorgenti", schema: [
+        { name: "lettori", selector: { entity: { domain: "media_player", multiple: true } } },
+        { name: "segui_attivo", selector: { boolean: {} } },
+        { name: "multiroom", selector: { boolean: {} } },
+        { name: "sorgente", selector: { boolean: {} } },
+      ] },
+      { titolo: "Il riquadro delle casse", schema: [
+        { name: "pannello_sfondo", selector: { color_rgb: {} } },
+        { name: "pannello_trasparenza",
+          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "tocco", titolo: "Tocco", segno: "👆",
+    gruppi: [
+      { schema: [
+        { name: "azione", selector: { select: { mode: "dropdown", options: [
+          { value: "toggle", label: "Accendi / spegni" },
+          { value: "servizio", label: "Esegui un servizio (es. imposta un valore)" },
+          { value: "more-info", label: "Apri i dettagli" },
+          { value: "finestra", label: "Apri un pop-up mio" },
+          { value: "mappa", label: "Apri Google Maps sulla posizione" },
+          { value: "link", label: "Apri un indirizzo web" },
+          { value: "popup", label: "Apri un pop-up bubble-card (#nome)" },
+        ] } } },
+        { name: "servizio", selector: { text: {} } },
+        { name: "servizio_dati", selector: { text: { multiline: true } } },
+        { name: "indirizzo_web", selector: { text: {} } },
+        { name: "popup", selector: { text: {} } },
+        { name: "finestra_titolo", selector: { text: {} } },
+      ] },
     ],
   },
 ];
@@ -4130,11 +4173,15 @@ const STILE_SELETTORE = `
 `;
 
 const STILE_EDITOR = `
-/* i tasti delle schede vengono aggiunti dopo, quindi la targhetta va
-   spinta in fondo con l'ordine, non solo col margine */
-.targhetta { order: 99; margin-left: auto; align-self: center; font-size: 10.5px;
+.targhetta { margin-left: auto; align-self: center; font-size: 10.5px;
   color: var(--secondary-text-color, #8ea0b8); opacity: .7;
   font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.titoloGruppo { margin: 16px 0 2px; font-size: 12px; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--secondary-text-color, #8ea0b8); }
+.titoloGruppo[hidden] { display: none !important; }
+.pannello > ha-form[hidden] { display: none !important; }
+.pannello > .titoloGruppo:first-child { margin-top: 4px; }
 .schede { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-bottom: 12px;
   border-bottom: 1px solid var(--divider-color, #444); }
 .scheda { appearance: none; background: none; border: none; cursor: pointer; font: inherit;
@@ -4348,10 +4395,12 @@ class CasaTileEditor extends HTMLElement {
       targa.textContent = "v" + VERSIONE;
       targa.title = "Versione della card: se non e' quella che ti aspetti, "
         + "il browser sta ancora usando una copia vecchia (ricarica con Ctrl+F5)";
-      this._barra.appendChild(targa);
+      this._targa = targa;
       this.appendChild(this._barra);
 
       this._forms = [];
+      this._tasti = [];
+      this._gruppi = [];
       this._pannelli = [];
       SEZIONI.forEach((sez, i) => {
         const bottone = document.createElement("button");
@@ -4363,41 +4412,65 @@ class CasaTileEditor extends HTMLElement {
         if (i === 0) bottone.setAttribute("scelta", "");
         bottone.addEventListener("click", () => this._scegliScheda(i));
         this._barra.appendChild(bottone);
+        this._tasti.push(bottone);
 
         const pannello = document.createElement("div");
         pannello.className = "pannello";
         if (i !== 0) pannello.setAttribute("nascosto", "");
 
-        const form = document.createElement("ha-form");
-        form.schema = this._schemaDi(sez);
-        form._firma = JSON.stringify(form.schema.map((v) => v.name
-          || (v.schema || []).map((x) => x.name).join("+")));
-        form.computeLabel = (x) => ETICHETTE[x.name] || x.name;
-        form.addEventListener("value-changed", (e) => {
-          e.stopPropagation();
-          const prima = this._config.azione;
-          this._config = { ...this._config, ...e.detail.value };
-          this._emetti();
-          if (prima !== this._config.azione) {
-            this._costruisciBlocco(true);
-            this._aggiornaSchemi();
+        // ogni scheda e' fatta di gruppi: titoletto + campi
+        const suoi = [];
+        sez.gruppi.forEach((gruppo) => {
+          let titolo = null;
+          if (gruppo.titolo) {
+            titolo = document.createElement("h4");
+            titolo.className = "titoloGruppo";
+            titolo.textContent = gruppo.titolo;
+            pannello.appendChild(titolo);
           }
-          if (sez.chiave === "sfondo") this._costruisciFoto();
-          if (sez.chiave === "base" || sez.chiave === "dettagli") this._costruisciTrovati();
-          if (sez.chiave === "base") this._aggiornaSchemi();
-        });
-        this._forms.push(form);
-        pannello.appendChild(form);
+          const form = document.createElement("ha-form");
+          form.schema = this._schemaDi(gruppo);
+          form._firma = this._firmaSchema(form.schema);
+          form.computeLabel = (x) => ETICHETTE[x.name] || x.name;
+          form.addEventListener("value-changed", (e) => {
+            e.stopPropagation();
+            const prima = this._config.azione;
+            this._config = { ...this._config, ...e.detail.value };
+            this._emetti();
+            if (prima !== this._config.azione) {
+              this._costruisciBlocco(true);
+              this._aggiornaSchemi();
+            }
+            if (sez.chiave === "sfondo" || sez.chiave === "aspetto"
+                || sez.chiave === "musica") this._costruisciFoto();
+            if (sez.chiave === "base") {
+              this._costruisciTrovati();
+              this._aggiornaSchemi();
+            }
+          });
+          this._forms.push(form);
+          pannello.appendChild(form);
+          suoi.push({ gruppo: gruppo, form: form, titolo: titolo });
 
-        if (sez.chiave === "base") pannello.appendChild(this._scelte);
-        if (sez.chiave === "effetti") pannello.appendChild(this._tinte);
-        if (sez.chiave === "dettagli") pannello.appendChild(this._sensori);
-        if (sez.chiave === "sfondo") pannello.appendChild(this._foto);
-        if (sez.chiave === "tocco") pannello.appendChild(this._blocco);
+          // i riquadri fatti a mano vanno sotto al gruppo che li riguarda
+          if (sez.chiave === "base" && gruppo.titolo === "Cosa c'e scritto") {
+            pannello.appendChild(this._sensori);
+          }
+          if (sez.chiave === "icona") pannello.appendChild(this._scelte);
+          if (sez.chiave === "aspetto" && gruppo.titolo === "Colore della scritta") {
+            pannello.appendChild(this._tinte);
+          }
+          if (sez.chiave === "sfondo" && gruppo.titolo === "Foto di sfondo") {
+            pannello.appendChild(this._foto);
+          }
+          if (sez.chiave === "tocco") pannello.appendChild(this._blocco);
+        });
+        this._gruppi.push(suoi);
 
         this._pannelli.push(pannello);
         this.appendChild(pannello);
       });
+      this._barra.appendChild(this._targa);
       this._costruito = true;
     }
     this._aggiornaSchemi();
@@ -4714,7 +4787,7 @@ class CasaTileEditor extends HTMLElement {
     box.appendChild(elenco);
   }
 
-  _schemaDi(sez) {
+  _schemaDi(gruppo) {
     const dominio = (this._config.entity || "").split(".")[0];
     const azione = this._config.azione || "toggle";
     const vale = (nome) => {
@@ -4731,38 +4804,53 @@ class CasaTileEditor extends HTMLElement {
       }
       return vale(voce.name) ? voce : null;
     }).filter(Boolean);
-    return setaccia(sez.schema);
+    return setaccia(gruppo.schema);
+  }
+
+  // la firma serve a capire se lo schema e' cambiato davvero
+  _firmaSchema(elenco) {
+    return JSON.stringify(elenco.map((v) => v.name
+      || (v.schema || []).map((x) => x.name).join("+")));
+  }
+
+  _quantiCampi(elenco) {
+    return elenco.reduce((n, v) => n + (v.schema ? v.schema.length : 1), 0);
   }
 
   _aggiornaSchemi() {
-    if (!this._forms) return;
+    if (!this._gruppi) return;
     let primaValida = -1;
     SEZIONI.forEach((sez, i) => {
-      const nuovo = this._schemaDi(sez);
-      const form = this._forms[i];
-      if (!form) return;
-      const firma = JSON.stringify(nuovo.map((v) => v.name
-        || (v.schema || []).map((x) => x.name).join("+")));
-      if (form._firma !== firma) {
-        form.schema = nuovo;
-        form._firma = firma;
-      }
-      const conBlocchi = sez.chiave === "dettagli" || sez.chiave === "sfondo"
-        || sez.chiave === "tocco";
-      const quanti = nuovo.reduce((n, v) => n + (v.schema ? v.schema.length : 1), 0);
-      const utile = quanti > 0 || conBlocchi;
-      const bottone = this._barra.children[i];
+      const suoi = this._gruppi[i] || [];
+      let campi = 0;
+      suoi.forEach((g) => {
+        const nuovo = this._schemaDi(g.gruppo);
+        const firma = this._firmaSchema(nuovo);
+        if (g.form._firma !== firma) {
+          g.form.schema = nuovo;
+          g.form._firma = firma;
+        }
+        const quanti = this._quantiCampi(nuovo);
+        campi += quanti;
+        // il titoletto sparisce insieme ai suoi campi
+        g.form.hidden = quanti === 0;
+        if (g.titolo) g.titolo.hidden = quanti === 0;
+      });
+      // certe schede hanno anche i riquadri fatti a mano, quindi restano
+      const conBlocchi = ["icona", "sfondo", "tocco", "aspetto"].includes(sez.chiave);
+      const utile = campi > 0 || conBlocchi;
+      const bottone = this._tasti[i];
       if (bottone) bottone.style.display = utile ? "" : "none";
       if (!utile) this._pannelli[i].setAttribute("nascosto", "");
       else if (primaValida === -1) primaValida = i;
     });
-    const scelta = [...this._barra.children].findIndex(
+    const scelta = this._tasti.findIndex(
       (b) => b.hasAttribute("scelta") && b.style.display !== "none");
     if (scelta === -1 && primaValida !== -1) this._scegliScheda(primaValida);
   }
 
   _scegliScheda(i) {
-    this._barra.querySelectorAll(".scheda").forEach((b, k) => {
+    this._tasti.forEach((b, k) => {
       if (k === i) b.setAttribute("scelta", "");
       else b.removeAttribute("scelta");
     });
@@ -4849,6 +4937,7 @@ class CasaTileEditor extends HTMLElement {
     this._tastoTogli(tinte, "pannello_sfondo", "Togli lo sfondo del riquadro casse");
     this._tastoTogli(tinte, "colore_testo", "Togli il colore della scritta");
     if (tinte.children.length) box.appendChild(tinte);
+    // in fondo alla scheda Sfondo, che e' dove uno li va a cercare
 
     this._notaFoto = document.createElement("div");
     this._notaFoto.className = "foto-nota";

@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-1.85.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-1.86.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -39,12 +39,15 @@ Aggiungi una scheda alla dashboard e cerca **Casa · casella animata**. Poi tutt
 
 | Scheda | Cosa c'è |
 |---|---|
-| **Base** | entità, nome, icona (automatica, dal catalogo, di Home Assistant o tua) |
-| **Aspetto** | disposizione (classica, persona, musica), casella grande, mostra o nascondi l'icona, meteo |
-| **Dettagli** | misure in basso, barre (luminosità, colore, valori), comandi della musica, casse |
-| **Effetti** | 19 effetti, intensità, velocità, colore della casella, colore della scritta |
-| **Sfondo** | tinta, trasparenza, foto tua, copertina del disco, velo scuro, cielo del meteo |
+| **Base** | entità e nome; cosa c'è scritto (sottotitolo, valore, misure); quando la casella è accesa |
+| **Icona** | mostrala o nascondila, usa la foto dell'entità, un'icona di Home Assistant, il catalogo o un'immagine tua |
+| **Aspetto** | come è fatta (disposizione, casella grande), i 19 effetti, il colore della casella e quello della scritta |
+| **Sfondo** | tinta e trasparenza, foto di sfondo, cielo del meteo |
+| **Barre** | la barra dentro la casella (luci, ventole, valori) e la striscia del colore |
+| **Musica** | comandi, copertina come sfondo, casse e sorgenti, aspetto del riquadro delle casse |
 | **Tocco** | cosa fa quando la tocchi: accendi/spegni, dettagli, pop-up tuo, mappa, indirizzo web, servizio |
+
+Le schede che non servono a quell'entità spariscono da sole: su un sensore non vedrai Musica né Barre.
 
 ### Esempio minimo
 
