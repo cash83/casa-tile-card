@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.82.0
+ * v1.83.0
  */
 
-const VERSIONE = "1.82.0";
+const VERSIONE = "1.83.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2172,7 +2172,8 @@ class CasaTile extends HTMLElement {
       const ricordato = this._leggiScelto();
       if (ricordato && this._lettori().includes(ricordato)) this._scelto = ricordato;
     }
-    this._costruito = false;
+    // NON si rifa' da zero: il contenuto della casella e' sempre lo stesso e
+    // rifarlo chiuderebbe i riquadri aperti a ogni ritocco delle impostazioni
     this._render();
   }
 
