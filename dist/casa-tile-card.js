@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.88.0
+ * v1.89.0
  */
 
-const VERSIONE = "1.88.0";
+const VERSIONE = "1.89.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1401,10 +1401,10 @@ ha-card::before, ha-card::after { z-index: 1; }
   grid-template-columns: 1fr auto; align-items: center; }
 .colori input { grid-column: 1; }
 .colori .scambio { grid-column: 2; grid-row: 1 / -1; appearance: none; border: none;
-  cursor: pointer; width: 30px; height: 30px; border-radius: 50%; padding: 0;
+  cursor: pointer; width: 38px; height: 38px; border-radius: 50%; padding: 0;
   background: rgba(255,255,255,.10); color: var(--primary-text-color, #eaf1fb);
   display: grid; place-items: center; }
-.colori .scambio svg { width: 17px; height: 17px; fill: currentColor; pointer-events: none; }
+.colori .scambio svg { width: 21px; height: 21px; fill: currentColor; pointer-events: none; }
 .colori .scambio[acceso] { background: rgba(255,255,255,.85); color: #0b1220; }
 .colori .scambio[hidden] { display: none !important; }
 .colori[hidden] { display: none !important; }
@@ -1711,6 +1711,8 @@ ha-card::before, ha-card::after { z-index: 1; }
   .comandi button { min-width: 40px; min-height: 38px; }
   .lettori button { min-height: 30px; }
   .extra button { min-height: 34px; }
+  .colori .scambio { width: 42px; height: 42px; }
+  .colori .scambio svg { width: 23px; height: 23px; }
   .cursore input, .pannello .vol { height: 8px; }
   .cursore input::-webkit-slider-thumb,
   .pannello .vol::-webkit-slider-thumb { width: 19px; height: 19px; }
