@@ -1,8 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.79.0
+ * v1.79.1
  */
+
+const VERSIONE = "1.79.1";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -4056,6 +4058,11 @@ const STILE_SELETTORE = `
 `;
 
 const STILE_EDITOR = `
+/* i tasti delle schede vengono aggiunti dopo, quindi la targhetta va
+   spinta in fondo con l'ordine, non solo col margine */
+.targhetta { order: 99; margin-left: auto; align-self: center; font-size: 10.5px;
+  color: var(--secondary-text-color, #8ea0b8); opacity: .7;
+  font-variant-numeric: tabular-nums; letter-spacing: .02em; }
 .schede { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-bottom: 12px;
   border-bottom: 1px solid var(--divider-color, #444); }
 .scheda { appearance: none; background: none; border: none; cursor: pointer; font: inherit;
@@ -4264,6 +4271,12 @@ class CasaTileEditor extends HTMLElement {
 
       this._barra = document.createElement("div");
       this._barra.className = "schede";
+      const targa = document.createElement("span");
+      targa.className = "targhetta";
+      targa.textContent = "v" + VERSIONE;
+      targa.title = "Versione della card: se non e' quella che ti aspetti, "
+        + "il browser sta ancora usando una copia vecchia (ricarica con Ctrl+F5)";
+      this._barra.appendChild(targa);
       this.appendChild(this._barra);
 
       this._forms = [];
@@ -5249,5 +5262,5 @@ window.customCards.push({
   documentationURL: "https://www.home-assistant.io/dashboards/",
 });
 
-console.info("%c CASA-TILE %c v1.79.0 ", "background:#5ec8ff;color:#0b1220;font-weight:700",
+console.info("%c CASA-TILE %c v" + VERSIONE + " ", "background:#5ec8ff;color:#0b1220;font-weight:700",
              "background:#111a27;color:#eaf1fb");
