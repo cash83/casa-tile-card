@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.91.0
+ * v1.92.0
  */
 
-const VERSIONE = "1.91.0";
+const VERSIONE = "1.92.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -3615,6 +3615,14 @@ class CasaTile extends HTMLElement {
     // davvero: se la stanza e' gia' calda l'apparecchio e' fermo, e la
     // casella deve stare grigia anche se il modo e' "riscaldamento"
     if (c.entity.split(".")[0] === "climate") {
+      const modi = st.attributes.hvac_modes || [];
+      const cosaFa = st.attributes.hvac_action;
+      // certi termostati non hanno il modo "spento" (il termo del bagno ha
+      // solo "riscaldamento"): li' l'unica cosa che cambia e' se sta
+      // scaldando o no, altrimenti la casella resterebbe accesa per sempre
+      if (modi.length && !modi.includes("off") && cosaFa) {
+        return !["idle", "off"].includes(String(cosaFa).toLowerCase());
+      }
       return String(st.state).toLowerCase() !== "off";
     }
 
