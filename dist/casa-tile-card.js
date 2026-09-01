@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.79.1
+ * v1.80.0
  */
 
-const VERSIONE = "1.79.1";
+const VERSIONE = "1.80.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1501,8 +1501,8 @@ ha-card::before, ha-card::after { z-index: 1; }
   box-shadow: 0 7px 24px rgba(0,0,0,.45), 0 0 30px color-mix(in srgb, var(--c) 34%, transparent);
 }
 @keyframes casa-giradischi { to { transform: rotate(360deg); } }
-:host([disposizione="vinile"][anima]) img.ritratto {
-  animation: casa-giradischi 26s linear infinite;
+:host([disposizione="vinile"][anima][gira]) img.ritratto {
+  animation: casa-giradischi calc(26s / var(--vel, 1)) linear infinite;
 }
 :host([disposizione="vinile"]) .valore { display: none; }
 :host([disposizione="vinile"]) .testa { grid-area: testo; width: 100%; margin-top: 11px; }
@@ -3624,6 +3624,8 @@ class CasaTile extends HTMLElement {
     this.toggleAttribute("anima",
       quando === "sempre" ? true : quando === "mai" ? false : acceso);
     this.toggleAttribute("grande", !!c.grande);
+    // la copertina tonda gira solo se lo vuole (di serie si')
+    this.toggleAttribute("gira", c.gira_copertina !== false);
 
     this._nome.textContent =
       c.name || (st ? st.attributes.friendly_name : c.entity) || "Casella";
@@ -3831,6 +3833,7 @@ const SEZIONI = [
       { name: "comandi_media", selector: { boolean: {} } },
       { name: "tempo_media", selector: { boolean: {} } },
       { name: "lettori", selector: { entity: { domain: "media_player", multiple: true } } },
+      { name: "gira_copertina", selector: { boolean: {} } },
       { name: "segui_attivo", selector: { boolean: {} } },
       { name: "multiroom", selector: { boolean: {} } },
       { name: "sorgente", selector: { boolean: {} } },
@@ -3934,6 +3937,7 @@ const SOLO_PER = {
   comandi_media: ["media_player"],
   tempo_media: ["media_player"],
   lettori: ["media_player"],
+  gira_copertina: ["media_player"],
   segui_attivo: ["media_player"],
   multiroom: ["media_player"],
   sorgente: ["media_player"],
@@ -3975,6 +3979,7 @@ const ETICHETTE = {
   comandi_media: "Comandi della musica dentro la casella",
   tempo_media: "Tempo del brano e barra di avanzamento",
   lettori: "Casse tra cui scegliere (i tastini in alto nella casella)",
+  gira_copertina: "Fai girare la copertina tonda come un disco",
   segui_attivo: "Passa da sola alla cassa che sta suonando",
   multiroom: "Tasto Casse: unisci gli altoparlanti e regola i volumi",
   sorgente: "Tasto Sorgente: scegli l'ingresso del lettore",
