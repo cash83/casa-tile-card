@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.80.0
+ * v1.81.0
  */
 
-const VERSIONE = "1.80.0";
+const VERSIONE = "1.81.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1577,15 +1577,16 @@ ha-card::before, ha-card::after { z-index: 1; }
 .extra button .freccia { font-size: 9px; transition: transform .18s; }
 .extra button[aperto] {
   background: color-mix(in srgb, var(--c) 26%, rgba(255,255,255,.06));
-  color: var(--primary-text-color, #eaf1fb);
+  color: var(--testo, var(--primary-text-color, #eaf1fb));
 }
 .extra button[aperto] .freccia { transform: rotate(180deg); }
 .pannello {
   position: absolute; inset: auto 8px 8px 8px; max-height: calc(100% - 16px);
   z-index: 4; display: flex; flex-direction: column;
   padding: 8px 10px; border-radius: 14px;
-  /* pieno, non trasparente: dietro puo' esserci una copertina chiara */
-  background: linear-gradient(160deg, #141d2b 0%, #0a1019 100%);
+  /* pieno, non trasparente: dietro puo' esserci una copertina chiara.
+     --pan-bg lo mette lui dalle impostazioni, se vuole */
+  background: var(--pan-bg, linear-gradient(160deg, #141d2b 0%, #0a1019 100%));
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border: 1px solid color-mix(in srgb, var(--c) 22%, rgba(255,255,255,.10));
   box-shadow: 0 12px 32px rgba(0,0,0,.55);
@@ -1595,11 +1596,12 @@ ha-card::before, ha-card::after { z-index: 1; }
   border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 4px; }
 .pannello .p-testa span { flex: 1; font-size: 11px; font-weight: 700;
   letter-spacing: .05em; text-transform: uppercase;
-  color: var(--secondary-text-color, #8ea0b8); }
+  color: var(--testo2, var(--secondary-text-color, #8ea0b8)); }
 .pannello .p-chiudi {
   appearance: none; border: none; cursor: pointer; font: inherit; font-size: 15px;
   width: 26px; height: 26px; border-radius: 50%; line-height: 1;
-  background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb);
+  background: rgba(255,255,255,.08);
+  color: var(--testo, var(--primary-text-color, #eaf1fb));
   display: grid; place-items: center;
 }
 /* su una casella larga le casse stanno in piu' colonne, cosi' non resta
@@ -1608,7 +1610,8 @@ ha-card::before, ha-card::after { z-index: 1; }
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0 18px; }
 .pannello .voce { display: flex; align-items: center; gap: 9px; padding: 5px 0; }
 .pannello .voce .chi { flex: 1; min-width: 0; font-size: 12px; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis; color: var(--primary-text-color, #eaf1fb); }
+  overflow: hidden; text-overflow: ellipsis;
+  color: var(--testo, var(--primary-text-color, #eaf1fb)); }
 .pannello .voce .vol { flex: none; width: 92px; }
 .pannello .voce .vol[hidden] { display: none !important; }
 .pannello .voce .sw {
@@ -1634,7 +1637,8 @@ ha-card::before, ha-card::after { z-index: 1; }
 .pannello.fonti .p-corpo button {
   appearance: none; border: none; cursor: pointer; font: inherit; font-size: 11px;
   font-weight: 600; padding: 5px 10px; border-radius: 99px; max-width: 100%;
-  background: rgba(255,255,255,.07); color: var(--secondary-text-color, #8ea0b8);
+  background: rgba(255,255,255,.07);
+  color: var(--testo2, var(--secondary-text-color, #8ea0b8));
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .pannello.fonti .p-corpo button[scelto] {
@@ -3562,6 +3566,15 @@ class CasaTile extends HTMLElement {
       }
     }
 
+    // lo sfondo del riquadro delle casse/sorgenti, se l'ha scelto lui
+    const panTinta = Array.isArray(c.pannello_sfondo) ? daRgb(c.pannello_sfondo) : null;
+    if (panTinta) {
+      this.style.setProperty("--pan-bg", "linear-gradient(160deg, " + panTinta
+        + " 0%, color-mix(in srgb, " + panTinta + " 62%, #000) 100%)");
+    } else {
+      this.style.removeProperty("--pan-bg");
+    }
+
     // la scritta puo' avere un colore suo, staccato da quello degli effetti
     const scritta = Array.isArray(c.colore_testo) ? daRgb(c.colore_testo) : null;
     if (scritta) {
@@ -3837,6 +3850,7 @@ const SEZIONI = [
       { name: "segui_attivo", selector: { boolean: {} } },
       { name: "multiroom", selector: { boolean: {} } },
       { name: "sorgente", selector: { boolean: {} } },
+      { name: "pannello_sfondo", selector: { color_rgb: {} } },
     ],
   },
   {
@@ -3937,6 +3951,7 @@ const SOLO_PER = {
   comandi_media: ["media_player"],
   tempo_media: ["media_player"],
   lettori: ["media_player"],
+  pannello_sfondo: ["media_player"],
   gira_copertina: ["media_player"],
   segui_attivo: ["media_player"],
   multiroom: ["media_player"],
@@ -3979,6 +3994,8 @@ const ETICHETTE = {
   comandi_media: "Comandi della musica dentro la casella",
   tempo_media: "Tempo del brano e barra di avanzamento",
   lettori: "Casse tra cui scegliere (i tastini in alto nella casella)",
+  pannello_sfondo: "Sfondo del riquadro casse e sorgenti (vuoto = scuro di serie; "
+    + "le scritte seguono il colore della scritta)",
   gira_copertina: "Fai girare la copertina tonda come un disco",
   segui_attivo: "Passa da sola alla cassa che sta suonando",
   multiroom: "Tasto Casse: unisci gli altoparlanti e regola i volumi",
