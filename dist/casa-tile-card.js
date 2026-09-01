@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.95.0
+ * v1.96.0
  */
 
-const VERSIONE = "1.95.0";
+const VERSIONE = "1.96.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -919,7 +919,7 @@ ha-card {
   position: relative; overflow: hidden; cursor: pointer;
   /* mai piu' alta di quanto la plancia le concede: la misura la decidi tu
      dal "Layout" della scheda, il contenuto si stringe da solo */
-  max-height: 100%; box-sizing: border-box;
+  height: 100%; max-height: 100%; box-sizing: border-box;
   padding: 14px; border-radius: var(--casa-radius, 18px);
   background: var(--card-bg, linear-gradient(160deg,#111a27 0%,#0d1420 100%));
   border: 1px solid var(--casa-border, #1e2b3d);
@@ -1481,9 +1481,11 @@ ha-card::before, ha-card::after { z-index: 1; }
 :host([disposizione="musica"]) .cursore { margin-top: 8px; }
 
 /* --- il grafichino dell'andamento --- */
-.andamento { display: block; width: 100%; height: 30px; margin-top: 8px;
-  flex: 0 1 auto; min-height: 0;
-  position: relative; z-index: 1; overflow: hidden; }
+/* il grafico non ruba spazio: sta sul fondo della casella, dietro alle
+   scritte, quindi non cambia l'altezza di niente e si vede sempre */
+.andamento { position: absolute; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 46%; min-height: 24px; max-height: 72px;
+  z-index: 0; pointer-events: none; opacity: .8; }
 .andamento[hidden] { display: none !important; }
 .andamento .riga { fill: none; stroke: var(--c); stroke-width: 1.6;
   stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
