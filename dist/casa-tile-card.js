@@ -1,7 +1,7 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.78.1
+ * v1.79.0
  */
 
 const COLORI = {
@@ -1579,9 +1579,14 @@ ha-card::before, ha-card::after { z-index: 1; }
 }
 .extra button[aperto] .freccia { transform: rotate(180deg); }
 .pannello {
-  position: absolute; inset: 8px; z-index: 4; display: flex; flex-direction: column;
-  padding: 8px 10px; border-radius: 14px; background: rgba(11,17,27,.97);
-  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 12px 32px rgba(0,0,0,.55);
+  position: absolute; inset: auto 8px 8px 8px; max-height: calc(100% - 16px);
+  z-index: 4; display: flex; flex-direction: column;
+  padding: 8px 10px; border-radius: 14px;
+  /* pieno, non trasparente: dietro puo' esserci una copertina chiara */
+  background: linear-gradient(160deg, #141d2b 0%, #0a1019 100%);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in srgb, var(--c) 22%, rgba(255,255,255,.10));
+  box-shadow: 0 12px 32px rgba(0,0,0,.55);
 }
 .pannello[hidden] { display: none !important; }
 .pannello .p-testa { display: flex; align-items: center; gap: 8px; padding-bottom: 6px;
@@ -1595,7 +1600,10 @@ ha-card::before, ha-card::after { z-index: 1; }
   background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb);
   display: grid; place-items: center;
 }
-.pannello .p-corpo { overflow-y: auto; flex: 1; }
+/* su una casella larga le casse stanno in piu' colonne, cosi' non resta
+   mezzo riquadro vuoto; su una stretta tornano in fila da sole */
+.pannello .p-corpo { overflow-y: auto; flex: 1; display: grid; align-content: start;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0 18px; }
 .pannello .voce { display: flex; align-items: center; gap: 9px; padding: 5px 0; }
 .pannello .voce .chi { flex: 1; min-width: 0; font-size: 12px; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; color: var(--primary-text-color, #eaf1fb); }
@@ -1647,7 +1655,7 @@ ha-card::before, ha-card::after { z-index: 1; }
   .comandi { gap: 4px; }
   .extra { gap: 6px; margin-top: 8px; }
   .extra button { font-size: 10px; padding: 5px 9px; }
-  .pannello { inset: 6px; padding: 7px 8px; }
+  .pannello { inset: auto 6px 6px 6px; max-height: calc(100% - 12px); padding: 7px 8px; }
   .pannello .voce { gap: 6px; padding: 4px 0; }
   .pannello .voce .chi { font-size: 11px; }
   .pannello .voce .vol { width: 62px; }
@@ -5241,5 +5249,5 @@ window.customCards.push({
   documentationURL: "https://www.home-assistant.io/dashboards/",
 });
 
-console.info("%c CASA-TILE %c v1.78.1 ", "background:#5ec8ff;color:#0b1220;font-weight:700",
+console.info("%c CASA-TILE %c v1.79.0 ", "background:#5ec8ff;color:#0b1220;font-weight:700",
              "background:#111a27;color:#eaf1fb");
