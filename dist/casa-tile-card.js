@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.84.0
+ * v1.85.0
  */
 
-const VERSIONE = "1.84.0";
+const VERSIONE = "1.85.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -4772,6 +4772,26 @@ class CasaTileEditor extends HTMLElement {
     });
   }
 
+  // il selettore di colore di Home Assistant non ha la X: senza questi
+  // tastini una tinta scelta per sbaglio non si toglierebbe piu'
+  _tastoTogli(dove, campo, scritta) {
+    if (!Array.isArray(this._config[campo])) return;
+    const b = document.createElement("button");
+    b.className = "bt chiaro";
+    b.type = "button";
+    b.textContent = scritta;
+    b.addEventListener("click", () => {
+      const c = { ...this._config };
+      delete c[campo];
+      this._config = c;
+      this._emetti();
+      this._costruisciFoto();
+      this._costruisciScelte();
+      this._render();
+    });
+    dove.appendChild(b);
+  }
+
   _costruisciFoto() {
     const box = this._foto;
     box.innerHTML = "<h4>Foto di sfondo</h4>";
@@ -4822,6 +4842,13 @@ class CasaTileEditor extends HTMLElement {
       riga.appendChild(via);
     }
     box.appendChild(riga);
+
+    const tinte = document.createElement("div");
+    tinte.className = "foto-riga";
+    this._tastoTogli(tinte, "sfondo_colore", "Togli la tinta della casella");
+    this._tastoTogli(tinte, "pannello_sfondo", "Togli lo sfondo del riquadro casse");
+    this._tastoTogli(tinte, "colore_testo", "Togli il colore della scritta");
+    if (tinte.children.length) box.appendChild(tinte);
 
     this._notaFoto = document.createElement("div");
     this._notaFoto.className = "foto-nota";
