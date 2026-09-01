@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.3.5
+ * v2.3.6
  */
 
-const VERSIONE = "2.3.5";
+const VERSIONE = "2.3.6";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2202,6 +2202,24 @@ svg .an { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { svg .an { animation: none !important; } }
 `;
 
+// che colore ha una luce bianca di tanti gradi kelvin: serve alle strisce
+// che il bianco non ce l'hanno e lo devono mescolare coi colori
+function coloreDaGradi(k) {
+  const t = Math.max(1000, Math.min(12000, Number(k) || 4000)) / 100;
+  const dentro = (x) => Math.max(0, Math.min(255, Math.round(x)));
+  let r; let g; let b;
+  if (t <= 66) {
+    r = 255;
+    g = 99.47 * Math.log(t) - 161.12;
+    b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04;
+  } else {
+    r = 329.7 * Math.pow(t - 60, -0.1332);
+    g = 288.12 * Math.pow(t - 60, -0.0755);
+    b = 255;
+  }
+  return [dentro(r), dentro(g), dentro(b)];
+}
+
 // dal freddo al caldo: azzurro, verde, ambra, arancio, rosso
 const SCALA_TERMICA = [
   [-5, [79, 139, 255]], [8, [79, 184, 255]], [15, [79, 224, 200]],
@@ -2400,7 +2418,7 @@ function fotoDi(st) {
 const PANNELLI_APERTI = new Map();
 
 // quanto occupa davvero ogni disegno: si misura una volta sola
-const MISURE_ICONA = {};   // rifatte dalla v2.3.5 (aria = spessore del tratto)
+const MISURE_ICONA = {};   // rifatte dalla v2.3.6 (aria = spessore del tratto)
 
 // stringe il riquadro attorno al disegno, cosi' riempie il suo spazio come
 // fanno le icone di Home Assistant
@@ -2971,6 +2989,9 @@ class CasaTile extends HTMLElement {
         const hs = st && st.attributes.hs_color;
         const sat = Array.isArray(hs) && hs[1] > 12 ? hs[1] : 100;
         dati.hs_color = [Number(this._tinta.value), sat];
+      } else if (this._calore._finto) {
+        // niente lampadine bianche: il bianco lo mescolo coi colori
+        dati.rgb_color = coloreDaGradi(Number(this._calore.value));
       } else {
         dati.color_temp_kelvin = Number(this._calore.value);
       }
@@ -3856,7 +3877,12 @@ class CasaTile extends HTMLElement {
     const dom = c.entity ? c.entity.split(".")[0] : "";
     const modi = (st && st.attributes.supported_color_modes) || [];
     const conTinta = modi.some((m) => ["hs", "rgb", "rgbw", "rgbww", "xy"].includes(m));
-    const conCalore = modi.includes("color_temp");
+    const conCaloreVero = modi.includes("color_temp");
+    // strisce coi soli colori: il caldo/freddo lo mescoliamo noi
+    const caloreFinto = !conCaloreVero && !modi.includes("white")
+      && modi.some((m) => ["rgb", "rgbw", "rgbww", "hs", "xy"].includes(m));
+    const conCalore = conCaloreVero || caloreFinto;
+    this._calore._finto = caloreFinto;
     // certe lampade non hanno le gradazioni di bianco: hanno un bianco solo
     const conBianco = modi.includes("white");
     // le strisce si vedono anche a luce spenta: muovendole si accende
@@ -3877,10 +3903,8 @@ class CasaTile extends HTMLElement {
     this._calore.hidden = !conCalore || (!dueStrisce && modo !== "bianco");
     // il tastino c'e' se la lampada fa colori E bianco (a gradazioni o
     // secco). Col bianco secco non c'e' niente da scambiare: rimette il bianco.
-    const soloBianco = conTinta && !conCalore && conBianco;
-    // strisce coi soli colori (RGB): il bianco glielo facciamo noi
-    const biancoRgb = conTinta && !conCalore && !conBianco
-      && modi.some((m) => ["rgb", "rgbw", "rgbww", "hs", "xy"].includes(m));
+    const soloBianco = conTinta && !conCaloreVero && conBianco;
+    const biancoRgb = false;
     this._scambio._soloBianco = soloBianco;
     this._scambio._biancoRgb = biancoRgb;
     this._scambio.hidden = !(conTinta && (conCalore || conBianco || biancoRgb))
@@ -3910,8 +3934,8 @@ class CasaTile extends HTMLElement {
       }
     }
     if (conCalore) {
-      const min = st.attributes.min_color_temp_kelvin || 2000;
-      const max = st.attributes.max_color_temp_kelvin || 6500;
+      const min = conCaloreVero ? (st.attributes.min_color_temp_kelvin || 2000) : 2200;
+      const max = conCaloreVero ? (st.attributes.max_color_temp_kelvin || 6500) : 6500;
       this._calore.min = String(min);
       this._calore.max = String(max);
     }
@@ -3919,7 +3943,7 @@ class CasaTile extends HTMLElement {
     const hs = st.attributes.hs_color;
     if (conTinta && Array.isArray(hs)) this._tinta.value = String(Math.round(hs[0]));
     const k = st.attributes.color_temp_kelvin;
-    if (conCalore && k) this._calore.value = String(k);
+    if (conCaloreVero && k) this._calore.value = String(k);
   }
 
   _disegnaExtra(st) {
