@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.94.0
+ * v1.95.0
  */
 
-const VERSIONE = "1.94.0";
+const VERSIONE = "1.95.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -3368,23 +3368,63 @@ class CasaTile extends HTMLElement {
       this._chiaveStoria = chiave;
       this._quandoStoria = adesso;
       const da = new Date(adesso - ore * 3600000).toISOString();
-      this._hass.callWS({
+      const a = new Date(adesso).toISOString();
+      this._chiediStoria(c.entity, da, a);
+    }
+    this._disegnaLinea(st);
+  }
+
+  // due strade per lo storico: prima il websocket, poi l'indirizzo normale
+  // (su certe installazioni la prima non risponde)
+  async _chiediStoria(chi, da, a) {
+    const numeri = (righe) => righe
+      .map((r) => parseFloat(r && r.s !== undefined ? r.s : (r || {}).state))
+      .filter((x) => !isNaN(x));
+
+    try {
+      const risposta = await this._hass.callWS({
         type: "history/history_during_period",
         start_time: da,
-        end_time: new Date(adesso).toISOString(),
-        entity_ids: [c.entity],
+        end_time: a,
+        entity_ids: [chi],
         minimal_response: true,
         no_attributes: true,
         significant_changes_only: false,
-      }).then((risposta) => {
-        const righe = (risposta && risposta[c.entity]) || [];
-        this._storia = righe
-          .map((r) => parseFloat(r.s !== undefined ? r.s : r.state))
-          .filter((x) => !isNaN(x));
+      });
+      const righe = (risposta && risposta[chi]) || [];
+      if (righe.length) {
+        this._storia = numeri(righe);
         this._disegnaLinea();
-      }).catch(() => { this._storia = null; });
+        return;
+      }
+    } catch (e) { /* pazienza: ci provo con l'altra strada */ }
+
+    try {
+      const indirizzo = "history/period/" + encodeURIComponent(da)
+        + "?filter_entity_id=" + encodeURIComponent(chi)
+        + "&end_time=" + encodeURIComponent(a)
+        + "&minimal_response&no_attributes";
+      const risposta = await this._hass.callApi("GET", indirizzo);
+      const righe = (Array.isArray(risposta) && risposta[0]) || [];
+      this._storia = numeri(righe);
+      this._disegnaLinea();
+      if (!this._storia.length) this._niente("lo storico e vuoto");
+      return;
+    } catch (e) {
+      this._storia = null;
+      this._niente(e && e.message ? e.message : "storico non raggiungibile");
     }
-    this._disegnaLinea(st);
+  }
+
+  _niente(perche) {
+    if (this._andamento) {
+      this._andamento.setAttribute("title",
+        "Grafico: " + perche + " (entita: " + this._config.entity + ")");
+    }
+    if (!this._giaDetto) {
+      this._giaDetto = true;
+      console.warn("[casa-tile] grafico senza dati:", this._config.entity, perche);
+    }
   }
 
   _disegnaLinea(st) {
