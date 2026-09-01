@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.3.4
+ * v2.3.5
  */
 
-const VERSIONE = "2.3.4";
+const VERSIONE = "2.3.5";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2400,7 +2400,7 @@ function fotoDi(st) {
 const PANNELLI_APERTI = new Map();
 
 // quanto occupa davvero ogni disegno: si misura una volta sola
-const MISURE_ICONA = {};   // rifatte dalla v2.3.4 (aria = spessore del tratto)
+const MISURE_ICONA = {};   // rifatte dalla v2.3.5 (aria = spessore del tratto)
 
 // stringe il riquadro attorno al disegno, cosi' riempie il suo spazio come
 // fanno le icone di Home Assistant
@@ -2997,6 +2997,23 @@ class CasaTile extends HTMLElement {
       e.stopPropagation();
       // lampade con il bianco "secco" (modo white): il tastino non cambia
       // striscia, rimette proprio la luce bianca
+      if (this._scambio._biancoRgb) {
+        // striscia coi soli colori: il bianco si fa col colore
+        const st = this._hass ? this._hass.states[this._config.entity] : null;
+        if (!st) return;
+        const rgb = st.attributes.rgb_color;
+        const giaBianca = Array.isArray(rgb)
+          && rgb[0] > 235 && rgb[1] > 235 && rgb[2] > 235;
+        if (giaBianca) {
+          const tono = Number(this._tinta.value) || 30;
+          this._hass.callService("light", "turn_on",
+            { entity_id: this._config.entity, hs_color: [tono, 100] });
+        } else {
+          this._hass.callService("light", "turn_on",
+            { entity_id: this._config.entity, rgb_color: [255, 255, 255] });
+        }
+        return;
+      }
       if (this._scambio._soloBianco) {
         const st = this._hass ? this._hass.states[this._config.entity] : null;
         if (!st) return;
@@ -3861,10 +3878,23 @@ class CasaTile extends HTMLElement {
     // il tastino c'e' se la lampada fa colori E bianco (a gradazioni o
     // secco). Col bianco secco non c'e' niente da scambiare: rimette il bianco.
     const soloBianco = conTinta && !conCalore && conBianco;
+    // strisce coi soli colori (RGB): il bianco glielo facciamo noi
+    const biancoRgb = conTinta && !conCalore && !conBianco
+      && modi.some((m) => ["rgb", "rgbw", "rgbww", "hs", "xy"].includes(m));
     this._scambio._soloBianco = soloBianco;
-    this._scambio.hidden = !(conTinta && (conCalore || conBianco)) || dueStrisce;
+    this._scambio._biancoRgb = biancoRgb;
+    this._scambio.hidden = !(conTinta && (conCalore || conBianco || biancoRgb))
+      || dueStrisce;
     if (!this._scambio.hidden) {
-      if (soloBianco) {
+      if (biancoRgb) {
+        const rgb = st.attributes.rgb_color;
+        const gia = Array.isArray(rgb) && rgb[0] > 235 && rgb[1] > 235 && rgb[2] > 235;
+        this._scambio.innerHTML = segno(gia ? "tavolozza" : "bianco");
+        this._scambio.toggleAttribute("acceso", gia);
+        this._scambio.title = gia
+          ? "Adesso e bianca: toccami per colorarla"
+          : "Falla bianca";
+      } else if (soloBianco) {
         const eBianca = st.attributes.color_mode === "white";
         // l'icona dice cosa succede al prossimo tocco
         this._scambio.innerHTML = segno(eBianca ? "tavolozza" : "bianco");
