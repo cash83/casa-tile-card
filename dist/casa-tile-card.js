@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.90.0
+ * v1.91.0
  */
 
-const VERSIONE = "1.90.0";
+const VERSIONE = "1.91.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1087,6 +1087,12 @@ svg .fiocco { transform-origin: center; animation: casa-fiocco calc(2.8s / var(-
 @keyframes casa-nuvolina { 0%, 100% { transform: translateX(-1.6px); } 50% { transform: translateX(1.6px); } }
 svg .nuvolina { animation: casa-nuvolina calc(4.5s / var(--vel, 1)) ease-in-out infinite; }
 svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
+
+/* acceso ma fermo (un termosifone che non sta scaldando): tinta si',
+   alone no, e l'icona sta ferma */
+:host([acceso][fermo]) ha-card { box-shadow: 0 0 0 1px var(--alone1, transparent); }
+:host([acceso][fermo]) ha-card::after { opacity: .35; }
+:host([fermo]) svg .an { animation-play-state: paused; }
 
 /* --- effetti della casella --- */
 :host([effetto="nessuno"][acceso]) ha-card { box-shadow: none; }
@@ -3609,10 +3615,6 @@ class CasaTile extends HTMLElement {
     // davvero: se la stanza e' gia' calda l'apparecchio e' fermo, e la
     // casella deve stare grigia anche se il modo e' "riscaldamento"
     if (c.entity.split(".")[0] === "climate") {
-      const cosaFa = st.attributes.hvac_action;
-      if (cosaFa) {
-        return !["idle", "off"].includes(String(cosaFa).toLowerCase());
-      }
       return String(st.state).toLowerCase() !== "off";
     }
 
@@ -3732,6 +3734,11 @@ class CasaTile extends HTMLElement {
     this.toggleAttribute("anima",
       quando === "sempre" ? true : quando === "mai" ? false : acceso);
     this.toggleAttribute("grande", !!c.grande);
+    // termosifoni e condizionatori: acceso e' una cosa, stare lavorando
+    // un'altra. Da fermo la casella resta sobria.
+    const cosaFa = st && st.attributes ? st.attributes.hvac_action : null;
+    this.toggleAttribute("fermo", !!cosaFa
+      && ["idle", "off"].includes(String(cosaFa).toLowerCase()));
     // la copertina tonda gira solo se lo vuole (di serie si')
     this.toggleAttribute("gira", c.gira_copertina !== false);
 
