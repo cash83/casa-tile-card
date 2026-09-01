@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.3.6
+ * v2.3.7
  */
 
-const VERSIONE = "2.3.6";
+const VERSIONE = "2.3.7";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -223,11 +223,6 @@ const ICONE = {
 <rect x="17" y="26" width="30" height="20" rx="3" fill="#101827"/>
 <g class="an glow"><rect x="19" y="28" width="26" height="16" rx="2" fill="#ff8a3d" opacity=".55"/></g>
 <circle cx="21" cy="20" r="2.4" fill="#8ea6c2"/><circle cx="30" cy="20" r="2.4" fill="#8ea6c2"/>`,
-
-  condizionatore: `<rect x="10" y="16" width="44" height="16" rx="5" fill="#c3d3e6"/>
-<rect x="14" y="26" width="36" height="3" rx="1.5" fill="#8ea6c2"/>
-<g class="an calore" stroke="#5ec8ff" stroke-width="3" stroke-linecap="round">
-<path d="M22 36v8M32 36v11M42 36v8"/></g>`,
 
   allarme: `<g class="an bolt"><path d="M32 8l22 10v14c0 13-9 20-22 24-13-4-22-11-22-24V18z" fill="#ff6b6b"/></g>
 <path d="M24 32l6 6 12-12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`,
@@ -555,7 +550,6 @@ const SINONIMI = {
   orologio_polso: "smartwatch orologio polso galaxy watch huawei",
   asciugatrice: "asciugatrice asciuga panni dryer",
   lavastoviglie: "lavastoviglie piatti stoviglie",
-  condizionatore: "condizionatore climatizzatore aria fredda split",
   umidificatore: "umidificatore vapore umidita",
   deumidificatore: "deumidificatore secco umidita acqua",
   purificatore: "purificatore aria filtro ventola",
@@ -608,7 +602,7 @@ const SINONIMI = {
   caffe: "caffettiera macchina tazza",
   frigo: "frigorifero freezer congelatore",
   forno: "cucina fornello microonde",
-  condizionatore: "clima aria condizionata split fresco",
+  condizionatore: "clima aria condizionata condizionatore climatizzatore split fresco fredda",
   allarme: "sicurezza antifurto protezione",
 };
 
@@ -2721,8 +2715,19 @@ const SEGNI = {
     + "12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13V3Z",
 };
 
+// YouTube Music chiama gli artisti "Tizio - Topic": la coda non serve a nessuno
+const nomeArtista = (chi) => String(chi || "").replace(/\s*-\s*Topic\s*$/i, "").trim();
+
 const segno = (nome) =>
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + SEGNI[nome] + '"></path></svg>';
+
+// mette il simbolo dentro il tasto solo se e' cambiato davvero: rifare il
+// disegnino a ogni giro (una volta al secondo, con la musica) e' sprecato
+const metti = (el, nome) => {
+  if (!el || el.dataset.segno === nome) return;
+  el.dataset.segno = nome;
+  el.innerHTML = segno(nome);
+};
 
 class CasaTile extends HTMLElement {
   static getConfigElement() { return document.createElement("casa-tile-editor"); }
@@ -2943,6 +2948,7 @@ class CasaTile extends HTMLElement {
     this._ritratto = root.querySelector("img.ritratto");
     this._valore = root.querySelector(".valore");
     this._chips = root.querySelector(".chips");
+    this._firmaChips = null;
     this._andamento = root.querySelector(".andamento");
     this._mirino = root.querySelector(".mirino");
     this._estremi = root.querySelector(".estremi");
@@ -3018,23 +3024,6 @@ class CasaTile extends HTMLElement {
       e.stopPropagation();
       // lampade con il bianco "secco" (modo white): il tastino non cambia
       // striscia, rimette proprio la luce bianca
-      if (this._scambio._biancoRgb) {
-        // striscia coi soli colori: il bianco si fa col colore
-        const st = this._hass ? this._hass.states[this._config.entity] : null;
-        if (!st) return;
-        const rgb = st.attributes.rgb_color;
-        const giaBianca = Array.isArray(rgb)
-          && rgb[0] > 235 && rgb[1] > 235 && rgb[2] > 235;
-        if (giaBianca) {
-          const tono = Number(this._tinta.value) || 30;
-          this._hass.callService("light", "turn_on",
-            { entity_id: this._config.entity, hs_color: [tono, 100] });
-        } else {
-          this._hass.callService("light", "turn_on",
-            { entity_id: this._config.entity, rgb_color: [255, 255, 255] });
-        }
-        return;
-      }
       if (this._scambio._soloBianco) {
         const st = this._hass ? this._hass.states[this._config.entity] : null;
         if (!st) return;
@@ -3634,6 +3623,16 @@ class CasaTile extends HTMLElement {
     if (!card) return;
     const h = card.getBoundingClientRect().height;
     if (!h) return;
+    this._altezzaVista = h;
+    this._quandoMisura = Date.now();
+    this._decidiCompatta();
+  }
+
+  // la stessa decisione ma con l'altezza gia' saputa: il disegno passa di
+  // qui ogni secondo mentre suona la musica e misurare costa caro
+  _decidiCompatta() {
+    const h = this._altezzaVista;
+    if (!h) return;
     // quanto spazio serve davvero: dipende da cosa c'e' dentro la casella
     let soglia = 128;
     const c0 = (el) => !!el && !el.hidden;
@@ -3725,7 +3724,7 @@ class CasaTile extends HTMLElement {
     const suona = st.state === "playing";
 
     const bPlay = this._comandi.querySelector(".play");
-    bPlay.innerHTML = segno(suona ? "pausa" : "play");
+    metti(bPlay, suona ? "pausa" : "play");
     bPlay.title = suona ? "Pausa" : "Riproduci";
 
     this._comandi.querySelector(".prec").hidden = !!puo && !(puo & 16);
@@ -3734,17 +3733,17 @@ class CasaTile extends HTMLElement {
     const bStop = this._comandi.querySelector(".stop");
     const puoSvuotare = !puo || (puo & 8192);
     if (!puo || (puo & 4096)) {
-      bStop.innerHTML = segno("stop");
+      metti(bStop, "stop");
       bStop.title = puoSvuotare ? "Ferma e svuota la coda" : "Ferma";
       bStop._servizi = puoSvuotare ? ["media_stop", "clear_playlist"] : ["media_stop"];
       bStop.hidden = false;
     } else if (puo & 8192) {
-      bStop.innerHTML = segno("svuota");
+      metti(bStop, "svuota");
       bStop.title = "Svuota la coda";
       bStop._servizi = ["clear_playlist"];
       bStop.hidden = false;
     } else if (puo & 256) {
-      bStop.innerHTML = segno("spegni");
+      metti(bStop, "spegni");
       bStop.title = "Spegni";
       bStop._servizi = ["turn_off"];
       bStop.hidden = false;
@@ -3904,31 +3903,20 @@ class CasaTile extends HTMLElement {
     // il tastino c'e' se la lampada fa colori E bianco (a gradazioni o
     // secco). Col bianco secco non c'e' niente da scambiare: rimette il bianco.
     const soloBianco = conTinta && !conCaloreVero && conBianco;
-    const biancoRgb = false;
     this._scambio._soloBianco = soloBianco;
-    this._scambio._biancoRgb = biancoRgb;
-    this._scambio.hidden = !(conTinta && (conCalore || conBianco || biancoRgb))
-      || dueStrisce;
+    this._scambio.hidden = !(conTinta && (conCalore || conBianco)) || dueStrisce;
     if (!this._scambio.hidden) {
-      if (biancoRgb) {
-        const rgb = st.attributes.rgb_color;
-        const gia = Array.isArray(rgb) && rgb[0] > 235 && rgb[1] > 235 && rgb[2] > 235;
-        this._scambio.innerHTML = segno(gia ? "tavolozza" : "bianco");
-        this._scambio.toggleAttribute("acceso", gia);
-        this._scambio.title = gia
-          ? "Adesso e bianca: toccami per colorarla"
-          : "Falla bianca";
-      } else if (soloBianco) {
+      if (soloBianco) {
         const eBianca = st.attributes.color_mode === "white";
         // l'icona dice cosa succede al prossimo tocco
-        this._scambio.innerHTML = segno(eBianca ? "tavolozza" : "bianco");
+        metti(this._scambio, eBianca ? "tavolozza" : "bianco");
         this._scambio.toggleAttribute("acceso", eBianca);
         this._scambio.title = eBianca
           ? "Adesso e bianca: toccami per colorarla"
           : "Torna alla luce bianca";
       } else {
         this._scambio.removeAttribute("acceso");
-        this._scambio.innerHTML = segno(modo === "tinta" ? "bianco" : "tavolozza");
+        metti(this._scambio, modo === "tinta" ? "bianco" : "tavolozza");
         this._scambio.title = modo === "tinta"
           ? "Passa al bianco caldo/freddo" : "Passa ai colori";
       }
@@ -4203,15 +4191,22 @@ class CasaTile extends HTMLElement {
     this._meteo.hidden = false;
     const t = st.attributes.temperature;
     const u = st.attributes.temperature_unit || "\u00B0C";
-    this._gradi.innerHTML = (t === undefined || t === null)
+    const gradi = (t === undefined || t === null)
       ? "" : Math.round(t) + "<small>" + u + "</small>";
+    if (this._gradi.dataset.gradi !== gradi) {
+      this._gradi.dataset.gradi = gradi;
+      this._gradi.innerHTML = gradi;
+    }
     const voce = METEO[st.state] || ["\u2022", st.state];
-    this._cond.innerHTML = "";
-    const simbolo = document.createElement("span");
-    simbolo.textContent = voce[0];
-    const parola = document.createElement("span");
-    parola.textContent = voce[1];
-    this._cond.append(simbolo, parola);
+    if (this._cond.dataset.voce !== st.state) {
+      this._cond.dataset.voce = st.state;
+      this._cond.innerHTML = "";
+      const simbolo = document.createElement("span");
+      simbolo.textContent = voce[0];
+      const parola = document.createElement("span");
+      parola.textContent = voce[1];
+      this._cond.append(simbolo, parola);
+    }
   }
 
   // il grafichino: chiedo la storia a Home Assistant e la disegno
@@ -4418,7 +4413,10 @@ class CasaTile extends HTMLElement {
     const lista = (this._config.info_entita || [])
       .filter((eid) => eid !== gia)
       .slice(0, 6);
-    if (!this._hass || !lista.length) { this._chips.innerHTML = ""; return; }
+    if (!this._hass || !lista.length) {
+      if (this._firmaChips !== "") { this._chips.innerHTML = ""; this._firmaChips = ""; }
+      return;
+    }
     const pezzi = [];
     lista.forEach((eid) => {
       const st = this._hass.states[eid];
@@ -4429,23 +4427,34 @@ class CasaTile extends HTMLElement {
       const testo = (!isNaN(n) && st.state.trim() !== "")
         ? (Math.round(n * 10) / 10).toLocaleString("it-IT") + (u ? " " + u : "")
         : (PAROLE[String(st.state).toLowerCase()] || st.state);
-      pezzi.push({ eid: eid, st: st, testo: String(testo).slice(0, 16) });
+      pezzi.push({
+        eid: eid, st: st, testo: String(testo).slice(0, 16),
+        etichetta: this._etichetta(st, eid),
+        simbolo: this._simbolo(st, eid),
+        mappa: this._eUnPosto(st, eid),
+        nome: st.attributes.friendly_name || eid,
+      });
     });
+    // rifaccio le caselline solo se e' cambiato qualcosa: durante la musica
+    // il disegno passa di qui una volta al secondo
+    const firma = pezzi.map((m) =>
+      [m.eid, m.testo, m.etichetta, m.simbolo, m.mappa ? 1 : 0].join("~")).join("|");
+    if (firma === this._firmaChips) return;
+    this._firmaChips = firma;
 
     this._chips.innerHTML = "";
     pezzi.forEach((m) => {
       const casella = document.createElement("div");
       casella.className = "metrica";
       casella.tabIndex = 0;
-      const etichetta = this._etichetta(m.st, m.eid);
-      const mappa = this._eUnPosto(m.st, m.eid);
-      casella.title = (m.st.attributes.friendly_name || m.eid)
+      const mappa = m.mappa;
+      casella.title = m.nome
         + (mappa ? " - tocca per aprire Google Maps" : " - tocca per i dettagli");
       casella.innerHTML =
         '<span class="simbolo"></span><span class="num"></span><span class="eti"></span>';
-      casella.querySelector(".simbolo").textContent = this._simbolo(m.st, m.eid);
+      casella.querySelector(".simbolo").textContent = m.simbolo;
       casella.querySelector(".num").textContent = m.testo;
-      casella.querySelector(".eti").textContent = etichetta;
+      casella.querySelector(".eti").textContent = m.etichetta;
 
       const apri = (e) => {
         e.stopPropagation();
@@ -4572,7 +4581,7 @@ class CasaTile extends HTMLElement {
     if (puoMuto) {
       const zitto = !!st.attributes.is_volume_muted;
       this._muto.toggleAttribute("zitto", zitto);
-      this._muto.innerHTML = segno(zitto ? "muto" : "volume");
+      metti(this._muto, zitto ? "muto" : "volume");
       this._muto.title = zitto ? "Riattiva l'audio" : "Silenzia";
     }
 
@@ -4732,26 +4741,37 @@ class CasaTile extends HTMLElement {
     return !isNaN(na) && !isNaN(nb) && na === nb;
   }
 
-  _acceso(st) {
-    const suValore = this._accesoSuValore(st);
-    if (suValore !== null) return suValore;
-    return this._accesoNormale(st);
+  // chi decide se la casella e' accesa: di solito la sua entita', ma si puo'
+  // dire "guarda quest'altra". Serve per esempio a una batteria: la carica
+  // (93%) non dice niente, quello che conta e' se sta erogando watt.
+  _riferimento(st) {
+    const chi = this._config.acceso_entita;
+    if (!chi || !this._hass) return { eid: this._config.entity, st: st };
+    return { eid: chi, st: this._hass.states[chi] || null };
   }
 
-  _accesoNormale(st) {
+  _acceso(st) {
+    const rif = this._riferimento(st);
+    const suValore = this._accesoSuValore(rif.st);
+    if (suValore !== null) return suValore;
+    return this._accesoNormale(rif.st, rif.eid);
+  }
+
+  _accesoNormale(st, quale) {
     const c = this._config;
+    const eid = quale || c.entity;
     // senza entita' la casella e' un pulsante: sempre a colori, ferma
-    if (!c.entity) return c.acceso_sempre !== false;
+    if (!eid) return c.acceso_sempre !== false;
     if (!st) return false;
     if (c.acceso_sempre) return true;
     const n = parseFloat(st.state);
-    if (!isNaN(n) && st.state.trim() !== "" && !["light", "switch", "fan"].includes(c.entity.split(".")[0])) {
+    if (!isNaN(n) && st.state.trim() !== "" && !["light", "switch", "fan"].includes(eid.split(".")[0])) {
       return n > (c.soglia !== undefined && c.soglia !== null ? Number(c.soglia) : 0);
     }
     // un termosifone (o un condizionatore) e' "acceso" quando sta lavorando
     // davvero: se la stanza e' gia' calda l'apparecchio e' fermo, e la
     // casella deve stare grigia anche se il modo e' "riscaldamento"
-    if (c.entity.split(".")[0] === "climate") {
+    if (eid.split(".")[0] === "climate") {
       const modi = st.attributes.hvac_modes || [];
       const cosaFa = st.attributes.hvac_action;
       // certi termostati non hanno il modo "spento" (il termo del bagno ha
@@ -4766,7 +4786,7 @@ class CasaTile extends HTMLElement {
     // la musica in pausa e' comunque accesa: il brano c'e' ancora, quindi
     // bordo, alone ed effetti devono restare. Spenta solo se e' davvero
     // spenta, ferma o non raggiungibile.
-    if (c.entity.split(".")[0] === "media_player") {
+    if (eid.split(".")[0] === "media_player") {
       return ["playing", "paused", "buffering", "on"]
         .includes(String(st.state).toLowerCase());
     }
@@ -4907,7 +4927,8 @@ class CasaTile extends HTMLElement {
     if (!sotto && !c.sottotitolo_entita && st && c.entity
         && c.entity.split(".")[0] === "media_player") {
       const brano = st.attributes.media_title;
-      const chi = st.attributes.media_artist || st.attributes.media_album_name;
+      const chi = nomeArtista(st.attributes.media_artist)
+        || st.attributes.media_album_name;
       if (brano) sotto = brano + (chi ? " - " + chi : "");
     }
     this._viaUsata = this._entitaIndirizzo();
@@ -4930,13 +4951,21 @@ class CasaTile extends HTMLElement {
 
     if (modo === "vinile") {
       const brano = st ? st.attributes.media_title : "";
-      const chi = st ? (st.attributes.media_artist || st.attributes.media_album_name) : "";
+      const chi = st
+        ? (nomeArtista(st.attributes.media_artist) || st.attributes.media_album_name)
+        : "";
+      // le due scritte le rifaccio solo se cambia la forma, se no basta il testo
+      const forma = brano ? "due" : "una";
+      if (this._sotto.dataset.forma !== forma) {
+        this._sotto.dataset.forma = forma;
+        this._sotto.innerHTML = brano
+          ? '<span class="brano"></span><span class="artista"></span>'
+          : '<span class="brano"></span>';
+      }
       if (brano) {
-        this._sotto.innerHTML = '<span class="brano"></span><span class="artista"></span>';
         this._sotto.querySelector(".brano").textContent = brano;
         this._sotto.querySelector(".artista").textContent = chi || "";
       } else {
-        this._sotto.innerHTML = '<span class="brano"></span>';
         this._sotto.querySelector(".brano").textContent = sotto || this._valoreDi(st);
       }
       this._sotto.style.display = "";
@@ -5029,7 +5058,13 @@ class CasaTile extends HTMLElement {
     this._disegnaMeteo();
     this._disegnaChips();
     this._disegnaAndamento(st);
-    this._controllaMisura();
+    // misurare costa una passata di conti al browser: la faccio al massimo
+    // una volta al secondo, in mezzo mi basta la decisione con l'altezza nota
+    if (this._altezzaVista && Date.now() - (this._quandoMisura || 0) < 1000) {
+      this._decidiCompatta();
+    } else {
+      this._controllaMisura();
+    }
     this._disegnaCursore(st);
     const foto = fotoDi(st);
     // se non la vuole, via l'icona in tutte le sue forme
@@ -5120,6 +5155,7 @@ const SEZIONI = [
       ] },
       { titolo: "Quando la casella e accesa", schema: [
         { name: "acceso_sempre", selector: { boolean: {} } },
+        { name: "acceso_entita", selector: { entity: {} } },
         { name: "acceso_se", selector: { text: {} } },
         { name: "soglia", selector: { number: { mode: "box", min: 0, step: 1 } } },
       ] },
@@ -5404,6 +5440,7 @@ const ETICHETTE = {
   icona_entita: "Usa l'icona che l'entita ha gia in Home Assistant, se ce l'ha",
   usa_foto: "Usa la foto dell'entita, se ce l'ha (persone, copertine)",
   acceso_sempre: "Sempre a colori (anche da spenta)",
+  acceso_entita: "Si accende in base a un'altra entita (es. i watt erogati invece della carica)",
   icona_ha: "Icona di Home Assistant (cercala qui; vince su quella sotto)",
   mostra_da_quanto: "Scrivi da quanto tempo e in questo stato",
   mostra_distanza: "Quanti chilometri da casa, in linea d'aria (persone)",
@@ -6160,6 +6197,8 @@ class CasaTileEditor extends HTMLElement {
     const azione = this._config.azione || "toggle";
     const vale = (nome) => {
       if (SOLO_AZIONE[nome] && SOLO_AZIONE[nome] !== azione) return false;
+      // se l'accensione la decide un'altra entita', la soglia serve sempre
+      if (nome === "soglia" && this._config.acceso_entita) return true;
       const ammessi = SOLO_PER[nome];
       if (!ammessi) return true;
       if (!dominio) return false;
