@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-1.92.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-1.93.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -16,6 +16,9 @@ Casella animata per Home Assistant: **icone che si muovono solo quando la cosa �
 - **Musica**: copertina tonda, titolo e artista, onda del tempo sempre in pari col brano, comandi, volume col tasto del muto, scelta della cassa, gruppo multi-room e sorgente. La copertina può fare anche da sfondo, sfocata quanto vuoi, e in pausa la casella resta accesa.
 - **Luci**: barra della luminosità e striscia del colore (arcobaleno o bianco caldo/freddo) dentro la casella.
 - **Valori impostabili** (`number`): barra per cambiarli, con la corsa che puoi accorciare.
+- **Grafico dell'andamento** dentro la casella (temperature, watt, qualsiasi numero), con le ore che decidi tu.
+- **Colore che segue la temperatura**: freddo azzurro, tiepido verde, caldo arancione, molto caldo rosso.
+- I sensori che spariscono per qualche minuto (Bluetooth) non scrivono più «Assente»: tengono l'ultimo valore letto, smorzato.
 - **Pop-up tuo**: ci metti quante schede vuoi, sono quelle di Home Assistant, con il loro pannello di impostazioni.
 - **Effetti**: 19 modi di illuminarsi, intensità e velocità regolabili, sfondo a tinta, foto o meteo. Si vedono anche sopra a una foto o alla copertina, e «non si muove mai» ferma davvero tutto.
 - **Due colori**: uno per gli effetti (alone, bordo, luci) e, se vuoi, uno solo per la scritta.
@@ -43,7 +46,7 @@ Aggiungi una scheda alla dashboard e cerca **Casa · casella animata**. Poi tutt
 | **Icona** | mostrala o nascondila, usa la foto dell'entità, un'icona di Home Assistant, il catalogo o un'immagine tua |
 | **Aspetto** | come è fatta (disposizione, casella grande), i 19 effetti, il colore della casella e quello della scritta |
 | **Sfondo** | tinta e trasparenza, foto di sfondo, cielo del meteo |
-| **Barre** | la barra dentro la casella (luci, ventole, valori) e la striscia del colore |
+| **Barre** | la barra dentro la casella (luci, ventole, valori), il grafico dell'andamento e la striscia del colore |
 | **Musica** | comandi, copertina come sfondo, casse e sorgenti, aspetto del riquadro delle casse |
 | **Tocco** | cosa fa quando la tocchi: accendi/spegni, dettagli, pop-up tuo, mappa, indirizzo web, servizio |
 

@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.92.0
+ * v1.93.0
  */
 
-const VERSIONE = "1.92.0";
+const VERSIONE = "1.93.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1046,6 +1046,9 @@ img.ritratto {
   color: var(--testo2, var(--disabled-text-color, #7b8ba3));
 }
 :host([acceso]) .valore { color: var(--testo, var(--c)); }
+/* valore vecchio, perche' il sensore adesso non risponde */
+:host([assente]) .valore { opacity: .45; }
+:host([assente]) .valore::after { content: " ·"; }
 :host([grande]) svg.icona { width: 84px; height: 84px; flex: 0 0 84px; }
 :host([grande]) .valore { font-size: 27px; }
 :host([grande]) ha-card { min-height: 152px; }
@@ -1472,6 +1475,18 @@ ha-card::before, ha-card::after { z-index: 1; }
 :host([disposizione="musica"]) .comandi { margin-top: 12px; }
 :host([disposizione="musica"]) .cursore { margin-top: 8px; }
 
+/* --- il grafichino dell'andamento --- */
+.andamento { display: block; width: 100%; height: 30px; margin-top: 8px;
+  position: relative; z-index: 1; overflow: visible; }
+.andamento[hidden] { display: none !important; }
+.andamento .riga { fill: none; stroke: var(--c); stroke-width: 1.6;
+  stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.andamento .pieno { fill: var(--velo, transparent); stroke: none; }
+:host([grande]) .andamento { height: 44px; }
+:host([disposizione="persona"]) .andamento,
+:host([disposizione="musica"]) .andamento,
+:host([disposizione="vinile"]) .andamento { display: none !important; }
+
 /* --- l'onda del tempo (disposizione vinile) --- */
 .ondabox { display: none; position: relative; height: 26px; }
 .ondabox svg { display: block; width: 100%; height: 100%; overflow: visible; }
@@ -1777,6 +1792,31 @@ svg .an { animation-play-state: paused; }
 .f-corpo > * { margin-bottom: 10px; display: block; }
 @media (prefers-reduced-motion: reduce) { svg .an { animation: none !important; } }
 `;
+
+// dal freddo al caldo: azzurro, verde, ambra, arancio, rosso
+const SCALA_TERMICA = [
+  [-5, [79, 139, 255]], [8, [79, 184, 255]], [15, [79, 224, 200]],
+  [19, [63, 217, 138]], [23, [255, 207, 92]], [27, [255, 154, 60]],
+  [32, [255, 95, 95]],
+];
+
+function coloreTemperatura(t) {
+  const n = Number(t);
+  if (isNaN(n)) return null;
+  let a = SCALA_TERMICA[0];
+  let b = SCALA_TERMICA[SCALA_TERMICA.length - 1];
+  if (n <= a[0]) return daRgb(a[1]);
+  if (n >= b[0]) return daRgb(b[1]);
+  for (let i = 0; i < SCALA_TERMICA.length - 1; i += 1) {
+    if (n >= SCALA_TERMICA[i][0] && n <= SCALA_TERMICA[i + 1][0]) {
+      a = SCALA_TERMICA[i];
+      b = SCALA_TERMICA[i + 1];
+      break;
+    }
+  }
+  const q = (n - a[0]) / (b[0] - a[0]);
+  return daRgb([0, 1, 2].map((k) => Math.round(a[1][k] + (b[1][k] - a[1][k]) * q)));
+}
 
 // Come fa Mushroom: il colore della lampada va corretto, se no i bianchi
 // e i colori slavati non si vedono sul fondo scuro.
@@ -2295,6 +2335,9 @@ class CasaTile extends HTMLElement {
         <div class="testa"><div class="testi"><div class="nome"></div><div class="sotto"></div></div><div class="meteo" hidden><div class="gradi"></div><div class="cond"></div></div></div>
         <div class="riga"><svg class="icona" viewBox="0 0 64 64" fill="none"></svg><ha-icon class="iconaHa" hidden></ha-icon><img class="iconaFoto" alt="" hidden><img class="ritratto" alt="" hidden><div class="valore"></div></div>
         <div class="chips"></div>
+        <svg class="andamento" viewBox="0 0 100 30" preserveAspectRatio="none" hidden>
+          <path class="pieno"></path><path class="riga"></path>
+        </svg>
         <div class="tempo" hidden>
           <div class="binario"><i></i></div>
           <div class="ondabox">
@@ -2373,6 +2416,7 @@ class CasaTile extends HTMLElement {
     this._ritratto = root.querySelector("img.ritratto");
     this._valore = root.querySelector(".valore");
     this._chips = root.querySelector(".chips");
+    this._andamento = root.querySelector(".andamento");
     this._tempo = root.querySelector(".tempo");
     this._binario = root.querySelector(".tempo .binario i");
     this._fatta = root.querySelector(".ondabox path.fatta");
@@ -3295,6 +3339,73 @@ class CasaTile extends HTMLElement {
     this._cond.append(simbolo, parola);
   }
 
+  // il grafichino: chiedo la storia a Home Assistant e la disegno
+  _disegnaAndamento(st) {
+    const c = this._config;
+    const box = this._andamento;
+    if (!box) return;
+    const numerico = !!st && !isNaN(parseFloat(st.state));
+    const vuole = !!c.grafico && !!c.entity && (numerico || !!this._storia);
+    // attenzione: su un <svg> la proprieta' .hidden non si riflette
+    // sull'attributo, quindi va messo e tolto a mano
+    box.toggleAttribute("hidden", !vuole);
+    if (!vuole || !this._hass) return;
+
+    const ore = Number(c.grafico_ore) > 0 ? Number(c.grafico_ore) : 24;
+    const chiave = c.entity + "|" + ore;
+    const adesso = Date.now();
+    // la storia si chiede una volta ogni cinque minuti, non a ogni disegno
+    if (this._chiaveStoria !== chiave || !this._quandoStoria
+        || adesso - this._quandoStoria > 300000) {
+      this._chiaveStoria = chiave;
+      this._quandoStoria = adesso;
+      const da = new Date(adesso - ore * 3600000).toISOString();
+      this._hass.callWS({
+        type: "history/history_during_period",
+        start_time: da,
+        end_time: new Date(adesso).toISOString(),
+        entity_ids: [c.entity],
+        minimal_response: true,
+        no_attributes: true,
+        significant_changes_only: false,
+      }).then((risposta) => {
+        const righe = (risposta && risposta[c.entity]) || [];
+        this._storia = righe
+          .map((r) => parseFloat(r.s !== undefined ? r.s : r.state))
+          .filter((x) => !isNaN(x));
+        this._disegnaLinea();
+      }).catch(() => { this._storia = null; });
+    }
+    this._disegnaLinea(st);
+  }
+
+  _disegnaLinea(st) {
+    const box = this._andamento;
+    if (!box) return;
+    const punti = (this._storia || []).slice();
+    if (st && !isNaN(parseFloat(st.state))) punti.push(parseFloat(st.state));
+    if (punti.length < 2) { box.toggleAttribute("hidden", true); return; }
+    box.toggleAttribute("hidden", false);
+    // ne bastano un centinaio: se sono di piu' li assottiglio
+    const max = 120;
+    const scelti = punti.length <= max ? punti
+      : punti.filter((x, i) => i % Math.ceil(punti.length / max) === 0);
+    const basso = Math.min.apply(null, scelti);
+    const alto = Math.max.apply(null, scelti);
+    const campo = alto - basso || 1;
+    const passo = 100 / (scelti.length - 1);
+    const coord = scelti.map((v, i) =>
+      [i * passo, 28 - ((v - basso) / campo) * 26]);
+    const riga = coord.map((xy, i) =>
+      (i ? "L" : "M") + xy[0].toFixed(2) + " " + xy[1].toFixed(2)).join(" ");
+    box.querySelector(".riga").setAttribute("d", riga);
+    box.querySelector(".pieno").setAttribute("d",
+      riga + " L100 30 L0 30 Z");
+    box.title = "Ultime " + (Number(this._config.grafico_ore) > 0
+      ? Number(this._config.grafico_ore) : 24) + " ore: da "
+      + (Math.round(basso * 10) / 10) + " a " + (Math.round(alto * 10) / 10);
+  }
+
   _disegnaChips() {
     const gia = this._viaUsata;
     const lista = (this._config.info_entita || [])
@@ -3556,7 +3667,13 @@ class CasaTile extends HTMLElement {
 
   _valoreDi(st) {
     const c = this._config;
-    if (!st) return "—";
+    if (!st) return this._ultimoBuono || "—";
+    // i sensori via Bluetooth spariscono ogni tanto: invece di scrivere
+    // "Assente" tengo l'ultimo valore che avevano
+    if (["unavailable", "unknown"].includes(String(st.state).toLowerCase())
+        && this._ultimoBuono) {
+      return this._ultimoBuono;
+    }
     const dominio = c.entity.split(".")[0];
     if (dominio === "weather") {
       const t = st.attributes.temperature;
@@ -3649,9 +3766,19 @@ class CasaTile extends HTMLElement {
     const st = this._hass ? this._hass.states[c.entity] : null;
     const acceso = this._acceso(st);
 
+    const dominioTinta = (c.entity || "").split(".")[0];
     let col = COLORI[c.colore] || COLORI.ambra;
     if (c.colore === "personalizzato" && Array.isArray(c.colore_rgb)) {
       col = daRgb(c.colore_rgb) || col;
+    }
+    if (c.colore === "termometro") {
+      const quanto = st
+        ? (st.attributes.current_temperature !== undefined
+            ? st.attributes.current_temperature
+            : (st.attributes.temperature !== undefined && dominioTinta === "weather"
+                ? st.attributes.temperature : st.state))
+        : null;
+      col = coloreTemperatura(quanto) || col;
     }
     if (c.colore === "luce") {
       // il colore vero della lampada, se ce l'ha acceso
@@ -3809,6 +3936,12 @@ class CasaTile extends HTMLElement {
       this._sotto.style.display = sotto ? "" : "none";
     }
     const scritto = (c.nascondi_valore || !c.entity) ? "" : this._valoreDi(st);
+    const sparito = !!st
+      && ["unavailable", "unknown"].includes(String(st.state).toLowerCase());
+    if (!sparito && st && !isNaN(parseFloat(st.state))) this._ultimoBuono = scritto;
+    this.toggleAttribute("assente", sparito && !!this._ultimoBuono);
+    this._valore.title = sparito && this._ultimoBuono
+      ? "Ultimo valore letto: adesso il sensore non risponde" : "";
     this._valore.textContent = scritto;
     const numerico = /^[0-9.,\-]/.test(String(scritto).trim());
     this._valore.classList.toggle("parola", !!scritto && !numerico);
@@ -3843,6 +3976,7 @@ class CasaTile extends HTMLElement {
     }
     this._disegnaMeteo();
     this._disegnaChips();
+    this._disegnaAndamento(st);
     this._disegnaCursore(st);
     const foto = fotoDi(st);
     // se non la vuole, via l'icona in tutte le sue forme
@@ -4027,6 +4161,11 @@ const SEZIONI = [
           ],
         },
       ] },
+      { titolo: "Grafico dell'andamento", schema: [
+        { name: "grafico", selector: { boolean: {} } },
+        { name: "grafico_ore",
+          selector: { number: { min: 1, max: 168, step: 1, mode: "box" } } },
+      ] },
       { titolo: "Striscia del colore (luci)", schema: [
         { name: "cursore_colore", selector: { boolean: {} } },
         { name: "colore_striscia", selector: { select: { mode: "dropdown", options: [
@@ -4153,6 +4292,8 @@ const ETICHETTE = {
   pannello_sfondo: "Sfondo del riquadro casse e sorgenti (vuoto = scuro di serie; "
     + "le scritte seguono il colore della scritta)",
   pannello_trasparenza: "Trasparenza del riquadro casse e sorgenti (%)",
+  grafico: "Mostra il grafico dell'andamento dentro la casella",
+  grafico_ore: "Quante ore di storia (di serie 24)",
   gira_copertina: "Fai girare la copertina tonda come un disco",
   segui_attivo: "Passa da sola alla cassa che sta suonando",
   multiroom: "Tasto Casse: unisci gli altoparlanti e regola i volumi",
@@ -4340,6 +4481,8 @@ const STILE_EDITOR = `
 .coloreLampada { color: #fff; font-size: 15px; display: grid; place-items: center;
   text-shadow: 0 1px 3px rgba(0,0,0,.6); }
 .coloreLampada[hidden] { display: none !important; }
+.coloreTermo { background: linear-gradient(135deg, #4f8bff, #3fd98a, #ffcf5c, #ff5f5f); }
+.coloreTermo[hidden] { display: none !important; }
 .coloreLibero { overflow: hidden;
   background: conic-gradient(#ff5f5f, #ffc046, #3fd98a, #4fe0c8, #5ec8ff, #9b6bff, #ff5f5f); }
 .coloreLibero input { position: absolute; inset: -10px; opacity: 0; cursor: pointer;
@@ -4637,6 +4780,20 @@ class CasaTileEditor extends HTMLElement {
       fila.appendChild(lampada);
       tin._lampada = lampada;
 
+      const termo = document.createElement("button");
+      termo.type = "button";
+      termo.className = "sceltaColore coloreTermo";
+      termo.dataset.nome = "termometro";
+      termo.title = "Segue la temperatura (freddo azzurro, caldo rosso)";
+      termo.addEventListener("click", () => {
+        this._config = { ...this._config, colore: "termometro" };
+        delete this._config.colore_rgb;
+        this._emetti();
+        this._costruisciScelte();
+      });
+      fila.appendChild(termo);
+      tin._termo = termo;
+
       const libero = document.createElement("button");
       libero.type = "button";
       libero.className = "sceltaColore coloreLibero";
@@ -4711,6 +4868,13 @@ class CasaTileEditor extends HTMLElement {
     if (nota && griglia) {
       nota.hidden = suoDominio !== "weather";
       griglia.hidden = suoDominio === "weather";
+    }
+    if (tin && tin._termo) {
+      const dom = String(c.entity || "").split(".")[0];
+      const st2 = this._hass ? this._hass.states[c.entity] : null;
+      const daTemperatura = dom === "climate" || dom === "weather"
+        || (!!st2 && st2.attributes.device_class === "temperature");
+      tin._termo.hidden = !daTemperatura;
     }
     if (tin && tin._lampada) {
       const dom = String(c.entity || "").split(".")[0];
