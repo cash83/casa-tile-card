@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.2.0
+ * v2.3.4
  */
 
-const VERSIONE = "2.2.0";
+const VERSIONE = "2.3.4";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -243,6 +243,163 @@ const ICONE = {
   persona: `<g class="an eco"><circle cx="32" cy="32" r="26" fill="none" stroke="#5ec8ff" stroke-width="2"/></g>
 <circle cx="32" cy="32" r="21" fill="#1d2939" stroke="#41607f" stroke-width="1.8"/>
 <circle cx="32" cy="26" r="7.5" fill="#8fc7f0"/><path d="M18.5 46a13.5 13.5 0 0 1 27 0z" fill="#6ea9d6"/>`,
+
+  aspirapolvere: `<defs><radialGradient id="asp1" cx="42%" cy="34%" r="70%">
+<stop offset="0" stop-color="#33475f"/><stop offset="1" stop-color="#16202e"/></radialGradient></defs>
+<circle cx="32" cy="34" r="24" fill="url(#asp1)" stroke="#41607f" stroke-width="2"/>
+<path d="M8 30a24 24 0 0 1 48 0z" fill="#2c3d54"/>
+<circle cx="32" cy="18" r="5" fill="#101a27" stroke="#5ec8ff" stroke-width="1.6"/>
+<circle cx="32" cy="18" r="1.8" fill="#9fe2ff"/>
+<g class="an rotamedia"><g stroke="#8ef0d8" stroke-width="2.6" stroke-linecap="round">
+<path d="M32 38v-8"/><path d="M32 38v8"/><path d="M32 38h-8"/><path d="M32 38h8"/></g>
+<circle cx="32" cy="38" r="3" fill="#8ef0d8"/></g>
+<rect x="12" y="44" width="8" height="4" rx="2" fill="#41607f"/>
+<rect x="44" y="44" width="8" height="4" rx="2" fill="#41607f"/>`,
+  assistente: `<defs><linearGradient id="ass1" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#33455e"/><stop offset="1" stop-color="#1a2433"/></linearGradient></defs>
+<g class="an glow"><ellipse cx="32" cy="16" rx="19" ry="7" fill="#5ec8ff" opacity=".35"/></g>
+<path d="M14 20h36v26a10 10 0 0 1-10 10H24a10 10 0 0 1-10-10z" fill="url(#ass1)"
+ stroke="#3e5570" stroke-width="1.8"/>
+<ellipse cx="32" cy="20" rx="18" ry="7" fill="#2b3d54" stroke="#4a688c" stroke-width="1.6"/>
+<ellipse cx="32" cy="19" rx="12" ry="4" fill="#0f1723"/>
+<g stroke="#5b6d84" stroke-width="1.6" stroke-linecap="round" opacity=".8">
+<path d="M22 34h20"/><path d="M22 40h20"/><path d="M24 46h16"/></g>`,
+  display: `<rect x="7" y="12" width="50" height="34" rx="6" fill="#16202e"
+ stroke="#3e5570" stroke-width="2"/>
+<rect x="11" y="16" width="42" height="26" rx="4" fill="#0f1a28"/>
+<g class="an ondeggia"><g stroke="#5ec8ff" stroke-width="3" stroke-linecap="round">
+<path d="M22 29v-6"/><path d="M28 29v-11"/><path d="M34 29v-8"/><path d="M40 29v-4"/></g></g>
+<rect x="24" y="46" width="16" height="6" rx="2" fill="#3e5570"/>
+<rect x="16" y="52" width="32" height="4" rx="2" fill="#4a688c"/>`,
+  powerstation: `<defs><linearGradient id="pw1" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#3a4d66"/><stop offset="1" stop-color="#1b2635"/></linearGradient></defs>
+<path d="M24 10h16" stroke="#8ea6c2" stroke-width="3" stroke-linecap="round" fill="none"/>
+<rect x="8" y="14" width="48" height="40" rx="7" fill="url(#pw1)" stroke="#41607f" stroke-width="2"/>
+<rect x="13" y="20" width="22" height="14" rx="3" fill="#0f1723" stroke="#4a688c" stroke-width="1.2"/>
+<g class="an riempi"><rect x="15" y="27" width="18" height="5" rx="2.5" fill="#3fd98a"/></g>
+<circle cx="46" cy="27" r="7" fill="#0f1723" stroke="#4a688c" stroke-width="1.4"/>
+<circle cx="43.6" cy="25.5" r="1.5" fill="#8ea6c2"/><circle cx="48.4" cy="25.5" r="1.5" fill="#8ea6c2"/>
+<rect x="44.6" y="29" width="2.8" height="1.6" rx="0.8" fill="#8ea6c2"/>
+<g class="an bolt"><path d="M31 38l-6 9h5l-2 7 8-10h-5z" fill="#ffc046"/></g>
+<rect x="14" y="48" width="14" height="3" rx="1.5" fill="#41607f"/>`,
+  inverter: `<rect x="10" y="10" width="44" height="44" rx="8" fill="#1e2a3a"
+ stroke="#41607f" stroke-width="2"/>
+<rect x="16" y="16" width="32" height="16" rx="4" fill="#0f1723"/>
+<g class="an ondeggia"><path d="M18 24q4-7 8 0t8 0 8 0" fill="none" stroke="#4fe0c8"
+ stroke-width="2.6" stroke-linecap="round"/></g>
+<g class="an rec"><circle cx="20" cy="40" r="2.6" fill="#3fd98a"/></g>
+<circle cx="28" cy="40" r="2.6" fill="#41607f"/><circle cx="36" cy="40" r="2.6" fill="#41607f"/>
+<rect x="16" y="46" width="32" height="4" rx="2" fill="#33475f"/>`,
+  orologio_polso: `<rect x="24" y="4" width="16" height="12" rx="4" fill="#41607f"/>
+<rect x="24" y="48" width="16" height="12" rx="4" fill="#41607f"/>
+<rect x="16" y="14" width="32" height="36" rx="10" fill="#16202e" stroke="#5b7794" stroke-width="2"/>
+<rect x="20" y="18" width="24" height="28" rx="7" fill="#0d1521"/>
+<g class="an spark"><path d="M23 32h5l3-6 4 12 3-6h5" fill="none" stroke="#4fe0c8"
+ stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+<rect x="48" y="26" width="3" height="8" rx="1.5" fill="#8ea6c2"/>`,
+  asciugatrice: `<defs><linearGradient id="asc1" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#dfe9f6"/><stop offset="1" stop-color="#93a6bd"/></linearGradient></defs>
+<rect x="9" y="6" width="46" height="52" rx="9" fill="url(#asc1)"/>
+<rect x="9" y="6" width="46" height="12" rx="6" fill="#b9c8db"/>
+<circle cx="17.5" cy="12" r="2.2" fill="#5b6d84"/>
+<circle cx="32" cy="37" r="16.5" fill="#7d8ea4"/><circle cx="32" cy="37" r="13.5" fill="#16283c"/>
+<g class="an drum"><g stroke="#ffb15c" stroke-width="2.4" stroke-linecap="round" fill="none">
+<path d="M32 27v6"/><path d="M32 41v6"/><path d="M25 37h-6"/><path d="M39 37h6"/></g></g>
+<g class="an calore"><g stroke="#ff8a3d" stroke-width="2" stroke-linecap="round" fill="none">
+<path d="M28 35q3-3 0-6"/><path d="M36 35q3-3 0-6"/></g></g>`,
+  lavastoviglie: `<rect x="10" y="6" width="44" height="52" rx="8" fill="#c9d6e6"/>
+<rect x="10" y="6" width="44" height="10" rx="5" fill="#aebfd2"/>
+<circle cx="17" cy="11" r="2" fill="#5b6d84"/>
+<g class="an rec"><circle cx="24" cy="11" r="2" fill="#3fd98a"/></g>
+<rect x="15" y="20" width="34" height="32" rx="5" fill="#16283c"/>
+<g stroke="#8ea6c2" stroke-width="2" stroke-linecap="round" fill="none">
+<path d="M22 26v20"/><path d="M28 26v20"/><path d="M34 26v20"/><path d="M40 26v20"/></g>
+<g class="an goccia"><circle cx="32" cy="34" r="3.2" fill="#5ec8ff"/></g>`,
+  condizionatore: `<rect x="6" y="12" width="52" height="20" rx="7" fill="#e6eef8"
+ stroke="#b6c6d8" stroke-width="1.4"/>
+<rect x="6" y="24" width="52" height="8" rx="4" fill="#cfdcea"/>
+<g class="an rec"><circle cx="49" cy="19" r="2.2" fill="#3fd98a"/></g>
+<g class="an ondeggia"><g stroke="#5ec8ff" stroke-width="2.6" stroke-linecap="round" fill="none">
+<path d="M18 40q5-5 10 0t10 0"/><path d="M18 48q5-5 10 0t10 0"/></g></g>
+<g class="an sale"><path d="M44 44q4-4 0-8" stroke="#8ef0d8" stroke-width="2.2"
+ stroke-linecap="round" fill="none"/></g>`,
+  umidificatore: `<path d="M18 26h28v22a10 10 0 0 1-10 10H28a10 10 0 0 1-10-10z"
+ fill="#20304a" stroke="#41607f" stroke-width="1.8"/>
+<rect x="22" y="34" width="20" height="14" rx="4" fill="#0f1c2c"/>
+<g class="an riempi"><rect x="24" y="40" width="16" height="6" rx="3" fill="#5ec8ff" opacity=".85"/></g>
+<g class="an sale"><g stroke="#9fe2ff" stroke-width="2.4" stroke-linecap="round" fill="none">
+<path d="M26 22q4-5 0-10"/><path d="M32 20q4-6 0-12"/><path d="M38 22q4-5 0-10"/></g></g>`,
+  deumidificatore: `<rect x="14" y="10" width="36" height="44" rx="9" fill="#22314a"
+ stroke="#41607f" stroke-width="1.8"/>
+<rect x="19" y="16" width="26" height="14" rx="4" fill="#0f1c2c"/>
+<g class="an goccia"><path d="M32 18c3 4 5 6 5 8.4a5 5 0 0 1-10 0C27 24 29 22 32 18z"
+ fill="#5ec8ff"/></g>
+<rect x="19" y="34" width="26" height="14" rx="4" fill="#101d2d" stroke="#3e5570" stroke-width="1.2"/>
+<g class="an riempi"><rect x="21" y="41" width="22" height="5" rx="2.5" fill="#4fb8ff" opacity=".8"/></g>`,
+  purificatore: `<path d="M16 12h32v34a12 12 0 0 1-12 12h-8a12 12 0 0 1-12-12z"
+ fill="#233145" stroke="#41607f" stroke-width="1.8"/>
+<circle cx="32" cy="30" r="12" fill="#101a27" stroke="#4a688c" stroke-width="1.4"/>
+<g class="an rotamedia"><g fill="#8ef0d8" opacity=".92">
+<path d="M32 30c0-6 3-9 3-9s4 4 1 8z"/><path d="M32 30c6 0 9 3 9 3s-4 4-8 1z"/>
+<path d="M32 30c0 6-3 9-3 9s-4-4-1-8z"/><path d="M32 30c-6 0-9-3-9-3s4-4 8-1z"/></g>
+<circle cx="32" cy="30" r="2.4" fill="#dff6ff"/></g>
+<g class="an sale"><g stroke="#5ec8ff" stroke-width="2" stroke-linecap="round" fill="none" opacity=".8">
+<path d="M25 50h14"/><path d="M28 55h8"/></g></g>`,
+  stampante3d: `<rect x="8" y="10" width="48" height="4" rx="2" fill="#5b6d84"/>
+<rect x="10" y="10" width="4" height="40" rx="2" fill="#41607f"/>
+<rect x="50" y="10" width="4" height="40" rx="2" fill="#41607f"/>
+<g class="an shake"><rect x="26" y="16" width="12" height="8" rx="2" fill="#8ea6c2"/>
+<path d="M32 24l3 5h-6l3-5z" fill="#ff8a3d"/></g>
+<rect x="14" y="34" width="36" height="4" rx="2" fill="#c3d3e6"/>
+<path d="M22 34l4-8h12l4 8z" fill="#4fe0c8" opacity=".85"/>
+<rect x="8" y="48" width="48" height="6" rx="3" fill="#33475f"/>`,
+  console: `<path d="M18 22h28a14 14 0 0 1 13 19l-3 8a7 7 0 0 1-12 1l-4-6H22l-4 6a7 7 0 0 1-12-1l-3-8a14 14 0 0 1 13-19z"
+ fill="#243248" stroke="#41607f" stroke-width="1.8"/>
+<g stroke="#c3d3e6" stroke-width="3" stroke-linecap="round"><path d="M19 34h8"/><path d="M23 30v8"/></g>
+<g class="an rec"><circle cx="43" cy="31" r="3" fill="#ff4d5e"/></g>
+<circle cx="49" cy="36" r="3" fill="#5ec8ff"/><circle cx="43" cy="41" r="3" fill="#3fd98a"/>
+<circle cx="37" cy="36" r="3" fill="#ffc046"/>`,
+  corriere: `<rect x="4" y="22" width="34" height="22" rx="4" fill="#e8eef7"/>
+<path d="M38 28h10l10 10v6H38z" fill="#cfdcea"/>
+<rect x="42" y="30" width="8" height="7" rx="2" fill="#9fb4cc"/>
+<g class="an shake"><rect x="12" y="26" width="14" height="12" rx="2" fill="#ffb15c"/>
+<path d="M19 26v12" stroke="#e08a34" stroke-width="1.8"/></g>
+<circle cx="16" cy="46" r="6" fill="#1a2433" stroke="#5b6d84" stroke-width="2"/>
+<circle cx="46" cy="46" r="6" fill="#1a2433" stroke="#5b6d84" stroke-width="2"/>
+<circle cx="16" cy="46" r="1.8" fill="#8ea6c2"/><circle cx="46" cy="46" r="1.8" fill="#8ea6c2"/>`,
+  router: `<rect x="8" y="34" width="48" height="16" rx="6" fill="#22314a"
+ stroke="#41607f" stroke-width="1.8"/>
+<path d="M20 34V18" stroke="#5b7794" stroke-width="3" stroke-linecap="round"/>
+<path d="M44 34V18" stroke="#5b7794" stroke-width="3" stroke-linecap="round"/>
+<g class="an ondeggia"><g fill="none" stroke="#5ec8ff" stroke-width="2.4" stroke-linecap="round">
+<path d="M27 22a10 10 0 0 1 10 0"/><path d="M24 17a17 17 0 0 1 16 0"/></g></g>
+<g class="an rec"><circle cx="18" cy="42" r="2.4" fill="#3fd98a"/></g>
+<circle cx="26" cy="42" r="2.4" fill="#4fb8ff"/><circle cx="34" cy="42" r="2.4" fill="#41607f"/>`,
+  ciabatta: `<rect x="6" y="24" width="52" height="18" rx="7" fill="#e6eef8"
+ stroke="#b6c6d8" stroke-width="1.4"/>
+<g fill="#0f1723"><circle cx="19" cy="33" r="5"/><circle cx="32" cy="33" r="5"/><circle cx="45" cy="33" r="5"/></g>
+<g fill="#8ea6c2"><circle cx="17.4" cy="31.6" r="1.1"/><circle cx="20.6" cy="31.6" r="1.1"/>
+<circle cx="30.4" cy="31.6" r="1.1"/><circle cx="33.6" cy="31.6" r="1.1"/>
+<circle cx="43.4" cy="31.6" r="1.1"/><circle cx="46.6" cy="31.6" r="1.1"/></g>
+<g class="an rec"><rect x="8" y="28" width="4" height="10" rx="2" fill="#3fd98a"/></g>
+<path d="M58 33h4" stroke="#8ea6c2" stroke-width="2.6" stroke-linecap="round"/>`,
+  gatto: `<path d="M14 26l-2-14 12 7z" fill="#8b7a6b"/><path d="M50 26l2-14-12 7z" fill="#8b7a6b"/>
+<ellipse cx="32" cy="36" rx="20" ry="17" fill="#a3907e"/>
+<ellipse cx="32" cy="41" rx="10" ry="7" fill="#c9b7a4"/>
+<g class="an glow"><g fill="#3fd98a"><ellipse cx="24" cy="33" rx="3.4" ry="4.4"/>
+<ellipse cx="40" cy="33" rx="3.4" ry="4.4"/></g></g>
+<g fill="#2b2119"><ellipse cx="24" cy="33" rx="1.3" ry="3.4"/><ellipse cx="40" cy="33" rx="1.3" ry="3.4"/></g>
+<path d="M32 39l-2.4 2.6h4.8z" fill="#e08a9a"/>
+<g stroke="#e8ddd0" stroke-width="1.4" stroke-linecap="round" opacity=".9">
+<path d="M20 42h-9"/><path d="M20 45h-8"/><path d="M44 42h9"/><path d="M44 45h8"/></g>`,
+  campanello_video: `<rect x="18" y="6" width="28" height="52" rx="12" fill="#22314a"
+ stroke="#41607f" stroke-width="2"/>
+<circle cx="32" cy="22" r="8" fill="#0d1521" stroke="#4a688c" stroke-width="1.6"/>
+<circle cx="32" cy="22" r="3.4" fill="#5ec8ff"/><circle cx="30" cy="20" r="1.2" fill="#dff1ff"/>
+<g class="an glow"><circle cx="32" cy="44" r="8" fill="#ffc046" opacity=".35"/></g>
+<circle cx="32" cy="44" r="5.5" fill="#ffc046"/>
+<g class="an ondeggia"><g fill="none" stroke="#ffd98a" stroke-width="2" stroke-linecap="round">
+<path d="M12 40a10 10 0 0 1 0 8"/><path d="M52 40a10 10 0 0 0 0 8"/></g></g>`,
 };
 
 // La batteria non e' un disegno fisso: la costruisco con la carica vera.
@@ -258,8 +415,8 @@ function disegnoBatteria(perc, carica) {
   return '<rect x="12" y="22" width="40" height="20" rx="6.5" fill="#0f1723" '
     + 'stroke="#8ea6c2" stroke-width="2.6"/>'
     + '<rect x="53.5" y="27.5" width="4.5" height="9" rx="2.2" fill="#8ea6c2"/>'
-    + '<rect x="15" y="25" width="' + largo.toFixed(1) + '" height="14" rx="3.5" fill="'
-    + tinta + '"/>' + fulmine;
+    + '<g class="an glow"><rect x="15" y="25" width="' + largo.toFixed(1)
+    + '" height="14" rx="3.5" fill="' + tinta + '"/></g>' + fulmine;
 }
 
 // Che icona ci vuole per questa entita'? La card lo capisce da sola.
@@ -273,27 +430,66 @@ function iconaAutomatica(eid, st) {
   if (dominio === "weather") return ICONA_METEO[st && st.state] || "sole";
   if (dominio === "person") return "persona";
   if (dominio === "device_tracker") {
+    if (dice("corriere", "consegna", "spedizion", "amazon")) return "corriere";
+    if (dice("orologio", "watch")) return "orologio_polso";
     return dice("auto", "macchina", "seat", "car", "veicolo") ? "automobile" : "persona";
   }
-  if (dominio === "camera") return "telecamera";
-  if (dominio === "vacuum") return "robot";
-  if (dominio === "fan") return "ventola";
-  if (dominio === "climate" || dominio === "water_heater") return "termosifone";
-  if (dominio === "humidifier") return "ventola";
+  if (dominio === "camera") return dice("campanell", "citofon") ? "campanello_video" : "telecamera";
+  if (dominio === "vacuum") return "aspirapolvere";
+  if (dominio === "fan") {
+    if (dice("purificat", "filtro")) return "purificatore";
+    if (dice("deumidific")) return "deumidificatore";
+    if (dice("umidific")) return "umidificatore";
+    return "ventola";
+  }
+  if (dominio === "climate" || dominio === "water_heater") {
+    return dice("climatizz", "condizion", "split", "aria") ? "condizionatore" : "termosifone";
+  }
+  if (dominio === "humidifier") {
+    return dice("deumidific", "secco") ? "deumidificatore" : "umidificatore";
+  }
+  if (dominio === "assist_satellite" || dominio === "conversation") return "assistente";
   if (dominio === "media_player") {
-    return dice("tv", "televis", "webos", "chromecast") ? "televisore"
-      : (dice("echo", "alexa", "cassa", "speaker", "assistente") ? "altoparlante" : "musica");
+    if (dice("tv", "televis", "webos", "chromecast")) return "televisore";
+    if (dice("display", "schermo", "plate", "tablet")) return "display";
+    if (dice("echo", "alexa", "nest", "cassa", "speaker", "assistente", "jarvis")) {
+      return "assistente";
+    }
+    return "musica";
   }
   if (dominio === "light") return dice("led", "strip", "striscia") ? "led" : "luce";
   if (dominio === "switch" || dominio === "input_boolean" || dominio === "automation"
       || dominio === "script" || dominio === "button" || dominio === "scene") {
-    if (dice("luce", "lamp", "light", "abat", "lampad")) return "luce";
+    if (dice("ciabatta", "multipresa")) return "ciabatta";
+    if (dice("luce", "lamp", "light", "abat-jour", "abatjour", "lampad")) return "luce";
     if (dice("led", "strip")) return "led";
-    if (dice("lavatric", "lavasciug", "lavastovigl")) return "lavatrice";
+    if (dice("lavastovigl")) return "lavastoviglie";
+    if (dice("asciugatric", "dryer", "asciuga")) return "asciugatrice";
+    if (dice("lavatric", "lavasciug")) return "lavatrice";
     if (dice("tv", "televis")) return "televisore";
+    if (dice("playstation", "ps5", "xbox", "console", "switch nintendo")) return "console";
+    if (dice("stampante 3", "anycubic", "kobra", "bambu", "prusa")) return "stampante3d";
+    if (dice("router", "modem", "asus", "cudy", "wifi")) return "router";
+    if (dice("purificat")) return "purificatore";
+    if (dice("deumidific")) return "deumidificatore";
+    if (dice("umidific")) return "umidificatore";
+    if (dice("condizion", "climatizz")) return "condizionatore";
     if (dice("ventilat", "ventola", "fan")) return "ventola";
+    if (dice("campanell", "citofon")) return "campanello_video";
     if (dice("telecam", "camera", "cctv")) return "telecamera";
+    if (dice("aspirapolver", "dreame", "roomba", "robot")) return "aspirapolvere";
+    if (dice("orologio", "watch", "smartwatch")) return "orologio_polso";
+    if (dice("powerstation", "power station", "landbook", "ecoflow")) return "powerstation";
+    if (dice("inverter")) return "inverter";
     return "presa";
+  }
+  if (dominio === "image" || dominio === "event") {
+    if (dice("campanell", "citofon", "doorbell")) return "campanello_video";
+    if (dice("gatto", "cat")) return "gatto";
+    if (dice("cane", "dog")) return "movimento";
+    if (dice("corriere", "pacco", "consegna")) return "corriere";
+    if (dice("person", "persona")) return "movimento";
+    return dominio === "image" ? "telecamera" : "campanello";
   }
   if (dominio === "plant") return "pianta";
   if (dominio === "number" || dominio === "input_number") {
@@ -307,10 +503,20 @@ function iconaAutomatica(eid, st) {
       return dice("pianta", "terreno", "soil", "plant") ? "pianta" : "termometro";
     }
     if (dice("pianta", "soil", "plant", "basilico", "peperonc")) return "pianta";
-    if (dice("stampant", "printer", "anycubic", "kobra", "bambu", "prusa")) return "stampante";
+    if (dice("anycubic", "kobra", "bambu", "prusa", "stampante 3")) return "stampante3d";
+    if (dice("stampant", "printer")) return "stampante";
+    if (dice("corriere", "consegna", "spedizion", "pacco", "amazon")) return "corriere";
+    if (dice("orologio", "watch", "smartwatch")) return "orologio_polso";
+    if (dice("powerstation", "power station", "landbook", "ecoflow")) return "powerstation";
+    if (dice("inverter")) return "inverter";
+    if (dice("aspirapolver", "dreame", "roomba")) return "aspirapolvere";
+    if (dice("gatto", "cat ", "micio")) return "gatto";
+    if (dice("router", "modem", "asus", "cudy")) return "router";
     // il nome dell'elettrodomestico conta piu' del device_class:
     // "lavasciuga power" e' una lavatrice, non un pannello solare
-    if (dice("lavatric", "lavasciug", "lavastovigl")) return "lavatrice";
+    if (dice("lavastovigl", "dishwasher")) return "lavastoviglie";
+    if (dice("asciugatric", "dryer", "asciuga")) return "asciugatrice";
+    if (dice("lavatric", "lavasciug", "washer")) return "lavatrice";
     if (dice("telecam", "camera")) return "telecamera";
     if (dice("frigo", "forno", "microond")) return "presa";
     // il sole solo a chi il sole lo prende davvero
@@ -341,6 +547,25 @@ function iconaAutomatica(eid, st) {
 
 // parole con cui si puo' cercare un'icona
 const SINONIMI = {
+  aspirapolvere: "robot aspira pulizie dreame roomba scopa",
+  assistente: "alexa echo google nest cassa vocale altoparlante assistente",
+  display: "schermo tablet jarvis pannello touch",
+  powerstation: "power station batteria portatile accumulatore landbook ecoflow",
+  inverter: "inverter convertitore corrente hoymiles",
+  orologio_polso: "smartwatch orologio polso galaxy watch huawei",
+  asciugatrice: "asciugatrice asciuga panni dryer",
+  lavastoviglie: "lavastoviglie piatti stoviglie",
+  condizionatore: "condizionatore climatizzatore aria fredda split",
+  umidificatore: "umidificatore vapore umidita",
+  deumidificatore: "deumidificatore secco umidita acqua",
+  purificatore: "purificatore aria filtro ventola",
+  stampante3d: "stampante 3d anycubic kobra filamento",
+  console: "console gioco playstation xbox joypad videogiochi",
+  corriere: "corriere furgone consegna amazon pacco spedizione",
+  router: "router modem wifi rete internet",
+  ciabatta: "ciabatta multipresa prese spina",
+  gatto: "gatto micio animale",
+  campanello_video: "campanello videocitofono porta suona",
   luce: "lampadina lampada luce accendi illuminazione abat jour",
   led: "striscia strip nastro rgb colori",
   presa: "spina corrente ciabatta interruttore switch prese",
@@ -903,7 +1128,9 @@ function disegnoMdi(nome, tinta) {
 }
 
 const NOMI_ICONE = Object.keys(ICONE);
-const NOMI_MDI = Object.keys(MDI);
+// se un disegno nostro ha lo stesso nome, quello di Home Assistant non si
+// mostra nel catalogo (verrebbe doppio): il nostro vince comunque
+const NOMI_MDI = Object.keys(MDI).filter((n) => !ICONE[n]);
 
 // che icona ci vuole per il tempo che fa
 const ICONA_METEO = {
@@ -951,21 +1178,24 @@ ha-card::after {
 :host([acceso]) .sotto {
   color: var(--testo2, color-mix(in srgb, var(--c) 32%, var(--secondary-text-color, #a9b6c7))); }
 .riga { display: flex; align-items: flex-end; gap: 10px; margin-top: auto; }
-.iconaFoto { width: auto; height: 54px; aspect-ratio: 1; max-height: 100%;
+.iconaFoto { width: auto; height: 60px; aspect-ratio: 1; max-height: 100%;
   flex: 0 1 auto; object-fit: contain;
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) .iconaFoto { filter: drop-shadow(0 0 9px var(--alone2, transparent)); }
 .iconaFoto[hidden] { display: none !important; }
-:host([grande]) .iconaFoto { width: 84px; height: 84px; flex: 0 0 84px; }
-.iconaHa { --mdc-icon-size: 46px; width: auto; height: 54px; aspect-ratio: 1;
+:host([grande]) .iconaFoto { width: auto; height: 92px; }
+/* 100% = grande quanto il riquadro che le diamo, cosi' segue tutte le
+   disposizioni senza doverle riscrivere una per una */
+.iconaHa { --mdc-icon-size: 100%; width: auto; height: 60px; aspect-ratio: 1;
   max-height: 100%; flex: 0 1 auto;
   display: grid; place-items: center; color: var(--c);
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) .iconaHa { filter: drop-shadow(0 0 10px var(--alone2, transparent)); }
 .iconaHa[hidden] { display: none !important; }
-:host([grande]) .iconaHa { width: 84px; height: 84px; flex: 0 0 84px; --mdc-icon-size: 72px; }
-svg.icona { width: auto; height: 54px; aspect-ratio: 1; max-height: 100%;
-  min-height: 30px; flex: 0 1 auto;
+:host([grande]) .iconaHa { width: auto; height: 92px; }
+.misuratore, .misuratore * { animation: none !important; transition: none !important; }
+svg.icona { overflow: visible; width: auto; height: 60px; aspect-ratio: 1; max-height: 100%;
+  min-height: 28px; flex: 0 1 auto;
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) svg.icona { filter: none; }
 img.ritratto {
@@ -999,7 +1229,7 @@ img.ritratto {
 .testa, .chips, .tempo, .comandi, .cursore, .colori, .extra { flex: none; }
 /* la riga dell'icona e' l'unica elastica: se il posto e' poco si stringe
    lei, cosi' le misure in basso non vengono mai tagliate */
-.riga { flex: 0 1 auto; min-height: 0; }
+.riga { flex: 0 1 auto; min-height: 0; overflow: hidden; }
 /* le misure in piu' stanno in alto a destra, accanto al nome: cosi' non
    rubano altezza e la casella resta della misura che le hai dato */
 .chips {
@@ -1019,7 +1249,14 @@ img.ritratto {
 /* casella bassa: si stringe tutto invece di tagliare qualcosa */
 :host([compatta]) .riga { margin-top: 6px; }
 :host([compatta]) svg.icona, :host([compatta]) img.ritratto,
-:host([compatta]) .iconaHa, :host([compatta]) .iconaFoto { height: 34px; min-height: 30px; }
+:host([compatta]) .iconaHa, :host([compatta]) .iconaFoto { height: 42px; min-height: 28px; }
+:host([compatta]) .comandi { margin-top: 6px; gap: 4px; }
+:host([compatta]) .comandi button { width: 30px; height: 28px; font-size: 13px; }
+:host([compatta]) .comandi button.grosso { width: 38px; height: 30px; }
+:host([compatta]) .cursore { margin-top: 6px; }
+:host([compatta]) .colori { margin-top: 6px; }
+:host([compatta]) .colori .scambio { width: 30px; height: 30px; }
+:host([compatta]) .colori .scambio svg { width: 17px; height: 17px; }
 :host([compatta]) .valore { font-size: 17px; }
 :host([compatta]) .chips .metrica { padding: 1px 6px 1px 4px; }
 :host([compatta]) .metrica .num { font-size: 11px; }
@@ -1078,7 +1315,7 @@ img.ritratto {
 /* valore vecchio, perche' il sensore adesso non risponde */
 :host([assente]) .valore { opacity: .45; }
 :host([assente]) .valore::after { content: " ·"; }
-:host([grande]) svg.icona { width: 84px; height: 84px; flex: 0 0 84px; }
+:host([grande]) svg.icona { width: auto; height: 92px; }
 :host([grande]) .valore { font-size: 27px; }
 :host([grande]) ha-card { min-height: 152px; }
 :host([grande]) .nome { font-size: 15px; }
@@ -1172,6 +1409,8 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
   30% { opacity: 1; }
   100% { transform: translateY(-8px); opacity: 0; }
 }
+:host([effetto="fluttua"][acceso]) .iconaHa,
+:host([effetto="fluttua"][acceso]) .iconaFoto,
 :host([effetto="fluttua"][acceso]) svg.icona,
 :host([effetto="fluttua"][acceso]) img.ritratto { animation: casa-salita calc(3.2s / var(--vel, 1)) ease-in-out infinite; }
 
@@ -1249,6 +1488,8 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.12); }
 }
+:host([effetto="icona_pulsa"][acceso]) .iconaHa,
+:host([effetto="icona_pulsa"][acceso]) .iconaFoto,
 :host([effetto="icona_pulsa"][acceso]) svg.icona,
 :host([effetto="icona_pulsa"][acceso]) img.ritratto {
   animation: casa-icona-pulsa calc(2.2s / var(--vel, 1)) ease-in-out infinite;
@@ -1321,6 +1562,8 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 :host([disposizione="persona"]) .testi { min-width: 0; }
 .testa .testi { min-width: 0; flex: 1 1 auto; }
 :host([disposizione="persona"]) svg.icona,
+:host([disposizione="persona"]) .iconaHa,
+:host([disposizione="persona"]) .iconaFoto,
 :host([disposizione="persona"]) img.ritratto { grid-area: foto; width: 54px; height: 54px; flex: none; }
 /* l'anello attorno alla foto dice dove si trova: casa, fuori, un'altra zona */
 :host([dove]) img.ritratto {
@@ -1329,6 +1572,8 @@ svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
 }
 .sotto .quando { display: block; margin-top: 1px; font-size: 10.5px;
   color: var(--disabled-text-color, #7b8ba3); }
+:host([disposizione="persona"][grande]) .iconaHa,
+:host([disposizione="persona"][grande]) .iconaFoto,
 :host([disposizione="persona"][grande]) svg.icona,
 :host([disposizione="persona"][grande]) img.ritratto { width: 66px; height: 66px; }
 :host([disposizione="persona"]) img.ritratto { border-width: 2px; }
@@ -1571,10 +1816,14 @@ ha-card::before, ha-card::after { z-index: 1; }
   column-gap: 13px; row-gap: 0; align-items: center;
 }
 :host([disposizione="musica"]) .riga { display: contents; }
+:host([disposizione="musica"]) .iconaHa,
+:host([disposizione="musica"]) .iconaFoto,
 :host([disposizione="musica"]) svg.icona,
 :host([disposizione="musica"]) img.ritratto {
   grid-area: art; width: 62px; height: 62px; flex: none; border-radius: 12px;
 }
+:host([disposizione="musica"][grande]) .iconaHa,
+:host([disposizione="musica"][grande]) .iconaFoto,
 :host([disposizione="musica"][grande]) svg.icona,
 :host([disposizione="musica"][grande]) img.ritratto { width: 78px; height: 78px; }
 :host([disposizione="musica"]) img.ritratto { border-width: 1px; object-fit: cover; }
@@ -1661,11 +1910,15 @@ ha-card::before, ha-card::after { z-index: 1; }
   justify-items: center; align-content: center; row-gap: 0;
 }
 :host([disposizione="vinile"]) .riga { display: contents; }
+:host([disposizione="vinile"]) .iconaHa,
+:host([disposizione="vinile"]) .iconaFoto,
 :host([disposizione="vinile"]) svg.icona,
 :host([disposizione="vinile"]) img.ritratto {
   grid-area: art; width: clamp(74px, 42%, 116px); height: auto; aspect-ratio: 1;
   border-radius: 50%; flex: none; margin: 0;
 }
+:host([disposizione="vinile"][grande]) .iconaHa,
+:host([disposizione="vinile"][grande]) .iconaFoto,
 :host([disposizione="vinile"][grande]) svg.icona,
 :host([disposizione="vinile"][grande]) img.ritratto { width: clamp(94px, 46%, 148px); }
 :host([disposizione="vinile"]) img.ritratto {
@@ -1842,6 +2095,8 @@ ha-card::before, ha-card::after { z-index: 1; }
   .pannello .voce .chi { font-size: 11px; }
   .pannello .voce .vol { width: 62px; }
   :host([disposizione="vinile"]) svg.icona,
+  :host([disposizione="vinile"]) .iconaHa,
+  :host([disposizione="vinile"]) .iconaFoto,
   :host([disposizione="vinile"]) img.ritratto { width: clamp(58px, 46%, 92px); }
   :host([disposizione="vinile"]) .testa { margin-top: 8px; }
   :host([disposizione="vinile"]) .sotto .brano { font-size: 13px; }
@@ -1849,6 +2104,8 @@ ha-card::before, ha-card::after { z-index: 1; }
   :host([disposizione="vinile"]) .comandi button { width: 42px; height: 30px; font-size: 13px; }
   :host([disposizione="vinile"]) .comandi button.grosso { width: 52px; height: 34px; font-size: 15px; }
   :host([disposizione="musica"]) svg.icona,
+  :host([disposizione="musica"]) .iconaHa,
+  :host([disposizione="musica"]) .iconaFoto,
   :host([disposizione="musica"]) img.ritratto { width: 50px; height: 50px; }
 }
 
@@ -1866,6 +2123,8 @@ ha-card::before, ha-card::after { z-index: 1; }
 @container (min-width: 340px) {
   ha-card { padding: 16px; }
   :host([disposizione="vinile"]) svg.icona,
+  :host([disposizione="vinile"]) .iconaHa,
+  :host([disposizione="vinile"]) .iconaFoto,
   :host([disposizione="vinile"]) img.ritratto { width: clamp(112px, 34%, 152px); }
   :host([disposizione="vinile"]) .sotto .brano { font-size: 16.5px; }
   :host([disposizione="vinile"]) .sotto .artista { font-size: 12.5px; }
@@ -2139,6 +2398,56 @@ function fotoDi(st) {
 // dall'elemento apposta: serve a ritrovarlo se Home Assistant, mentre si
 // modificano le impostazioni, rifa' la casella da zero.
 const PANNELLI_APERTI = new Map();
+
+// quanto occupa davvero ogni disegno: si misura una volta sola
+const MISURE_ICONA = {};   // rifatte dalla v2.3.4 (aria = spessore del tratto)
+
+// stringe il riquadro attorno al disegno, cosi' riempie il suo spazio come
+// fanno le icone di Home Assistant
+function riempiRiquadro(svg, chiave) {
+  if (!svg || !chiave) return;
+  const gia = MISURE_ICONA[chiave];
+  if (gia !== undefined) {
+    svg.setAttribute("viewBox", gia || "0 0 64 64");
+    return;
+  }
+  if (!svg.isConnected) return;
+  // misuro una copia ferma: gli aloni che si muovono falserebbero il conto
+  let b = null;
+  const copia = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  copia.setAttribute("viewBox", "0 0 64 64");
+  copia.setAttribute("fill", "none");
+  copia.setAttribute("style", "position:absolute;left:-9999px;top:0;"
+    + "width:64px;height:64px;visibility:hidden");
+  copia.classList.add("misuratore");
+  copia.innerHTML = svg.innerHTML;
+  (svg.parentNode || document.body).appendChild(copia);
+  try { b = copia.getBBox(); } catch (e) { b = null; }
+  copia.remove();
+  if (!b || b.width < 4 || b.height < 4) return;
+  const lato = Math.max(b.width, b.height);
+  let box = null;
+  if (lato < 62 && lato > 64 / 2.5) {
+    // getBBox non conta lo spessore delle linee: senza questo, le icone
+    // disegnate a tratto (il tachimetro) restano tagliate
+    let tratto = 0;
+    const dentro = svg.innerHTML || "";
+    const spessori = dentro.match(/stroke-width="([0-9.]+)"/g) || [];
+    spessori.forEach((x) => {
+      const n2 = parseFloat(x.replace(/[^0-9.]/g, ""));
+      if (!isNaN(n2) && n2 > tratto) tratto = n2;
+    });
+    // un filo d'aria in piu' anche per i disegni che dondolano (il campanello)
+    const aria = Math.max(lato * 0.045, tratto / 2 + 0.8);
+    const cx = b.x + b.width / 2;
+    const cy = b.y + b.height / 2;
+    const mezzo = lato / 2 + aria;
+    box = [(cx - mezzo).toFixed(1), (cy - mezzo).toFixed(1),
+           (mezzo * 2).toFixed(1), (mezzo * 2).toFixed(1)].join(" ");
+  }
+  MISURE_ICONA[chiave] = box;
+  svg.setAttribute("viewBox", box || "0 0 64 64");
+}
 
 const SPENTI = ["off", "unavailable", "unknown", "not_home", "idle", "docked",
                 "standby", "paused", "closed", "disarmed", "none"];
@@ -2908,6 +3217,7 @@ class CasaTile extends HTMLElement {
       ? (() => { const b = this._datiBatteria(suoStato);
                  return disegnoBatteria(b.perc, b.carica); })()
       : (ICONE[nomeIco] || disegnoMdi(nomeIco) || ICONE.luce);
+    riempiRiquadro(this._fIcona, nomeIco);
     this._velo.toggleAttribute("aperto", true);
     document.addEventListener("keydown", this._esc = (e) => {
       if (e.key === "Escape") this._chiudiFinestra();
@@ -3286,8 +3596,14 @@ class CasaTile extends HTMLElement {
     if (!card) return;
     const h = card.getBoundingClientRect().height;
     if (!h) return;
-    const quante = (this._config.info_entita || []).length;
-    const soglia = quante ? 168 : 132;
+    // quanto spazio serve davvero: dipende da cosa c'e' dentro la casella
+    let soglia = 128;
+    const c0 = (el) => !!el && !el.hidden;
+    if (c0(this._comandi)) soglia += 46;
+    if (c0(this._cursore)) soglia += 34;
+    if (c0(this._colori)) soglia += 34;
+    if (c0(this._extra)) soglia += 34;
+    if (c0(this._tempo)) soglia += 28;
     this.toggleAttribute("compatta", h < soglia);
   }
 
@@ -3451,9 +3767,9 @@ class CasaTile extends HTMLElement {
 
     // il comando puo' non riuscire (cassa spenta, lettore che non sa unirsi):
     // in quel caso la riga lampeggia invece di non fare niente in silenzio
-    const prova = (servizio, dati) => {
+    const prova = (servizio, dati, dominio) => {
       let esito;
-      try { esito = this._hass.callService("media_player", servizio, dati); }
+      try { esito = this._hass.callService(dominio || "media_player", servizio, dati); }
       catch (e) { esito = Promise.reject(e); }
       if (esito && typeof esito.catch === "function") {
         esito.catch(() => {
@@ -3488,11 +3804,23 @@ class CasaTile extends HTMLElement {
     }
 
     if (eid === padrone) {
-      // stacca chi comanda: la musica resta a chi era in gruppo
+      // stacca chi comanda: la musica deve restare a chi era in gruppo
       if (!altri.length) return;
-      prova("unjoin", { entity_id: padrone });
-      this._scelto = altri[0];
-      if (this._lettori().includes(altri[0])) this._ricordaScelto(altri[0]);
+      const erede = altri[0];
+      // con Music Assistant staccare il capo scioglie la sessione e dopo
+      // qualche secondo tace anche l'altra cassa: prima le passo la coda
+      const conMA = String(st.attributes.app_id || "").includes("music_assistant")
+        || String(st.attributes.active_queue || "") !== "";
+      if (conMA) {
+        prova("transfer_queue",
+          { entity_id: erede, source_player: padrone, auto_play: true },
+          "music_assistant");
+        setTimeout(() => prova("unjoin", { entity_id: padrone }), 1200);
+      } else {
+        prova("unjoin", { entity_id: padrone });
+      }
+      this._scelto = erede;
+      if (this._lettori().includes(erede)) this._ricordaScelto(erede);
       return;
     }
     if (membri.includes(eid)) {
@@ -3707,9 +4035,22 @@ class CasaTile extends HTMLElement {
 
   _entitaAttiva() {
     const base = this._base || this._config;
-    const lista = this._lettori();
-    if (!lista.length) return base.entity;
     const stati = this._hass ? this._hass.states : {};
+    let lista = this._lettori();
+    // ATTENZIONE: solo le caselle della musica cercano la cassa che suona.
+    // Senza questo controllo ogni casella (meteo, luci, sensori) diventa
+    // il lettore appena una cassa attacca a suonare.
+    const suaEntita = String(base.entity || "");
+    if (!lista.length && suaEntita.indexOf("media_player.") !== 0) {
+      return base.entity;
+    }
+    if (!lista.length) {
+      // nessun elenco scelto da lui: guardo tutte le casse dell'impianto,
+      // le stesse che vede nel riquadro del gruppo. Cosi' la card ritrova la
+      // musica anche dopo aver ricaricato la pagina.
+      lista = this._casseCandidate(base.entity);
+      if (lista.length < 2) return base.entity;
+    }
     const segui = base.segui_attivo !== false;
     const oraSuona = lista.filter((e) => stati[e] && stati[e].state === "playing");
     const prima = this._suonavano;
@@ -3721,7 +4062,16 @@ class CasaTile extends HTMLElement {
         ? oraSuona[0] : oraSuona.find((e) => !prima.includes(e));
       if (nuovo) this._scelto = nuovo;
     }
-    if (this._scelto && lista.includes(this._scelto)) return this._scelto;
+    if (this._scelto && lista.includes(this._scelto)) {
+      const suo = stati[this._scelto];
+      const viva = suo && ["playing", "paused", "buffering", "on"]
+        .includes(String(suo.state).toLowerCase());
+      const casa = stati[base.entity];
+      const casaViva = casa && String(casa.state).toLowerCase() === "playing";
+      // se quella che seguivo ha smesso e la sua e' ripartita, torno alla sua
+      if (!viva && casaViva) this._scelto = base.entity;
+      return this._scelto;
+    }
     return lista.find((e) => !!stati[e]) || lista[0] || base.entity;
   }
 
@@ -4658,8 +5008,13 @@ class CasaTile extends HTMLElement {
       return;
     }
 
-    // se ha scelto un'icona di Home Assistant, comanda quella
-    const suaIcona = c.icona_ha;
+    // se ha scelto un'icona di Home Assistant, comanda quella; se non ha
+    // scelto niente ma l'entita' ha gia' la sua (impostata in Home Assistant
+    // o dall'integrazione), usiamo quella: e' quello che fanno le altre schede
+    const sceltaSua = c.icona && c.icona !== "auto";
+    const dellEntita = (!sceltaSua && c.icona_entita !== false && st)
+      ? st.attributes.icon : null;
+    const suaIcona = c.icona_ha || dellEntita;
     const conIconaHa = !!suaIcona && !usaFoto && !!customElements.get("ha-icon");
     if (this._svgHa) {
       this._svgHa.hidden = !conIconaHa;
@@ -4681,7 +5036,16 @@ class CasaTile extends HTMLElement {
       this._svg.innerHTML = disegno;
       this._svg.dataset.icona = chiave;
     }
+    this._adattaDisegno(chiave);
   }
+
+  // il disegno riempie il suo quadrato: misuro quanto occupa davvero e
+  // stringo il riquadro attorno, cosi' le nostre icone si vedono grandi
+  // come quelle di Home Assistant
+  _adattaDisegno(chiave) {
+    riempiRiquadro(this._svg, chiave);
+  }
+
 }
 
 /* ----------------------------------------------------------------- editor */
@@ -4717,6 +5081,7 @@ const SEZIONI = [
             { name: "usa_foto", selector: { boolean: {} } },
           ],
         },
+        { name: "icona_entita", selector: { boolean: {} } },
         { name: "icona_ha", selector: { icon: {} } },
       ] },
     ],
@@ -4982,6 +5347,7 @@ const ETICHETTE = {
   sorgente: "Tasto Sorgente: scegli l'ingresso del lettore",
   grande: "Casella grande",
   mostra_icona: "Mostra l'icona (toglila per lasciare solo le scritte)",
+  icona_entita: "Usa l'icona che l'entita ha gia in Home Assistant, se ce l'ha",
   usa_foto: "Usa la foto dell'entita, se ce l'ha (persone, copertine)",
   acceso_sempre: "Sempre a colori (anche da spenta)",
   icona_ha: "Icona di Home Assistant (cercala qui; vince su quella sotto)",
@@ -5403,6 +5769,7 @@ class CasaTileEditor extends HTMLElement {
     this._forms.forEach((f) => { f.data = this._config; });
     this._propaga();
     this._costruisciScelte();
+    requestAnimationFrame(() => this._adattaCatalogo());
     this._costruisciFoto();
     this._costruisciTrovati();
     this._costruisciBlocco();
@@ -5864,6 +6231,18 @@ class CasaTileEditor extends HTMLElement {
     }
   }
 
+  // le icone del catalogo riempiono il loro quadratino: si misurano quando
+  // la scheda e' aperta davvero (da nascosta misurerebbero zero)
+  _adattaCatalogo() {
+    const griglia = this._scelte && this._scelte.querySelector(".iconePicker");
+    if (!griglia || griglia.hidden || !griglia.isConnected) return;
+    if (!griglia.getBoundingClientRect().height) return;
+    griglia.querySelectorAll(".sceltaIcona").forEach((b) => {
+      const dis = b.querySelector("svg");
+      if (dis && b.dataset.nome) riempiRiquadro(dis, b.dataset.nome);
+    });
+  }
+
   _scegliScheda(i) {
     this._tasti.forEach((b, k) => {
       if (k === i) b.setAttribute("scelta", "");
@@ -5873,6 +6252,7 @@ class CasaTileEditor extends HTMLElement {
       if (k === i) pa.removeAttribute("nascosto");
       else pa.setAttribute("nascosto", "");
     });
+    requestAnimationFrame(() => this._adattaCatalogo());
   }
 
   // il selettore di colore di Home Assistant non ha la X: senza questi
