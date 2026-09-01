@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.86.0
+ * v1.87.0
  */
 
-const VERSIONE = "1.86.0";
+const VERSIONE = "1.87.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1405,6 +1405,7 @@ ha-card::before, ha-card::after { z-index: 1; }
   background: rgba(255,255,255,.10); color: var(--primary-text-color, #eaf1fb);
   display: grid; place-items: center; }
 .colori .scambio svg { width: 17px; height: 17px; fill: currentColor; pointer-events: none; }
+.colori .scambio[acceso] { background: rgba(255,255,255,.85); color: #0b1220; }
 .colori .scambio[hidden] { display: none !important; }
 .colori[hidden] { display: none !important; }
 .colori input {
@@ -2424,6 +2425,15 @@ class CasaTile extends HTMLElement {
     this._scambio = root.querySelector(".colori .scambio");
     this._scambio.addEventListener("click", (e) => {
       e.stopPropagation();
+      // lampade con il bianco "secco" (modo white): il tastino non cambia
+      // striscia, rimette proprio la luce bianca
+      if (this._scambio._soloBianco) {
+        const st = this._hass ? this._hass.states[this._config.entity] : null;
+        const lum = (st && st.attributes.brightness) || 255;
+        this._hass.callService("light", "turn_on",
+          { entity_id: this._config.entity, white: lum });
+        return;
+      }
       this._modoColore = this._modoColore === "bianco" ? "tinta" : "bianco";
       this._render();
     });
@@ -2969,10 +2979,12 @@ class CasaTile extends HTMLElement {
     const modi = (st && st.attributes.supported_color_modes) || [];
     const conTinta = modi.some((m) => ["hs", "rgb", "rgbw", "rgbww", "xy"].includes(m));
     const conCalore = modi.includes("color_temp");
+    // certe lampade non hanno le gradazioni di bianco: hanno un bianco solo
+    const conBianco = modi.includes("white");
     // le strisce si vedono anche a luce spenta: muovendole si accende
     // gia' del colore scelto (come fa Home Assistant)
     const mostra = !!c.cursore_colore && dom === "light" && !!st
-      && (conTinta || conCalore);
+      && (conTinta || conCalore || conBianco);
     box.hidden = !mostra;
     if (!mostra) return;
 
@@ -2985,12 +2997,25 @@ class CasaTile extends HTMLElement {
     const modo = !conTinta ? "bianco" : (!conCalore ? "tinta" : this._modoColore);
     this._tinta.hidden = !conTinta || (!dueStrisce && modo !== "tinta");
     this._calore.hidden = !conCalore || (!dueStrisce && modo !== "bianco");
-    // il tastino c'e' solo se la lampada fa colori E bianco
-    this._scambio.hidden = !(conTinta && conCalore) || dueStrisce;
+    // il tastino c'e' se la lampada fa colori E bianco (a gradazioni o
+    // secco). Col bianco secco non c'e' niente da scambiare: rimette il bianco.
+    const soloBianco = conTinta && !conCalore && conBianco;
+    this._scambio._soloBianco = soloBianco;
+    this._scambio.hidden = !(conTinta && (conCalore || conBianco)) || dueStrisce;
     if (!this._scambio.hidden) {
-      this._scambio.innerHTML = segno(modo === "tinta" ? "bianco" : "tavolozza");
-      this._scambio.title = modo === "tinta"
-        ? "Passa al bianco caldo/freddo" : "Passa ai colori";
+      if (soloBianco) {
+        const eBianca = st.attributes.color_mode === "white";
+        this._scambio.innerHTML = segno("bianco");
+        this._scambio.toggleAttribute("acceso", eBianca);
+        this._scambio.title = eBianca
+          ? "E gia' bianca (tocca la striscia per colorarla)"
+          : "Torna alla luce bianca";
+      } else {
+        this._scambio.removeAttribute("acceso");
+        this._scambio.innerHTML = segno(modo === "tinta" ? "bianco" : "tavolozza");
+        this._scambio.title = modo === "tinta"
+          ? "Passa al bianco caldo/freddo" : "Passa ai colori";
+      }
     }
     if (conCalore) {
       const min = st.attributes.min_color_temp_kelvin || 2000;
