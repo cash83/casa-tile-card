@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.93.0
+ * v1.94.0
  */
 
-const VERSIONE = "1.93.0";
+const VERSIONE = "1.94.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -914,9 +914,12 @@ const ICONA_METEO = {
 };
 
 const STILE = `
-:host { display: block; container-type: inline-size; }
+:host { display: block; container-type: inline-size; height: 100%; }
 ha-card {
   position: relative; overflow: hidden; cursor: pointer;
+  /* mai piu' alta di quanto la plancia le concede: la misura la decidi tu
+     dal "Layout" della scheda, il contenuto si stringe da solo */
+  max-height: 100%; box-sizing: border-box;
   padding: 14px; border-radius: var(--casa-radius, 18px);
   background: var(--card-bg, linear-gradient(160deg,#111a27 0%,#0d1420 100%));
   border: 1px solid var(--casa-border, #1e2b3d);
@@ -987,6 +990,8 @@ img.ritratto {
   display: flex; align-items: center; gap: 4px; white-space: nowrap;
 }
 :host([grande]) .meteo .gradi { font-size: 26px; }
+/* nessun pezzo si gonfia: l'altezza la comanda la plancia */
+.testa, .riga, .chips, .tempo, .comandi, .cursore, .colori, .extra { flex: none; }
 .chips {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
   gap: 8px; margin-top: 12px;
@@ -1477,7 +1482,8 @@ ha-card::before, ha-card::after { z-index: 1; }
 
 /* --- il grafichino dell'andamento --- */
 .andamento { display: block; width: 100%; height: 30px; margin-top: 8px;
-  position: relative; z-index: 1; overflow: visible; }
+  flex: 0 1 auto; min-height: 0;
+  position: relative; z-index: 1; overflow: hidden; }
 .andamento[hidden] { display: none !important; }
 .andamento .riga { fill: none; stroke: var(--c); stroke-width: 1.6;
   stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
@@ -2320,9 +2326,11 @@ class CasaTile extends HTMLElement {
         ? { columns: 8, rows: 8, min_columns: 6 }
         : { columns: 6, rows: 7, min_columns: 4 };
     }
+    // se nasce col grafico chiedo una riga in piu' alla plancia
+    const inPiu = c.grafico ? 1 : 0;
     return c.grande
-      ? { columns: 6, rows: 3, min_columns: 4 }
-      : { columns: 4, rows: 2, min_columns: 3 };
+      ? { columns: 6, rows: 3 + inPiu, min_columns: 4 }
+      : { columns: 4, rows: 2 + inPiu, min_columns: 3 };
   }
 
   _costruisci() {
