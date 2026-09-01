@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v1.89.0
+ * v1.90.0
  */
 
-const VERSIONE = "1.89.0";
+const VERSIONE = "1.90.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -3605,6 +3605,17 @@ class CasaTile extends HTMLElement {
     if (!isNaN(n) && st.state.trim() !== "" && !["light", "switch", "fan"].includes(c.entity.split(".")[0])) {
       return n > (c.soglia !== undefined && c.soglia !== null ? Number(c.soglia) : 0);
     }
+    // un termosifone (o un condizionatore) e' "acceso" quando sta lavorando
+    // davvero: se la stanza e' gia' calda l'apparecchio e' fermo, e la
+    // casella deve stare grigia anche se il modo e' "riscaldamento"
+    if (c.entity.split(".")[0] === "climate") {
+      const cosaFa = st.attributes.hvac_action;
+      if (cosaFa) {
+        return !["idle", "off"].includes(String(cosaFa).toLowerCase());
+      }
+      return String(st.state).toLowerCase() !== "off";
+    }
+
     // la musica in pausa e' comunque accesa: il brano c'e' ancora, quindi
     // bordo, alone ed effetti devono restare. Spenta solo se e' davvero
     // spenta, ferma o non raggiungibile.
