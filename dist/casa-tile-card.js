@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.3.10
+ * v2.3.11
  */
 
-const VERSIONE = "2.3.10";
+const VERSIONE = "2.3.11";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -398,20 +398,36 @@ const ICONE = {
 };
 
 // La batteria non e' un disegno fisso: la costruisco con la carica vera.
-function disegnoBatteria(perc, carica) {
+function disegnoBatteria(perc, carica, scarica) {
   const p = Math.max(0, Math.min(100, Number(perc)));
   const buono = isNaN(p) ? 100 : p;
   const largo = Math.max(2, 34 * buono / 100);
+  const fine = 15 + largo;
   const tinta = buono <= 20 ? "#ff6b6b" : (buono <= 45 ? "#ffc046" : "#3fd98a");
   const fulmine = carica
     ? '<g class="an bolt"><path d="M34 19l-9 15h6.5l-2.5 11 10.5-14H33l3.5-12z" '
       + 'fill="#ffd54a" stroke="#0d1420" stroke-width="1.4" stroke-linejoin="round"/></g>'
     : "";
+  // in carica: il pezzo che manca si riempie da sinistra a destra e sfuma
+  const manca = 49 - fine;
+  const salita = (carica && manca > 1)
+    ? '<g class="an ricarica" style="transform-origin:' + fine.toFixed(1) + 'px 32px">'
+      + '<rect x="' + fine.toFixed(1) + '" y="25" width="' + manca.toFixed(1)
+      + '" height="14" rx="3.5" fill="' + tinta + '" opacity=".5"/></g>'
+    : "";
+  // in scarica: una tacca scura che scivola verso sinistra sul pieno
+  const discesa = (scarica && !carica && largo > 4)
+    ? '<g class="an scarico"><rect x="' + (fine - 5).toFixed(1)
+      + '" y="25" width="5" height="14" fill="#0b111b" opacity=".5"/></g>'
+    : "";
+  // il pieno pulsa solo quando la batteria non sta ne caricando ne dando
+  const fermo = !carica && !scarica ? " glow" : "";
   return '<rect x="12" y="22" width="40" height="20" rx="6.5" fill="#0f1723" '
     + 'stroke="#8ea6c2" stroke-width="2.6"/>'
     + '<rect x="53.5" y="27.5" width="4.5" height="9" rx="2.2" fill="#8ea6c2"/>'
-    + '<g class="an glow"><rect x="15" y="25" width="' + largo.toFixed(1)
-    + '" height="14" rx="3.5" fill="' + tinta + '"/></g>' + fulmine;
+    + '<g class="an' + fermo + '"><rect x="15" y="25" width="' + largo.toFixed(1)
+    + '" height="14" rx="3.5" fill="' + tinta + '"/></g>'
+    + salita + discesa + fulmine;
 }
 
 // Che icona ci vuole per questa entita'? La card lo capisce da sola.
@@ -431,6 +447,22 @@ function iconaAutomatica(eid, st) {
   }
   if (dominio === "camera") return dice("campanell", "citofon") ? "campanello_video" : "telecamera";
   if (dominio === "vacuum") return "aspirapolvere";
+  if (dominio === "cover") {
+    // il device_class di Home Assistant vale piu' del nome
+    if (dc === "garage" || dc === "gate") return "garage";
+    if (dc === "curtain" || dc === "awning") return "tende";
+    if (dc === "door") return "porta_scorrevole";
+    if (dc === "window") return "finestra";
+    if (dice("garage", "box auto", "cancell", "saracinesc")) return "garage";
+    if (dice("serranda")) return "serranda";
+    if (dice("tenda", "tende", "curtain", "veneziana")) return "tende";
+    if (dice("porta", "door", "scorrevol")) return "porta_scorrevole";
+    if (dice("finestra", "window", "velux", "lucernar")) return "finestra";
+    return "tapparella";
+  }
+  if (dominio === "lock") return "serratura";
+  if (dominio === "siren") return "allarme";
+  if (dominio === "valve") return "acqua";
   if (dominio === "fan") {
     if (dice("purificat", "filtro")) return "purificatore";
     if (dice("deumidific")) return "deumidificatore";
@@ -1337,9 +1369,15 @@ svg .drum { transform-origin: 32px 37px; animation: casa-rota calc(3.4s / var(--
 svg .shake { animation: casa-scuoti calc(.45s / var(--vel, 1)) ease-in-out infinite; }
 svg .spark { animation: casa-scintilla calc(2.2s / var(--vel, 1)) ease-in-out infinite; }
 svg .riempi { transform-origin: 11px 32px; animation: casa-riempi calc(2.4s / var(--vel, 1)) ease-in-out infinite alternate; }
-svg .sale { transform-origin: 30px 46px; animation: casa-riempi calc(3s / var(--vel, 1)) ease-in-out infinite alternate; }
+svg .sale { transform-origin: 30px 46px; animation: casa-sale calc(3s / var(--vel, 1)) ease-out infinite; }
 svg .bolt { transform-origin: 32px 32px; animation: casa-bolt calc(1.5s / var(--vel, 1)) ease-in-out infinite; }
 svg .glow { animation: casa-glow calc(2.4s / var(--vel, 1)) ease-in-out infinite; }
+@keyframes casa-ricarica { 0% { transform: scaleX(0); opacity: .55; }
+  75% { opacity: .5; } 100% { transform: scaleX(1); opacity: 0; } }
+svg .ricarica { animation: casa-ricarica calc(1.9s / var(--vel, 1)) ease-out infinite; }
+@keyframes casa-scarico { 0% { transform: translateX(0); opacity: 0; }
+  25% { opacity: .65; } 100% { transform: translateX(-11px); opacity: 0; } }
+svg .scarico { animation: casa-scarico calc(1.9s / var(--vel, 1)) ease-in infinite; }
 svg .bar { transform-origin: 50% 100%; animation: casa-eq calc(.9s / var(--vel, 1)) ease-in-out infinite; }
 svg .b2 { animation-delay: .15s; } svg .b3 { animation-delay: .3s; } svg .b4 { animation-delay: .45s; }
 svg .calore { animation: casa-sale calc(2.2s / var(--vel, 1)) ease-out infinite; }
@@ -2180,7 +2218,8 @@ svg .an { animation-play-state: paused; }
 .velo[aperto] { display: flex; }
 .finestra {
   width: min(560px, 100%); max-height: 84vh; overflow: auto;
-  background: var(--casa-popup-bg, #0f1620);
+  background: var(--fin-bg, var(--casa-popup-bg, #0f1620));
+  background-size: cover; background-position: center;
   border: 1px solid var(--casa-border, #1e2b3d);
   border-radius: 26px; padding: 18px;
   box-shadow: 0 30px 80px rgba(0,0,0,.6);
@@ -2198,6 +2237,13 @@ svg .an { animation-play-state: paused; }
 }
 .f-chiudi:hover { background: rgba(255,255,255,.16); }
 .f-corpo > * { margin-bottom: 10px; display: block; }
+/* le schede dentro al pop-up: si vestono coi colori che sceglie lui */
+:host([fin-schede]) .f-corpo {
+  --ha-card-background: var(--fin-sch-bg);
+  --card-background-color: var(--fin-sch-bg);
+  --ha-card-border-color: var(--fin-sch-bordo, transparent);
+  --ha-card-box-shadow: none;
+}
 @media (prefers-reduced-motion: reduce) { svg .an { animation: none !important; } }
 `;
 
@@ -3297,6 +3343,40 @@ class CasaTile extends HTMLElement {
       + encodeURIComponent(dove), "_blank", "noopener");
   }
 
+  _vestiFinestra() {
+    const c = this._config;
+    const tinta = Array.isArray(c.finestra_sfondo) ? daRgb(c.finestra_sfondo) : null;
+    const opaco = 1 - (c.finestra_trasparenza === undefined
+      ? 0 : Number(c.finestra_trasparenza)) / 100;
+    const foto = String(c.finestra_immagine || "").trim();
+    if (tinta || opaco < 1 || foto) {
+      const alto = tinta || "#111a26";
+      const basso = tinta ? scurisci(tinta, 0.62) : "#0a1019";
+      let fondo = "linear-gradient(160deg, " + conAlfa(alto, opaco) + " 0%, "
+        + conAlfa(basso, opaco) + " 100%)";
+      if (foto) fondo += ', url("' + foto + '") center/cover no-repeat';
+      this.style.setProperty("--fin-bg", fondo);
+    } else {
+      this.style.removeProperty("--fin-bg");
+    }
+
+    const sch = Array.isArray(c.finestra_schede_sfondo)
+      ? daRgb(c.finestra_schede_sfondo) : null;
+    const schVia = c.finestra_schede_trasparenza;
+    const schOpaco = 1 - (schVia === undefined ? 0 : Number(schVia)) / 100;
+    if (sch || schOpaco < 1) {
+      const base = sch || "#141d2b";
+      this.style.setProperty("--fin-sch-bg", conAlfa(base, schOpaco));
+      this.style.setProperty("--fin-sch-bordo",
+        conAlfa(base, Math.min(1, schOpaco + 0.18)));
+      this.toggleAttribute("fin-schede", true);
+    } else {
+      this.style.removeProperty("--fin-sch-bg");
+      this.style.removeProperty("--fin-sch-bordo");
+      this.toggleAttribute("fin-schede", false);
+    }
+  }
+
   async _apriFinestra() {
     const c = this._config;
     // qui lo stato me lo prendo da solo: non arriva da fuori
@@ -3305,7 +3385,7 @@ class CasaTile extends HTMLElement {
     const nomeIco = this._nomeIcona(suoStato);
     this._fIcona.innerHTML = nomeIco === "batteria"
       ? (() => { const b = this._datiBatteria(suoStato);
-                 return disegnoBatteria(b.perc, b.carica); })()
+                 return disegnoBatteria(b.perc, b.carica, b.scarica); })()
       : (ICONE[nomeIco] || disegnoMdi(nomeIco) || ICONE.luce);
     riempiRiquadro(this._fIcona, nomeIco);
     this._velo.toggleAttribute("aperto", true);
@@ -3609,6 +3689,53 @@ class CasaTile extends HTMLElement {
     return numero + " km da casa" + (km > 30 ? " in linea d’aria" : "");
   }
 
+  // La telecamera a tutta casella. L'immagine di Home Assistant e' uno
+  // scatto: per farla sembrare una diretta le cambio la coda ogni tot
+  // secondi, cosi' il browser la richiede di nuovo. La carico di nascosto
+  // prima di metterla, se no si vedrebbe il buco mentre arriva.
+  _immagineDiretta(st) {
+    const c = this._config;
+    const dominio = c.entity ? c.entity.split(".")[0] : "";
+    const puo = (dominio === "camera" || dominio === "image") && !!c.camera_diretta
+      && !c.sfondo_immagine;
+    if (!puo || !st) { this._fermaDiretta(); return null; }
+    const base = fotoDi(st);
+    if (!base) { this._fermaDiretta(); return null; }
+    this._avviaDiretta();
+    const scatto = this._scattoDiretta || 0;
+    return base + (base.indexOf("?") === -1 ? "?" : "&") + "_ct=" + scatto;
+  }
+
+  _avviaDiretta() {
+    const c = this._config;
+    const ogni = Math.max(1, Math.min(120,
+      Number(c.camera_secondi) > 0 ? Number(c.camera_secondi) : 5)) * 1000;
+    if (this._direttaId && this._direttaOgni === ogni) return;
+    this._fermaDiretta();
+    this._direttaOgni = ogni;
+    if (this._scattoDiretta === undefined) this._scattoDiretta = Date.now();
+    this._direttaId = setInterval(() => {
+      if (!this.isConnected || document.hidden) return;
+      const st = this._hass ? this._hass.states[this._config.entity] : null;
+      const base = st ? fotoDi(st) : null;
+      if (!base) return;
+      const adesso = Date.now();
+      const prossima = base + (base.indexOf("?") === -1 ? "?" : "&") + "_ct=" + adesso;
+      // la scarico prima: se non arriva, tengo quella di adesso
+      const prova = new Image();
+      prova.onload = () => {
+        this._scattoDiretta = adesso;
+        if (this.isConnected) this._render();
+      };
+      prova.src = prossima;
+    }, ogni);
+  }
+
+  _fermaDiretta() {
+    if (this._direttaId) { clearInterval(this._direttaId); this._direttaId = null; }
+    this._direttaOgni = 0;
+  }
+
   // il "da quanto" va rinfrescato ogni tanto, se no resta fermo
   _avviaTicchettio(serve) {
     if (!serve) {
@@ -3687,6 +3814,7 @@ class CasaTile extends HTMLElement {
 
   disconnectedCallback() {
     this._fermaOrologio();
+    this._fermaDiretta();
     if (this._ticchettio) { clearInterval(this._ticchettio); this._ticchettio = null; }
     if (this._osserva) { this._osserva.disconnect(); this._osserva = null; }
   }
@@ -4751,7 +4879,37 @@ class CasaTile extends HTMLElement {
         }
       });
     }
-    return { perc: perc, carica: carica };
+    // I watt dicono la verita' meglio di ogni parola: se un sensore di
+    // potenza che parla di carica (o di scarica) segna piu' di zero, la
+    // batteria sta facendo proprio quello. Guardo le misure che ha messo
+    // lui nella casella e le entita' che si chiamano come la sua.
+    let scarica = false;
+    const guarda = (eid) => {
+      const alt = stati[eid];
+      if (!alt || String(alt.attributes.device_class || "") !== "power") return;
+      const n2 = parseFloat(alt.state);
+      if (isNaN(n2) || n2 <= 0) return;
+      const chi = (eid + " " + (alt.attributes.friendly_name || "")).toLowerCase();
+      if (/discharg|scaric|erogaz/.test(chi)) scarica = true;
+      else if (/charg|carica/.test(chi)) carica = true;
+    };
+    (Array.isArray(c.info_entita) ? c.info_entita : []).forEach(guarda);
+    (Array.isArray(c.acceso_entita) ? c.acceso_entita : []).forEach(guarda);
+    // le vicine: stesso inizio di nome, dal piu' preciso al piu' largo
+    if (c.entity) {
+      const pezzi = String(c.entity).split(".")[1].split("_");
+      for (let i = pezzi.length - 1; i >= 1 && !carica && !scarica; i -= 1) {
+        const radice2 = pezzi.slice(0, i).join("_");
+        if (radice2.length < 2) break;
+        const inizio = "sensor." + radice2 + "_";
+        Object.keys(stati).forEach((eid) => {
+          if (eid.indexOf(inizio) === 0) guarda(eid);
+        });
+      }
+    }
+    // in carica vince: se sta caricando non sta dando corrente
+    if (carica) scarica = false;
+    return { perc: perc, carica: carica, scarica: scarica };
   }
 
   // per il meteo l'icona segue il tempo che fa
@@ -4925,6 +5083,10 @@ class CasaTile extends HTMLElement {
       this.style.removeProperty("--pan-bg");
     }
 
+    // il vestito del pop-up: tinta, foto e trasparenza della finestra, e
+    // i colori che passano alle schede di Home Assistant che stanno dentro
+    this._vestiFinestra();
+
     // la scritta puo' avere un colore suo, staccato da quello degli effetti
     const scritta = Array.isArray(c.colore_testo) ? daRgb(c.colore_testo) : null;
     if (scritta) {
@@ -4965,13 +5127,25 @@ class CasaTile extends HTMLElement {
       fondo = "linear-gradient(rgba(6,9,14," + velo + "), rgba(6,9,14," + velo + ")), "
         + 'url("' + c.sfondo_immagine + '") ' + adatta + ' no-repeat';
     }
+    // la telecamera a tutta casella: l'immagine si rifa' da sola, cosi' e'
+    // una diretta e non lo scatto di quando hai aperto la pagina
+    const diretta = this._immagineDiretta(st);
+    if (diretta) {
+      const velo = (c.sfondo_velo === undefined ? 28 : Number(c.sfondo_velo)) / 100;
+      const adatta = c.sfondo_adatta === "intera" ? "center/contain"
+        : (c.sfondo_adatta === "vera" ? "center/auto" : "center/cover");
+      fondo = "linear-gradient(rgba(6,9,14," + (velo * 0.5).toFixed(2)
+        + "), rgba(6,9,14," + Math.min(0.92, velo + 0.14).toFixed(2) + ")), "
+        + 'url("' + diretta + '") ' + adatta + ' no-repeat';
+    }
     const forza = (c.meteo_forza === undefined || c.meteo_forza === null
       ? 92 : Number(c.meteo_forza)) / 100;
     this.style.setProperty("--forza-cielo", String(forza));
     this._disegnaCielo(conCielo && forza > 0
       ? (CIELI[meteoSt.state] || CIELI.cloudy)[1] : null);
     this.style.setProperty("--card-bg", fondo);
-    this.toggleAttribute("sfondo-foto", !!c.sfondo_immagine);
+    this.toggleAttribute("sfondo-foto", !!c.sfondo_immagine || !!diretta);
+    this.toggleAttribute("diretta", !!diretta);
     const vel = (c.velocita === undefined || c.velocita === null ? 100 : Number(c.velocita)) / 100;
     this.style.setProperty("--vel", String(Math.max(0.1, vel)));
     const k = (c.intensita === undefined || c.intensita === null
@@ -5196,8 +5370,9 @@ class CasaTile extends HTMLElement {
     let chiave = nomeIcona;
     if (nomeIcona === "batteria") {
       const b = this._datiBatteria(st);
-      disegno = disegnoBatteria(b.perc, b.carica);
-      chiave = "batteria|" + (isNaN(b.perc) ? "-" : Math.round(b.perc)) + "|" + b.carica;
+      disegno = disegnoBatteria(b.perc, b.carica, b.scarica);
+      chiave = "batteria|" + (isNaN(b.perc) ? "-" : Math.round(b.perc))
+        + "|" + (b.carica ? "c" : (b.scarica ? "s" : "f"));
     }
     if (this._svg.dataset.icona !== chiave) {
       this._svg.innerHTML = disegno;
@@ -5315,6 +5490,11 @@ const SEZIONI = [
           ],
         },
       ] },
+      { titolo: "La telecamera in diretta", schema: [
+        { name: "camera_diretta", selector: { boolean: {} } },
+        { name: "camera_secondi",
+          selector: { number: { min: 1, max: 60, step: 1, mode: "slider" } } },
+      ] },
       { titolo: "Foto di sfondo", schema: [
         { name: "sfondo_immagine", selector: { text: {} } },
         { name: "sfondo_adatta", selector: { select: { mode: "dropdown", options: [
@@ -5427,6 +5607,23 @@ const SEZIONI = [
         { name: "popup", selector: { text: {} } },
         { name: "finestra_titolo", selector: { text: {} } },
       ] },
+      { titolo: "Come e vestito il pop-up", schema: [
+        {
+          type: "grid", name: "", schema: [
+            { name: "finestra_sfondo", selector: { color_rgb: {} } },
+            { name: "finestra_trasparenza",
+              selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+          ],
+        },
+        { name: "finestra_immagine", selector: { text: {} } },
+        {
+          type: "grid", name: "", schema: [
+            { name: "finestra_schede_sfondo", selector: { color_rgb: {} } },
+            { name: "finestra_schede_trasparenza",
+              selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
+          ],
+        },
+      ] },
     ],
   },
 ];
@@ -5435,6 +5632,9 @@ const SEZIONI = [
 const SOLO_AZIONE = {
   servizio: "servizio", servizio_dati: "servizio",
   indirizzo_web: "link", popup: "popup", finestra_titolo: "finestra",
+  finestra_sfondo: "finestra", finestra_trasparenza: "finestra",
+  finestra_immagine: "finestra", finestra_schede_sfondo: "finestra",
+  finestra_schede_trasparenza: "finestra",
 };
 
 // quali impostazioni hanno senso per quale tipo di entita'
@@ -5453,6 +5653,8 @@ const SOLO_PER = {
   comandi_media: ["media_player"],
   tempo_media: ["media_player"],
   lettori: ["media_player"],
+  camera_diretta: ["camera", "image"],
+  camera_secondi: ["camera", "image"],
   pannello_sfondo: ["media_player"],
   pannello_trasparenza: ["media_player"],
   comandi_rapidi: ["cover", "lock", "vacuum"],
@@ -5486,6 +5688,8 @@ const ETICHETTE = {
   trasparenza: "Trasparenza della casella (%)",
   sfondo_meteo: "Usa il meteo come sfondo di tutta la casella",
   meteo_forza: "Quanto si vede la scena meteo (%) - 0 lascia solo il colore",
+  camera_diretta: "Riempi la casella con l'immagine della telecamera, viva",
+  camera_secondi: "Ogni quanti secondi si rifa l'immagine",
   sfondo_immagine: "Foto di sfondo - indirizzo, es. /local/foto.jpg",
   sfondo_adatta: "Come si adatta la foto",
   sfondo_copertina: "Copertina del disco come sfondo",
@@ -5530,6 +5734,11 @@ const ETICHETTE = {
   servizio: "Servizio da chiamare (es. number.set_value)",
   servizio_dati: "Dati del servizio, in YAML (es. value: 95)",
   finestra_titolo: "Titolo del pop-up",
+  finestra_sfondo: "Tinta del pop-up (vuoto = scuro di serie)",
+  finestra_trasparenza: "Trasparenza del pop-up (%)",
+  finestra_immagine: "Foto di sfondo del pop-up - indirizzo, es. /local/foto.jpg",
+  finestra_schede_sfondo: "Tinta delle schede dentro al pop-up",
+  finestra_schede_trasparenza: "Trasparenza delle schede dentro al pop-up (%)",
 };
 
 const SCHEDE_PRONTE = [
@@ -6599,6 +6808,9 @@ class CasaTileEditor extends HTMLElement {
     this._tastoTogli(tinte, "sfondo_colore", "Togli la tinta della casella");
     this._tastoTogli(tinte, "pannello_sfondo", "Togli lo sfondo del riquadro casse");
     this._tastoTogli(tinte, "colore_testo", "Togli il colore della scritta");
+    this._tastoTogli(tinte, "finestra_sfondo", "Togli la tinta del pop-up");
+    this._tastoTogli(tinte, "finestra_schede_sfondo",
+      "Togli la tinta delle schede del pop-up");
     if (tinte.children.length) box.appendChild(tinte);
     // in fondo alla scheda Sfondo, che e' dove uno li va a cercare
 
