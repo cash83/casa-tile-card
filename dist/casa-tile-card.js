@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.3.9
+ * v2.3.10
  */
 
-const VERSIONE = "2.3.9";
+const VERSIONE = "2.3.10";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2734,6 +2734,64 @@ const metti = (el, nome) => {
   el.innerHTML = segno(nome);
 };
 
+// Quanto dura, scritto come lo direbbe una persona: 135 minuti sono
+// "2 h 15 min", non "135". Prende il numero e l'unita di partenza.
+// solo unita' che non si confondono con altro: "m" sarebbe metri, non minuti
+const SECONDI_DI = { s: 1, sec: 1, min: 60, h: 3600, d: 86400 };
+// unita' che accetto quando sono appiccicate dentro allo stato ("17min").
+// Scritte come si scrivono davvero: cosi' "3D" (una stampante) resta "3D"
+// e non diventa "3 giorni".
+const UNITA_NOTE = ["s", "min", "h", "d", "%", "W", "kW", "Wh", "kWh",
+  "V", "A", "Hz", "km", "m", "mm", "cm", "kg", "g", "L", "l", "ml", "GB", "MB",
+  "°C", "°F", "°", "lx", "ppm", "hPa", "mbar", "dB", "dBm"];
+
+function durataBella(numero, unita) {
+  const passo = SECONDI_DI[String(unita || "").toLowerCase()];
+  if (!passo || !isFinite(numero)) return null;
+  // zero non si traduce: "0 h" dice piu' di "0 s"
+  if (numero === 0) return "0 " + unita;
+  let sec = Math.round(Math.abs(numero) * passo);
+  const segno = numero < 0 ? "-" : "";
+  if (sec < 60) return segno + sec + " s";
+  const g = Math.floor(sec / 86400); sec -= g * 86400;
+  const h = Math.floor(sec / 3600); sec -= h * 3600;
+  const m = Math.floor(sec / 60);
+  if (g) return segno + g + " g" + (h ? " " + h + " h" : "");
+  if (h) return segno + h + " h" + (m ? " " + m + " min" : "");
+  return segno + m + " min";
+}
+
+// Certi sensori si scrivono il pezzo dentro allo stato ("17min", "3 h"):
+// il numero da solo non dice niente, quindi lo tengo intero.
+function numeroEUnita(stato) {
+  const testo = String(stato).trim();
+  const pezzi = testo.match(/^(-?\d+(?:[.,]\d+)?)\s*([a-zA-Z%°]{1,6})$/);
+  if (!pezzi) return null;
+  if (!UNITA_NOTE.includes(pezzi[2])) return null;
+  return { n: parseFloat(pezzi[1].replace(",", ".")), u: pezzi[2] };
+}
+
+// il valore da mostrare: numero + unita, e le durate scritte per bene.
+// Restituisce null se lo stato non e' un numero (nemmeno con l'unita
+// appiccicata dentro), cosi' chi chiama scrive il testo cosi' com'e'.
+function valoreScritto(st) {
+  const grezzo = String(st.state).trim();
+  let n = Number(grezzo);
+  let u = st.attributes ? st.attributes.unit_of_measurement : "";
+  if (grezzo === "" || isNaN(n)) {
+    const dentro = numeroEUnita(grezzo);
+    if (!dentro) return null;
+    n = dentro.n;
+    if (!u) u = dentro.u;
+  }
+  const dc = st.attributes ? st.attributes.device_class : "";
+  if (dc === "duration" || SECONDI_DI[String(u || "").toLowerCase()]) {
+    const bella = durataBella(n, u);
+    if (bella) return bella;
+  }
+  return (Math.round(n * 10) / 10).toLocaleString("it-IT") + (u ? " " + u : "");
+}
+
 class CasaTile extends HTMLElement {
   static getConfigElement() { return document.createElement("casa-tile-editor"); }
 
@@ -4439,10 +4497,9 @@ class CasaTile extends HTMLElement {
       const st = this._hass.states[eid];
       if (!st) return;
       if (st.state === "unavailable" || st.state === "unknown") return;
-      const u = st.attributes.unit_of_measurement;
-      const n = parseFloat(st.state);
-      const testo = (!isNaN(n) && st.state.trim() !== "")
-        ? (Math.round(n * 10) / 10).toLocaleString("it-IT") + (u ? " " + u : "")
+      const scritto = valoreScritto(st);
+      const testo = scritto !== null
+        ? scritto
         : (PAROLE[String(st.state).toLowerCase()] || st.state);
       pezzi.push({
         eid: eid, st: st, testo: String(testo).slice(0, 16),
@@ -4739,11 +4796,8 @@ class CasaTile extends HTMLElement {
       const t = st.attributes.current_temperature;
       return t !== undefined ? Math.round(t * 10) / 10 + "°" : st.state;
     }
-    const n = parseFloat(st.state);
-    if (!isNaN(n) && st.state.trim() !== "") {
-      const u = st.attributes.unit_of_measurement;
-      return (Math.round(n * 10) / 10).toLocaleString("it-IT") + (u ? " " + u : "");
-    }
+    const scritto = valoreScritto(st);
+    if (scritto !== null) return scritto;
     return PAROLE[String(st.state).toLowerCase()] || st.state;
   }
 
