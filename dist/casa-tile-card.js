@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.3.7
+ * v2.3.8
  */
 
-const VERSIONE = "2.3.7";
+const VERSIONE = "2.3.8";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -4742,19 +4742,25 @@ class CasaTile extends HTMLElement {
   }
 
   // chi decide se la casella e' accesa: di solito la sua entita', ma si puo'
-  // dire "guarda quest'altra". Serve per esempio a una batteria: la carica
-  // (93%) non dice niente, quello che conta e' se sta erogando watt.
-  _riferimento(st) {
+  // dire "guarda queste altre". Serve per esempio a una batteria: la carica
+  // (93%) non dice niente, quello che conta e' se stanno uscendo watt - e i
+  // watt possono passare da piu' sensori (scarica, uscita verso casa...),
+  // quindi ne accetto quanti ne vuole: basta che ne "lavori" uno.
+  _riferimenti(st) {
     const chi = this._config.acceso_entita;
-    if (!chi || !this._hass) return { eid: this._config.entity, st: st };
-    return { eid: chi, st: this._hass.states[chi] || null };
+    const elenco = (Array.isArray(chi) ? chi : [chi]).filter(Boolean);
+    if (!elenco.length || !this._hass) {
+      return [{ eid: this._config.entity, st: st }];
+    }
+    return elenco.map((eid) => ({ eid: eid, st: this._hass.states[eid] || null }));
   }
 
   _acceso(st) {
-    const rif = this._riferimento(st);
-    const suValore = this._accesoSuValore(rif.st);
-    if (suValore !== null) return suValore;
-    return this._accesoNormale(rif.st, rif.eid);
+    return this._riferimenti(st).some((rif) => {
+      const suValore = this._accesoSuValore(rif.st);
+      if (suValore !== null) return suValore;
+      return this._accesoNormale(rif.st, rif.eid);
+    });
   }
 
   _accesoNormale(st, quale) {
@@ -5155,7 +5161,7 @@ const SEZIONI = [
       ] },
       { titolo: "Quando la casella e accesa", schema: [
         { name: "acceso_sempre", selector: { boolean: {} } },
-        { name: "acceso_entita", selector: { entity: {} } },
+        { name: "acceso_entita", selector: { entity: { multiple: true } } },
         { name: "acceso_se", selector: { text: {} } },
         { name: "soglia", selector: { number: { mode: "box", min: 0, step: 1 } } },
       ] },
@@ -5440,7 +5446,7 @@ const ETICHETTE = {
   icona_entita: "Usa l'icona che l'entita ha gia in Home Assistant, se ce l'ha",
   usa_foto: "Usa la foto dell'entita, se ce l'ha (persone, copertine)",
   acceso_sempre: "Sempre a colori (anche da spenta)",
-  acceso_entita: "Si accende in base a un'altra entita (es. i watt erogati invece della carica)",
+  acceso_entita: "Si accende in base ad altre entita: basta che una sia attiva (es. i watt che escono invece della carica)",
   icona_ha: "Icona di Home Assistant (cercala qui; vince su quella sotto)",
   mostra_da_quanto: "Scrivi da quanto tempo e in questo stato",
   mostra_distanza: "Quanti chilometri da casa, in linea d'aria (persone)",
@@ -6197,8 +6203,9 @@ class CasaTileEditor extends HTMLElement {
     const azione = this._config.azione || "toggle";
     const vale = (nome) => {
       if (SOLO_AZIONE[nome] && SOLO_AZIONE[nome] !== azione) return false;
-      // se l'accensione la decide un'altra entita', la soglia serve sempre
-      if (nome === "soglia" && this._config.acceso_entita) return true;
+      // se l'accensione la decidono altre entita', la soglia serve sempre
+      const rif = this._config.acceso_entita;
+      if (nome === "soglia" && (Array.isArray(rif) ? rif.length : !!rif)) return true;
       const ammessi = SOLO_PER[nome];
       if (!ammessi) return true;
       if (!dominio) return false;
