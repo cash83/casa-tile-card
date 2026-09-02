@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.3.8
+ * v2.3.9
  */
 
-const VERSIONE = "2.3.8";
+const VERSIONE = "2.3.9";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1270,7 +1270,12 @@ img.ritratto {
   text-overflow: ellipsis; white-space: nowrap;
 }
 :host([acceso]) .metrica .num { color: var(--c); }
-.metrica .eti { display: none; }
+.metrica .eti { display: none; font-size: 9.5px; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase; white-space: nowrap;
+  color: var(--secondary-text-color, #9fb0c6); opacity: .8; }
+.metrica.connome .eti { display: inline; }
+:host([acceso]) .metrica.connome .eti { opacity: .95; }
+:host([compatta]) .metrica .eti { font-size: 9px; }
 .cursore { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
 .cursore .muto { appearance: none; border: none; cursor: pointer; flex: none; padding: 0;
   width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
@@ -3321,6 +3326,18 @@ class CasaTile extends HTMLElement {
     return "\u2022";
   }
 
+  // il nome che si vede sulla caselletta: prima quello scritto da lui,
+  // poi (se lo chiede) quello automatico. Senza nessuno dei due resta solo
+  // il numero, come e' sempre stato.
+  _nomeMisura(st, eid) {
+    const suo = (this._config.info_nomi || {})[eid];
+    if (suo !== undefined && suo !== null && String(suo).trim() !== "") {
+      return String(suo).trim().slice(0, 14);
+    }
+    if (this._config.info_nomi_auto) return this._etichetta(st, eid);
+    return "";
+  }
+
   _etichetta(st, eid) {
     const dc = (st.attributes && st.attributes.device_class) || "";
     const id = (eid + " " + ((st.attributes && st.attributes.friendly_name) || ""))
@@ -4429,7 +4446,7 @@ class CasaTile extends HTMLElement {
         : (PAROLE[String(st.state).toLowerCase()] || st.state);
       pezzi.push({
         eid: eid, st: st, testo: String(testo).slice(0, 16),
-        etichetta: this._etichetta(st, eid),
+        etichetta: this._nomeMisura(st, eid),
         simbolo: this._simbolo(st, eid),
         mappa: this._eUnPosto(st, eid),
         nome: st.attributes.friendly_name || eid,
@@ -4451,10 +4468,11 @@ class CasaTile extends HTMLElement {
       casella.title = m.nome
         + (mappa ? " - tocca per aprire Google Maps" : " - tocca per i dettagli");
       casella.innerHTML =
-        '<span class="simbolo"></span><span class="num"></span><span class="eti"></span>';
+        '<span class="simbolo"></span><span class="eti"></span><span class="num"></span>';
       casella.querySelector(".simbolo").textContent = m.simbolo;
       casella.querySelector(".num").textContent = m.testo;
       casella.querySelector(".eti").textContent = m.etichetta;
+      if (m.etichetta) casella.classList.add("connome");
 
       const apri = (e) => {
         e.stopPropagation();
@@ -5158,6 +5176,7 @@ const SEZIONI = [
         { name: "nascondi_valore", selector: { boolean: {} } },
         { name: "mostra_da_quanto", selector: { boolean: {} } },
         { name: "info_entita", selector: { entity: { multiple: true } } },
+        { name: "info_nomi_auto", selector: { boolean: {} } },
       ] },
       { titolo: "Quando la casella e accesa", schema: [
         { name: "acceso_sempre", selector: { boolean: {} } },
@@ -5421,6 +5440,7 @@ const ETICHETTE = {
   velocita: "Velocita dell'effetto (%) - 100 e normale",
   popup: "Pop-up bubble-card da aprire (es. #luci)",
   info_entita: "Misure mostrate in basso (aggiungine altre da qui)",
+  info_nomi_auto: "Scrivi un nome anche sulle misure che non hai chiamato tu",
   mostra_cursore: "Barra dentro la casella (luci, ventole, musica, valori da impostare)",
   cursore_colore: "Striscia del colore dentro la casella",
   colore_striscia: "Quale striscia mostrare",
@@ -5600,6 +5620,18 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .trovato:hover { background: rgba(127,127,127,.12); }
 .trovato input { width: 18px; height: 18px; accent-color: var(--primary-color, #03a9f4);
   flex: 0 0 18px; }
+.nomiMisure { display: flex; flex-direction: column; gap: 6px; }
+.nomeMisura { display: flex; align-items: center; gap: 8px; }
+.nomeMisura .chi { flex: 1; min-width: 0; font-size: 12.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--secondary-text-color, #9fb0c6); }
+.nomeMisura input { flex: none; width: 130px; font: inherit; font-size: 13px;
+  padding: 6px 8px; border-radius: 8px; box-sizing: border-box;
+  color: var(--primary-text-color, #eaf1fb);
+  background: var(--secondary-background-color, rgba(255,255,255,.06));
+  border: 1px solid var(--divider-color, rgba(255,255,255,.12)); }
+.nomeMisura input:focus { outline: 2px solid var(--primary-color, #03a9f4);
+  outline-offset: 1px; }
 .trovato .nome { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis;
   white-space: nowrap; }
 .trovato .val { margin-left: auto; font-size: 12.5px; color: var(--secondary-text-color);
@@ -5684,6 +5716,13 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 class CasaTileEditor extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
+    // dalla v2.3.8 le entita' che decidono l'accensione sono un elenco: se
+    // trovo la vecchia forma a testo la converto, se no il campo a scelta
+    // multipla non riesce a disegnarsi e sparisce dalle impostazioni
+    if (typeof this._config.acceso_entita === "string") {
+      this._config.acceso_entita = this._config.acceso_entita
+        ? [this._config.acceso_entita] : [];
+    }
     if (String(config.entity || "").indexOf("media_player.") === 0) {
       if (this._config.multiroom === undefined) this._config.multiroom = true;
       if (this._config.sorgente === undefined) this._config.sorgente = true;
@@ -5759,6 +5798,8 @@ class CasaTileEditor extends HTMLElement {
       this._blocco.className = "blocco";
       this._sensori = document.createElement("div");
       this._sensori.className = "blocco";
+      this._nomiMisure = document.createElement("div");
+      this._nomiMisure.className = "blocco";
       this._scelte = document.createElement("div");
       this._scelte.className = "scelte";
       this._tinte = document.createElement("div");
@@ -5834,6 +5875,7 @@ class CasaTileEditor extends HTMLElement {
           }
             if (sez.chiave === "base") {
               this._costruisciTrovati();
+              this._costruisciNomi();
               this._aggiornaSchemi();
             }
           });
@@ -5844,6 +5886,7 @@ class CasaTileEditor extends HTMLElement {
           // i riquadri fatti a mano vanno sotto al gruppo che li riguarda
           if (sez.chiave === "base" && gruppo.titolo === "Cosa c'e scritto") {
             pannello.appendChild(this._sensori);
+            pannello.appendChild(this._nomiMisure);
           }
           if (sez.chiave === "icona") pannello.appendChild(this._scelte);
           if (sez.chiave === "aspetto" && gruppo.titolo === "Colore della scritta") {
@@ -5869,6 +5912,7 @@ class CasaTileEditor extends HTMLElement {
     requestAnimationFrame(() => this._adattaCatalogo());
     this._costruisciFoto();
     this._costruisciTrovati();
+    this._costruisciNomi();
     this._costruisciBlocco();
   }
 
@@ -6141,6 +6185,75 @@ class CasaTileEditor extends HTMLElement {
     }).sort();
   }
 
+  // dai un nome tuo a ogni misura: "Scarica", "Uscita casa"... senza questo
+  // due sensori di watt sono due caselline uguali con dentro numeri diversi
+  _costruisciNomi() {
+    const box = this._nomiMisure;
+    if (!box) return;
+    const scelte = this._config.info_entita || [];
+    box.innerHTML = "";
+    if (!scelte.length || !this._hass) return;
+    const titolo = document.createElement("h4");
+    titolo.textContent = "Come si chiamano le misure";
+    box.appendChild(titolo);
+    const nota = document.createElement("p");
+    nota.className = "aiuto";
+    nota.textContent = "Il nome compare accanto al numero. Lascia vuoto per "
+      + "non scrivere niente.";
+    box.appendChild(nota);
+
+    const elenco = document.createElement("div");
+    elenco.className = "nomiMisure";
+    scelte.forEach((eid) => {
+      const st = this._hass.states[eid];
+      const riga = document.createElement("div");
+      riga.className = "nomeMisura";
+      const chi = document.createElement("span");
+      chi.className = "chi";
+      chi.textContent = String((st && st.attributes.friendly_name) || eid);
+      chi.title = eid;
+      const campo = document.createElement("input");
+      campo.type = "text";
+      campo.maxLength = 14;
+      campo.placeholder = st ? this._nomeSuggerito(st, eid) : "nome";
+      campo.value = (this._config.info_nomi || {})[eid] || "";
+      const salva = () => {
+        const nomi = { ...(this._config.info_nomi || {}) };
+        const val = campo.value.trim();
+        if (val) nomi[eid] = val;
+        else delete nomi[eid];
+        this._config = { ...this._config, info_nomi: nomi };
+        this._emetti();
+      };
+      campo.addEventListener("change", salva);
+      campo.addEventListener("blur", salva);
+      riga.append(chi, campo);
+      elenco.appendChild(riga);
+    });
+    box.appendChild(elenco);
+  }
+
+  // il nome che ci metterebbe la card da sola: lo uso come suggerimento
+  _nomeSuggerito(st, eid) {
+    const mio = this._hass.states[this._config.entity];
+    const nome = String((st.attributes && st.attributes.friendly_name) || eid.split(".")[1]);
+    // tolgo la parte in comune col nome dell'apparecchio: "Hub 1200 Battery
+    // Discharge Power" accanto a "Hub 1200 ..." diventa "Battery Discharge Power"
+    const suo = String((mio && mio.attributes.friendly_name) || "").split(" ");
+    const pezzi = nome.split(" ");
+    let i = 0;
+    while (i < pezzi.length - 1 && i < suo.length
+           && pezzi[i].toLowerCase() === suo[i].toLowerCase()) i += 1;
+    // taglio a parole intere: "Discharge Powe" non e' un suggerimento
+    const resto = pezzi.slice(i);
+    let fuori = resto[0] || "";
+    for (let k = 1; k < resto.length; k += 1) {
+      if ((fuori + " " + resto[k]).length > 14) break;
+      fuori += " " + resto[k];
+    }
+    return fuori.slice(0, 14);
+  }
+
   _costruisciTrovati() {
     const box = this._sensori;
     const trovati = this._trovaSensori();
@@ -6183,6 +6296,7 @@ class CasaTileEditor extends HTMLElement {
         this._config = { ...this._config, info_entita: ora };
         this._emetti();
         this._forms.forEach((f) => { f.data = this._config; });
+        this._costruisciNomi();
       });
       const nome = document.createElement("span");
       nome.className = "nome";
