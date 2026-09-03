@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.6.6";
+const VERSIONE = "2.6.7";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
