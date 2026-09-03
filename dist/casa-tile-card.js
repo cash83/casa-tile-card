@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.9.5";
+const VERSIONE = "2.9.6";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2232,6 +2232,12 @@ svg.iconafondo[hidden] { display: none !important; }
   box-shadow: none;
 }
 :host([ytm]) .comandi button svg { width: 22px; height: 22px; }
+/* i disegnini dentro ai tasti prendono il colore della casella: erano
+   bianchi fissi e restavano bianchi qualsiasi colore scegliesse */
+:host([ytm]) .comandi button { color: var(--c); }
+:host([ytm]) .cursore .muto { color: var(--c); }
+/* solo quello del play resta chiaro: sta sopra al pieno del colore */
+:host([ytm]) .comandi button.grosso { color: #fff; }
 :host([ytm]) .comandi button.grosso {
   width: 92px; height: 56px; border-radius: 16px;
   background: var(--c);
