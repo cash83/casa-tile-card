@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.11.6";
+const VERSIONE = "2.11.7";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2539,7 +2539,10 @@ svg.iconafondo[hidden] { display: none !important; }
      casella (che HA tiene stretta quanto sulla plancia) e prendersi tutta
      la colonna. Overflow tagliato per non far comparire barre. */
   overflow: hidden;
-  border: 1px dashed var(--casa-border, #33465f); background: rgba(255,255,255,.03);
+  border: 1px dashed var(--casa-border, #33465f);
+  /* cosi' l'anteprima mostra il vestito vero del pop-up - tinta, foto e
+     trasparenza - invece di restare sempre grigia */
+  background: var(--fin-bg-ant, rgba(255,255,255,.03));
   display: grid; gap: 10px;
   /* mai piu' larga della colonna che la ospita, se no viene tagliata */
   width: 100%; box-sizing: border-box; }
@@ -4454,8 +4457,13 @@ class CasaTile extends HTMLElement {
         + conAlfa(basso, q) + " 100%)";
       if (foto) fondo += ', url("' + foto + '") center/cover no-repeat';
       this.style.setProperty("--fin-bg", fondo);
+      // lo stesso vestito serve al riquadro dell'anteprima dentro alle
+      // impostazioni, ma li' "--fin-bg" viene azzerato apposta (se no le
+      // caselle dentro se lo prendevano tutte). Da qui il secondo nome.
+      this.style.setProperty("--fin-bg-ant", fondo);
     } else {
       this.style.removeProperty("--fin-bg");
+      this.style.removeProperty("--fin-bg-ant");
     }
 
     // e ogni scheda dentro si rimette il suo vestito
