@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.6.3";
+const VERSIONE = "2.6.4";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -7171,7 +7171,18 @@ const SCHEDE_ALTRE = [
   ["vertical-stack", "Pila verticale"],
   ["horizontal-stack", "Pila orizzontale"],
   ["iframe", "Pagina web"],
+  ["picture", "Solo un'immagine"],
+  ["conditional", "Condizionale (si vede solo se...)"],
+  ["entity-filter", "Elenco filtrato"],
+  ["statistic", "Statistica (un numero solo)"],
 ];
+
+// La voce per chi vuole scrivere il codice a mano: e' la stessa cosa che
+// Home Assistant chiama "Manuale". Serve per le schede che non stanno
+// nell'elenco - le sue schede della comunita' ci sono gia' tutte, ma di
+// schede di Home Assistant ce ne sono anche di rare, e senza questa voce
+// non c'era modo di metterle.
+const SCHEDA_MANO = "__amano__";
 
 // il nome per esteso di una scheda (quello che si vede nell'elenco di HA)
 const NOMI_HA = {
@@ -9735,7 +9746,7 @@ class CasaTileEditor extends HTMLElement {
     return proprie.length === 0;
   }
 
-  _riempiEditorScheda(box, card, aggiorna) {
+  _riempiEditorScheda(box, card, aggiorna, indice) {
     box.innerHTML = "";
     const attesa = document.createElement("div");
     attesa.className = "vuoto";
@@ -9773,12 +9784,23 @@ class CasaTileEditor extends HTMLElement {
       }
       if (!fatto) dentro.appendChild(this._moduloSemplice(card, aggiorna));
       attesa.remove();
-      box.appendChild(this._codiceScheda(card, aggiorna));
+      // la scheda "Manuale" nasce col riquadro del codice gia' aperto:
+      // e' l'unica cosa che c'e' da fare, farlo cercare non ha senso
+      // il pannello viene rifatto un paio di volte di fila appena la scheda
+      // arriva: se dimenticassi subito il segno, la prima costruzione se lo
+      // mangerebbe e quella che resta a video nascerebbe chiusa
+      const subito = this._apriCodicePer !== undefined
+        && this._apriCodicePer !== null && this._apriCodicePer === indice;
+      if (subito) {
+        clearTimeout(this._scordaCodice);
+        this._scordaCodice = setTimeout(() => { this._apriCodicePer = null; }, 2500);
+      }
+      box.appendChild(this._codiceScheda(card, aggiorna, subito));
     });
   }
 
   // il codice della scheda, in YAML come in Home Assistant
-  _codiceScheda(card, aggiorna) {
+  _codiceScheda(card, aggiorna, subito) {
     const box = document.createElement("div");
     box.className = "codice-scheda";
     const apri = document.createElement("button");
@@ -9847,6 +9869,7 @@ class CasaTileEditor extends HTMLElement {
     });
 
     box.append(apri, dentro, applica, esito);
+    if (subito) setTimeout(() => apri.click(), 0);
     return box;
   }
 
@@ -9907,6 +9930,7 @@ class CasaTileEditor extends HTMLElement {
     gruppo("Le piu' usate", SCHEDE_PRONTE);
     gruppo("Altre schede di Home Assistant", SCHEDE_ALTRE);
     gruppo("Le tue schede aggiuntive", mie);
+    gruppo("Scrivo io", [[SCHEDA_MANO, "Manuale - incollo il codice YAML"]]);
 
     const ok = document.createElement("button");
     ok.className = "bt";
@@ -9918,6 +9942,22 @@ class CasaTileEditor extends HTMLElement {
   }
 
   _scegli(tipo) {
+    // "Manuale": metto una scheda di testo con le istruzioni dentro e apro
+    // subito il riquadro del codice. Da li' incolla quello che vuole e la
+    // scheda diventa quella - come fa Home Assistant con la voce "Manuale".
+    if (tipo === SCHEDA_MANO) {
+      const l0 = this._schede().slice();
+      const posto0 = l0.length;
+      l0.push({ type: "markdown",
+        content: "Apri **Codice della scheda (YAML)** qui sotto e incolla il "
+          + "codice della scheda che vuoi: questa riga sparisce e al suo "
+          + "posto arriva quella." });
+      this._pickerAperto = false;
+      this._apertaIdx = posto0;
+      this._apriCodicePer = posto0;
+      this._salvaSchede(l0, true);
+      return;
+    }
     const MULTI = ["entities", "glance", "history-graph", "statistics-graph",
                    "logbook", "map", "distribution"];
     const mia = {};
@@ -10081,7 +10121,7 @@ class CasaTileEditor extends HTMLElement {
       tipo.querySelector(".piccolo").textContent = tec.replace("custom:", "");
           this._salvaSchede(l, false);
         };
-        this._riempiEditorScheda(box, card, aggiorna);
+        this._riempiEditorScheda(box, card, aggiorna, i);
         this._blocco.appendChild(box);
       }
     });
