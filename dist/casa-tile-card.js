@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.9.3";
+const VERSIONE = "2.9.4";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -723,11 +723,7 @@ const MDI = {
   play: "M8,5.14V19.14L19,12.14L8,5.14Z",
   pausa: "M14,19H18V5H14M6,19H10V5H6V19Z",
   stop: "M18,18H6V6H18V18Z",
-  casuale: "M14.83,13.41L13.42,14.82L16.55,17.95L14.5,20H20V14.5L17.96,16.54L14.83,13.41M14.5,4"
-    + "L16.54,6.04L4,18.59L5.41,20L17.96,7.46L20,9.5V4M10.59,9.17L5.41,4L4,5.41L9.17,10.58L10.59,9.17Z",
-  ripeti: "M17,17H7V14L3,18L7,22V19H19V13H17M7,7H17V10L21,6L17,2V5H5V11H7V7Z",
   trasferisci: "M8,5V9H2V15H8V19L14,12M20,5V19H17V5H20Z",
-  ripeti1: "M13,15V9H12L10,10V11H11.5V15M17,17H7V14L3,18L7,22V19H19V13H17M7,7H17V10L21,6L17,2V5H5V11H7V7Z",
   gioco: "M7,6H17A6,6 0 0,1 23,12A6,6 0 0,1 17,18C15.22,18 13.63,17.23 12.53,16H11.47C10.37,17.23 8.78,18 7,18A6,6 0 0,1 1,12A6,6 0 0,1 7,6M6,9V11H4V13H6V15H8V13H10V11H8V9H6M15.5,12A1.5,1.5 0 0,0 14,13.5A1.5,1.5 0 0,0 15.5,15A1.5,1.5 0 0,0 17,13.5A1.5,1.5 0 0,0 15.5,12M18.5,9A1.5,1.5 0 0,0 17,10.5A1.5,1.5 0 0,0 18.5,12A1.5,1.5 0 0,0 20,10.5A1.5,1.5 0 0,0 18.5,9Z",
   playstation: "M9.5,4.27C10.88,4.53 12.9,5.14 14,5.5C16.75,6.45 17.69,7.63 17.69,10.29C17.69,12.89 16.09,13.87 14.05,12.89V8.05C14.05,7.5 13.95,6.97 13.41,6.82C13,6.69 12.76,7.07 12.76,7.63V19.73L9.5,18.69V4.27M13.37,17.62L18.62,15.75C19.22,15.54 19.31,15.24 18.83,15.08C18.34,14.92 17.47,14.97 16.87,15.18L13.37,16.41V14.45L13.58,14.38C13.58,14.38 14.59,14 16,13.87C17.43,13.71 19.17,13.89 20.53,14.4C22.07,14.89 22.25,15.61 21.86,16.1C21.46,16.6 20.5,16.95 20.5,16.95L13.37,19.5V17.62M3.5,17.42C1.93,17 1.66,16.05 2.38,15.5C3.05,15 4.18,14.65 4.18,14.65L8.86,13V14.88L5.5,16.09C4.9,16.3 4.81,16.6 5.29,16.76C5.77,16.92 6.65,16.88 7.24,16.66L8.86,16.08V17.77L8.54,17.83C6.92,18.09 5.2,18 3.5,17.42Z",
   xbox: "M6.43,3.72C6.5,3.66 6.57,3.6 6.62,3.56C8.18,2.55 10,2 12,2C13.88,2 15.64,2.5 17.14,3.42C17.25,3.5 17.54,3.69 17.7,3.88C16.25,2.28 12,5.7 12,5.7C10.5,4.57 9.17,3.8 8.16,3.5C7.31,3.29 6.73,3.5 6.46,3.7M19.34,5.21C19.29,5.16 19.24,5.11 19.2,5.06C18.84,4.66 18.38,4.56 18,4.59C17.61,4.71 15.9,5.32 13.8,7.31C13.8,7.31 16.17,9.61 17.62,11.96C19.07,14.31 19.93,16.16 19.4,18.73C21,16.95 22,14.59 22,12C22,9.38 21,7 19.34,5.21M15.73,12.96C15.08,12.24 14.13,11.21 12.86,9.95C12.59,9.68 12.3,9.4 12,9.1C12,9.1 11.53,9.56 10.93,10.17C10.16,10.94 9.17,11.95 8.61,12.54C7.63,13.59 4.81,16.89 4.65,18.74C4.65,18.74 4,17.28 5.4,13.89C6.3,11.68 9,8.36 10.15,7.28C10.15,7.28 9.12,6.14 7.82,5.35L7.77,5.32C7.14,4.95 6.46,4.66 5.8,4.62C5.13,4.67 4.71,5.16 4.71,5.16C3.03,6.95 2,9.35 2,12A10,10 0 0,0 12,22C14.93,22 17.57,20.74 19.4,18.73C19.4,18.73 19.19,17.4 17.84,15.5C17.53,15.07 16.37,13.69 15.73,12.96Z",
@@ -2243,17 +2239,13 @@ svg.iconafondo[hidden] { display: none !important; }
   box-shadow: 0 6px 18px color-mix(in srgb, var(--c) 38%, transparent);
 }
 :host([ytm]) .comandi button.grosso svg { width: 26px; height: 26px; }
-/* "Casuale" e "Ripeti": pastiglie con la scritta, a capo sotto ai tasti */
-:host([ytm]) .comandi button.casuale, :host([ytm]) .comandi button.ripeti {
-  width: auto; height: 34px; border-radius: 99px; padding: 0 14px 0 11px;
-  gap: 7px; display: inline-flex; align-items: center; font-size: 12.5px;
-  font-weight: 600; background: rgba(255,255,255,.10);
-}
-:host([ytm]) .comandi button.casuale svg,
-:host([ytm]) .comandi button.ripeti svg { width: 17px; height: 17px; }
-:host([ytm]) .comandi button.casuale b, :host([ytm]) .comandi button.ripeti b {
-  font-weight: 600; }
 :host([ytm]) .comandi button.stop { display: none; }
+/* "Casse" e "Sorgente" vestiti come le pastiglie della sua card */
+:host([ytm]) .extra { margin-top: 12px; gap: 10px; }
+:host([ytm]) .extra button {
+  height: 34px; padding: 0 14px; font-size: 12.5px; border-radius: 99px;
+  background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.06);
+}
 /* il volume: barra grossa e piena, con l'altoparlante a DESTRA come da lui */
 :host([ytm]) .cursore { margin-top: 14px; gap: 10px; }
 :host([ytm]) .cursore .quanto { display: none; }
@@ -2264,13 +2256,7 @@ svg.iconafondo[hidden] { display: none !important; }
   width: 18px; height: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
 :host([ytm]) .cursore input::-moz-range-thumb {
   width: 18px; height: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
-/* la scritta dentro ai tasti si vede SOLO qui: altrove sono tondi e basta */
-.comandi button b { display: none; }
-/* manda "Casuale" e "Ripeti" a capo insieme, sotto ai tasti tondi */
-.comandi .acapo { display: none; }
-:host([ytm]) .comandi .acapo { display: block; flex-basis: 100%; height: 0; }
-:host([ytm]) .comandi button.casuale b,
-:host([ytm]) .comandi button.ripeti b { display: inline; }
+
 
 /* --- scelta della cassa (come nella card della musica) --- */
 .lettori {
@@ -3631,9 +3617,6 @@ class CasaTile extends HTMLElement {
           <button class="play grosso" title="Play / pausa">${segno("play")}</button>
           <button class="succ" title="Successivo">${segno("succ")}</button>
           <button class="stop" title="Ferma">${segno("stop")}</button>
-          <i class="acapo"></i>
-          <button class="casuale" title="Ordine casuale">${segno("casuale")}<b>Casuale</b></button>
-          <button class="ripeti" title="Ripeti">${segno("ripeti")}<b>Ripeti</b></button>
           <button class="su" title="Apri">${segno("su")}</button>
           <button class="fermo" title="Ferma">${segno("stop")}</button>
           <button class="giu" title="Chiudi">${segno("giu")}</button>
@@ -3826,30 +3809,6 @@ class CasaTile extends HTMLElement {
     rapido("su", "cover", "open_cover");
     rapido("fermo", "cover", "stop_cover");
     rapido("giu", "cover", "close_cover");
-    // ordine casuale e ripeti: sono comandi veri di Home Assistant, non
-    // roba nostra. Il "ripeti" gira su tre: niente, tutta la coda, questo brano.
-    const bCasuale = root.querySelector(".comandi .casuale");
-    if (bCasuale) {
-      bCasuale.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const st = this._hass ? this._hass.states[this._config.entity] : null;
-        if (!st) return;
-        this._hass.callService("media_player", "shuffle_set",
-          { entity_id: this._config.entity, shuffle: !st.attributes.shuffle });
-      });
-    }
-    const bRipeti = root.querySelector(".comandi .ripeti");
-    if (bRipeti) {
-      bRipeti.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const st = this._hass ? this._hass.states[this._config.entity] : null;
-        if (!st) return;
-        const ora = String(st.attributes.repeat || "off");
-        const poi = ora === "off" ? "all" : (ora === "all" ? "one" : "off");
-        this._hass.callService("media_player", "repeat_set",
-          { entity_id: this._config.entity, repeat: poi });
-      });
-    }
     rapido("chiudi", "lock", "lock");
     rapido("sblocca", "lock", "unlock");
     rapido("via", "vacuum", "start");
@@ -5099,7 +5058,6 @@ class CasaTile extends HTMLElement {
       prec: false, play: false, succ: false, stop: false,
       su: false, fermo: false, giu: false,
       chiudi: false, sblocca: false, via: false, sosta: false, casa: false,
-      casuale: false, ripeti: false,
     };
     if (rapidi) {
       if (dom === "cover") {
@@ -5154,8 +5112,8 @@ class CasaTile extends HTMLElement {
       }
       return;
     }
-    ["su", "fermo", "giu", "chiudi", "sblocca", "via", "sosta", "casa",
-      "casuale", "ripeti"].forEach((k) => {
+    ["su", "fermo", "giu", "chiudi", "sblocca", "via", "sosta", "casa"]
+      .forEach((k) => {
         const b = this._comandi.querySelector("." + k);
         if (b) b.hidden = true;
       });
@@ -5168,31 +5126,6 @@ class CasaTile extends HTMLElement {
       const b = this._comandi.querySelector("." + k);
       if (b) b.hidden = false;
     });
-    // Ordine casuale e ripeti: solo nel vestito "ytmusic-card" e solo se il
-    // lettore li sa fare davvero. Fuori di li' non li metto: le altre
-    // disposizioni sono come sono e non le cambio sotto ai piedi.
-    const sax = Number(st.attributes.supported_features || 0);
-    const inYtm = this.hasAttribute("ytm");
-    const bC = this._comandi.querySelector(".casuale");
-    const bR = this._comandi.querySelector(".ripeti");
-    if (bC) {
-      bC.hidden = !inYtm || !(sax & 32768);
-      bC.toggleAttribute("acceso", !!st.attributes.shuffle);
-    }
-    if (bR) {
-      const giro = String(st.attributes.repeat || "off");
-      bR.hidden = !inYtm || !(sax & 262144);
-      bR.toggleAttribute("acceso", giro !== "off");
-      // ATTENZIONE: cambiare il disegnino rifa' tutto il dentro del tasto e
-      // si porterebbe via la scritta. Gliela rimetto.
-      if (metti(bR, giro === "one" ? "ripeti1" : "ripeti")) {
-        const scritta = document.createElement("b");
-        scritta.textContent = "Ripeti";
-        bR.appendChild(scritta);
-      }
-      bR.title = giro === "one" ? "Ripeti questo brano"
-        : (giro === "all" ? "Ripeti tutta la coda" : "Ripeti");
-    }
 
     // cosa sa fare questo lettore (0 = non lo dice, mostriamo tutto)
     const puo = Number(st.attributes.supported_features) || 0;
