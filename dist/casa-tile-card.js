@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.9.4";
+const VERSIONE = "2.9.5";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2240,6 +2240,32 @@ svg.iconafondo[hidden] { display: none !important; }
 }
 :host([ytm]) .comandi button.grosso svg { width: 26px; height: 26px; }
 :host([ytm]) .comandi button.stop { display: none; }
+/* La copertina ONDEGGIA mentre suona, come nella sua card: resta tonda ma
+   il bordo si deforma piano, sale e scende e ruota di un paio di gradi.
+   Sono gli stessi fotogrammi della sua "fp-ondula". Da ferma sta ferma, e
+   con "riduci le animazioni" acceso non si muove affatto. */
+@keyframes casa-ondula {
+  0%   { border-radius: 50%; transform: translateY(0) rotate(0deg) scale(1); }
+  25%  { border-radius: 40% 60% 55% 45% / 52% 42% 58% 48%;
+         transform: translateY(-11px) rotate(-2.6deg) scale(1.05); }
+  50%  { border-radius: 60% 40% 46% 54% / 58% 50% 50% 42%;
+         transform: translateY(8px) rotate(2.2deg) scale(.94); }
+  75%  { border-radius: 46% 54% 60% 40% / 44% 58% 42% 56%;
+         transform: translateY(-6px) rotate(1.8deg) scale(1.03); }
+  100% { border-radius: 50%; transform: translateY(0) rotate(0deg) scale(1); }
+}
+/* i tre attributi servono a battere la regola del giradischi qui sopra:
+   in questo vestito la copertina non gira, ondeggia */
+:host([ytm][anima][gira]) img.ritratto,
+:host([ytm][anima]) img.ritratto, :host([ytm][anima]) .iconaFoto,
+:host([ytm][anima]) svg.icona, :host([ytm][anima]) .iconaHa {
+  animation: casa-ondula var(--casa-ondula, 6s) ease-in-out infinite;
+}
+/* nel riquadro delle impostazioni e nelle anteprime sta ferma: sono li'
+   per farsi guardare, non per lavorare */
+:host([in-anteprima]) img.ritratto, :host([solo-casella]) img.ritratto {
+  animation: none !important; }
+
 /* "Casse" e "Sorgente" vestiti come le pastiglie della sua card */
 :host([ytm]) .extra { margin-top: 12px; gap: 10px; }
 :host([ytm]) .extra button {
