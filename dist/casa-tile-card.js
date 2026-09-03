@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.10.1";
+const VERSIONE = "2.10.2";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -449,9 +449,12 @@ function disegnoBatteria(perc, carica, scarica) {
 function disegnoTermometro(gradi) {
   const n = Number(gradi);
   if (!isFinite(n)) return ICONE.termometro;
-  const q = Math.max(0.06, Math.min(1, (n + 10) / 70));
-  const alto = Math.round(30 * q * 10) / 10;
-  const su = Math.round((46 - alto) * 10) / 10;
+  // il vetro si vede da y=6 a y=42: il liquido deve riempire QUELLO, se no
+  // a meta' scala sembra un terzo. Parte dentro al bulbo (y=46) e la sua
+  // cima va da 40 (vuoto) a 8 (pieno).
+  const q = Math.max(0.04, Math.min(1, (n + 10) / 70));
+  const su = Math.round((40 - 32 * q) * 10) / 10;
+  const alto = Math.round((46 - su) * 10) / 10;
   const tinta = coloreTemperatura(n) || "#ff5f5f";
   return '<g class="an glow alone"><circle cx="30" cy="46" r="16" fill="' + tinta
     + '" opacity=".2"/></g>'
