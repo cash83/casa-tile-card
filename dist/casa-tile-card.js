@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.5.0";
+const VERSIONE = "2.6.3";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1270,7 +1270,7 @@ ha-card::after {
 :host([grande]) .iconaHa { width: auto; height: 92px; }
 .misuratore, .misuratore * { animation: none !important; transition: none !important; }
 svg.icona { overflow: visible; width: auto; height: var(--alt-icona, 60px);
-  aspect-ratio: 1; max-height: 100%; min-height: 44px; flex: 0 1 auto;
+  aspect-ratio: 1; max-height: 100%; min-height: 18px; flex: 0 1 auto;
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) svg.icona { filter: none; }
 img.ritratto {
@@ -1329,12 +1329,20 @@ img.ritratto {
 :host([compatta]) .riga { margin-top: auto; }
 :host([compatta]) svg.icona, :host([compatta]) img.ritratto,
 :host([compatta]) .iconaHa, :host([compatta]) .iconaFoto {
-  height: var(--alt-icona, 46px); min-height: 34px; }
-:host([compatta]) .comandi { margin-top: 6px; gap: 4px; }
+  /* niente minimo alto: in una casella bassa e piena (nome su due righe +
+     tasti) il disegno deve poter rimpicciolire, se no esce dal riquadro */
+  height: var(--alt-icona, 46px); min-height: 18px; }
+/* Nella casella bassa si stringe anche la cornice: riempimento e spazi
+   fra i pezzi. Con 14px di bordo e 10px fra un pezzo e l'altro, in una
+   casella da due righe restavano 21px per il disegno - e sembrava sparito.
+   Gli spazi li fa la cornice (gap), quindi qui i margini vanno a zero,
+   se no si sommano e contano il doppio. */
+:host([compatta]) ha-card { padding: 7px 11px; gap: 4px; }
+:host([compatta]) .comandi { margin-top: 0; gap: 4px; }
 :host([compatta]) .comandi button { width: 30px; height: 28px; font-size: 13px; }
 :host([compatta]) .comandi button.grosso { width: 38px; height: 30px; }
-:host([compatta]) .cursore { margin-top: 6px; }
-:host([compatta]) .colori { margin-top: 6px; }
+:host([compatta]) .cursore { margin-top: 0; }
+:host([compatta]) .colori { margin-top: 0; }
 :host([compatta]) .colori .scambio { width: 30px; height: 30px; }
 :host([compatta]) .colori .scambio svg { width: 17px; height: 17px; }
 :host([compatta]) .valore { font-size: 17px; }
@@ -1345,6 +1353,11 @@ img.ritratto {
 :host([compatta]) .metrica .num { font-size: 10px; }
 :host([compatta]) .chips { gap: 2px 3px; max-width: 76%; }
 :host([compatta]) .sotto { -webkit-line-clamp: 1; }
+/* casella bassa e nome lungo: il nome sta su una riga sola, con i puntini.
+   Lo spazio che si risparmia va al disegno, che cosi' non sparisce mai. */
+:host([nomecorto]) .nome {
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  overflow: hidden; }
 .metrica {
   display: flex; flex-direction: row; align-items: center; gap: 4px; min-width: 0;
   cursor: pointer; border-radius: 99px; padding: 2px 7px 2px 5px;
@@ -1774,6 +1787,10 @@ svg.iconafondo[hidden] { display: none !important; }
 /* mentre lo sposti si vede cosa stai prendendo */
 :host([liberi]) .inmano { outline: 2px dashed var(--c); outline-offset: 3px;
   border-radius: 6px; cursor: grab; }
+/* e il pezzo scelto resta segnato anche dopo che l'hai lasciato: se no non
+   si capisce a chi appartiene il quadratino della grandezza */
+:host([trascinabile]) .scelto { outline: 1px dashed rgba(240,180,41,.8);
+  outline-offset: 2px; border-radius: 5px; }
 
 .testa, .chips, .cursore, svg.icona, img.ritratto, .valore,
 .lettori, .extra, .pannello, .tempo, .comandi, .colori,
@@ -1927,15 +1944,44 @@ svg.iconafondo[hidden] { display: none !important; }
 .comandi { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; }
 .comandi[hidden] { display: none !important; }
 .comandi button {
-  appearance: none; border: none; cursor: pointer; font: inherit; font-size: 15px;
+  appearance: none; cursor: pointer; font: inherit; font-size: 15px;
   width: 34px; height: 34px; border-radius: 50%; line-height: 1;
-  background: rgba(12,18,28,.55); color: #fff;
-  border: 1px solid rgba(255,255,255,.14);
+  /* Il riempimento se lo mette il browser da solo (1px 6px): con la
+     casella bassa il tasto scende a 30px e dentro restano 16px per un
+     simbolo che ne vuole 19, cosi' sbordava a destra e i simboli si
+     vedevano tutti spostati di un pixel e mezzo. Zero, e stanno in mezzo. */
+  padding: 0;
+  /* vetro: chiaro sopra e scuro sotto, con il filo di luce sul bordo alto.
+     Prima erano dischetti piatti e si vedeva */
+  background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(8,13,21,.55));
+  color: rgba(255,255,255,.94);
+  border: 1px solid rgba(255,255,255,.13);
+  box-shadow: 0 1px 3px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.13);
   backdrop-filter: blur(4px);
   display: grid; place-items: center;
+  transition: transform .12s ease, background .2s ease,
+    box-shadow .2s ease, border-color .2s ease;
 }
+.comandi button:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--c) 55%, rgba(255,255,255,.18));
+  box-shadow: 0 4px 12px rgba(0,0,0,.42), 0 0 12px var(--alone1, transparent),
+    inset 0 1px 0 rgba(255,255,255,.18);
+}
+.comandi button:active { transform: scale(.92); }
+.comandi button:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
 .comandi button[hidden] { display: none !important; }
-.comandi button[acceso] { background: color-mix(in srgb, var(--c) 55%, rgba(12,18,28,.6)); }
+/* il tasto che dice cosa sta facendo adesso si accende del colore della
+   casella: cosi' si legge lo stato senza cercarlo nella scritta */
+.comandi button[acceso] {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--c) 76%, transparent),
+    color-mix(in srgb, var(--c) 44%, rgba(12,18,28,.6)));
+  border-color: color-mix(in srgb, var(--c) 62%, transparent);
+  color: #fff;
+  box-shadow: 0 0 14px var(--alone2, transparent),
+    inset 0 1px 0 rgba(255,255,255,.28);
+}
 .comandi button:disabled { opacity: .35; cursor: default; }
 .colori { margin-top: 9px; display: grid; gap: 7px;
   grid-template-columns: 1fr auto; align-items: center; }
@@ -2927,16 +2973,19 @@ const SEGNI = {
     + "10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 "
     + "18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,"
     + "12.63C16.5,12.43 16.5,12.21 16.5,12Z",
-  su: "M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z",
-  giu: "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z",
+  // tapparelle: freccia CONTRO una barra, cosi' si vede dove va a finire.
+  // Le due frecce da sole sembravano il volume di un telecomando
+  su: "M4,4H20V6H4V4M12,7L17,12H14V20H10V12H7L12,7Z",
+  giu: "M4,20H20V18H4V20M12,17L17,12H14V4H10V12H7L12,17Z",
   serra: "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17"
     + "M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6"
     + "A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z",
   apri: "M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H15V6"
     + "A3,3 0 0,0 12,3A3,3 0 0,0 9,6H7A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,17"
     + "A2,2 0 0,0 14,15A2,2 0 0,0 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17Z",
-  base: "M12,2A9,9 0 0,0 3,11V22H5V11A7,7 0 0,1 12,4A7,7 0 0,1 19,11V22H21V11A9,9 0 0,0 12,2"
-    + "M12,8A3,3 0 0,0 9,11A3,3 0 0,0 12,14A3,3 0 0,0 15,11A3,3 0 0,0 12,8Z",
+  // "torna alla base": la casetta si legge al volo anche a 19px, l'arco
+  // della stazione di ricarica a quella misura sembrava un ferro di cavallo
+  base: "M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z",
   spegni: "M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,"
     + "9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,"
     + "12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13V3Z",
@@ -2983,8 +3032,49 @@ function hslARgb(h, s, l) {
 
 const hslATesto = (h, s, l) => daRgb(hslARgb(h, s, l));
 
-const segno = (nome) =>
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + SEGNI[nome] + '"></path></svg>';
+// Parecchi simboli non stanno in mezzo al loro quadrato: il triangolo del
+// play, per dire, sta un'unita' e mezza a destra. Dentro un tasto tondo si
+// vede eccome, sembrano storti. Invece di una tabella scritta a mano che
+// prima o poi non torna piu', la prima volta li misuro e me lo segno.
+const SCARTI = {};
+let LAVAGNA = null;
+const NS_SVG = "http://www.w3.org/2000/svg";
+function scartoDi(nome) {
+  if (nome in SCARTI) return SCARTI[nome];
+  let d = [0, 0];
+  try {
+    if (!LAVAGNA) {
+      LAVAGNA = document.createElementNS(NS_SVG, "svg");
+      LAVAGNA.setAttribute("viewBox", "0 0 24 24");
+      LAVAGNA.style.cssText = "position:absolute;left:-999px;top:0;width:24px;"
+        + "height:24px;opacity:0;pointer-events:none";
+      (document.body || document.documentElement).appendChild(LAVAGNA);
+    }
+    const p = document.createElementNS(NS_SVG, "path");
+    p.setAttribute("d", SEGNI[nome]);
+    LAVAGNA.appendChild(p);
+    const b = p.getBBox();
+    p.remove();
+    if (b.width && b.height) {
+      const arr = (v) => Math.round(v * 100) / 100;
+      d = [arr(12 - (b.x + b.width / 2)), arr(12 - (b.y + b.height / 2))];
+      // il triangolo fa eccezione: messo nel mezzo esatto l'occhio lo vede
+      // spostato a sinistra, e allora gli si lascia mezza unita' a destra
+      if (nome === "play") d[0] = arr(d[0] + 0.5);
+    }
+  } catch (_) { d = [0, 0]; }
+  SCARTI[nome] = d;
+  return d;
+}
+
+const segno = (nome) => {
+  if (!SEGNI[nome]) return "";
+  const d = scartoDi(nome);
+  const spost = (d[0] || d[1])
+    ? ' transform="translate(' + d[0] + ' ' + d[1] + ')"' : "";
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path'
+    + spost + ' d="' + SEGNI[nome] + '"></path></svg>';
+};
 
 // mette il simbolo dentro il tasto solo se e' cambiato davvero: rifare il
 // disegnino a ogni giro (una volta al secondo, con la musica) e' sprecato
@@ -3374,14 +3464,19 @@ class CasaTile extends HTMLElement {
     const modo = c.disposizione || (dominio === "media_player" ? "vinile" : "");
     if (modo === "vinile") {
       return c.grande
-        ? { columns: 8, rows: 8, min_columns: 6 }
-        : { columns: 6, rows: 7, min_columns: 4 };
+        ? { columns: 8, rows: 8, min_columns: 6, min_rows: 1, max_rows: 12 }
+        : { columns: 6, rows: 7, min_columns: 4, min_rows: 1, max_rows: 12 };
     }
-    // se nasce col grafico chiedo una riga in piu' alla plancia
-    const inPiu = c.grafico ? 1 : 0;
-    return c.grande
-      ? { columns: 6, rows: 3 + inPiu, min_columns: 4 }
-      : { columns: 4, rows: 2 + inPiu, min_columns: 3 };
+    // Quanto spazio chiedere appena nasce: sei colonne (mezza sezione
+    // stretta, un sesto di una larga) e DUE righe per tutti. Avevo provato a
+    // dare una riga in piu' a chi ha i tasti rapidi, la barra o il grafico,
+    // ma le sue caselle vere - tapparella con barra, consumo con grafico -
+    // stanno benissimo in due righe: chiedere di piu' le faceva nascere
+    // troppo alte. Solo la "casella grande" ne chiede tre.
+    // "min_rows: 1": se no Home Assistant prende queste righe come minimo e
+    // il cursore del Layout risale da solo quando lui lo abbassa.
+    const righe = c.grande ? 3 : 2;
+    return { columns: 6, rows: righe, min_columns: 4, min_rows: 1, max_rows: 12 };
   }
 
   _costruisci() {
@@ -3894,6 +3989,19 @@ class CasaTile extends HTMLElement {
       el.style.left = dove.x + "%";
     }
     el.style.top = dove.y + "%";
+    // la grandezza scelta a mano. Ingrandisco col "transform" e non con la
+    // misura del carattere: cosi' funziona uguale per una scritta, per un
+    // disegno, per la barra e per i tasti, e il pezzo non va a capo mentre
+    // cresce. Il punto fermo e' l'angolo da cui e' attaccato, se no
+    // ingrandendo scapperebbe via dal posto dove l'ha messo.
+    const k = isFinite(dove.s) && dove.s > 0 ? dove.s : 1;
+    if (k !== 1) {
+      el.style.transformOrigin = aDestra ? "top right" : "top left";
+      el.style.transform = "scale(" + k + ")";
+    } else {
+      el.style.transform = "";
+      el.style.transformOrigin = "";
+    }
     if (eIcona) {
       if (isFinite(dove.h)) {
         el.style.height = dove.h + "%";
@@ -4693,15 +4801,60 @@ class CasaTile extends HTMLElement {
       this._balli = (this._balli || 0) + 1;
       if (this._balli <= 4) this.toggleAttribute("compatta", vuole);
     }
-    // l'icona cresce insieme alla casella: se lui la fa alta dal Layout,
-    // il disegno deve venire grande, non restare un francobollo. A scatti
-    // di 4px: se la seguo al pixel, anche lei fa alzare la casella che la
-    // fa crescere, e si ricomincia.
-    const ico = Math.max(46, Math.min(160, Math.round(h * 0.44 / 4) * 4));
-    if (this._icoDetta !== ico) {
-      this._icoDetta = ico;
-      this.style.setProperty("--alt-icona", ico + "px");
+    // Quanto spazio resta DAVVERO al disegno: l'altezza della casella meno
+    // il bordo, il nome (che con un nome lungo va a capo e ruba una riga) e
+    // tutto quello che sta sotto - tasti rapidi, barra, colori. Prima
+    // prendevo una fetta fissa dell'altezza e con la casella bassa l'icona
+    // usciva dal riquadro e veniva tagliata. A scatti di 4px: se la seguo
+    // al pixel, l'icona fa alzare la casella che la fa crescere di nuovo.
+    // Nella casella a pezzi liberi le misure le comanda lui: qui non tocco
+    // niente, se no il disegno si muove da solo sotto le sue mani.
+    if (this.hasAttribute("liberi")) return;
+    if (!this._testa) this._testa = this.shadowRoot.querySelector(".testa");
+    if (!this._rigaIcona) this._rigaIcona = this.shadowRoot.querySelector("ha-card > .riga");
+    if (!this._rigaIcona) return;
+    const altoDi = (el) => (el && !el.hidden && el.offsetHeight) ? el.offsetHeight : 0;
+    // rifaccio i conti solo se e' cambiato qualcosa: qui ci si passa a ogni
+    // disegno, anche una volta al secondo mentre suona la musica
+    const firma = h + "|" + altoDi(this._testa) + "|" + altoDi(this._comandi)
+      + "|" + altoDi(this._cursore) + "|" + altoDi(this._colori)
+      + "|" + altoDi(this._extra) + "|" + altoDi(this._tempo)
+      + "|" + (this.hasAttribute("compatta") ? 1 : 0);
+    if (this._firmaSpazio === firma) return;
+    this._firmaSpazio = firma;
+    // Quanto spazio resta al disegno non lo calcolo: lo CHIEDO alla casella.
+    // Gli do' una misura esagerata e guardo quanta gliene concede - dentro
+    // ci sono gia' bordi, riempimenti, spazi fra i pezzi e margini, che a
+    // contarli a mano si sbaglia (e infatti si sbagliava di 24px).
+    const chiedi = () => {
+      this.style.setProperty("--alt-icona", "999px");
+      const q = this._rigaIcona.offsetHeight;
+      return q;
+    };
+    let libero = chiedi();
+    // Se il posto non basta, la prima cosa che cede e' il nome: una riga
+    // sola con i puntini invece di due. Cosi' il disegno resta. Prima
+    // toglievo il disegno, e la casella nuova nasceva senza icona:
+    // sbagliato, l'icona e' il pezzo che si guarda per primo.
+    // La decisione la prendo sempre sul nome INTERO, non su quello gia'
+    // accorciato: se no si accorcia, avanza posto, si riallunga, e si va
+    // avanti a rimbalzare.
+    if (this._nome) {
+      const risparmio = Math.max(0, this._nome.scrollHeight - this._nome.offsetHeight);
+      const eraCorto = this.hasAttribute("nomecorto");
+      // Il nome per intero vale piu' di qualche pixel di disegno: lo taglio
+      // solo se tenendolo il disegno resterebbe sotto i 26px, cioe' quando
+      // non si capirebbe piu' cosa raffigura.
+      const vuoleCorto = (libero - risparmio) < 26;
+      if (vuoleCorto !== eraCorto) {
+        this.toggleAttribute("nomecorto", vuoleCorto);
+        libero = chiedi();                     // la testa ha cambiato altezza
+      }
     }
+    const quota = Math.min(h * 0.44, libero > 0 ? libero : h * 0.44);
+    const ico = Math.max(18, Math.min(160, Math.round(quota / 4) * 4));
+    this._icoDetta = ico;
+    this.style.setProperty("--alt-icona", ico + "px");
   }
 
   connectedCallback() {
@@ -4755,18 +4908,38 @@ class CasaTile extends HTMLElement {
         if (b) b.hidden = !mostra[k];
       });
       this._comandi.hidden = false;
-      // il tasto della tapparella si accende quando e' gia' a fine corsa
+      // La tapparella accende il tasto di dove si trova: tutta su, tutta
+      // giu', oppure il tasto "ferma" mentre sta viaggiando. Prima li
+      // SPEGNEVO a fine corsa, e col vetro nuovo un tasto spento sembra
+      // rotto invece che "sei gia' arrivato".
       if (dom === "cover") {
         const dove = st.attributes.current_position;
-        this._comandi.querySelector(".su").disabled = dove === 100
-          || st.state === "open" && dove === undefined;
-        this._comandi.querySelector(".giu").disabled = dove === 0
-          || st.state === "closed" && dove === undefined;
+        const q = String(st.state).toLowerCase();
+        const muove = q === "opening" || q === "closing";
+        const tasto = (k) => this._comandi.querySelector("." + k);
+        tasto("su").disabled = false;
+        tasto("giu").disabled = false;
+        tasto("su").toggleAttribute("acceso", !muove
+          && (dove === 100 || (q === "open" && dove === undefined)));
+        tasto("giu").toggleAttribute("acceso", !muove
+          && (dove === 0 || (q === "closed" && dove === undefined)));
+        tasto("fermo").toggleAttribute("acceso", muove);
       }
       if (dom === "lock") {
         const chiusa = st.state === "locked";
         this._comandi.querySelector(".chiudi").toggleAttribute("acceso", chiusa);
         this._comandi.querySelector(".sblocca").toggleAttribute("acceso", !chiusa);
+      }
+      if (dom === "vacuum") {
+        // niente tasti spenti a meta': si accende quello che racconta cosa
+        // sta facendo, gli altri restano pronti
+        const q = String(st.state).toLowerCase();
+        this._comandi.querySelector(".via")
+          .toggleAttribute("acceso", ["cleaning", "on"].includes(q));
+        this._comandi.querySelector(".sosta")
+          .toggleAttribute("acceso", q === "paused");
+        this._comandi.querySelector(".casa")
+          .toggleAttribute("acceso", ["docked", "returning"].includes(q));
       }
       return;
     }
@@ -7110,7 +7283,24 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .trovato:hover { background: rgba(127,127,127,.12); }
 .trovato input { width: 18px; height: 18px; accent-color: var(--primary-color, #03a9f4);
   flex: 0 0 18px; }
-.pista { padding: 26px 14px 16px; border-radius: 12px; touch-action: none;
+/* il quadratino giallo con la freccina: si tiene premuto e il pezzo cresce */
+.pista-maniglia {
+  position: absolute; width: 28px; height: 28px; padding: 0; border: none;
+  background: none; display: grid; place-items: center;
+  cursor: nwse-resize; touch-action: none; z-index: 9;
+}
+.pista-maniglia .q {
+  width: 15px; height: 15px; border-radius: 4px;
+  background: #f0b429; border: 1px solid rgba(0,0,0,.45);
+  box-shadow: 0 1px 4px rgba(0,0,0,.55);
+  display: grid; place-items: center; pointer-events: none;
+  transition: transform .12s ease;
+}
+.pista-maniglia svg { width: 11px; height: 11px; fill: #241a02; }
+.pista-maniglia:hover .q { transform: scale(1.15); }
+.pista-maniglia.inmano .q { transform: scale(1.3); }
+.pista-maniglia[hidden] { display: none !important; }
+.pista { position: relative; padding: 26px 14px 16px; border-radius: 12px; touch-action: none;
   background: var(--secondary-background-color, rgba(255,255,255,.04));
   display: flex; justify-content: center; }
 .pista casa-tile { display: block; cursor: grab; }
@@ -7491,7 +7681,22 @@ class CasaTileEditor extends HTMLElement {
             clearTimeout(this._scordaForm);
             this._scordaForm = setTimeout(() => { this._formInUso = null; }, 800);
             const prima = this._config.azione;
-            this._config = { ...this._config, ...e.detail.value };
+            // ATTENZIONE: i moduli di Home Assistant tengono in pancia una
+            // copia di TUTTA la configurazione e quando muovi un interruttore
+            // ti ridanno quella copia con dentro il campo cambiato. Ma la
+            // copia gliela do io, e per non ridisegnare quindici moduli a
+            // ogni ritocco la rinfresco solo a chi e' cambiato un campo suo.
+            // Risultato: il modulo dei "Tasti rapidi" aveva ancora la
+            // configurazione di prima, e accendendo i tasti rimetteva com'era
+            // la barra - o viceversa. Da qui prendo SOLO i campi che sono
+            // suoi, e il resto della configurazione non lo tocca nessuno.
+            const suoi = this._nomiSchema(form.schema);
+            const c2 = { ...this._config };
+            suoi.forEach((nome) => {
+              if (nome in e.detail.value) c2[nome] = e.detail.value[nome];
+              else delete c2[nome];
+            });
+            this._config = c2;
             this._emetti();
             if (prima !== this._config.azione) {
               this._costruisciBlocco(true);
@@ -8046,7 +8251,9 @@ class CasaTileEditor extends HTMLElement {
       box._fatto = true;
       box.innerHTML = "<h4>Dove va ogni pezzo</h4>"
         + "<p class='aiuto'>Prendi il nome, il valore, l'icona o una misura e "
-        + "trascinali dove vuoi dentro alla casella qui sotto.</p>";
+        + "trascinali dove vuoi dentro alla casella qui sotto. Tocca un pezzo "
+        + "e sul suo angolo compare un quadratino giallo: tienilo premuto e "
+        + "trascina per ingrandirlo o rimpicciolirlo.</p>";
       const pista = document.createElement("div");
       pista.className = "pista";
       const carta = document.createElement("casa-tile");
@@ -8567,6 +8774,145 @@ class CasaTileEditor extends HTMLElement {
     };
     let preso = null;
 
+    // Il quadratino giallo con la freccina: si tiene premuto e il pezzo
+    // cresce o rimpicciolisce. Sta FUORI dalla casellina (nel riquadro che
+    // la contiene) cosi' non finisce dentro alla disposizione salvata.
+    const maniglia = document.createElement("div");
+    maniglia.className = "pista-maniglia";
+    maniglia.hidden = true;
+    maniglia.title = "Tieni premuto e trascina per ingrandire o rimpicciolire";
+    maniglia.innerHTML = '<i class="q"><svg viewBox="0 0 24 24" aria-hidden="true">'
+      + '<path d="M21,15V21H15V19H17.6L13.5,14.9L14.9,13.5L19,17.6V15H21M9.1,'
+      + '10.5L10.5,9.1L6.4,5H9V3H3V9H5V6.4L9.1,10.5Z"></path></svg></i>';
+    carta._maniglia = maniglia;
+
+    const pezziDi = (chi) => {
+      const radice = carta.shadowRoot;
+      if (!radice || !chi) return [];
+      if (chi.indexOf("misura:") === 0) {
+        const eid = chi.slice(7);
+        return [...radice.querySelectorAll(".chips .metrica")]
+          .filter((e) => e.dataset.eid === eid);
+      }
+      const mappa = {
+        nome: [".testi"], misure: [".chips"], valore: [".valore"],
+        icona: ["svg.icona", "img.ritratto", ".iconaHa", ".iconaFoto"],
+        cursore: [".cursore"], comandi: [".comandi"],
+      };
+      return (mappa[chi] || []).map((sel) => radice.querySelector(sel))
+        .filter((el) => el && !el.hidden && el.getBoundingClientRect().width);
+    };
+
+    const scalaDi = (chi) => {
+      const posti = (this._cfgPista() || {}).posti || {};
+      const v0 = posti[chi] && posti[chi].s;
+      return isFinite(v0) && v0 > 0 ? v0 : 1;
+    };
+
+    const aggiornaManiglia = () => {
+      const chi = carta._scelto;
+      const pezzi = chi ? pezziDi(chi) : [];
+      const pista = carta.parentElement;
+      if (!chi || !pezzi.length || !pista) {
+        maniglia.hidden = true;
+        if (carta.shadowRoot) {
+          carta.shadowRoot.querySelectorAll(".scelto")
+            .forEach((el) => el.classList.remove("scelto"));
+        }
+        return;
+      }
+      if (maniglia.parentElement !== pista) pista.appendChild(maniglia);
+      // segno il pezzo scelto, se no non si capisce di chi e' il quadratino
+      const radice = carta.shadowRoot;
+      if (radice) {
+        radice.querySelectorAll(".scelto").forEach((el) => {
+          if (pezzi.indexOf(el) === -1) el.classList.remove("scelto");
+        });
+      }
+      pezzi.forEach((el) => el.classList.add("scelto"));
+      const r = pezzi[0].getBoundingClientRect();
+      const rp = pista.getBoundingClientRect();
+      maniglia.hidden = false;
+      // il quadratino sta in mezzo all'angolo, ma la parte che risponde al
+      // dito e' piu' larga di lui: sulle caselle fitte finiva sopra ai tasti
+      // e bastava sbagliare di due pixel per prendere il pezzo di sotto
+      maniglia.style.left = (r.right - rp.left - 14) + "px";
+      maniglia.style.top = (r.bottom - rp.top - 14) + "px";
+    };
+    carta._aggiornaManiglia = aggiornaManiglia;
+
+    // il pezzo si vede crescere mentre tieni premuto, senza rifare la casella
+    const provaScala = (chi, k) => {
+      const posti = (this._cfgPista() || {}).posti || {};
+      const dove = posti[chi] || {};
+      const w = isFinite(dove.w) ? dove.w : 0;
+      const aDestra = isFinite(dove.dx) && (dove.x + w / 2) > 50;
+      pezziDi(chi).forEach((el) => {
+        el.style.transformOrigin = aDestra ? "top right" : "top left";
+        el.style.transform = k === 1 ? "" : "scale(" + k + ")";
+      });
+    };
+
+    let misuro = null;
+    const avviaMisura = (e) => {
+      const chi = carta._scelto;
+      const pezzi = chi ? pezziDi(chi) : [];
+      if (!pezzi.length) return false;
+      e.preventDefault();
+      e.stopPropagation();
+      const r = pezzi[0].getBoundingClientRect();
+      misuro = { chi: chi, x: e.clientX, y: e.clientY,
+                 w: r.width, h: r.height, s: scalaDi(chi), k: scalaDi(chi) };
+      maniglia.classList.add("inmano");
+      try { maniglia.setPointerCapture(e.pointerId); } catch (e2) { /* pazienza */ }
+      return true;
+    };
+    // Il dito e' sul quadratino? Lo decido dalle POSIZIONI, non chiedendo al
+    // browser su cosa ha premuto: dentro alla finestra delle impostazioni il
+    // tocco passa per un mucchio di gusci e l'unico modo sicuro di sapere
+    // dov'e' finito e' guardare dove sta.
+    const sulQuadratino = (x, y) => {
+      if (maniglia.hidden || !maniglia.isConnected) return false;
+      const r = maniglia.getBoundingClientRect();
+      return r.width > 0 && x >= r.left - 3 && x <= r.right + 3
+        && y >= r.top - 3 && y <= r.bottom + 3;
+    };
+    maniglia.addEventListener("pointerdown", avviaMisura);
+    const misuraMuovi = (e) => {
+      if (!misuro) return;
+      e.preventDefault();
+      e.stopPropagation();
+      // tiri in diagonale: quanto cresce di lato piu' quanto cresce in alto,
+      // diviso quanto e' grande adesso. Viene naturale come prendere
+      // l'angolo di una finestra.
+      const cresce = ((e.clientX - misuro.x) + (e.clientY - misuro.y))
+        / Math.max(24, misuro.w + misuro.h);
+      const k = Math.max(0.4, Math.min(3, misuro.s * (1 + cresce)));
+      misuro.k = Math.round(k * 100) / 100;
+      provaScala(misuro.chi, misuro.k);
+      aggiornaManiglia();
+      this._dico("grandezza " + Math.round(misuro.k * 100) + "%");
+    };
+    const misuraLascia = () => {
+      if (!misuro) return;
+      maniglia.classList.remove("inmano");
+      const posti = { ...((this._cfgPista() || {}).posti || {}) };
+      const vecchio = posti[misuro.chi] || {};
+      const k = misuro.k;
+      if (k === 1) delete vecchio.s; else vecchio.s = k;
+      posti[misuro.chi] = { ...vecchio };
+      carta._appenaSpostato = true;
+      this._scriviPosti(posti);
+      this._dico("grandezza salvata: " + Math.round(k * 100) + "%");
+      misuro = null;
+      setTimeout(aggiornaManiglia, 60);
+    };
+    maniglia.addEventListener("pointermove", misuraMuovi);
+    maniglia.addEventListener("pointerup", misuraLascia);
+    maniglia.addEventListener("pointercancel", misuraLascia);
+    carta._misuraMuovi = misuraMuovi;
+    carta._misuraLascia = misuraLascia;
+
     // Ascolto sulla FINESTRA, in cattura: cosi' arrivo prima di chiunque
     // altro. Attaccandomi alla casellina, qualcuno piu' in alto (la
     // finestra delle impostazioni, gli elenchi trascinabili di Home
@@ -8578,9 +8924,19 @@ class CasaTileEditor extends HTMLElement {
       if (!rq.width) return;
       if (e.clientX < rq.left || e.clientX > rq.right
           || e.clientY < rq.top || e.clientY > rq.bottom) return;
+      // il quadratino della grandezza viene prima di tutto
+      if (e.target === maniglia
+        || (e.target && e.target.nodeType && maniglia.contains(e.target))) return;
+      if (sulQuadratino(e.clientX, e.clientY) && avviaMisura(e)) return;
       const q = chiSono(e.clientX, e.clientY);
       this._dico(q ? "preso: " + q.chi : "sotto al dito non c'e' nessun pezzo");
-      if (!q) return;
+      if (!q) {
+        carta._scelto = null;
+        aggiornaManiglia();
+        return;
+      }
+      carta._scelto = q.chi;
+      setTimeout(aggiornaManiglia, 0);
       e.preventDefault();
       e.stopPropagation();
       // la prima volta fisso tutti i pezzi dove stanno adesso, se no
@@ -8644,6 +9000,7 @@ class CasaTileEditor extends HTMLElement {
         preso.el.style.left = px + "%";
         preso.el.style.top = py + "%";
       }
+      aggiornaManiglia();
     };
 
     const lascia = () => {
@@ -8671,6 +9028,7 @@ class CasaTileEditor extends HTMLElement {
         this._scriviPosti(posti);
       }
       preso = null;
+      setTimeout(aggiornaManiglia, 60);
     };
     // Mi metto in ascolto sulla FINESTRA, non sulla casellina: se il dito
     // esce dal riquadrino il trascinamento deve continuare lo stesso.
@@ -8685,6 +9043,12 @@ class CasaTileEditor extends HTMLElement {
     window.addEventListener("pointermove", muovi, true);
     ["pointerup", "pointercancel"].forEach((ev) =>
       window.addEventListener(ev, lascia, true));
+    // il quadratino della grandezza ascolta anche lui sulla finestra: se il
+    // dito parte da li' ma poi esce dal quadratino, il ridimensionamento
+    // deve continuare lo stesso (come per lo spostamento)
+    window.addEventListener("pointermove", misuraMuovi, true);
+    ["pointerup", "pointercancel"].forEach((ev) =>
+      window.addEventListener(ev, misuraLascia, true));
     // e quando lui tocca una casella dentro all'anteprima del pop-up
     const scegli = (e) => {
       const cfg = e.detail && e.detail.config;
@@ -8716,6 +9080,9 @@ class CasaTileEditor extends HTMLElement {
       window.removeEventListener("pointermove", muovi, true);
       ["pointerup", "pointercancel"].forEach((ev) =>
         window.removeEventListener(ev, lascia, true));
+      window.removeEventListener("pointermove", misuraMuovi, true);
+      ["pointerup", "pointercancel"].forEach((ev) =>
+        window.removeEventListener(ev, misuraLascia, true));
     };
     // e mentre sposto un pezzo la casella non deve fare il suo mestiere
     carta.addEventListener("click", (e) => {
@@ -8969,6 +9336,17 @@ class CasaTileEditor extends HTMLElement {
     });
     gira(elenco);
     return dentro.join("|");
+  }
+
+  // I nomi dei campi di un modulo, anche quelli dentro alle griglie
+  _nomiSchema(elenco) {
+    const nomi = [];
+    const gira = (lista) => (lista || []).forEach((v) => {
+      if (v.schema) { gira(v.schema); return; }
+      if (v.name) nomi.push(v.name);
+    });
+    gira(elenco);
+    return nomi;
   }
 
   _firmaSchema(elenco) {
@@ -9742,7 +10120,11 @@ if (!customElements.get("casa-tile-editor")) {
   customElements.define("casa-tile-editor", CasaTileEditor);
 }
 
+// Se il file viene caricato due volte (per esempio una risorsa aggiunta a
+// mano e quella che HACS si mette da sola) la casella comparirebbe DUE volte
+// nella ricerca delle schede. Mi presento una volta sola.
 window.customCards = window.customCards || [];
+if (!window.customCards.some((x) => x && x.type === "casa-tile")) {
 window.customCards.push({
   type: "casa-tile",
   name: "Casa · casella animata",
@@ -9750,6 +10132,7 @@ window.customCards.push({
   preview: true,
   documentationURL: "https://www.home-assistant.io/dashboards/",
 });
+}
 
 console.info("%c CASA-TILE %c v" + VERSIONE + " ", "background:#5ec8ff;color:#0b1220;font-weight:700",
              "background:#111a27;color:#eaf1fb");

@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.5.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.6.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -29,11 +29,11 @@ Casella animata per Home Assistant: **icone che si muovono solo quando la cosa �
 - **Due colori**: uno per gli effetti (alone, bordo, luci) e, se vuoi, uno solo per la scritta.
 - L'icona si può anche togliere del tutto, per lasciare solo le scritte.
 - **Persone**: anello colorato secondo dove si trova (casa, fuori, un'altra zona), da quanto tempo, quanti chilometri da casa — in linea d'aria o su strada se hai un sensore di percorso (Waze, Google).
-- **Comandi rapidi** per tapparelle (su/stop/giù e posizione), serrature e aspirapolvere.
+- **Comandi rapidi** per tapparelle (su/stop/giù e posizione), serrature e aspirapolvere: tasti di vetro che si alzano al passaggio del dito, e quello che racconta cosa sta succedendo si accende del colore della casella (alla base, sta pulendo, tutta su, tutta giù, oppure «ferma» mentre viaggia).
 - **«Da quanto»** per qualsiasi entità: *accesa da 40 minuti*, *aperta da 3 ore*.
 - **Quando è accesa lo decidi tu**: sempre, a un valore esatto, sopra una soglia, oppure **guardando altre entità** (quante vuoi: basta che una sia attiva) — così la casella di una batteria si illumina quando escono watt, non perché è carica al 93%.
 - **Cielo del meteo** fatto di pezzi veri: stelle di grandezze diverse che luccicano, la luna coi crateri e le stelle cadenti, il sole coi raggi, nuvole a più gobbe, gocce inclinate, fiocchi che ondeggiano.
-- **Ogni pezzo dove vuoi tu**: nome, valore, icona, barra e singole misure si prendono col dito e si trascinano dove ti pare dentro alla casella. Si compone in un riquadro che ha la misura vera della card sulla plancia, quindi quello che vedi e' quello che ottieni; e le caselle dentro al pop-up si sistemano dallo stesso riquadro, basta toccarle nell'anteprima.
+- **Ogni pezzo dove vuoi tu, e della grandezza che vuoi tu**: nome, valore, icona, barra, tasti e singole misure si prendono col dito e si trascinano dove ti pare dentro alla casella; tocchi un pezzo e sul suo angolo compare un quadratino giallo, lo tieni premuto e lo tiri per ingrandirlo o rimpicciolirlo (dal 40% al 300%). Si compone in un riquadro che ha la misura vera della card sulla plancia, quindi quello che vedi e' quello che ottieni; e le caselle dentro al pop-up si sistemano dallo stesso riquadro, basta toccarle nell'anteprima.
 - **Leggera**: si ridisegna al massimo dieci volte al secondo anche quando la casa manda valanghe di aggiornamenti, tiene in memoria trecento punti di storico invece di decine di migliaia, e quando e' nascosta (pop-up chiuso, altra linguetta) sta davvero ferma.
 - Si adatta da sola alla larghezza della casella e al dito, e **non esce mai dal riquadro** che le dai: se lo spazio è poco si stringe il contenuto, la misura la decidi tu dal Layout.
 
@@ -88,7 +88,15 @@ finestra_cards:
     entities: {}
 ```
 
-## Novità della 2.5.0
+## Novità della 2.6
+
+- **I pezzi si ridimensionano**: tocchi il nome, il valore, l'icona, la barra, i tasti o una singola misura e sul suo angolo compare un quadratino giallo. Lo tieni premuto e lo tiri in diagonale: il pezzo cresce o rimpicciolisce, dal 40% al 300%. Il punto fermo è l'angolo da cui il pezzo è agganciato, così ingrandendolo non scappa dal posto dove l'hai messo, e le scritte non vanno a capo mentre crescono.
+- **La casella nasce già a posto**: 6 colonne per 2 righe, e il disegno prende lo spazio che gli resta davvero invece di una fetta fissa dell'altezza. Se il nome è lungo cede lui — una riga sola coi puntini — ma solo quando davvero non c'è alternativa: l'icona non sparisce più.
+- **Tasti rapidi rifatti**: vetro invece di dischetti piatti, si alzano al passaggio del dito e si schiacciano al tocco. Simboli nuovi per «torna alla base» (una casetta) e per le tapparelle (freccia contro una barra: si vede dove va a finire). E il tasto che dice cosa sta succedendo adesso si accende.
+- **Simboli in mezzo ai tasti**: erano tutti spostati di un pixel e mezzo a destra, perché il browser mette da solo un riempimento dentro ai bottoni. Si vedeva solo sulle caselle basse, dove il tasto è più stretto del simbolo.
+- **Le impostazioni non si annullano più a vicenda**: cambiavi un'opzione e quella di prima tornava indietro, perché ogni gruppo di impostazioni teneva in tasca una copia vecchia della configurazione. Adesso da ogni gruppo si prendono solo i campi suoi.
+
+## Novità della 2.5
 
 - **Posizioni libere**: prendi il nome, il valore, l'icona, la barra o una singola misura e le metti dove vuoi. Il riquadro dove componi copia la misura vera della card sulla plancia, e con un tocco sull'anteprima del pop-up scegli quale casella sistemare (anche quelle dentro alle griglie).
 - **Batteria a tacche**: cinque blocchi che si riempiono per davvero (90% = quattro blocchi e mezzo), il fulmine quando carica, una tacca che scorre quando eroga.
