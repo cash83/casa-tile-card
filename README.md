@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.3.11-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.5.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -33,6 +33,8 @@ Casella animata per Home Assistant: **icone che si muovono solo quando la cosa �
 - **«Da quanto»** per qualsiasi entità: *accesa da 40 minuti*, *aperta da 3 ore*.
 - **Quando è accesa lo decidi tu**: sempre, a un valore esatto, sopra una soglia, oppure **guardando altre entità** (quante vuoi: basta che una sia attiva) — così la casella di una batteria si illumina quando escono watt, non perché è carica al 93%.
 - **Cielo del meteo** fatto di pezzi veri: stelle di grandezze diverse che luccicano, la luna coi crateri e le stelle cadenti, il sole coi raggi, nuvole a più gobbe, gocce inclinate, fiocchi che ondeggiano.
+- **Ogni pezzo dove vuoi tu**: nome, valore, icona, barra e singole misure si prendono col dito e si trascinano dove ti pare dentro alla casella. Si compone in un riquadro che ha la misura vera della card sulla plancia, quindi quello che vedi e' quello che ottieni; e le caselle dentro al pop-up si sistemano dallo stesso riquadro, basta toccarle nell'anteprima.
+- **Leggera**: si ridisegna al massimo dieci volte al secondo anche quando la casa manda valanghe di aggiornamenti, tiene in memoria trecento punti di storico invece di decine di migliaia, e quando e' nascosta (pop-up chiuso, altra linguetta) sta davvero ferma.
 - Si adatta da sola alla larghezza della casella e al dito, e **non esce mai dal riquadro** che le dai: se lo spazio è poco si stringe il contenuto, la misura la decidi tu dal Layout.
 
 ## Installazione con HACS
@@ -54,7 +56,7 @@ Aggiungi una scheda alla dashboard e cerca **Casa · casella animata**. Poi tutt
 |---|---|
 | **Base** | entità e nome; cosa c'è scritto (sottotitolo, valore, «da quanto», misure); quando la casella è accesa |
 | **Icona** | mostrala o nascondila, usa la foto dell'entità, un'icona di Home Assistant, il catalogo o un'immagine tua |
-| **Aspetto** | come è fatta (disposizione, casella grande), i 19 effetti, il colore della casella e quello della scritta |
+| **Aspetto** | come è fatta (disposizione, casella grande), i 19 effetti, il colore della casella e quello della scritta, e **«Dove va ogni pezzo»**: il riquadro dove trascini nome, valore, icona e misure |
 | **Sfondo** | tinta e trasparenza, foto di sfondo, cielo del meteo |
 | **Comandi** | la barra dentro la casella, i tasti rapidi (tapparelle, serrature, aspirapolvere), la striscia del colore |
 | **Grafico** | grafico dell'andamento, quante ore, area o linea, minimo e massimo |
@@ -85,6 +87,15 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.5.0
+
+- **Posizioni libere**: prendi il nome, il valore, l'icona, la barra o una singola misura e le metti dove vuoi. Il riquadro dove componi copia la misura vera della card sulla plancia, e con un tocco sull'anteprima del pop-up scegli quale casella sistemare (anche quelle dentro alle griglie).
+- **Batteria a tacche**: cinque blocchi che si riempiono per davvero (90% = quattro blocchi e mezzo), il fulmine quando carica, una tacca che scorre quando eroga.
+- **Misure**: nome tuo per ognuna, colore tuo per ognuna, niente più pastiglia grigia dietro.
+- **Tapparella**: la percentuale resta ferma dove l'hai messa, si muove solo il disegno, e il comando parte una volta sola quando lasci il dito.
+- **Colori**: ruota di colori vera al posto del selettore lento, e due colori separati per il nome e per il valore.
+- **Molto più leggera**: massimo dieci disegni al secondo per casella, storico assottigliato, niente lavoro quando la casella è nascosta. Su una plancia carica siamo passati da migliaia di disegni al secondo a meno di dieci.
 
 ## Licenza
 

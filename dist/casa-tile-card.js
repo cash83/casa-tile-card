@@ -1,10 +1,10 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.3.11
+ * v2.4.55
  */
 
-const VERSIONE = "2.3.11";
+const VERSIONE = "2.5.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -15,16 +15,16 @@ const COLORI = {
 /* ------------------------------------------------------------------ icone */
 const ICONE = {
   luce: `<defs><radialGradient id="g1" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#fff6d0"/><stop offset="1" stop-color="#ffc247"/></radialGradient></defs>
-<g class="an glow"><circle cx="32" cy="27" r="22" fill="#ffcf5c" opacity=".22"/></g>
+<g class="an glow alone"><circle cx="32" cy="27" r="22" fill="#ffcf5c" opacity=".22"/></g>
 <path d="M32 8c9.4 0 16 6.6 16 15 0 6-3.4 9.2-5.6 12.2-1.6 2.2-2.4 3.8-2.4 6.3H24c0-2.5-.8-4.1-2.4-6.3C19.4 32.2 16 29 16 23c0-8.4 6.6-15 16-15z" fill="url(#g1)"/>
 <rect x="24" y="43" width="16" height="5" rx="2.5" fill="#9aa6b6"/><rect x="26" y="49" width="12" height="4.5" rx="2.2" fill="#7d8896"/>`,
 
-  led: `<g class="an glow"><rect x="4" y="20" width="56" height="24" rx="12" fill="#8b5cf6" opacity=".25"/></g>
+  led: `<g class="an glow alone"><rect x="4" y="20" width="56" height="24" rx="12" fill="#8b5cf6" opacity=".25"/></g>
 <rect x="8" y="26" width="48" height="12" rx="6" fill="#1b2233" stroke="#3a4a6b" stroke-width="1.5"/>
 <g class="an glow"><circle cx="17" cy="32" r="3.2" fill="#ff5f9e"/><circle cx="27" cy="32" r="3.2" fill="#9b6bff"/><circle cx="37" cy="32" r="3.2" fill="#5ec8ff"/><circle cx="47" cy="32" r="3.2" fill="#4fe0c8"/></g>`,
 
   presa: `<defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3e0"/><stop offset="1" stop-color="#d9a86a"/></linearGradient></defs>
-<g class="an glow"><circle cx="32" cy="32" r="26" fill="#ff9a3c" opacity=".2"/></g>
+<g class="an glow alone"><circle cx="32" cy="32" r="26" fill="#ff9a3c" opacity=".2"/></g>
 <rect x="12" y="12" width="40" height="40" rx="13" fill="url(#g2)"/><circle cx="32" cy="32" r="14" fill="#f0dcc0"/>
 <circle cx="25.5" cy="30" r="3.1" fill="#4a3a28"/><circle cx="38.5" cy="30" r="3.1" fill="#4a3a28"/>
 <rect x="29.5" y="38" width="5" height="6" rx="2.5" fill="#4a3a28"/>
@@ -54,7 +54,7 @@ const ICONE = {
   sole: `<defs><radialGradient id="g7" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#fff4c4"/><stop offset="1" stop-color="#f7a63b"/></radialGradient></defs>
 <g class="an rotalenta" stroke="#ffc65c" stroke-width="3" stroke-linecap="round"><path d="M32 4v7"/><path d="M32 53v7"/><path d="M4 32h7"/><path d="M53 32h7"/>
 <path d="M12 12l5 5"/><path d="M47 47l5 5"/><path d="M52 12l-5 5"/><path d="M17 47l-5 5"/></g>
-<g class="an glow"><circle cx="32" cy="32" r="20" fill="#ffca62" opacity=".22"/></g><circle cx="32" cy="32" r="13.5" fill="url(#g7)"/>`,
+<g class="an glow alone"><circle cx="32" cy="32" r="20" fill="#ffca62" opacity=".22"/></g><circle cx="32" cy="32" r="13.5" fill="url(#g7)"/>`,
 
   musica: `<rect x="6" y="8" width="52" height="48" rx="13" fill="#180d12" stroke="#4a1f2b" stroke-width="2"/>
 <g fill="#ff4d5e"><rect class="an bar" x="15" y="18" width="6" height="28" rx="3"/><rect class="an bar b2" x="24.5" y="18" width="6" height="28" rx="3"/>
@@ -67,7 +67,7 @@ const ICONE = {
 <rect x="14" y="52" width="4" height="6" rx="2" fill="#5b6d84"/><rect x="46" y="52" width="4" height="6" rx="2" fill="#5b6d84"/>`,
 
   termometro: `<defs><linearGradient id="g8" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5f5f"/><stop offset="1" stop-color="#ffb35c"/></linearGradient></defs>
-<g class="an glow"><circle cx="30" cy="46" r="16" fill="#ff6b6b" opacity=".2"/></g>
+<g class="an glow alone"><circle cx="30" cy="46" r="16" fill="#ff6b6b" opacity=".2"/></g>
 <rect x="24" y="6" width="12" height="36" rx="6" fill="#1b2433" stroke="#3e5570" stroke-width="1.6"/>
 <circle cx="30" cy="46" r="10" fill="#1b2433" stroke="#3e5570" stroke-width="1.6"/>
 <g class="an sale"><rect x="27" y="16" width="6" height="30" rx="3" fill="url(#g8)"/></g>
@@ -81,7 +81,7 @@ const ICONE = {
 <circle class="an rec" cx="35" cy="24" r="2.6" fill="#ff4d5e"/>
 <rect x="20" y="44" width="6" height="9" rx="2" fill="#5b6d84"/><rect x="12" y="52" width="22" height="4" rx="2" fill="#48586e"/>`,
 
-  robot: `<g class="an glow"><circle cx="32" cy="32" r="26" fill="#4fe0c8" opacity=".16"/></g>
+  robot: `<g class="an glow alone"><circle cx="32" cy="32" r="26" fill="#4fe0c8" opacity=".16"/></g>
 <circle cx="32" cy="32" r="22" fill="#233145" stroke="#41607f" stroke-width="2"/>
 <path d="M12 26a22 22 0 0 1 40 0z" fill="#2e4159"/><circle cx="32" cy="24" r="4" fill="#0f1723" stroke="#5ec8ff" stroke-width="1.4"/>
 <g class="an rotamedia"><g stroke="#8ef0d8" stroke-width="2.4" stroke-linecap="round"><path d="M32 38v-7"/><path d="M32 38v7"/><path d="M32 38h-7"/><path d="M32 38h7"/></g>
@@ -102,7 +102,7 @@ const ICONE = {
 <g class="an glow"><circle cx="32" cy="44" r="9" fill="#4fe0c8" opacity=".35"/></g>
 <circle cx="32" cy="44" r="6.5" fill="#0f1723" stroke="#41607f" stroke-width="1.3"/>`,
 
-  luna: `<g class="an glow"><circle cx="34" cy="30" r="20" fill="#cfd8ff" opacity=".18"/></g>
+  luna: `<g class="an glow alone"><circle cx="34" cy="30" r="20" fill="#cfd8ff" opacity=".18"/></g>
 <path d="M40 12a18 18 0 1 0 12 26 20 20 0 0 1-12-26z" fill="#e8eeff"/>
 <g class="an spark"><circle cx="18" cy="18" r="1.8" fill="#fff"/><circle cx="24" cy="44" r="1.4" fill="#fff"/></g>`,
 
@@ -179,7 +179,7 @@ const ICONE = {
   acqua: `<g class="an glow"><path d="M32 10c8 12 14 18 14 26a14 14 0 0 1-28 0c0-8 6-14 14-26z" fill="#4fb8ff"/></g>
 <path d="M26 38a6 6 0 0 0 6 6" fill="none" stroke="#cfe9ff" stroke-width="3" stroke-linecap="round"/>`,
 
-  fumo: `<g class="an glow"><circle cx="32" cy="34" r="16" fill="#ff6b6b" opacity=".25"/></g>
+  fumo: `<g class="an glow alone"><circle cx="32" cy="34" r="16" fill="#ff6b6b" opacity=".25"/></g>
 <circle cx="32" cy="34" r="12" fill="#3a4a63"/><circle cx="32" cy="34" r="4" fill="#ff6b6b"/>
 <g stroke="#8ea6c2" stroke-width="2.4" stroke-linecap="round"><path d="M32 14v6M14 34h6M44 34h6"/></g>`,
 
@@ -399,35 +399,84 @@ const ICONE = {
 
 // La batteria non e' un disegno fisso: la costruisco con la carica vera.
 function disegnoBatteria(perc, carica, scarica) {
-  const p = Math.max(0, Math.min(100, Number(perc)));
-  const buono = isNaN(p) ? 100 : p;
-  const largo = Math.max(2, 34 * buono / 100);
-  const fine = 15 + largo;
-  const tinta = buono <= 20 ? "#ff6b6b" : (buono <= 45 ? "#ffc046" : "#3fd98a");
+  const n = Number(perc);
+  const p = isNaN(n) ? 100 : Math.max(0, Math.min(100, n));
+  const tinta = p <= 20 ? "#ff4d4d" : (p <= 45 ? "#ffb020" : "#3fd98a");
+  const FONDO = "#0b1119";
+  // il corpo, con il contorno chiaro e il polo a destra
+  const corpo = '<rect x="8" y="19" width="44" height="26" rx="6.5" fill="' + FONDO
+    + '" stroke="#dbe7f5" stroke-width="3"/>'
+    + '<rect x="52.5" y="26.5" width="5" height="11" rx="2.4" fill="#dbe7f5"/>';
+  // dentro: il pieno tagliato a blocchi, come le batterie vere
+  const DENTRO = 12;
+  const LARGO = 36;
+  const pieno = LARGO * p / 100;
+  let blocchi = "";
+  if (pieno > 0.5) {
+    blocchi = '<rect x="' + DENTRO + '" y="23.5" width="' + pieno.toFixed(1)
+      + '" height="17" rx="1.6" fill="' + tinta + '"/>'
+      + '<rect x="' + DENTRO + '" y="23.5" width="' + pieno.toFixed(1)
+      + '" height="6" rx="1.6" fill="#ffffff" opacity=".18"/>';
+    // i tagli fra un blocco e l'altro
+    for (let k = 1; k < 5; k += 1) {
+      const x = DENTRO + LARGO * k / 5;
+      if (x < DENTRO + pieno) {
+        // tagli un po' piu' larghi: cosi' le cinque tacche si contano
+        // anche quando la casella e' piccola
+        blocchi += '<rect x="' + (x - 1.2).toFixed(1) + '" y="23.5" width="2.4" '
+          + 'height="17" fill="' + FONDO + '"/>';
+      }
+    }
+  }
+  // in carica: il fulmine grande, come sulle batterie del telefono
   const fulmine = carica
-    ? '<g class="an bolt"><path d="M34 19l-9 15h6.5l-2.5 11 10.5-14H33l3.5-12z" '
-      + 'fill="#ffd54a" stroke="#0d1420" stroke-width="1.4" stroke-linejoin="round"/></g>'
+    ? '<g class="an caricafulmine"><path d="M34 20l-11 15h7.5l-2.5 10 11-15h-7.5z" '
+      + 'fill="#eaff8a" stroke="' + FONDO + '" stroke-width="2.4" '
+      + 'stroke-linejoin="round"/></g>'
     : "";
-  // in carica: il pezzo che manca si riempie da sinistra a destra e sfuma
-  const manca = 49 - fine;
-  const salita = (carica && manca > 1)
-    ? '<g class="an ricarica" style="transform-origin:' + fine.toFixed(1) + 'px 32px">'
-      + '<rect x="' + fine.toFixed(1) + '" y="25" width="' + manca.toFixed(1)
-      + '" height="14" rx="3.5" fill="' + tinta + '" opacity=".5"/></g>'
-    : "";
-  // in scarica: una tacca scura che scivola verso sinistra sul pieno
-  const discesa = (scarica && !carica && largo > 4)
-    ? '<g class="an scarico"><rect x="' + (fine - 5).toFixed(1)
-      + '" y="25" width="5" height="14" fill="#0b111b" opacity=".5"/></g>'
-    : "";
-  // il pieno pulsa solo quando la batteria non sta ne caricando ne dando
-  const fermo = !carica && !scarica ? " glow" : "";
-  return '<rect x="12" y="22" width="40" height="20" rx="6.5" fill="#0f1723" '
-    + 'stroke="#8ea6c2" stroke-width="2.6"/>'
-    + '<rect x="53.5" y="27.5" width="4.5" height="9" rx="2.2" fill="#8ea6c2"/>'
-    + '<g class="an' + fermo + '"><rect x="15" y="25" width="' + largo.toFixed(1)
-    + '" height="14" rx="3.5" fill="' + tinta + '"/></g>'
-    + salita + discesa + fulmine;
+  // mentre da' corrente non lampeggia niente: la batteria sta ferma e si
+  // legge il livello. Il fulmine c'e' solo quando carica, come sui telefoni.
+  return corpo + blocchi + fulmine;
+}
+
+// La tapparella si disegna a quanto e' davvero abbassata: 100 = tutta su,
+// 0 = tutta giu'. Ferma li', senza muoversi: quello che conta e' vedere
+// dov'e' arrivata.
+function disegnoTapparella(moto) {
+  const CIMA = 17.5;
+  const VANO = 40;
+  const PASSO = 6.6;
+  const SPESSA = 5;
+  // le stecche ci sono tutte, sempre: a decidere quante se ne vedono e' il
+  // taglio qui sotto. Cosi' per muoverla basta cambiare un numero, e il
+  // movimento e' liscio invece che a scatti.
+  let stecche = "";
+  for (let y = CIMA - PASSO; y < CIMA + VANO + PASSO; y += PASSO) {
+    stecche += '<rect x="10.5" y="' + y.toFixed(1) + '" width="43" height="'
+      + SPESSA + '" rx="2" fill="#8ea6c2"/>';
+  }
+  const gruppo = (moto === "su" || moto === "giu")
+    ? '<g class="an tappa' + moto + '">' + stecche + "</g>"
+    : stecche;
+  return '<defs><clipPath id="tagliaTapparella">'
+    + '<rect class="taglio" x="9" y="' + (CIMA - 1) + '" width="46" height="0"/>'
+    + "</clipPath></defs>"
+    + '<rect x="8.5" y="16" width="47" height="43" rx="3.5" fill="#0e1622" '
+    + 'stroke="#3e5570" stroke-width="2"/>'
+    + '<g clip-path="url(#tagliaTapparella)">' + gruppo + "</g>"
+    + '<rect x="5.5" y="5" width="53" height="11.5" rx="3.2" fill="#5b6b84"/>'
+    + '<rect x="5.5" y="5" width="53" height="4" rx="3.2" fill="#7f92ad"/>';
+}
+
+// quanto della tapparella si vede giu': un numero solo, niente da ridisegnare
+function tagliaTapparella(svg, pos) {
+  if (!svg) return;
+  const taglio = svg.querySelector(".taglio");
+  if (!taglio) return;
+  const n = Number(pos);
+  const p = isNaN(n) ? 0 : Math.max(0, Math.min(100, n));
+  const chiuso = 40 * (100 - p) / 100;
+  taglio.setAttribute("height", (chiuso + 1).toFixed(2));
 }
 
 // Che icona ci vuole per questa entita'? La card lo capisce da sola.
@@ -1220,12 +1269,13 @@ ha-card::after {
 .iconaHa[hidden] { display: none !important; }
 :host([grande]) .iconaHa { width: auto; height: 92px; }
 .misuratore, .misuratore * { animation: none !important; transition: none !important; }
-svg.icona { overflow: visible; width: auto; height: 60px; aspect-ratio: 1; max-height: 100%;
-  min-height: 28px; flex: 0 1 auto;
+svg.icona { overflow: visible; width: auto; height: var(--alt-icona, 60px);
+  aspect-ratio: 1; max-height: 100%; min-height: 44px; flex: 0 1 auto;
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) svg.icona { filter: none; }
 img.ritratto {
-  width: auto; height: 54px; aspect-ratio: 1; max-height: 100%; flex: 0 1 auto;
+  width: auto; height: var(--alt-icona, 54px); aspect-ratio: 1; max-height: 100%;
+  flex: 0 1 auto;
   border-radius: 50%; object-fit: cover;
   border: 2px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06);
   filter: grayscale(.75) brightness(.7); transition: filter .35s ease, border-color .35s ease;
@@ -1260,7 +1310,7 @@ img.ritratto {
    rubano altezza e la casella resta della misura che le hai dato */
 .chips {
   display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center;
-  gap: 4px 6px; margin-left: auto; max-width: 56%; min-width: 0;
+  gap: 4px 6px; margin-left: auto; max-width: 68%; min-width: 0;
 }
 /* nella casella delle persone l'indirizzo viene prima: le pastiglie
    vanno a capo, sotto al nome, dove c'e' spazio */
@@ -1273,9 +1323,13 @@ img.ritratto {
 }
 .chips:empty { display: none; }
 /* casella bassa: si stringe tutto invece di tagliare qualcosa */
-:host([compatta]) .riga { margin-top: 6px; }
+/* anche nella casella bassa la riga dell'icona sta IN FONDO: con
+   "margin-top: 6px" restava appesa sotto al nome e sembrava che l'icona
+   salisse ogni volta che si toglieva una misura */
+:host([compatta]) .riga { margin-top: auto; }
 :host([compatta]) svg.icona, :host([compatta]) img.ritratto,
-:host([compatta]) .iconaHa, :host([compatta]) .iconaFoto { height: 42px; min-height: 28px; }
+:host([compatta]) .iconaHa, :host([compatta]) .iconaFoto {
+  height: var(--alt-icona, 46px); min-height: 34px; }
 :host([compatta]) .comandi { margin-top: 6px; gap: 4px; }
 :host([compatta]) .comandi button { width: 30px; height: 28px; font-size: 13px; }
 :host([compatta]) .comandi button.grosso { width: 38px; height: 30px; }
@@ -1284,30 +1338,38 @@ img.ritratto {
 :host([compatta]) .colori .scambio { width: 30px; height: 30px; }
 :host([compatta]) .colori .scambio svg { width: 17px; height: 17px; }
 :host([compatta]) .valore { font-size: 17px; }
-:host([compatta]) .chips .metrica { padding: 1px 6px 1px 4px; }
-:host([compatta]) .metrica .num { font-size: 11px; }
+/* Nella casella bassa le misure si stringono per bene: ogni riga di
+   pastiglie che si risparmia e' spazio che va all'icona. */
+:host([compatta]) .chips .metrica { padding: 0 4px 0 3px; gap: 2px; }
+:host([compatta]) .metrica .simbolo { font-size: 10.5px; }
+:host([compatta]) .metrica .num { font-size: 10px; }
+:host([compatta]) .chips { gap: 2px 3px; max-width: 76%; }
 :host([compatta]) .sotto { -webkit-line-clamp: 1; }
 .metrica {
   display: flex; flex-direction: row; align-items: center; gap: 4px; min-width: 0;
   cursor: pointer; border-radius: 99px; padding: 2px 7px 2px 5px;
-  background: rgba(255,255,255,.06);
   transition: background .2s ease;
 }
-.metrica:hover { background: rgba(255,255,255,.09); }
+/* niente pastiglia sotto alle scritte: si vede solo passandoci sopra */
+.metrica:hover { background: rgba(255,255,255,.08); }
 .metrica:focus-visible { outline: 2px solid var(--c); outline-offset: 1px; }
 .metrica .simbolo { font-size: 12.5px; line-height: 1; opacity: .95; }
 .metrica .num {
   font-size: 11.5px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums;
-  color: var(--secondary-text-color, #9fb0c6); max-width: 100%; overflow: hidden;
-  text-overflow: ellipsis; white-space: nowrap;
+  color: var(--secondary-text-color, #9fb0c6); white-space: nowrap;
 }
 :host([acceso]) .metrica .num { color: var(--c); }
+/* una misura puo' avere il colore che vuole lui, staccato dagli effetti */
+.metrica.suacolore .num, :host([acceso]) .metrica.suacolore .num,
+.metrica.suacolore .eti, :host([acceso]) .metrica.suacolore .eti {
+  color: var(--tinta-mia);
+}
 .metrica .eti { display: none; font-size: 9.5px; font-weight: 700;
   letter-spacing: .05em; text-transform: uppercase; white-space: nowrap;
   color: var(--secondary-text-color, #9fb0c6); opacity: .8; }
 .metrica.connome .eti { display: inline; }
 :host([acceso]) .metrica.connome .eti { opacity: .95; }
-:host([compatta]) .metrica .eti { font-size: 9px; }
+:host([compatta]) .metrica .eti { font-size: 8px; letter-spacing: .02em; }
 .cursore { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
 .cursore .muto { appearance: none; border: none; cursor: pointer; flex: none; padding: 0;
   width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
@@ -1340,9 +1402,9 @@ img.ritratto {
 .valore {
   margin-left: auto; font-size: 20px; font-weight: 700; line-height: 1;
   letter-spacing: -.02em; font-variant-numeric: tabular-nums;
-  color: var(--testo2, var(--disabled-text-color, #7b8ba3));
+  color: var(--testo-val, var(--testo2, var(--disabled-text-color, #7b8ba3)));
 }
-:host([acceso]) .valore { color: var(--testo, var(--c)); }
+:host([acceso]) .valore { color: var(--testo-val, var(--testo, var(--c))); }
 /* valore vecchio, perche' il sensore adesso non risponde */
 :host([assente]) .valore { opacity: .45; }
 :host([assente]) .valore::after { content: " ·"; }
@@ -1355,8 +1417,8 @@ img.ritratto {
 @keyframes casa-scuoti { 0%,100% { transform: translateY(0); } 50% { transform: translateY(1.5px); } }
 @keyframes casa-scintilla { 0%,72%,100% { opacity: 0; } 78% { opacity: 1; } 84% { opacity: .25; } 90% { opacity: .9; } }
 @keyframes casa-riempi { 0% { transform: scaleX(.35); } 100% { transform: scaleX(.72); } }
-@keyframes casa-bolt { 0%,100% { opacity: .55; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.06); } }
-@keyframes casa-glow { 0%,100% { opacity: .3; } 50% { opacity: .85; } }
+@keyframes casa-bolt { 0%,100% { opacity: .8; transform: scale(.99); } 50% { opacity: 1; transform: scale(1.02); } }
+@keyframes casa-glow { 0%,100% { opacity: .72; } 50% { opacity: .95; } }
 @keyframes casa-eq { 0%,100% { transform: scaleY(1); } 45% { transform: scaleY(.3); } }
 @keyframes casa-sale { 0% { transform: translateY(4px); opacity: 0; } 40% { opacity: .9; } 100% { transform: translateY(-11px); opacity: 0; } }
 @keyframes casa-rec { 0%,100% { opacity: 1; } 50% { opacity: .15; } }
@@ -1370,26 +1432,30 @@ svg .shake { animation: casa-scuoti calc(.45s / var(--vel, 1)) ease-in-out infin
 svg .spark { animation: casa-scintilla calc(2.2s / var(--vel, 1)) ease-in-out infinite; }
 svg .riempi { transform-origin: 11px 32px; animation: casa-riempi calc(2.4s / var(--vel, 1)) ease-in-out infinite alternate; }
 svg .sale { transform-origin: 30px 46px; animation: casa-sale calc(3s / var(--vel, 1)) ease-out infinite; }
-svg .bolt { transform-origin: 32px 32px; animation: casa-bolt calc(1.5s / var(--vel, 1)) ease-in-out infinite; }
-svg .glow { animation: casa-glow calc(2.4s / var(--vel, 1)) ease-in-out infinite; }
-@keyframes casa-ricarica { 0% { transform: scaleX(0); opacity: .55; }
-  75% { opacity: .5; } 100% { transform: scaleX(1); opacity: 0; } }
-svg .ricarica { animation: casa-ricarica calc(1.9s / var(--vel, 1)) ease-out infinite; }
-@keyframes casa-scarico { 0% { transform: translateX(0); opacity: 0; }
-  25% { opacity: .65; } 100% { transform: translateX(-11px); opacity: 0; } }
-svg .scarico { animation: casa-scarico calc(1.9s / var(--vel, 1)) ease-in infinite; }
+svg .bolt { transform-origin: 32px 32px; animation: casa-bolt calc(3.4s / var(--vel, 1)) ease-in-out infinite; }
+svg .glow { animation: casa-glow calc(5s / var(--vel, 1)) ease-in-out infinite; }
+/* niente alone tondo dietro al disegno: si illumina gia' il disegno stesso,
+   il cerchio era solo un cerchio appiccicato dietro */
+svg .alone { display: none; }
+@keyframes casa-caricafulmine { 0%, 100% { opacity: .82; } 50% { opacity: 1; } }
+svg .caricafulmine { animation: casa-caricafulmine calc(2.6s / var(--vel, 1)) ease-in-out infinite; }
+/* la tapparella che si muove davvero: le stecche scorrono nel vano */
+@keyframes casa-tappagiu { from { transform: translateY(0); } to { transform: translateY(6.6px); } }
+@keyframes casa-tappasu { from { transform: translateY(0); } to { transform: translateY(-6.6px); } }
+svg .tappagiu { animation: casa-tappagiu calc(.9s / var(--vel, 1)) linear infinite; }
+svg .tappasu { animation: casa-tappasu calc(.9s / var(--vel, 1)) linear infinite; }
 svg .bar { transform-origin: 50% 100%; animation: casa-eq calc(.9s / var(--vel, 1)) ease-in-out infinite; }
 svg .b2 { animation-delay: .15s; } svg .b3 { animation-delay: .3s; } svg .b4 { animation-delay: .45s; }
 svg .calore { animation: casa-sale calc(2.2s / var(--vel, 1)) ease-out infinite; }
 svg .rec { animation: casa-rec calc(1.4s / var(--vel, 1)) steps(1,end) infinite; }
 svg .ondeggia { transform-origin: 32px 46px; animation: casa-onda calc(3s / var(--vel, 1)) ease-in-out infinite; }
 svg .eco { transform-origin: 32px 32px; animation: casa-eco calc(2s / var(--vel, 1)) ease-out infinite; }
-@keyframes casa-goccia { 0% { transform: translateY(-4px); opacity: 0; } 20% { opacity: 1; }
+@keyframes casa-gocciaicona { 0% { transform: translateY(-4px); opacity: 0; } 20% { opacity: 1; }
   100% { transform: translateY(11px); opacity: 0; } }
-svg .goccia { animation: casa-goccia calc(1.5s / var(--vel, 1)) linear infinite; }
-@keyframes casa-fiocco { 0% { transform: translateY(-3px) rotate(0deg); opacity: 0; }
+svg .goccia { animation: casa-gocciaicona calc(1.5s / var(--vel, 1)) linear infinite; }
+@keyframes casa-fioccoicona { 0% { transform: translateY(-3px) rotate(0deg); opacity: 0; }
   20% { opacity: 1; } 100% { transform: translateY(10px) rotate(160deg); opacity: 0; } }
-svg .fiocco { transform-origin: center; animation: casa-fiocco calc(2.8s / var(--vel, 1)) linear infinite; }
+svg .fiocco { transform-origin: center; animation: casa-fioccoicona calc(2.8s / var(--vel, 1)) linear infinite; }
 @keyframes casa-nuvolina { 0%, 100% { transform: translateX(-1.6px); } 50% { transform: translateX(1.6px); } }
 svg .nuvolina { animation: casa-nuvolina calc(4.5s / var(--vel, 1)) ease-in-out infinite; }
 svg .g2 { animation-delay: .5s; } svg .g3 { animation-delay: 1s; }
@@ -1646,6 +1712,69 @@ ha-card::before, ha-card::after { z-index: 1; }
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(130% 100% at 50% -12%, rgba(0,0,0,0) 48%, rgba(0,0,0,.30) 100%);
 }
+/* l'icona in grande dietro a tutto: un timbro, non un disegno da guardare */
+svg.iconafondo {
+  position: absolute; right: 3%; bottom: 5%; top: auto; transform: none;
+  height: 74%; width: auto; max-width: 44%; z-index: 0; pointer-events: none;
+  opacity: var(--fondoico, .14);
+}
+svg.iconafondo[hidden] { display: none !important; }
+/* se la fotina davanti non c'e', il timbro va in basso a sinistra: prende
+   il posto che ha lasciato libero e non copre il numero */
+:host([fondo-giu]) svg.iconafondo {
+  right: auto; left: 2%; top: auto; bottom: 4%;
+  transform: none; height: 72%; max-width: 48%;
+}
+:host([fondo-giu][compatta]) svg.iconafondo { height: 62%; }
+:host([acceso]) svg.iconafondo { opacity: var(--fondoico-acceso, .2); }
+
+/* A mano libera: ogni pezzo sta dove l'ha messo lui. I contenitori
+   spariscono dal conto (display:contents) e i pezzi si posano da soli. */
+:host([liberi]) ha-card { position: relative; }
+/* ATTENZIONE al nome: ".riga" e' la fila con icona e valore, ma anche la
+   LINEA del grafico dentro all'<svg>. Senza "ha-card >" facevo sparire pure
+   quella, e con "Solo la linea" il grafico non si vedeva piu'. */
+:host([liberi]) ha-card > .testa,
+:host([liberi]) ha-card > .riga { display: contents; }
+:host([liberi]) .testi, :host([liberi]) .chips, :host([liberi]) .valore,
+:host([liberi]) svg.icona, :host([liberi]) img.ritratto,
+:host([liberi]) .iconaHa, :host([liberi]) .iconaFoto,
+:host([liberi]) .cursore, :host([liberi]) .comandi {
+  position: absolute; margin: 0; max-width: 88%;
+}
+/* mentre sposti i pezzi la barra non deve rispondere al dito, se no ti
+   ritrovi a muovere la tapparella invece della barra */
+:host([trascinabile]) .cursore, :host([trascinabile]) .comandi,
+:host([trascinabile]) .colori { pointer-events: none; }
+:host([liberi]) .chips { display: contents; }
+:host([liberi]) .chips .metrica { position: absolute; max-width: 88%; }
+:host([liberi]) .valore { margin-left: 0; }
+/* un pezzo spostato non deve spezzarsi: "74 %" resta "74 %" anche se la
+   casella vera e' piu' stretta dell'anteprima */
+:host([liberi]) .valore, :host([liberi]) .chips .metrica { white-space: nowrap; }
+/* La casellina del riquadro sta ferma: e' una copia di servizio, non ha
+   senso che consumi per animarsi mentre lui sposta i pezzi. E lo stesso
+   vale per TUTTE le caselle disegnate dentro alla finestra delle
+   impostazioni (anteprima e contenuto del pop-up): sono li' per farsi
+   guardare, non per lavorare - e con una ventina di caselle che si animano
+   la finestra si trascina. */
+:host([solo-casella]) svg .an, :host([solo-casella]) svg .caricafulmine,
+:host([solo-casella]) .metrica, :host([solo-casella]) .cursore,
+:host([in-anteprima]) svg .an, :host([in-anteprima]) svg .caricafulmine,
+:host([in-anteprima]) .cielo, :host([in-anteprima]) .andamento,
+:host([in-anteprima]) .copertina {
+  animation-play-state: paused !important; }
+:host([in-anteprima]) *, :host([in-anteprima]) *::before,
+:host([in-anteprima]) *::after { transition: none !important; }
+/* mentre si spostano i pezzi la casella non si seleziona e non scorre */
+:host([trascinabile]) ha-card { user-select: none; -webkit-user-select: none;
+  touch-action: none; cursor: grab; }
+:host([trascinabile]) .cartellino, :host([trascinabile]) .mirino {
+  display: none !important; }
+/* mentre lo sposti si vede cosa stai prendendo */
+:host([liberi]) .inmano { outline: 2px dashed var(--c); outline-offset: 3px;
+  border-radius: 6px; cursor: grab; }
+
 .testa, .chips, .cursore, svg.icona, img.ritratto, .valore,
 .lettori, .extra, .pannello, .tempo, .comandi, .colori,
 .iconaHa, .iconaFoto { position: relative; z-index: 1; }
@@ -1915,6 +2044,14 @@ ha-card::before, ha-card::after { z-index: 1; }
   width: 100%; height: 46%; min-height: 24px; max-height: 72px;
   z-index: 0; pointer-events: none; opacity: .8; }
 .andamento[hidden] { display: none !important; }
+/* Il grafico sta dietro alle scritte: senza aiuto i numeri ci si perdono
+   dentro. Un alone scuro attorno alle lettere e un velo morbido sotto al
+   numero grande bastano a staccarli, senza coprire il grafico. */
+:host([congrafico]) .nome, :host([congrafico]) .sotto,
+:host([congrafico]) .metrica .num, :host([congrafico]) .metrica .eti {
+  text-shadow: 0 1px 2px rgba(6,10,16,.85);
+}
+:host([congrafico]) .andamento { opacity: .68; }
 .andamento .riga { fill: none; stroke: var(--c); stroke-width: 1.6;
   stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .andamento .pieno { fill: var(--velo, transparent); stroke: none; }
@@ -2197,18 +2334,39 @@ ha-card::before, ha-card::after { z-index: 1; }
 }
 /* --- contenuto del pop-up mostrato nell'anteprima delle impostazioni --- */
 .popup-anteprima { margin-top: 10px; padding: 12px; border-radius: 18px;
+  /* Niente "max-width: 100%": il riquadro puo' essere piu' largo della
+     casella (che HA tiene stretta quanto sulla plancia) e prendersi tutta
+     la colonna. Overflow tagliato per non far comparire barre. */
+  overflow: hidden;
   border: 1px dashed var(--casa-border, #33465f); background: rgba(255,255,255,.03);
   display: grid; gap: 10px;
-  /* nel riquadro stretto delle impostazioni si allarga quanto puo',
-     cosi' il contenuto del pop-up si vede come si vedra' davvero */
-  width: max(100%, 400px); box-sizing: border-box; }
+  /* mai piu' larga della colonna che la ospita, se no viene tagliata */
+  width: 100%; box-sizing: border-box; }
 .popup-anteprima[hidden] { display: none !important; }
 .popup-anteprima .titoletto { font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
   color: var(--secondary-text-color, #8ea0b8); }
 .popup-anteprima > * { display: block; }
+/* le schede del pop-up, una sotto l'altra, larghe quanto la colonna:
+   provato a disegnarle alla larghezza vera del pop-up e a rimpicciolirle,
+   ma con la finestra stretta veniva o minuscolo o tagliato. */
+/* minmax(0,1fr) e non "1fr": se no una scheda larga (il power-flow) si
+   allarga la colonna e sfonda il riquadro, e da li' il taglio a destra e
+   la barra di scorrimento che va e viene facendo sfarfallare tutto */
+.popup-anteprima .pa-dentro { display: grid; gap: 10px;
+  grid-template-columns: minmax(0, 1fr); }
+.popup-anteprima .pa-dentro > * { min-width: 0; max-width: 100%; overflow: hidden; }
+.cartellino-anteprima { display: flex; align-items: center; gap: 8px;
+  padding: 14px; border-radius: 14px; font-size: 12px;
+  color: var(--secondary-text-color, #8ea0b8);
+  border: 1px dashed var(--casa-border, #33465f); background: rgba(255,255,255,.02); }
+.cartellino-anteprima .segno { font-size: 18px; }
 
 svg .an { animation-play-state: paused; }
 :host([anima]) svg .an { animation-play-state: running; }
+/* la batteria che carica o che da corrente si muove sempre: sta lavorando
+   davvero, e non ha senso fermarla perche' la casella e' spenta */
+svg .caricafulmine { animation-play-state: running; }
+:host([fermo]) svg .caricafulmine { animation-play-state: paused; }
 
 .velo {
   position: fixed; inset: 0; z-index: 9; display: none;
@@ -2237,13 +2395,22 @@ svg .an { animation-play-state: paused; }
 }
 .f-chiudi:hover { background: rgba(255,255,255,.16); }
 .f-corpo > * { margin-bottom: 10px; display: block; }
-/* le schede dentro al pop-up: si vestono coi colori che sceglie lui */
-:host([fin-schede]) .f-corpo {
-  --ha-card-background: var(--fin-sch-bg);
-  --card-background-color: var(--fin-sch-bg);
-  --ha-card-border-color: var(--fin-sch-bordo, transparent);
-  --ha-card-box-shadow: none;
+/* Le schede dentro al pop-up NON devono ereditare i colori di questa
+   casella: ognuna ha i suoi. I colori viaggiano da soli da padre a figlio,
+   quindi qui li azzero e ogni scheda si mette i propri. */
+.f-corpo, .popup-anteprima {
+  --c: initial; --testo: initial; --testo2: initial; --bordo: initial;
+  --alone1: initial; --alone2: initial; --velo: initial; --card-bg: initial;
+  --vel: initial; --sfoca: initial; --luce-cop: initial;
+  --forza-cielo: initial; --pan-bg: initial;
+  --fondoico: initial; --fondoico-acceso: initial;
+  --fin-bg: initial; --fin-sch-bg: initial; --fin-sch-bordo: initial;
 }
+
+/* ogni scheda dentro al pop-up sta nella sua busta, che le da il colore */
+.f-corpo .vestito, .popup-anteprima .vestito { display: block; }
+.popup-anteprima .vestito[vestita] { border-radius: 14px; overflow: hidden; }
+.f-corpo .vestito[vestita] { border-radius: 14px; overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { svg .an { animation: none !important; } }
 `;
 
@@ -2461,6 +2628,15 @@ function fotoDi(st) {
 // dall'elemento apposta: serve a ritrovarlo se Home Assistant, mentre si
 // modificano le impostazioni, rifa' la casella da zero.
 const PANNELLI_APERTI = new Map();
+
+// quanto ci mette ogni tapparella per un punto percentuale: si impara
+// guardando quanto ci mette davvero, cosi' il movimento disegnato va
+// alla stessa velocita' di quella vera
+const VELOCITA_TAPPARELLE = {};
+
+// le entita' "parenti" di una casella (stesso inizio di nome) che parlano di
+// carica e scarica: si cercano una volta sola per tutta la pagina
+const PARENTI = {};
 
 // quanto occupa davvero ogni disegno: si misura una volta sola
 const MISURE_ICONA = {};   // rifatte dalla v2.3.6 (aria = spessore del tratto)
@@ -2769,6 +2945,44 @@ const SEGNI = {
 // YouTube Music chiama gli artisti "Tizio - Topic": la coda non serve a nessuno
 const nomeArtista = (chi) => String(chi || "").replace(/\s*-\s*Topic\s*$/i, "").trim();
 
+// tinta/pienezza/luce <-> rosso/verde/blu: servono alla ruota dei colori
+function rgbAHsl(r, g, b) {
+  const r2 = r / 255; const g2 = g / 255; const b2 = b / 255;
+  const alto = Math.max(r2, g2, b2); const basso = Math.min(r2, g2, b2);
+  const d = alto - basso;
+  let h = 0;
+  if (d) {
+    if (alto === r2) h = ((g2 - b2) / d) % 6;
+    else if (alto === g2) h = (b2 - r2) / d + 2;
+    else h = (r2 - g2) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  const l = (alto + basso) / 2;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  return [Math.round(h), Math.round(s * 100), Math.round(l * 100)];
+}
+
+function hslARgb(h, s, l) {
+  const h0 = isFinite(h) ? h : 0;
+  const s2 = Math.max(0, Math.min(100, isFinite(s) ? s : 0)) / 100;
+  const l2 = Math.max(0, Math.min(100, isFinite(l) ? l : 50)) / 100;
+  const c = (1 - Math.abs(2 * l2 - 1)) * s2;
+  const x = c * (1 - Math.abs(((h0 / 60) % 2) - 1));
+  const m = l2 - c / 2;
+  let p = [0, 0, 0];
+  const g = Math.floor(((h0 % 360) + 360) % 360 / 60);
+  if (g === 0) p = [c, x, 0];
+  else if (g === 1) p = [x, c, 0];
+  else if (g === 2) p = [0, c, x];
+  else if (g === 3) p = [0, x, c];
+  else if (g === 4) p = [x, 0, c];
+  else p = [c, 0, x];
+  return p.map((v) => Math.round((v + m) * 255));
+}
+
+const hslATesto = (h, s, l) => daRgb(hslARgb(h, s, l));
+
 const segno = (nome) =>
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + SEGNI[nome] + '"></path></svg>';
 
@@ -2859,7 +3073,82 @@ class CasaTile extends HTMLElement {
     this._render();
   }
 
-  set hass(hass) { this._hass = hass; this._render(); }
+  // Home Assistant manda un aggiornamento a TUTTE le caselle ogni volta che
+  // una qualsiasi entita' della casa cambia. Con settantasei caselle e
+  // migliaia di entita' vuol dire ridisegnare tutto centinaia di volte al
+  // minuto per niente: qui guardo solo le entita' che questa casella usa
+  // davvero, e se non e' cambiata nessuna non muovo un dito.
+  set hass(hass) {
+    const prima = this._hass;
+    this._hass = hass;
+    if (prima && this._costruito && !this._miRiguarda(prima, hass)) return;
+    // I valori arrivano a valanga: Home Assistant ne manda anche qualche
+    // migliaio al secondo quando in casa c'e' movimento, e a ogni valanga
+    // vorrebbe farmi ridisegnare. Non serve a niente: l'occhio ne vede
+    // sessanta. Al massimo dieci disegni al secondo, l'ultimo valore non si
+    // perde (arriva col disegno in coda).
+    const ora = Date.now();
+    const passato = ora - (this._ultimoDisegno || 0);
+    if (this._costruito && passato < 100) {
+      if (!this._disegnoHass) {
+        this._disegnoHass = setTimeout(() => {
+          this._disegnoHass = 0;
+          this._ultimoDisegno = Date.now();
+          if (this.isConnected) this._render();
+        }, 100 - passato);
+      }
+      return;
+    }
+    this._ultimoDisegno = ora;
+    this._render();
+  }
+
+  _miRiguarda(prima, ora) {
+    if (!prima || !ora || !prima.states || !ora.states) return true;
+    if (prima.states === ora.states) return false;
+    // col pop-up aperto (o un riquadro) dentro ci sono schede di Home
+    // Assistant che vogliono sapere tutto: li' ridisegno sempre
+    if (this._velo && this._velo.hasAttribute("aperto")) return true;
+    if (this._panGruppo && !this._panGruppo.hidden) return true;
+    if (this._panFonti && !this._panFonti.hidden) return true;
+    if (this._antPopup && !this._antPopup.hidden) return true;
+    const quali = this._entitaSeguite();
+    if (quali === null) return true;   // non lo so: meglio ridisegnare
+    for (let i = 0; i < quali.length; i += 1) {
+      if (prima.states[quali[i]] !== ora.states[quali[i]]) return true;
+    }
+    return false;
+  }
+
+  // tutte le entita' che questa casella legge: quelle scritte nelle
+  // impostazioni piu' quelle che si e' andata a cercare da sola
+  _entitaSeguite() {
+    const c = this._config || {};
+    const chiave = JSON.stringify([c.entity, c.info_entita, c.acceso_entita,
+      c.meteo_entita, c.lettori, c.distanza_entita, c.sottotitolo_entita,
+      c.carica_entita, c.scarica_entita, c.finestra_entita]);
+    if (this._chiaveSeguite !== chiave) {
+      this._chiaveSeguite = chiave;
+      const dentro = [];
+      const metti = (x) => {
+        if (!x) return;
+        if (Array.isArray(x)) x.forEach(metti);
+        else if (typeof x === "string") dentro.push(x);
+      };
+      metti(c.entity); metti(c.info_entita); metti(c.acceso_entita);
+      metti(c.meteo_entita); metti(c.lettori); metti(c.distanza_entita);
+      metti(c.sottotitolo_entita); metti(c.carica_entita); metti(c.scarica_entita);
+      metti(c.finestra_entita);
+      this._seguite = dentro;
+      // una casella della musica senza l'elenco delle casse va a cercarsele
+      // da sola fra tutti i lettori: li' non posso fare i furbi
+      this._cercaCasse = String(c.entity || "").indexOf("media_player.") === 0
+        && !(Array.isArray(c.lettori) && c.lettori.length);
+    }
+    if (this._cercaCasse) return null;
+    const extra = this._lette ? Array.from(this._lette) : [];
+    return extra.length ? this._seguite.concat(extra) : this._seguite;
+  }
 
   // Home Assistant mette `preview` sia nel riquadro delle impostazioni
   // sia quando la dashboard e' in modifica; per distinguere c'e'
@@ -2907,37 +3196,177 @@ class CasaTile extends HTMLElement {
     return false;
   }
 
+  // Sono una casella disegnata DENTRO all'anteprima del pop-up di
+  // un'altra? Allora la mia anteprima del pop-up non la faccio: se no
+  // ogni finestra di impostazioni si mette a costruire pop-up dentro
+  // pop-up, telecamere comprese, e la pagina si blocca.
+  _dentroUnAltraAnteprima() {
+    if (this._annidata !== undefined) return this._annidata;
+    let n = this;
+    let dentro = false;
+    for (let i = 0; i < 40; i += 1) {
+      n = n.parentNode || n.host;
+      if (!n) break;
+      const cl = (n.classList && n.classList.contains) ? n.classList : null;
+      if (cl && (cl.contains("popup-anteprima") || cl.contains("f-corpo"))) {
+        dentro = true;
+        break;
+      }
+      const nome = String(n.localName || "");
+      // anche l'anteprima di una scheda che sto sistemando dentro
+      // all'elenco "Schede dentro il pop-up": li' costruire tutto il suo
+      // pop-up (telecamere comprese) e' solo peso inutile
+      if (nome === "casa-tile-editor") { dentro = true; break; }
+      if (nome === "hui-dialog-edit-card"
+        || (cl && cl.contains("element-preview"))) break;
+    }
+    this._annidata = dentro;
+    return dentro;
+  }
+
+  // Il riquadro del pop-up si prende tutta la colonna dell'anteprima, non
+  // solo il pezzetto che Home Assistant da' alla casella (largo quanto la
+  // card sulla plancia: 6 colonne su 12). Lo spazio vero glielo misuro
+  // sull'antenato che lo contiene.
+  _largoAntPopup() {
+    const box = this._antPopup;
+    if (!box || box.hidden) return;
+    let n = this;
+    let largo = 0;
+    for (let i = 0; i < 20; i += 1) {
+      n = n.parentNode || n.host;
+      if (!n) break;
+      const cl = (n.classList && n.classList.contains) ? n.classList : null;
+      if (String(n.localName || "") === "hui-dialog-edit-card"
+        || (cl && cl.contains("element-preview"))) {
+        largo = (n.clientWidth || 0) - 6;
+        break;
+      }
+    }
+    const mio = this.clientWidth || 0;
+    if (largo > 200 && largo > mio + 12) {
+      if (box._largo !== largo) { box._largo = largo; box.style.width = largo + "px"; }
+    } else if (box._largo) {
+      box._largo = 0;
+      box.style.width = "";
+    }
+  }
+
+  // Roba che nell'anteprima non va costruita per davvero: le telecamere
+  // accendono lo stream (e in una finestra di impostazioni aperta e chiusa
+  // dieci volte diventano gigabyte di video in memoria). Nell'anteprima
+  // basta un cartellino con il nome.
+  _pesante(cfg) {
+    const t = String((cfg && cfg.type) || "").toLowerCase();
+    // le nostre caselle si costruiscono sempre: sono leggere, e la diretta
+    // gliela spengo qui sotto
+    if (t === "custom:casa-tile") return false;
+    if (t.indexOf("camera") >= 0 || t.indexOf("webrtc") >= 0
+      || t.indexOf("frigate") >= 0 || t.indexOf("stream") >= 0) return true;
+    if (cfg && (cfg.camera_entity || cfg.cameras)) return true;
+    if (cfg && String(cfg.entity || "").indexOf("camera.") === 0) return true;
+    return false;
+  }
+
+  _cartellino(cfg) {
+    const d = document.createElement("div");
+    d.className = "cartellino-anteprima";
+    const t = String((cfg && cfg.type) || "").replace("custom:", "");
+    d.innerHTML = "<span class='segno'>&#128247;</span><span></span>";
+    d.querySelector("span:last-child").textContent =
+      t + " - anteprima spenta per non tenere accesa la telecamera";
+    d.setConfig = () => {};
+    return d;
+  }
+
   async _disegnaAntPopup() {
     const box = this._antPopup;
     if (!box) return;
     const c = this._config || {};
     const schede = c.finestra_cards || (c.finestra_card ? [c.finestra_card] : null);
-    const mostra = this._dentroAnteprima() && c.azione === "finestra"
+    // nel riquadro dove si trascinano i pezzi voglio SOLO la casella:
+    // il contenuto del pop-up li' dentro non c'entra niente
+    const mostra = !this.hasAttribute("solo-casella")
+      && this._dentroAnteprima() && !this._dentroUnAltraAnteprima()
+      && c.azione === "finestra"
       && !!schede && schede.length > 0;
     box.hidden = !mostra;
     if (!mostra) { box.innerHTML = ""; this._firmaAnt = null; return; }
 
     const firma = JSON.stringify(schede);
     if (this._firmaAnt === firma) {
-      (this._anteprimaSchede || []).forEach((el) => { el.hass = this._hass; });
+      // I valori glieli do UNA volta sola: e' un'anteprima, serve a far
+      // vedere com'e' fatto il pop-up, non a tenerlo aggiornato. Prima
+      // ripassavo power-flow, griglie e venti caselle a ogni stato che
+      // cambiava in casa, e la finestra si trascinava. (A chi e' nato
+      // prima che arrivassero i valori glieli do adesso, se no resta
+      // vuoto per sempre.)
+      if (this._hass) {
+        (this._anteprimaSchede || []).forEach((el) => {
+          if (el._ebbeValori) return;
+          el._ebbeValori = true;
+          try { el.hass = this._hass; } catch (e) { /* pazienza */ }
+        });
+      }
+      box.querySelectorAll(".vestito").forEach((b) =>
+        this._vestiScheda(b, Number(b.dataset.n) || 0));
+      this._largoAntPopup();
       return;
     }
     this._firmaAnt = firma;
     box.innerHTML = "<div class='titoletto'>Contenuto del pop-up</div>";
+    const dentro = document.createElement("div");
+    dentro.className = "pa-dentro";
+    box.appendChild(dentro);
     this._anteprimaSchede = [];
     try {
       const aiuti = await window.loadCardHelpers();
-      schede.forEach((cfg) => {
+      schede.forEach((cfg, i) => {
         try {
-          const el = aiuti.createCardElement({ ...cfg });
+          // nell'anteprima niente diretta della telecamera: e' la cosa che
+          // mangia piu' memoria di tutte
+          const suo = { ...cfg };
+          if (suo.camera_diretta) delete suo.camera_diretta;
+          const el = this._pesante(suo)
+            ? this._cartellino(suo)
+            : aiuti.createCardElement(suo);
           el.hass = this._hass;
-          box.appendChild(el);
+          el._ebbeValori = !!this._hass;
+          const busta = document.createElement("div");
+          busta.className = "vestito";
+          busta.dataset.n = String(i);
+          this._vestiScheda(busta, i);
+          busta.appendChild(el);
+          dentro.appendChild(busta);
           this._anteprimaSchede.push(el);
         } catch (e) { /* una scheda che non va non ferma le altre */ }
       });
     } catch (e) { /* niente aiuti: pazienza */ }
+    this._largoAntPopup();
+    // toccando una casella qui dentro si sceglie quale sistemare nel
+    // riquadro "Dove va ogni pezzo": cosi' basta un riquadro solo, nella
+    // pagina principale, invece di rifare tutto dentro ogni scheda
+    dentro.addEventListener("click", (e) => {
+      const via = e.composedPath ? e.composedPath() : [];
+      let scelta = null;
+      for (let i = 0; i < via.length; i += 1) {
+        if (via[i] === dentro) break;
+        if (via[i] && via[i].localName === "casa-tile") { scelta = via[i]; break; }
+      }
+      if (!scelta || !scelta._config) return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.dispatchEvent(new CustomEvent("casa-scegli-scheda", {
+        detail: { config: scelta._config, elemento: scelta },
+        bubbles: true, composed: true,
+      }));
+    }, true);
   }
 
+  // Il pop-up vero e' largo 560px (meno i suoi bordi): l'anteprima nelle
+  // impostazioni ne ha molti meno. Disegno il contenuto alla larghezza VERA
+  // e poi rimpicciolisco tutto insieme, cosi' le schede stanno come
+  // staranno davvero invece di stringersi e andare a capo per conto loro.
   getCardSize() { return this._config && this._config.grande ? 3 : 2; }
   getGridOptions() {
     const c = this._config || {};
@@ -2960,6 +3389,7 @@ class CasaTile extends HTMLElement {
     root.innerHTML = `<style>${STILE}</style>
       <ha-card tabindex="0">
         <div class="cielo" hidden></div>
+        <svg class="iconafondo" viewBox="0 0 64 64" fill="none" aria-hidden="true" hidden></svg>
         <div class="copertina" hidden></div>
         <div class="lettori" hidden></div>
         <div class="testa"><div class="testi"><div class="nome"></div><div class="sotto"></div></div><div class="chips"></div><div class="meteo" hidden><div class="gradi"></div><div class="cond"></div></div></div>
@@ -3052,6 +3482,7 @@ class CasaTile extends HTMLElement {
     this._gradi = root.querySelector(".meteo .gradi");
     this._cond = root.querySelector(".meteo .cond");
     this._svg = root.querySelector("svg.icona");
+    this._svgFondo = root.querySelector("svg.iconafondo");
     this._svgHa = root.querySelector(".iconaHa");
     this._svgFoto = root.querySelector(".iconaFoto");
     this._ritratto = root.querySelector("img.ritratto");
@@ -3170,6 +3601,11 @@ class CasaTile extends HTMLElement {
       b.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!this._hass || !this._config.entity) return;
+        if (dominio === "cover") {
+          if (servizio === "open_cover") this._viaggia(100);
+          else if (servizio === "close_cover") this._viaggia(0);
+          else this._fermaViaggio(true);
+        }
         this._hass.callService(dominio, servizio, { entity_id: this._config.entity });
       });
     };
@@ -3203,8 +3639,10 @@ class CasaTile extends HTMLElement {
     const soloAllaFine = () => {
       const dom = this._config && this._config.entity
         ? this._config.entity.split(".")[0] : "";
-      // un valore impostabile va scritto una volta sola, quando lasci
-      return dom === "number" || dom === "input_number";
+      // un valore impostabile va scritto una volta sola, quando lasci.
+      // Le tapparelle uguale: mandare comandi mentre trascini vuol dire
+      // farla partire e fermare dieci volte.
+      return dom === "number" || dom === "input_number" || dom === "cover";
     };
     const mostra = () => {
       const val = Number(this._range.value);
@@ -3216,18 +3654,26 @@ class CasaTile extends HTMLElement {
         const quota = max > min ? ((val - min) / (max - min)) * 100 : 0;
         this._quanto.textContent = val + (u ? " " + u : "");
         this._range.style.setProperty("--riempito", quota.toFixed(1) + "%");
+        this._seguiIlDito(val);
         return;
       }
       this._quanto.textContent = this._range.value + "%";
       this._range.style.setProperty("--riempito", this._range.value + "%");
+      this._seguiIlDito(val);
     };
     ["pointerdown", "touchstart", "mousedown", "keydown"].forEach((ev) =>
-      this._range.addEventListener(ev, () => { this._trascino = true; }));
+      this._range.addEventListener(ev, () => {
+        this._trascino = true;
+        this._fermaViaggio(false);
+      }));
     ["pointerup", "touchend", "mouseup", "keyup"].forEach((ev) =>
       this._range.addEventListener(ev, () => {
         // solo se stavo davvero trascinando io: se no, toccando altro
         // (o chiudendo il pop-up) partiva un comando da solo
         if (!this._trascino) return;
+        // il comando "a meta' strada" che stava per partire non serve piu':
+        // se no arriva subito dopo e l'apparecchio fa due bip
+        clearTimeout(this._freno);
         this._regola(Number(this._range.value));
         setTimeout(() => { this._trascino = false; }, 900);
       }));
@@ -3243,6 +3689,7 @@ class CasaTile extends HTMLElement {
     this._range.addEventListener("change", () => {
       mostra();
       if (!this._trascino) return;
+      clearTimeout(this._freno);
       this._regola(Number(this._range.value));
     });
     this._antPopup = root.querySelector(".popup-anteprima");
@@ -3263,6 +3710,17 @@ class CasaTile extends HTMLElement {
   }
 
   _azione() {
+    // Se sono l'anteprima della finestra delle impostazioni, toccarmi non
+    // deve aprire il pop-up: deve dire "sistema ME" al riquadro qui sotto.
+    // (Prima era l'unica casella che non si riusciva a scegliere.)
+    if (!this.hasAttribute("solo-casella") && this._sonoAnteprima
+      && !this._dentroUnAltraAnteprima()) {
+      this.dispatchEvent(new CustomEvent("casa-scegli-scheda", {
+        detail: { config: this._config, elemento: this },
+        bubbles: true, composed: true,
+      }));
+      return;
+    }
     const c = this._config;
     const schede = c.finestra_cards || (c.finestra_card ? [c.finestra_card] : null);
     // senza entita' l'unica cosa sensata e' aprire il pop-up
@@ -3343,6 +3801,303 @@ class CasaTile extends HTMLElement {
       + encodeURIComponent(dove), "_blank", "noopener");
   }
 
+  // I pezzi che ha spostato lui: li poso dove ha detto, in percentuale
+  // sulla casella, cosi' vanno bene a qualsiasi misura.
+  _mettiAPosto() {
+    const posti = this._config.posti;
+    const liberi = !!posti && Object.keys(posti).length > 0;
+    if (!liberi && !this.hasAttribute("liberi")) return;
+    this.toggleAttribute("liberi", liberi);
+    const pezzi = {
+      nome: [".testi"],
+      misure: [".chips"],
+      valore: [".valore"],
+      icona: ["svg.icona", "img.ritratto", ".iconaHa", ".iconaFoto"],
+      cursore: [".cursore"],
+      comandi: [".comandi"],
+    };
+    // la barra e i tasti tengono la loro larghezza in percentuale: non sono
+    // scritte, allargarli o stringerli e' proprio quello che vuole
+    const larghi = { cursore: 1, comandi: 1 };
+    // Ogni pezzo si porta scritto addosso l'ultima disposizione che gli ho
+    // dato: se non e' cambiata non riscrivo niente. Serve, perche' qui si
+    // passa due volte per ogni ridisegno di ogni casella.
+    // la firma la calcolo solo quando cambia la configurazione, e la
+    // appiccico ai pezzi come proprieta' (scrivere un attributo lungo su
+    // ogni pezzo a ogni giro costa piu' del lavoro che risparmia)
+    if (this._firmaPostiDi !== posti) {
+      this._firmaPostiDi = posti;
+      this._firmaPosti = liberi ? JSON.stringify(posti) : "-";
+    }
+    const firma = this._firmaPosti;
+    // se non e' cambiato niente - ne la disposizione, ne le misure che
+    // vengono rifatte a ogni valore nuovo - non c'e' niente da rimettere
+    // a posto: qui ci si passa due volte per ogni ridisegno.
+    if (this._postiFatti === firma && this._chipsViste === this._firmaChips) return;
+    this._postiFatti = firma;
+    this._chipsViste = this._firmaChips;
+    Object.keys(pezzi).forEach((chi) => {
+      const dove = liberi ? posti[chi] : null;
+      pezzi[chi].forEach((sel) => {
+        const el = this.shadowRoot.querySelector(sel);
+        if (!el) return;
+        if (el._posato === firma) return;
+        el._posato = firma;
+        if (dove && isFinite(dove.x) && isFinite(dove.y)) {
+          this._posaPezzo(el, dove, chi === "icona", larghi[chi]);
+        } else {
+          el.style.left = "";
+          el.style.top = "";
+          el.style.right = "";
+          el.style.width = "";
+          el.style.maxWidth = "";
+          el.style.height = "";
+          el.style.maxHeight = "";
+          el.style.transform = "";
+          el.style.transformOrigin = "";
+        }
+      });
+    });
+    // e ogni misura per conto suo: si spostano una per una
+    const base = (liberi && posti.misure) ? posti.misure : { x: 58, y: 8 };
+    this.shadowRoot.querySelectorAll(".chips .metrica").forEach((el, i) => {
+      if (el._posato === firma) return;
+      el._posato = firma;
+      const suo = liberi ? posti["misura:" + el.dataset.eid] : null;
+      if (!liberi) {
+        el.style.left = ""; el.style.top = ""; el.style.width = "";
+        el.style.transform = ""; el.style.transformOrigin = "";
+        return;
+      }
+      const dove = (suo && isFinite(suo.x)) ? suo
+        : { x: base.x, y: base.y + i * 13 };
+      this._posaPezzo(el, dove, false);
+    });
+  }
+
+  // Poso un pezzo. Due accortezze imparate a spese sue:
+  // - la larghezza NON la fisso in percentuale. La casella vera puo' essere
+  //   piu' stretta dell'anteprima, e le scritte non rimpiccioliscono con
+  //   lei: una larghezza in percentuale mandava "74 %" a capo, col numero
+  //   sopra e il segno sotto. Gli lascio la sua misura naturale.
+  // - se il pezzo sta nella meta' destra lo attacco al bordo DESTRO. Cosi'
+  //   su una casella piu' stretta resta al suo posto invece di scivolare
+  //   verso il centro.
+  _posaPezzo(el, dove, eIcona, eLargo) {
+    const w = isFinite(dove.w) ? dove.w : 0;
+    const aDestra = isFinite(dove.dx) && (dove.x + w / 2) > 50;
+    if (aDestra) {
+      el.style.left = "auto";
+      el.style.right = dove.dx + "%";
+    } else {
+      el.style.right = "auto";
+      el.style.left = dove.x + "%";
+    }
+    el.style.top = dove.y + "%";
+    if (eIcona) {
+      if (isFinite(dove.h)) {
+        el.style.height = dove.h + "%";
+        el.style.maxHeight = "none";
+      }
+      return;
+    }
+    if (eLargo && w > 0) {
+      el.style.width = w + "%";
+      el.style.maxWidth = "none";
+      return;
+    }
+    el.style.width = "max-content";
+    const spazio = aDestra ? (dove.x + w) : (100 - dove.x);
+    el.style.maxWidth = "calc(" + Math.max(15, Math.round(spazio)) + "% - 6px)";
+  }
+
+  // Sto dentro alla plancia in modifica? In modifica Home Assistant mi
+  // avvolge in "hui-card-options" e la plancia e' un po' diversa da come
+  // sara' davvero (compare la colonna dei "+"), quindi quella misura non
+  // vale come modello.
+  // Dove mi trovo? "prova" = un posto che NON vale come misura vera (le
+  // anteprime e la plancia in modifica), "pop" = dentro a un pop-up,
+  // "" = sulla plancia per davvero.
+  _dovesto() {
+    // costa il giro di tutti gli antenati: lo faccio una volta sola, tanto
+    // finche' resto attaccato qui il posto non cambia
+    if (this._postoSalvato) return this._postoSalvato;
+    let n = this;
+    let pop = false;
+    // profondo: una casella dentro a una griglia dentro al pop-up sta
+    // sotto a un bel po' di gusci, e fermandomi troppo presto la contavo
+    // come casella della plancia
+    for (let i = 0; i < 40; i += 1) {
+      n = n.parentNode || n.host;
+      if (!n) break;
+      const nome = String(n.localName || "");
+      const cl = (n.classList && n.classList.contains) ? n.classList : null;
+      if (nome === "hui-card-options" || nome === "hui-card-edit-mode"
+        || nome === "hui-dialog-edit-card" || nome === "hui-dialog-more-info"
+        || (cl && (cl.contains("element-preview") || cl.contains("popup-anteprima")
+          || cl.contains("pista")))) {
+        this._postoSalvato = "prova";
+        return "prova";
+      }
+      // sopra di me c'e' un'altra casella: sono dentro al SUO pop-up
+      if (cl && cl.contains("f-corpo")) pop = true;
+      if (nome === "casa-tile") pop = true;
+      if (nome === "hui-view" || nome === "hui-sections-view"
+        || nome === "hui-masonry-view" || nome === "hui-panel-view") break;
+    }
+    this._postoSalvato = pop ? "pop" : "";
+    return this._postoSalvato;
+  }
+
+  _inModifica() { return this._dovesto() === "prova"; }
+
+  // Sono l'anteprima dentro alla finestra delle impostazioni? Allora mi
+  // metto della misura che ho davvero sulla plancia: guardare un'anteprima
+  // larga il doppio e poi trovarsi la casella stretta e' il modo migliore
+  // per comporre una disposizione che poi non ci sta.
+  _vestiAnteprima() {
+    if (this.hasAttribute("solo-casella")) return;
+    // dentro alla finestra delle impostazioni sto fermo: niente animazioni
+    this.toggleAttribute("in-anteprima", this._dentroAnteprima());
+    // la risposta e' sempre la stessa finche' sto dove sto: me la segno,
+    // se no rifaccio il giro degli antenati a ogni ridisegno di ogni
+    // casella e la plancia si trascina
+    if (this._sonoAnteprima === false) return;
+    // SOLO l'anteprima della finestra "Configurazione scheda": non le
+    // caselle dentro ai pop-up, che stanno anche loro dentro a una finestra
+    // ma non c'entrano niente e non vanno ridimensionate.
+    let dentro = false;
+    let n = this;
+    for (let i = 0; i < 40; i += 1) {
+      n = n.parentNode || n.host;
+      if (!n) break;
+      const nome = String(n.localName || "");
+      if (nome === "hui-card-options" || nome === "hui-card-edit-mode"
+        || nome === "casa-tile" || nome === "hui-dialog-more-info") {
+        this._sonoAnteprima = false;
+        return;
+      }
+      const classi = (n.classList && n.classList.contains) ? n.classList : null;
+      if (classi && (classi.contains("f-corpo") || classi.contains("popup-anteprima"))) {
+        this._sonoAnteprima = false;
+        return;
+      }
+      if (nome === "hui-dialog-edit-card"
+          || (classi && classi.contains("element-preview"))) {
+        dentro = true;
+        break;
+      }
+    }
+    this._sonoAnteprima = dentro;
+    if (!dentro) return;
+    // la chiave me la faccio qui: `_chiaveMisura()` di proposito non risponde
+    // dentro alle anteprime (li' la misura non va SCRITTA), ma io la devo
+    // LEGGERE - ed e' proprio questo il posto dove serve
+    const c = this._config || {};
+    if (!c.entity && !c.name) return;
+    const base = "casa-tile:misura3:" + (c.entity || "") + "|" + (c.name || "");
+    let detta = "";
+    try {
+      detta = localStorage.getItem(base) || localStorage.getItem(base + "|pop") || "";
+    } catch (e) { /* pazienza */ }
+    const pezzi = String(detta).split("x");
+    const w = Number(pezzi[0]);
+    const h = Number(pezzi[1]);
+    if (!(w > 90) || !(h > 40)) return;
+    if (this._anteprimaVestita === detta) return;
+    const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
+    if (!card) return;
+    this._anteprimaVestita = detta;
+    // La misura la do alla CASELLA, non a tutto l'elemento: sotto alla
+    // casella ci sta il riquadro "Contenuto del pop-up", e stringendo tutto
+    // stringevo anche quello (e il pop-up non c'entra niente con quanto e'
+    // larga la casella sulla plancia).
+    this.style.maxWidth = "";
+    this.style.height = "";
+    card.style.maxWidth = Math.round(w) + "px";
+    card.style.height = Math.round(h) + "px";
+    this._largoAntPopup();
+  }
+
+  _chiaveMisura() {
+    const c = this._config || {};
+    if (!c.entity && !c.name) return "";
+    const dove = this._dovesto();
+    if (dove === "prova") return "";
+    return "casa-tile:misura3:" + (c.entity || "") + "|" + (c.name || "")
+      + (dove === "pop" ? "|pop" : "");
+  }
+
+  // me la segno: e' quella che il riquadro delle impostazioni deve copiare
+  _ricordaMisura(w, h) {
+    if (!w || !h || this.hasAttribute("solo-casella")) return;
+    const detta = Math.round(w) + "x" + Math.round(h);
+    if (this._misuraDetta === detta) return;
+    if (this._inModifica()) return;
+    const k = this._chiaveMisura();
+    if (!k) return;
+    this._misuraDetta = detta;
+    // Mi segno la misura di ADESSO. Avevo provato a tenere la piu' stretta
+    // mai vista (la casella e' larga diversa con la barra laterale di Home
+    // Assistant aperta o chiusa), ma cosi' il riquadro restava per sempre
+    // piu' piccolo del vero e lui vedeva la casella "ristretta".
+    try { localStorage.setItem(k, detta); } catch (e) { /* pazienza */ }
+  }
+
+  // Il riquadro DENTRO al bordo della casella. Sembra un dettaglio da
+  // nulla ma non lo e': un pezzo messo a "left: 50%" parte da dentro il
+  // bordo, non da fuori. Misurando il bordo esterno sbagliavo di un paio
+  // di pixel ogni volta, ed era il motivo per cui i pezzi non si posavano
+  // esattamente dove li lasciava.
+  riquadroCasella() {
+    const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
+    if (!card) return null;
+    const r = card.getBoundingClientRect();
+    if (!r.width || !r.height) return null;
+    const st = getComputedStyle(card);
+    const bs = parseFloat(st.borderLeftWidth) || 0;
+    const ba = parseFloat(st.borderTopWidth) || 0;
+    return {
+      left: r.left + bs,
+      top: r.top + ba,
+      width: card.clientWidth || r.width,
+      height: card.clientHeight || r.height,
+    };
+  }
+
+  // dove sta adesso ogni pezzo, in percentuale: serve a partire dalla
+  // posizione vera quando si comincia a trascinare
+  posizioniAdesso() {
+    const q = this.riquadroCasella();
+    if (!q) return {};
+    const pezzi = {
+      nome: ".testi", misure: ".chips", valore: ".valore",
+      icona: "svg.icona:not([hidden]), img.ritratto:not([hidden]), "
+        + ".iconaHa:not([hidden]), .iconaFoto:not([hidden])",
+      cursore: ".cursore:not([hidden])",
+      comandi: ".comandi:not([hidden])",
+    };
+    const fuori = {};
+    const segna = (chi, el) => {
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (!r.width) return;
+      fuori[chi] = {
+        x: Math.round((r.left - q.left) / q.width * 1000) / 10,
+        y: Math.round((r.top - q.top) / q.height * 1000) / 10,
+        w: Math.round(r.width / q.width * 1000) / 10,
+        h: Math.round(r.height / q.height * 1000) / 10,
+        // quanto dista dal bordo destro: serve ai pezzi di destra
+        dx: Math.round((q.left + q.width - r.right) / q.width * 1000) / 10,
+      };
+    };
+    Object.keys(pezzi).forEach((chi) =>
+      segna(chi, this.shadowRoot.querySelector(pezzi[chi])));
+    this.shadowRoot.querySelectorAll(".chips .metrica").forEach((el) =>
+      segna("misura:" + el.dataset.eid, el));
+    return fuori;
+  }
+
   _vestiFinestra() {
     const c = this._config;
     const tinta = Array.isArray(c.finestra_sfondo) ? daRgb(c.finestra_sfondo) : null;
@@ -3360,20 +4115,14 @@ class CasaTile extends HTMLElement {
       this.style.removeProperty("--fin-bg");
     }
 
-    const sch = Array.isArray(c.finestra_schede_sfondo)
-      ? daRgb(c.finestra_schede_sfondo) : null;
-    const schVia = c.finestra_schede_trasparenza;
-    const schOpaco = 1 - (schVia === undefined ? 0 : Number(schVia)) / 100;
-    if (sch || schOpaco < 1) {
-      const base = sch || "#141d2b";
-      this.style.setProperty("--fin-sch-bg", conAlfa(base, schOpaco));
-      this.style.setProperty("--fin-sch-bordo",
-        conAlfa(base, Math.min(1, schOpaco + 0.18)));
-      this.toggleAttribute("fin-schede", true);
-    } else {
-      this.style.removeProperty("--fin-sch-bg");
-      this.style.removeProperty("--fin-sch-bordo");
-      this.toggleAttribute("fin-schede", false);
+    // e ogni scheda dentro si rimette il suo vestito
+    if (this._fCorpo) {
+      this._fCorpo.querySelectorAll(".vestito").forEach((b) =>
+        this._vestiScheda(b, Number(b.dataset.n) || 0));
+    }
+    if (this._antPopup) {
+      this._antPopup.querySelectorAll(".vestito").forEach((b) =>
+        this._vestiScheda(b, Number(b.dataset.n) || 0));
     }
   }
 
@@ -3418,15 +4167,47 @@ class CasaTile extends HTMLElement {
     return this._montaSchede(schede);
   }
 
+  // che colore ha la scheda numero i: prima il suo, poi quello generale
+  _vestiScheda(busta, i) {
+    const c = this._config;
+    const suoi = Array.isArray(c.finestra_schede_stile) ? c.finestra_schede_stile : [];
+    const mio = suoi[i] || {};
+    const tinta = Array.isArray(mio.sfondo) ? daRgb(mio.sfondo)
+      : (Array.isArray(c.finestra_schede_sfondo) ? daRgb(c.finestra_schede_sfondo) : null);
+    const via = mio.trasparenza !== undefined && mio.trasparenza !== null
+      ? Number(mio.trasparenza)
+      : (c.finestra_schede_trasparenza === undefined
+        ? null : Number(c.finestra_schede_trasparenza));
+    if (!tinta && (via === null || via === 0)) {
+      busta.removeAttribute("style");
+      busta.toggleAttribute("vestita", false);
+      return;
+    }
+    const opaco = 1 - (via === null ? 0 : via) / 100;
+    const base = tinta || "#141d2b";
+    busta.style.setProperty("--ha-card-background", conAlfa(base, opaco));
+    busta.style.setProperty("--card-background-color", conAlfa(base, opaco));
+    busta.style.setProperty("--ha-card-border-color",
+      conAlfa(base, Math.min(1, opaco + 0.18)));
+    busta.style.setProperty("--ha-card-box-shadow", "none");
+    busta.toggleAttribute("vestita", true);
+  }
+
   async _montaSchede(schede) {
     try {
       const helpers = await window.loadCardHelpers();
       this._schede = [];
-      schede.forEach((cfg) => {
+      schede.forEach((cfg, i) => {
         try {
           const el = helpers.createCardElement(cfg);
           el.hass = this._hass;
-          this._fCorpo.appendChild(el);
+          // ogni scheda dentro il pop-up si veste per conto suo
+          const busta = document.createElement("div");
+          busta.className = "vestito";
+          busta.dataset.n = String(i);
+          this._vestiScheda(busta, i);
+          busta.appendChild(el);
+          this._fCorpo.appendChild(busta);
           this._schede.push(el);
         } catch (err) {
           const avviso = document.createElement("div");
@@ -3813,10 +4594,20 @@ class CasaTile extends HTMLElement {
   }
 
   disconnectedCallback() {
+    clearTimeout(this._riMisuro);
+    this._riMisuro = 0;
+    clearTimeout(this._disegnoDopo);
+    clearTimeout(this._disegnoHass);
+    this._disegnoDopo = 0;
+    this._disegnoHass = 0;
+    // la scorciatoia dell'Esc restava attaccata al documento
+    if (this._esc) { document.removeEventListener("keydown", this._esc); this._esc = null; }
     this._fermaOrologio();
     this._fermaDiretta();
+    this._fermaOrologioTappa();
     if (this._ticchettio) { clearInterval(this._ticchettio); this._ticchettio = null; }
     if (this._osserva) { this._osserva.disconnect(); this._osserva = null; }
+    this._cartaOsservata = null;
   }
 
   // guardo quanto sono alta davvero: sotto una certa misura passo al modo
@@ -3824,10 +4615,52 @@ class CasaTile extends HTMLElement {
   _controllaMisura() {
     const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
     if (!card) return;
-    const h = card.getBoundingClientRect().height;
-    if (!h) return;
+    // l'osservatore va attaccato appena la casella esiste per davvero:
+    // quando mi attacco alla pagina spesso non c'e' ancora, e prima restavo
+    // per sempre senza misura (era il caso della casellina del riquadro,
+    // che veniva grande mentre l'anteprima era compatta)
+    if (this._osserva && this._cartaOsservata !== card) {
+      try { this._osserva.observe(card); this._cartaOsservata = card; } catch (e) { /* pazienza */ }
+    }
+    const q = card.getBoundingClientRect();
+    const h = q.height;
+    if (!h) {
+      // Niente misura. Due casi: non sono ancora impaginato (fra un attimo
+      // ci sono) oppure sono NASCOSTO - pop-up chiuso, altra linguetta - e
+      // allora di altezza non ne avro' mai.
+      // Qui c'era il mostro: riprovavo con il fotogramma E con la sveglia,
+      // e ogni tentativo ne faceva partire due. Uno, due, quattro, otto...
+      // in pochi secondi la pagina si bloccava e la memoria volava a
+      // gigabyte. Ora: una sola sveglia per volta, al massimo otto
+      // tentativi, e se sono nascosto non ci provo nemmeno - quando
+      // ricompaio ci pensa il sorvegliante delle misure.
+      if (this._riMisuro) return;
+      if (this.offsetParent === null) return;
+      this._tentativiMisura = (this._tentativiMisura || 0) + 1;
+      if (this._tentativiMisura > 8) return;
+      this._riMisuro = setTimeout(() => {
+        this._riMisuro = 0;
+        if (this.isConnected) this._controllaMisura();
+      }, 120);
+      return;
+    }
+    this._tentativiMisura = 0;
     this._altezzaVista = h;
     this._quandoMisura = Date.now();
+    // mi segno la misura del POSTO che la plancia mi da', non della casella
+    // disegnata: e' quella che il riquadro delle impostazioni deve copiare.
+    // Solo quando cambia qualcosa: chiedere la misura a ogni ridisegno
+    // costava piu' di tutto il resto messo insieme.
+    // ...e anche quando cambia la LARGHEZZA: la stessa casella e' piu'
+    // stretta con la barra laterale di Home Assistant aperta, e quella
+    // misura li' e' proprio quella che mi serve ricordare
+    if (this._altaPrima !== h || this._largaPrima !== q.width) {
+      this._altaPrima = h;
+      this._largaPrima = q.width;
+      const mio = this.getBoundingClientRect();
+      this._ricordaMisura(mio.width, mio.height);
+      this._vestiAnteprima();
+    }
     this._decidiCompatta();
   }
 
@@ -3844,10 +4677,41 @@ class CasaTile extends HTMLElement {
     if (c0(this._colori)) soglia += 34;
     if (c0(this._extra)) soglia += 34;
     if (c0(this._tempo)) soglia += 28;
-    this.toggleAttribute("compatta", h < soglia);
+    // Attenzione al cane che si morde la coda: dentro al pop-up la casella
+    // si alza da sola sul contenuto, e passare a compatto la abbassa. Se
+    // l'altezza sta sul filo della soglia si va avanti a rimbalzare -
+    // ed e' lo sfarfallio velocissimo che si vedeva. Due paracadute: una
+    // fascia morta di 14px, e uno stop se rimbalza lo stesso.
+    const era = this.hasAttribute("compatta");
+    const vuole = era ? (h < soglia + 14) : (h < soglia);
+    if (vuole !== era) {
+      const ora = Date.now();
+      if (ora - (this._daQuandoBalla || 0) > 1500) {
+        this._daQuandoBalla = ora;
+        this._balli = 0;
+      }
+      this._balli = (this._balli || 0) + 1;
+      if (this._balli <= 4) this.toggleAttribute("compatta", vuole);
+    }
+    // l'icona cresce insieme alla casella: se lui la fa alta dal Layout,
+    // il disegno deve venire grande, non restare un francobollo. A scatti
+    // di 4px: se la seguo al pixel, anche lei fa alzare la casella che la
+    // fa crescere, e si ricomincia.
+    const ico = Math.max(46, Math.min(160, Math.round(h * 0.44 / 4) * 4));
+    if (this._icoDetta !== ico) {
+      this._icoDetta = ico;
+      this.style.setProperty("--alt-icona", ico + "px");
+    }
   }
 
   connectedCallback() {
+    // cambiato posto: le risposte che mi ero segnato non valgono piu'
+    this._postoSalvato = null;
+    this._sonoAnteprima = undefined;
+    this._anteprimaVestita = null;
+    this._largaPrima = null;
+    this._annidata = undefined;
+    this._altaPrima = null;
     // solo ora posso sapere se sto dentro il riquadro di anteprima
     if (this._costruito) this._disegnaAntPopup();
     // Solo ora sono attaccato alla pagina, quindi solo ora posso sapere se
@@ -3857,8 +4721,7 @@ class CasaTile extends HTMLElement {
     if (this._costruito && this._hass && this._config) this._render();
     if (!this._osserva && window.ResizeObserver) {
       this._osserva = new ResizeObserver(() => this._controllaMisura());
-      const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
-      if (card) this._osserva.observe(card);
+      this._cartaOsservata = null;
     }
     this._controllaMisura();
   }
@@ -4422,6 +5285,9 @@ class CasaTile extends HTMLElement {
     // attenzione: su un <svg> la proprieta' .hidden non si riflette
     // sull'attributo, quindi va messo e tolto a mano
     box.toggleAttribute("hidden", !vuole);
+    // col grafico dietro le scritte si confondono: lo dico al foglio di
+    // stile, che gli mette un'ombra e un velo scuro sotto
+    this.toggleAttribute("congrafico", vuole);
     if (!vuole || !this._hass) return;
 
     const ore = Number(c.grafico_ore) > 0 ? Number(c.grafico_ore) : 24;
@@ -4441,7 +5307,38 @@ class CasaTile extends HTMLElement {
 
   // due strade per lo storico: prima il websocket, poi l'indirizzo normale
   // (su certe installazioni la prima non risponde)
+  // Lo storico di un sensore che cambia ogni secondo sono decine di
+  // migliaia di punti: la casella se li teneva TUTTI in pancia e a ogni
+  // disegno se li ricopiava per tirarci una linea da 120 punti. Erano i
+  // gigabyte e i blocchi della pagina. Quindi appena arriva lo assottiglio
+  // a trecento punti, tenendomi il piu' basso e il piu' alto (servono per
+  // le scritte del minimo e del massimo) e sempre l'ultimo.
+  _assottiglia(punti) {
+    const max = 300;
+    if (!punti || punti.length <= max) return punti;
+    let basso = punti[0];
+    let alto = punti[0];
+    for (let i = 1; i < punti.length; i += 1) {
+      if (punti[i].v < basso.v) basso = punti[i];
+      if (punti[i].v > alto.v) alto = punti[i];
+    }
+    const passo = punti.length / (max - 3);
+    const fuori = [];
+    for (let i = 0; i < punti.length; i += passo) {
+      fuori.push(punti[Math.floor(i)]);
+    }
+    const ultimo = punti[punti.length - 1];
+    if (fuori[fuori.length - 1] !== ultimo) fuori.push(ultimo);
+    if (fuori.indexOf(basso) < 0) fuori.push(basso);
+    if (fuori.indexOf(alto) < 0) fuori.push(alto);
+    fuori.sort((x, y) => x.t - y.t);
+    return fuori;
+  }
+
   async _chiediStoria(chi, da, a) {
+    // la casellina del riquadro non chiede lo storico: e' li' solo per
+    // farsi spostare i pezzi, non le serve il grafico vero
+    if (this.hasAttribute("solo-casella")) return [];
     // di ogni lettura tengo il valore E il momento
     const numeri = (righe) => righe.map((r) => {
       const g = r || {};
@@ -4464,7 +5361,7 @@ class CasaTile extends HTMLElement {
       });
       const righe = (risposta && risposta[chi]) || [];
       if (righe.length) {
-        this._storia = numeri(righe);
+        this._storia = this._assottiglia(numeri(righe));
         this._disegnaLinea();
         return;
       }
@@ -4477,7 +5374,7 @@ class CasaTile extends HTMLElement {
         + "&minimal_response&no_attributes";
       const risposta = await this._hass.callApi("GET", indirizzo);
       const righe = (Array.isArray(risposta) && risposta[0]) || [];
-      this._storia = numeri(righe);
+      this._storia = this._assottiglia(numeri(righe));
       this._disegnaLinea();
       if (!this._storia.length) this._niente("lo storico e vuoto");
       return;
@@ -4501,10 +5398,12 @@ class CasaTile extends HTMLElement {
   _disegnaLinea(st) {
     const box = this._andamento;
     if (!box) return;
-    const punti = (this._storia || []).slice();
-    if (st && !isNaN(parseFloat(st.state))) {
-      punti.push({ v: parseFloat(st.state), t: Date.now() });
-    }
+    const storia = this._storia || [];
+    const adesso = (st && !isNaN(parseFloat(st.state)))
+      ? { v: parseFloat(st.state), t: Date.now() } : null;
+    // niente copia dell'array: con lo storico lungo era il conto piu' caro
+    // di tutto il disegno
+    const punti = adesso ? storia.concat([adesso]) : storia;
     if (punti.length < 2) { box.toggleAttribute("hidden", true); return; }
     box.toggleAttribute("hidden", false);
     // ne bastano un centinaio: se sono di piu' li assottiglio
@@ -4572,6 +5471,8 @@ class CasaTile extends HTMLElement {
 
   // il mirino segue il dito o il mouse sopra al grafico
   _muoviMirino(e) {
+    if (this.hasAttribute("solo-casella")) return;
+    if (this.hasAttribute("trascinabile")) return;
     if (!this._mirino || !this._andamento || this._andamento.hasAttribute("hidden")
         || !this._coord || !this._coord.length) return;
     const q = this._andamento.getBoundingClientRect();
@@ -4630,8 +5531,10 @@ class CasaTile extends HTMLElement {
         ? scritto
         : (PAROLE[String(st.state).toLowerCase()] || st.state);
       pezzi.push({
-        eid: eid, st: st, testo: String(testo).slice(0, 16),
+        eid: eid, st: st, testo: String(testo).slice(0, 26),
         etichetta: this._nomeMisura(st, eid),
+        tinta: Array.isArray((this._config.info_colori || {})[eid])
+          ? daRgb(this._config.info_colori[eid]) : "",
         simbolo: this._simbolo(st, eid),
         mappa: this._eUnPosto(st, eid),
         nome: st.attributes.friendly_name || eid,
@@ -4640,7 +5543,7 @@ class CasaTile extends HTMLElement {
     // rifaccio le caselline solo se e' cambiato qualcosa: durante la musica
     // il disegno passa di qui una volta al secondo
     const firma = pezzi.map((m) =>
-      [m.eid, m.testo, m.etichetta, m.simbolo, m.mappa ? 1 : 0].join("~")).join("|");
+      [m.eid, m.testo, m.etichetta, m.simbolo, m.tinta, m.mappa ? 1 : 0].join("~")).join("|");
     if (firma === this._firmaChips) return;
     this._firmaChips = firma;
 
@@ -4648,6 +5551,7 @@ class CasaTile extends HTMLElement {
     pezzi.forEach((m) => {
       const casella = document.createElement("div");
       casella.className = "metrica";
+      casella.dataset.eid = m.eid;
       casella.tabIndex = 0;
       const mappa = m.mappa;
       casella.title = m.nome
@@ -4658,6 +5562,11 @@ class CasaTile extends HTMLElement {
       casella.querySelector(".num").textContent = m.testo;
       casella.querySelector(".eti").textContent = m.etichetta;
       if (m.etichetta) casella.classList.add("connome");
+      // il colore suo, se gliel'ha dato lui
+      if (m.tinta) {
+        casella.style.setProperty("--tinta-mia", m.tinta);
+        casella.classList.add("suacolore");
+      }
 
       const apri = (e) => {
         e.stopPropagation();
@@ -4719,6 +5628,13 @@ class CasaTile extends HTMLElement {
   _regola(valore) {
     const c = this._config;
     if (!this._hass || !c.entity) return;
+    // Quando lasci il cursore il browser manda DUE segnali (pointerup e
+    // change): senza questo controllo l'apparecchio riceve due volte lo
+    // stesso comando e fa due bip.
+    const adesso = Date.now();
+    const gia = this._giaMandato;
+    if (gia && gia.valore === valore && adesso - gia.quando < 900) return;
+    this._giaMandato = { valore: valore, quando: adesso };
     const dominio = c.entity.split(".")[0];
     if (dominio === "light") {
       this._hass.callService("light", "turn_on",
@@ -4733,8 +5649,28 @@ class CasaTile extends HTMLElement {
       this._hass.callService(dominio, "set_value",
         { entity_id: c.entity, value: valore });
     } else if (dominio === "cover") {
+      // una tapparella ci mette dei secondi ad arrivare: fino a quando non
+      // e' arrivata mostro dove l'ho mandata, se no il numero tornerebbe
+      // indietro all'ultima posizione e poi salterebbe avanti
+      this._viaggia(valore);
       this._hass.callService("cover", "set_cover_position",
         { entity_id: c.entity, position: valore });
+    }
+  }
+
+  // il numero grande (e la tapparella disegnata) seguono il cursore mentre
+  // lo muovi, senza aspettare che l'apparecchio risponda
+  _seguiIlDito(val) {
+    const c = this._config;
+    const dom = c.entity ? c.entity.split(".")[0] : "";
+    if (dom !== "cover" || c.nascondi_valore) return;
+    this._valore.textContent = Math.round(val) + " %";
+    this._valore.classList.toggle("parola", false);
+    if (this._svg && !this._svg.hidden) {
+      tagliaTapparella(this._svg, val);
+      if (this._svgFondo && !this._svgFondo.hasAttribute("hidden")) {
+        tagliaTapparella(this._svgFondo, val);
+      }
     }
   }
 
@@ -4790,9 +5726,13 @@ class CasaTile extends HTMLElement {
 
     let valore = 0;
     if (dominio === "cover") {
-      const dove = st.attributes.current_position;
-      if (dove === undefined) { this._cursore.hidden = true; return; }
-      if (!this._trascino) {
+      if (st.attributes.current_position === undefined) {
+        this._cursore.hidden = true;
+        return;
+      }
+      // anche il cursore resta dove l'ho messo finche' non e' arrivata
+      const dove = this._posizioneMostrata(st);
+      if (!this._trascino && dove !== null) {
         this._range.value = String(Math.round(dove));
         this._quanto.textContent = Math.round(dove) + "%";
         this._range.style.setProperty("--riempito", Math.round(dove) + "%");
@@ -4815,6 +5755,128 @@ class CasaTile extends HTMLElement {
 
   // quanto e' carica e se sta caricando: lo chiedo all'entita' e a quelle
   // che le stanno intorno (batteria dello stesso dispositivo, stato, presa)
+  // quanto far vedere: mentre trascini vale il cursore, se no l'apparecchio.
+  // Cosi' un aggiornamento che arriva a meta' trascinamento non ti riporta
+  // indietro il numero sotto le dita.
+  // Quando le dico di andare da 13 a 50, lei ci mette dei secondi e Home
+  // Assistant intanto continua a dire 13. Allora me lo conto io: parto da
+  // dove sta, vado verso dove le ho detto, e disegno il pezzo di strada
+  // fatto. La velocita' me la imparo guardando quanto ci mette davvero.
+  _viaggia(dove) {
+    const st = this._hass ? this._hass.states[this._config.entity] : null;
+    const da = this._quantoAperta(st);
+    if (da === null) return;
+    this._meta = { da: da, dove: dove, quando: Date.now() };
+    // il comando e' partito: da qui in poi comanda il viaggio, non il dito
+    // (se no per un attimo si vedrebbe gia' arrivata)
+    this._trascino = false;
+    this._fermaOrologioTappa();
+    // il disegno riparte da dove sta davvero, non da dove arrivera'
+    tagliaTapparella(this._svg, da);
+    if (this._svgFondo && !this._svgFondo.hasAttribute("hidden")) {
+      tagliaTapparella(this._svgFondo, da);
+    }
+    if (Math.abs(dove - da) < 1) { this._meta = null; return; }
+    // ridisegno spesso, se no il movimento va a scatti
+    // si muove solo il disegno: il numero e il cursore restano dove li ha
+    // messi lui, se no sembrano impazziti
+    const passo = () => {
+      if (!this.isConnected || !this._meta) { this._fermaOrologioTappa(); return; }
+      const st2 = this._hass ? this._hass.states[this._config.entity] : null;
+      const dove2 = this._posizioneDisegno(st2);
+      tagliaTapparella(this._svg, dove2);
+      if (this._svgFondo && !this._svgFondo.hasAttribute("hidden")) {
+        tagliaTapparella(this._svgFondo, dove2);
+      }
+      this._passoId = requestAnimationFrame(passo);
+    };
+    this._passoId = requestAnimationFrame(passo);
+    // rete di sicurezza: se il disegno non arriva (scheda nascosta) il
+    // viaggio deve finire lo stesso
+    this._tappaId = setInterval(() => {
+      if (!this.isConnected || !this._meta) { this._fermaOrologioTappa(); return; }
+      this._render();
+    }, 1000);
+  }
+
+  _fermaOrologioTappa() {
+    if (this._tappaId) { clearInterval(this._tappaId); this._tappaId = null; }
+    if (this._passoId) { cancelAnimationFrame(this._passoId); this._passoId = null; }
+  }
+
+  // quanto ci mette per ogni punto percentuale: di serie un quarto di
+  // secondo (venticinque secondi per tutta la corsa), poi impara
+  _secondiPerPunto() {
+    const eid = this._config.entity || "";
+    return VELOCITA_TAPPARELLE[eid] || 0.25;
+  }
+
+  _imparaVelocita() {
+    const m = this._meta;
+    if (!m || !m.quando) return;
+    const punti = Math.abs(m.dove - m.da);
+    if (punti < 15) return;   // troppo corto per fidarsi
+    const secondi = (Date.now() - m.quando) / 1000;
+    const ognuno = secondi / punti;
+    if (ognuno < 0.02 || ognuno > 3) return;   // roba strana, lascio stare
+    const eid = this._config.entity || "";
+    const prima = VELOCITA_TAPPARELLE[eid];
+    // media con quello che sapevo gia', cosi' non balla a ogni corsa
+    VELOCITA_TAPPARELLE[eid] = prima ? (prima * 2 + ognuno) / 3 : ognuno;
+  }
+
+  _fermaViaggio(imparato) {
+    if (imparato) this._imparaVelocita();
+    this._meta = null;
+    this._fermaOrologioTappa();
+  }
+
+  _posizioneMostrata(st) {
+    const suo = this._config.entity && this._config.entity.split(".")[0] === "cover";
+    if (this._trascino && this._range && this._cursore && !this._cursore.hidden && suo) {
+      const v = Number(this._range.value);
+      if (!isNaN(v)) return Math.max(0, Math.min(100, v));
+    }
+    const vera = this._quantoAperta(st);
+    // sto ancora andando dove le ho detto io? Allora il numero e il cursore
+    // dicono gia' dove arrivera': quello e' il valore che ha scelto lui
+    const m = this._meta;
+    if (suo && m) {
+      const arrivata = vera !== null && Math.abs(vera - m.dove) <= 2;
+      const scaduta = Date.now() - m.quando > 180000;
+      if (arrivata) { this._fermaViaggio(true); return vera; }
+      if (scaduta) { this._fermaViaggio(false); return vera; }
+      return m.dove;
+    }
+    return vera;
+  }
+
+  // dove sta il disegno mentre viaggia: questa e' l'unica cosa che si muove
+  _posizioneDisegno(st) {
+    const m = this._meta;
+    const vera = this._quantoAperta(st);
+    if (!m) return this._posizioneMostrata(st);
+    const punti = Math.abs(m.dove - m.da) || 1;
+    const quanto = (Date.now() - m.quando) / 1000 / this._secondiPerPunto();
+    let mia = m.da + (m.dove > m.da ? 1 : -1) * Math.min(quanto, punti);
+    // se l'apparecchio dice di essere piu' avanti, gli credo
+    if (vera !== null) {
+      const avanti = m.dove > m.da ? Math.max(mia, vera) : Math.min(mia, vera);
+      if (m.dove > m.da ? avanti <= m.dove : avanti >= m.dove) mia = avanti;
+    }
+    return Math.max(0, Math.min(100, mia));
+  }
+
+  // quanto e' aperta una tapparella: null se non lo sa dire
+  _quantoAperta(st) {
+    const c = this._config;
+    if (!st || !c.entity || c.entity.split(".")[0] !== "cover") return null;
+    const dove = st.attributes.current_position;
+    if (dove === undefined || dove === null) return null;
+    const n = Number(dove);
+    return isNaN(n) ? null : Math.max(0, Math.min(100, n));
+  }
+
   _datiBatteria(st) {
     const c = this._config;
     const stati = this._hass ? this._hass.states : {};
@@ -4879,35 +5941,93 @@ class CasaTile extends HTMLElement {
         }
       });
     }
-    // I watt dicono la verita' meglio di ogni parola: se un sensore di
-    // potenza che parla di carica (o di scarica) segna piu' di zero, la
-    // batteria sta facendo proprio quello. Guardo le misure che ha messo
-    // lui nella casella e le entita' che si chiamano come la sua.
     let scarica = false;
+
+    // Prima di tutto: se lui ha detto quali entita' vogliono dire "sta
+    // caricando" e "sta scaricando", comandano quelle e basta. Serve
+    // perche' su certe centraline i watt che escono vengono dai pannelli,
+    // non dalla batteria: dal nome non si capisce, lo sa solo lui.
+    const attiva = (eid) => {
+      const alt = stati[eid];
+      if (!alt) return false;
+      const n2 = parseFloat(alt.state);
+      if (!isNaN(n2)) return n2 > 0;
+      const t = String(alt.state).toLowerCase();
+      if (["off", "unavailable", "unknown", "idle", "standby"].includes(t)) return false;
+      return t === "on" || t.indexOf("charg") >= 0 || t.indexOf("carica") >= 0;
+    };
+    const elenco = (x) => (Array.isArray(x) ? x : (x ? [x] : []));
+    const suoiCarica = elenco(c.carica_entita);
+    const suoiScarica = elenco(c.scarica_entita);
+    if (suoiCarica.length || suoiScarica.length) {
+      carica = suoiCarica.some(attiva);
+      scarica = !carica && suoiScarica.some(attiva);
+      // se nessuna di quelle sta lavorando non mi fermo qui: provo lo
+      // stesso a capirlo da solo, se no la casella resta muta
+      if (carica || scarica) return { perc: perc, carica: carica, scarica: scarica };
+    }
+
+    // Se non me l'ha detto, provo a capirlo: un sensore di potenza che nel
+    // nome parla di carica (o di scarica) e segna piu' di zero dice cosa
+    // sta facendo la batteria. "Uscita" no: quella puo' venire dal sole.
     const guarda = (eid) => {
       const alt = stati[eid];
       if (!alt || String(alt.attributes.device_class || "") !== "power") return;
+      // me la segno: e' una che devo tenere d'occhio anche in futuro
+      if (!this._lette) this._lette = new Set();
+      this._lette.add(eid);
       const n2 = parseFloat(alt.state);
       if (isNaN(n2) || n2 <= 0) return;
+      // il nome che gli ha dato LUI sulla caselletta vale piu' di tutto:
+      // se ha scritto "carica" su una misura, quella e' la carica, anche
+      // se l'entita' si chiama "PV Input Power"
+      const suo = String((c.info_nomi || {})[eid] || "").toLowerCase();
+      if (suo) {
+        if (/scaric|discharg/.test(suo)) { scarica = true; return; }
+        if (/caric|charg/.test(suo)) { carica = true; return; }
+      }
       const chi = (eid + " " + (alt.attributes.friendly_name || "")).toLowerCase();
-      if (/discharg|scaric|erogaz/.test(chi)) scarica = true;
+      if (/discharg|scaric/.test(chi)) scarica = true;
       else if (/charg|carica/.test(chi)) carica = true;
     };
+    // certi apparecchi hanno un sensore che lo dice a parole: "In carica",
+    // "In scarica", "Charging". Vale piu' di qualsiasi indovinello sui watt.
+    const aParole = (eid) => {
+      const alt = stati[eid];
+      if (!alt) return;
+      const t = String(alt.state).toLowerCase();
+      if (t.indexOf("in scarica") >= 0 || t.indexOf("discharging") >= 0) scarica = true;
+      else if (t.indexOf("in carica") >= 0
+               || (t.indexOf("charging") >= 0 && t.indexOf("not") < 0)) carica = true;
+    };
+    (Array.isArray(c.info_entita) ? c.info_entita : []).forEach(aParole);
     (Array.isArray(c.info_entita) ? c.info_entita : []).forEach(guarda);
     (Array.isArray(c.acceso_entita) ? c.acceso_entita : []).forEach(guarda);
     // le vicine: stesso inizio di nome, dal piu' preciso al piu' largo
     if (c.entity) {
-      const pezzi = String(c.entity).split(".")[1].split("_");
-      for (let i = pezzi.length - 1; i >= 1 && !carica && !scarica; i -= 1) {
-        const radice2 = pezzi.slice(0, i).join("_");
-        if (radice2.length < 2) break;
-        const inizio = "sensor." + radice2 + "_";
-        Object.keys(stati).forEach((eid) => {
-          if (eid.indexOf(inizio) === 0) guarda(eid);
-        });
+      // l'elenco delle vicine si fa una volta sola: rifrugare fra tutte le
+      // entita' della casa a ogni disegno costava carissimo
+      if (PARENTI[c.entity] === undefined) {
+        const trovate = [];
+        const pezzi = String(c.entity).split(".")[1].split("_");
+        for (let i = pezzi.length - 1; i >= 1 && !trovate.length; i -= 1) {
+          const radice2 = pezzi.slice(0, i).join("_");
+          if (radice2.length < 2) break;
+          const inizio = "sensor." + radice2 + "_";
+          Object.keys(stati).forEach((eid) => {
+            if (eid.indexOf(inizio) !== 0) return;
+            const alt = stati[eid];
+            if (!alt || String(alt.attributes.device_class || "") !== "power") return;
+            const chi = (eid + " " + (alt.attributes.friendly_name || "")).toLowerCase();
+            if (/charg|caric|scaric/.test(chi)) trovate.push(eid);
+          });
+        }
+        PARENTI[c.entity] = trovate;
       }
+      PARENTI[c.entity].forEach(guarda);
     }
-    // in carica vince: se sta caricando non sta dando corrente
+    // in carica vince: se la batteria sta prendendo corrente, quella che
+    // esce dalla presa la stanno dando i pannelli, non lei
     if (carica) scarica = false;
     return { perc: perc, carica: carica, scarica: scarica };
   }
@@ -4953,6 +6073,10 @@ class CasaTile extends HTMLElement {
     if (dominio === "climate") {
       const t = st.attributes.current_temperature;
       return t !== undefined ? Math.round(t * 10) / 10 + "°" : st.state;
+    }
+    if (dominio === "cover") {
+      const dove = this._posizioneMostrata(st);
+      if (dove !== null) return Math.round(dove) + " %";
     }
     const scritto = valoreScritto(st);
     if (scritto !== null) return scritto;
@@ -5031,6 +6155,29 @@ class CasaTile extends HTMLElement {
 
   _render() {
     if (!this._config) return;
+    // conto quante volte si ridisegna: se qualcosa gira a vuoto si vede
+    // subito dal conto sulla targhetta
+    const adessoR = Date.now();
+    if (adessoR - (this._daQuandoR || 0) > 250) {
+      this._daQuandoR = adessoR;
+      this._quantiR = 0;
+    }
+    this._quantiR = (this._quantiR || 0) + 1;
+    // PARACADUTE: nessuno ha bisogno di ridisegnarsi cento volte in un
+    // quarto di secondo. Oltre le trenta volte metto il disegno in coda e
+    // ne faccio uno solo: chi gira a vuoto smette di bruciare la macchina
+    // (l'occhio non se ne accorge, sono sessanta disegni al secondo).
+    if (this._quantiR > 40) {
+      if (!this._disegnoDopo) {
+        this._disegnoDopo = setTimeout(() => {
+          this._disegnoDopo = 0;
+          this._quantiR = 0;
+          this._daQuandoR = 0;
+          if (this.isConnected) this._render();
+        }, 250);
+      }
+      return;
+    }
     if (!this._costruito) this._costruisci();
     // se ci sono piu' casse, la card lavora su quella scelta / che suona
     if (this._base) {
@@ -5086,6 +6233,18 @@ class CasaTile extends HTMLElement {
     // il vestito del pop-up: tinta, foto e trasparenza della finestra, e
     // i colori che passano alle schede di Home Assistant che stanno dentro
     this._vestiFinestra();
+    this._mettiAPosto();
+    // Le misure e l'icona nascono piu' avanti nel disegno: qui non ci sono
+    // ancora, e restavano ammucchiate in alto a sinistra sopra al nome
+    // finche' non si rifaceva la casella. Ci ripasso appena finito il giro,
+    // prima che il browser dipinga: cosi' non si vede nessun saltello.
+    if (!this._ripassoPosti) {
+      this._ripassoPosti = true;
+      Promise.resolve().then(() => {
+        this._ripassoPosti = false;
+        if (this._config && this._costruito) this._mettiAPosto();
+      });
+    }
 
     // la scritta puo' avere un colore suo, staccato da quello degli effetti
     const scritta = Array.isArray(c.colore_testo) ? daRgb(c.colore_testo) : null;
@@ -5096,6 +6255,10 @@ class CasaTile extends HTMLElement {
       this.style.removeProperty("--testo");
       this.style.removeProperty("--testo2");
     }
+    // e il numero grande puo' averne uno tutto suo, diverso dal nome
+    const numero = Array.isArray(c.colore_valore) ? daRgb(c.colore_valore) : null;
+    if (numero) this.style.setProperty("--testo-val", numero);
+    else this.style.removeProperty("--testo-val");
 
     // sfondo della casella: tinta, foto o quello di serie, con trasparenza
     const opaco = 1 - (c.trasparenza === undefined ? 0 : Number(c.trasparenza)) / 100;
@@ -5318,6 +6481,8 @@ class CasaTile extends HTMLElement {
       this._controllaMisura();
     }
     this._disegnaCursore(st);
+    // il timbro va deciso prima: vale anche se la fotina davanti non c'e'
+    this._timbro(st);
     const foto = fotoDi(st);
     // se non la vuole, via l'icona in tutte le sue forme
     if (c.mostra_icona === false) {
@@ -5365,20 +6530,78 @@ class CasaTile extends HTMLElement {
     }
     if (conIconaHa) { this._svg.style.display = "none"; return; }
 
+    const q = this._disegnoDi(st);
+    if (this._svg.dataset.icona !== q.chiave) {
+      this._svg.innerHTML = q.disegno;
+      this._svg.dataset.icona = q.chiave;
+    }
+    // la misura va ritentata finche' non riesce: il primo giro puo' capitare
+    // prima che la casella sia attaccata alla pagina, e li' non si puo'
+    // misurare niente. Quando e' gia' saputa costa solo scrivere un numero.
+    this._adattaDisegno(q.forma);
+    if (q.taglia !== null) tagliaTapparella(this._svg, q.taglia);
+  }
+
+  // quale disegno ci vuole, con la sua chiave (per non rifarlo inutilmente)
+  // e la sua "forma" (per non rimisurare il riquadro a ogni numero)
+  _disegnoDi(st) {
     const nomeIcona = this._nomeIcona(st);
     let disegno = ICONE[nomeIcona] || disegnoMdi(nomeIcona) || ICONE.luce;
     let chiave = nomeIcona;
+    let forma = nomeIcona;
+    let taglia = null;
     if (nomeIcona === "batteria") {
       const b = this._datiBatteria(st);
       disegno = disegnoBatteria(b.perc, b.carica, b.scarica);
       chiave = "batteria|" + (isNaN(b.perc) ? "-" : Math.round(b.perc))
-        + "|" + (b.carica ? "c" : (b.scarica ? "s" : "f"));
+        + "|" + (b.carica ? "c" : "f");
+      // solo il fulmine cambia l'ingombro
+      forma = b.carica ? "batteria|c" : "batteria|-";
     }
-    if (this._svg.dataset.icona !== chiave) {
-      this._svg.innerHTML = disegno;
-      this._svg.dataset.icona = chiave;
+    const dove = this._posizioneMostrata(st);
+    if (nomeIcona === "tapparella" && dove !== null) {
+      // si muove se lo dice Home Assistant o se lo sto ancora portando io
+      let moto = (st && st.state === "opening") ? "su"
+        : ((st && st.state === "closing") ? "giu" : "");
+      if (!moto && this._meta) moto = this._meta.dove > this._meta.da ? "su" : "giu";
+      disegno = disegnoTapparella(moto);
+      chiave = "tapparella|" + moto;
+      forma = "tapparella|pos";
+      taglia = this._posizioneDisegno(st);
     }
-    this._adattaDisegno(chiave);
+    return { disegno: disegno, chiave: chiave, forma: forma, taglia: taglia };
+  }
+
+  // l'icona in grande dietro alle scritte: e' lo stesso disegno, sbiadito.
+  // Vale anche se la fotina davanti l'ha tolta: anzi, e' proprio il bello.
+  _timbro(st) {
+    const box = this._svgFondo;
+    if (!box) return;
+    const c = this._config;
+    if (!c.icona_sfondo || !c.entity) {
+      this.toggleAttribute("fondo-giu", false);
+      if (!box.hasAttribute("hidden")) {
+        box.toggleAttribute("hidden", true);
+        box.innerHTML = "";
+        box.dataset.icona = "";
+      }
+      return;
+    }
+    box.toggleAttribute("hidden", false);
+    // se la fotina piccola l'ha tolta, il timbro scende a sinistra da solo:
+    // non c'e' niente da impostare, lo decide la card
+    this.toggleAttribute("fondo-giu", c.mostra_icona === false);
+    const forza = (c.icona_sfondo_forza === undefined || c.icona_sfondo_forza === null
+      ? 20 : Number(c.icona_sfondo_forza)) / 100;
+    this.style.setProperty("--fondoico", String(Math.max(0, forza * 0.7)));
+    this.style.setProperty("--fondoico-acceso", String(Math.max(0, forza)));
+    const q = this._disegnoDi(st);
+    if (box.dataset.icona !== q.chiave) {
+      box.innerHTML = q.disegno;
+      box.dataset.icona = q.chiave;
+    }
+    riempiRiquadro(box, q.forma);
+    if (q.taglia !== null) tagliaTapparella(box, q.taglia);
   }
 
   // il disegno riempie il suo quadrato: misuro quanto occupa davvero e
@@ -5423,10 +6646,17 @@ const SEZIONI = [
           type: "grid", name: "", schema: [
             { name: "mostra_icona", selector: { boolean: {} } },
             { name: "usa_foto", selector: { boolean: {} } },
+            { name: "icona_sfondo", selector: { boolean: {} } },
+            { name: "icona_sfondo_forza",
+              selector: { number: { min: 4, max: 60, step: 2, mode: "slider" } } },
           ],
         },
         { name: "icona_entita", selector: { boolean: {} } },
         { name: "icona_ha", selector: { icon: {} } },
+      ] },
+      { titolo: "Batteria: carica e scarica", schema: [
+        { name: "carica_entita", selector: { entity: { multiple: true } } },
+        { name: "scarica_entita", selector: { entity: { multiple: true } } },
       ] },
     ],
   },
@@ -5473,18 +6703,17 @@ const SEZIONI = [
         { name: "intensita", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
         { name: "velocita", selector: { number: { min: 25, max: 300, step: 5, mode: "slider" } } },
       ] },
-      { titolo: "Colore della scritta", schema: [
-        { name: "colore_testo", selector: { color_rgb: {} } },
+      { titolo: "Colore della scritta",
+        colori: ["colore_testo", "colore_valore"], schema: [
       ] },
     ],
   },
   {
     chiave: "sfondo", titolo: "Sfondo", segno: "🖼",
     gruppi: [
-      { titolo: "Tinta della casella", schema: [
+      { titolo: "Tinta della casella", colori: ["sfondo_colore"], schema: [
         {
           type: "grid", name: "", schema: [
-            { name: "sfondo_colore", selector: { color_rgb: {} } },
             { name: "trasparenza",
               selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
           ],
@@ -5572,8 +6801,7 @@ const SEZIONI = [
         { name: "multiroom", selector: { boolean: {} } },
         { name: "sorgente", selector: { boolean: {} } },
       ] },
-      { titolo: "Il riquadro delle casse", schema: [
-        { name: "pannello_sfondo", selector: { color_rgb: {} } },
+      { titolo: "Il riquadro delle casse", colori: ["pannello_sfondo"], schema: [
         { name: "pannello_trasparenza",
           selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
       ] },
@@ -5607,22 +6835,15 @@ const SEZIONI = [
         { name: "popup", selector: { text: {} } },
         { name: "finestra_titolo", selector: { text: {} } },
       ] },
-      { titolo: "Come e vestito il pop-up", schema: [
+      { titolo: "Come e vestito il pop-up",
+        colori: ["finestra_sfondo"], schema: [
         {
           type: "grid", name: "", schema: [
-            { name: "finestra_sfondo", selector: { color_rgb: {} } },
             { name: "finestra_trasparenza",
               selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
           ],
         },
         { name: "finestra_immagine", selector: { text: {} } },
-        {
-          type: "grid", name: "", schema: [
-            { name: "finestra_schede_sfondo", selector: { color_rgb: {} } },
-            { name: "finestra_schede_trasparenza",
-              selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
-          ],
-        },
       ] },
     ],
   },
@@ -5678,11 +6899,16 @@ const ETICHETTE = {
   meteo_entita: "Meteo nell'angolo (scegli l'entita del meteo)",
   indirizzo_web: "Indirizzo web da aprire (per l'azione \"Apri un indirizzo web\")",
   icona: "Icona animata", colore: "Colore quando e accesa",
+  icona_sfondo: "L'icona in grande dietro alle scritte",
+  icona_sfondo_forza: "Quanto si vede l'icona dietro (%)",
+  carica_entita: "Quali entita vogliono dire che STA CARICANDO (di solito non serve: basta chiamare carica una misura)",
+  scarica_entita: "Quali entita vogliono dire che STA DANDO CORRENTE (di solito non serve: basta chiamare scarica una misura)",
   disposizione: "Come e disposta la casella",
   azione: "Cosa fa quando la tocchi", anima: "Quando si muove l'icona",
   effetto: "Effetto della casella", intensita: "Intensita del colore (%)",
   anima: "Quando si muove (icona ed effetti)",
-  colore_testo: "Colore della scritta (lascialo vuoto per quello del tema)",
+  colore_testo: "Colore del nome e del sottotitolo (vuoto = quello del tema)",
+  colore_valore: "Colore del valore, quello grande (vuoto = come il nome)",
   colore_rgb: "Colore personalizzato (vale solo scegliendo \"personalizzato\" qui sopra)",
   sfondo_colore: "Sfondo della casella (tinta)",
   trasparenza: "Trasparenza della casella (%)",
@@ -5734,11 +6960,12 @@ const ETICHETTE = {
   servizio: "Servizio da chiamare (es. number.set_value)",
   servizio_dati: "Dati del servizio, in YAML (es. value: 95)",
   finestra_titolo: "Titolo del pop-up",
-  finestra_sfondo: "Tinta del pop-up (vuoto = scuro di serie)",
+  finestra_sfondo: "Tinta della finestra del pop-up (le schede dentro hanno la loro, qui sotto)",
   finestra_trasparenza: "Trasparenza del pop-up (%)",
   finestra_immagine: "Foto di sfondo del pop-up - indirizzo, es. /local/foto.jpg",
-  finestra_schede_sfondo: "Tinta delle schede dentro al pop-up",
-  finestra_schede_trasparenza: "Trasparenza delle schede dentro al pop-up (%)",
+  // finestra_schede_sfondo / finestra_schede_trasparenza: non si scelgono
+  // piu' da qui (ogni scheda ha la sua riga), ma se c'erano gia' valgono
+  // ancora come valore di partenza
 };
 
 const SCHEDE_PRONTE = [
@@ -5883,12 +7110,88 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .trovato:hover { background: rgba(127,127,127,.12); }
 .trovato input { width: 18px; height: 18px; accent-color: var(--primary-color, #03a9f4);
   flex: 0 0 18px; }
+.pista { padding: 26px 14px 16px; border-radius: 12px; touch-action: none;
+  background: var(--secondary-background-color, rgba(255,255,255,.04));
+  display: flex; justify-content: center; }
+.pista casa-tile { display: block; cursor: grab; }
+.pista-tasti { display: flex; justify-content: flex-end; margin-top: 8px; }
+.pista-chi { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 12px; color: var(--secondary-text-color, #8ea0b8); margin: 2px 0 8px; }
+.pista-chi .chi-nome { flex: 1 1 auto; }
+.pista-nota { margin-top: 6px; font-size: 12px; font-family: monospace;
+  color: var(--secondary-text-color, #9fb0c6); }
+.tastoPiatto { border: 1px solid var(--divider-color, rgba(255,255,255,.14));
+  background: none; color: var(--primary-text-color, #eaf1fb); cursor: pointer;
+  font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 9px; }
+.tastoPiatto:hover { background: rgba(255,255,255,.08); }
+.colori-blocco { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 10px; }
+.colori-blocco[hidden] { display: none; }
+.riga-colore { display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px;
+  background: var(--secondary-background-color, rgba(255,255,255,.04)); }
+.riga-colore .eti { flex: 1; min-width: 0; font-size: 13px;
+  color: var(--primary-text-color, #eaf1fb); }
+.riga-colore .bolla { flex: none; width: 34px; height: 34px; border-radius: 50%;
+  cursor: pointer; padding: 0;
+  border: 2px solid var(--divider-color, rgba(255,255,255,.18));
+  background-image: linear-gradient(45deg, rgba(255,255,255,.12) 25%, transparent 25%,
+    transparent 75%, rgba(255,255,255,.12) 75%), linear-gradient(45deg,
+    rgba(255,255,255,.12) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.12) 75%);
+  background-size: 10px 10px; background-position: 0 0, 5px 5px; }
+/* la ruota dei colori: e' tutta CSS, si apre di colpo */
+.ruota-cassetto { display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 12px 10px 14px; margin: -4px 0 10px; border-radius: 0 0 12px 12px;
+  background: var(--secondary-background-color, rgba(255,255,255,.04)); }
+.ruota-cassetto[hidden] { display: none; }
+.ruota { position: relative; width: 168px; height: 168px; border-radius: 50%;
+  cursor: crosshair; touch-action: none;
+  background:
+    radial-gradient(circle closest-side, #fff, rgba(255,255,255,0) 78%),
+    conic-gradient(from 90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 4px 14px rgba(0,0,0,.35); }
+.ruota .mira { position: absolute; width: 16px; height: 16px; border-radius: 50%;
+  transform: translate(-50%, -50%); pointer-events: none;
+  border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.5); }
+.ruota-cassetto .luce { width: 168px; cursor: pointer; -webkit-appearance: none;
+  appearance: none; height: 12px; border-radius: 99px; outline: none;
+  background: linear-gradient(90deg, #000, #808080, #fff);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+.ruota-cassetto .luce::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
+  height: 18px; border-radius: 50%; background: #fff; border: 2px solid #4b5c74;
+  box-shadow: 0 1px 4px rgba(0,0,0,.5); cursor: pointer; }
+.ruota-cassetto .luce::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; border: 2px solid #4b5c74; cursor: pointer; }
+.riga-colore .togli { flex: none; width: 28px; height: 28px; border-radius: 50%;
+  border: none; cursor: pointer; font-size: 13px; line-height: 1;
+  background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb); }
+.riga-colore .togli[hidden] { display: none; }
+.riga-colore .togli:hover { background: rgba(255,255,255,.16); }
+.vestito-riga { display: flex; align-items: center; gap: 8px; margin: 0 0 8px;
+  padding: 6px 10px; border-radius: 10px;
+  background: var(--secondary-background-color, rgba(255,255,255,.04)); }
+.vestito-riga .eti { flex: 1; min-width: 0; font-size: 12px;
+  color: var(--secondary-text-color, #9fb0c6);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vestito-riga input[type=color] { flex: none; width: 34px; height: 26px; padding: 0;
+  border: 1px solid var(--divider-color, rgba(255,255,255,.14));
+  border-radius: 7px; background: none; cursor: pointer; }
+.vestito-riga input[type=range] { flex: none; width: 96px; cursor: pointer; }
+.vestito-riga .quanto { flex: none; width: 38px; text-align: right; font-size: 11.5px;
+  color: var(--secondary-text-color, #9fb0c6); font-variant-numeric: tabular-nums; }
 .nomiMisure { display: flex; flex-direction: column; gap: 6px; }
 .nomeMisura { display: flex; align-items: center; gap: 8px; }
 .nomeMisura .chi { flex: 1; min-width: 0; font-size: 12.5px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   color: var(--secondary-text-color, #9fb0c6); }
-.nomeMisura input { flex: none; width: 130px; font: inherit; font-size: 13px;
+.nomeMisura .bolla { flex: none; width: 28px; height: 28px; border-radius: 50%;
+  cursor: pointer; padding: 0;
+  border: 2px solid var(--divider-color, rgba(255,255,255,.18)); }
+.nomeMisura .togli { flex: none; width: 24px; height: 24px; border-radius: 50%;
+  border: none; cursor: pointer; font-size: 12px; line-height: 1;
+  background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb); }
+.nomeMisura .togli[hidden] { display: none; }
+.nomiMisure .ruota-cassetto { margin: 0 0 8px; border-radius: 12px; }
+.nomeMisura input { flex: none; width: 110px; font: inherit; font-size: 13px;
   padding: 6px 8px; border-radius: 8px; box-sizing: border-box;
   color: var(--primary-text-color, #eaf1fb);
   background: var(--secondary-background-color, rgba(255,255,255,.06));
@@ -5949,8 +7252,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .coloreTermo[hidden] { display: none !important; }
 .coloreLibero { overflow: hidden;
   background: conic-gradient(#ff5f5f, #ffc046, #3fd98a, #4fe0c8, #5ec8ff, #9b6bff, #ff5f5f); }
-.coloreLibero input { position: absolute; inset: -10px; opacity: 0; cursor: pointer;
-  width: 200%; height: 200%; }
+.scelte .ruota-cassetto { margin: 10px 0 2px; border-radius: 12px; }
 
 /* ============== le impostazioni su schermo piccolo ============== */
 @media (max-width: 620px) {
@@ -5990,6 +7292,8 @@ class CasaTileEditor extends HTMLElement {
       if (this._config.multiroom === undefined) this._config.multiroom = true;
       if (this._config.sorgente === undefined) this._config.sorgente = true;
     }
+    this._planciaCercata = null;
+    this._planciaSalvata = null;
     this._render();
   }
   set hass(hass) { this._hass = hass; this._propaga(); }
@@ -5997,14 +7301,62 @@ class CasaTileEditor extends HTMLElement {
 
   _lov() { return this._lovelace || { config: { views: [] }, editMode: true }; }
 
+  // Ripassare i valori ai moduli e agli editor di Home Assistant li fa
+  // ridisegnare tutti. Con una casa che manda aggiornamenti in continuazione
+  // (e nella scheda "Tocco" ci sono gli editor delle schede del pop-up, che
+  // si portano dietro la loro anteprima) e' il conto piu' salato di tutti:
+  // lo faccio al massimo una volta al secondo, e l'ultimo giro lo recupero.
   _propaga() {
-    (this._forms || []).forEach((f) => { f.hass = this._hass; });
-    this.querySelectorAll("hui-card-picker, hui-card-element-editor").forEach((el) => {
+    const ora = Date.now();
+    const passato = ora - (this._quandoPropago || 0);
+    // chi non ha ancora ricevuto niente non puo' aspettare: i selettori di
+    // Home Assistant senza "hass" si rompono
+    const digiuni = (this._forms || []).some((f) => !f._ebbeHass);
+    if (!digiuni && passato < 1000) {
+      if (!this._propagaDopo) {
+        this._propagaDopo = setTimeout(() => {
+          this._propagaDopo = 0;
+          this._propagaDavvero();
+        }, 1000 - passato);
+      }
+      return;
+    }
+    this._propagaDavvero();
+  }
+
+  _propagaDavvero() {
+    const ora = Date.now();
+    this._quandoPropago = ora;
+    // Ai moduli e agli editor i valori servono per riempire gli elenchi
+    // delle entita', non per stare aggiornati al secondo: glieli do la prima
+    // volta e poi solo ogni dieci secondi. Gli editor delle schede del pop-up
+    // (scheda "Tocco") si portano dietro un'anteprima viva, e ridisegnarla a
+    // ogni stato che cambia in casa era tutto il rallentamento.
+    const daDare = (el) => {
+      if (!el._ebbeHass) return true;
+      return ora - (el._quandoHass || 0) > 10000;
+    };
+    // se i valori non sono ancora arrivati non c'e' niente da dare
+    if (!this._hass) return;
+    const dai = (el) => {
+      el._ebbeHass = true;
+      el._quandoHass = ora;
       el.hass = this._hass;
-      el.lovelace = this._lov();
+    };
+    (this._forms || []).forEach((f) => {
+      // il modulo che sta usando adesso non si tocca: ogni assegnazione lo
+      // fa ridisegnare, e col selettore del colore aperto e' un disastro
+      if (f === this._formInUso) return;
+      if (daDare(f)) dai(f);
     });
-    if (this._edScheda && this._edScheda.isConnected) {
-      this._edScheda.hass = this._hass;
+    const lov = this._lov();
+    this.querySelectorAll("hui-card-picker, hui-card-element-editor").forEach((el) => {
+      if (daDare(el)) dai(el);
+      // il "lovelace" cambia quasi mai: riassegnarlo fa rifare l'editor
+      if (el._lovDato !== lov) { el._lovDato = lov; el.lovelace = lov; }
+    });
+    if (this._edScheda && this._edScheda.isConnected && daDare(this._edScheda)) {
+      dai(this._edScheda);
     }
   }
 
@@ -6063,6 +7415,8 @@ class CasaTileEditor extends HTMLElement {
       this._sensori.className = "blocco";
       this._nomiMisure = document.createElement("div");
       this._nomiMisure.className = "blocco";
+      this._postiBox = document.createElement("div");
+      this._postiBox.className = "blocco";
       this._scelte = document.createElement("div");
       this._scelte.className = "scelte";
       this._tinte = document.createElement("div");
@@ -6121,11 +7475,21 @@ class CasaTileEditor extends HTMLElement {
             pannello.appendChild(titolo);
           }
           const form = document.createElement("ha-form");
+          // i valori GLIELI DO SUBITO: senza, i selettori di Home Assistant
+          // provano a leggere l'elenco delle entita' da un "hass" che non
+          // c'e' ancora e si schiantano in continuazione (era il fiume di
+          // errori "ha-selector-entity ... reading entities" nel registro)
+          form.hass = this._hass;
+          form._ebbeHass = !!this._hass;
+          form._quandoHass = Date.now();
           form.schema = this._schemaDi(gruppo);
           form._firma = this._firmaSchema(form.schema);
           form.computeLabel = (x) => ETICHETTE[x.name] || x.name;
           form.addEventListener("value-changed", (e) => {
             e.stopPropagation();
+            this._formInUso = form;
+            clearTimeout(this._scordaForm);
+            this._scordaForm = setTimeout(() => { this._formInUso = null; }, 800);
             const prima = this._config.azione;
             this._config = { ...this._config, ...e.detail.value };
             this._emetti();
@@ -6144,7 +7508,13 @@ class CasaTileEditor extends HTMLElement {
           });
           this._forms.push(form);
           pannello.appendChild(form);
-          suoi.push({ gruppo: gruppo, form: form, titolo: titolo });
+          let boxColori = null;
+          if (gruppo.colori && gruppo.colori.length) {
+            boxColori = document.createElement("div");
+            boxColori.className = "colori-blocco";
+            pannello.appendChild(boxColori);
+          }
+          suoi.push({ gruppo: gruppo, form: form, titolo: titolo, colori: boxColori });
 
           // i riquadri fatti a mano vanno sotto al gruppo che li riguarda
           if (sez.chiave === "base" && gruppo.titolo === "Cosa c'e scritto") {
@@ -6154,6 +7524,7 @@ class CasaTileEditor extends HTMLElement {
           if (sez.chiave === "icona") pannello.appendChild(this._scelte);
           if (sez.chiave === "aspetto" && gruppo.titolo === "Colore della scritta") {
             pannello.appendChild(this._tinte);
+            pannello.appendChild(this._postiBox);
           }
           if (sez.chiave === "sfondo" && gruppo.titolo === "Foto di sfondo") {
             pannello.appendChild(this._foto);
@@ -6168,15 +7539,81 @@ class CasaTileEditor extends HTMLElement {
       this._barra.appendChild(this._targa);
       this._costruito = true;
     }
-    this._aggiornaSchemi();
-    this._forms.forEach((f) => { f.data = this._config; });
-    this._propaga();
-    this._costruisciScelte();
+    // Il selettore del colore manda una modifica a ogni movimento del dito:
+    // rifare tutto ogni volta impastava le impostazioni. Quindi rimando il
+    // giro al prossimo disegno e ne faccio uno solo.
+    // la primissima volta niente attese: deve comparire subito
+    if (this._formaOra === undefined) { this._giroCompleto(); return; }
+    // aspetto un attimo e ne faccio uno solo: il selettore del colore manda
+    // una modifica a ogni movimento del dito. Uso un timer e non il disegno
+    // del browser, che in una scheda nascosta non arriverebbe mai.
+    clearTimeout(this._attesa);
+    this._attesa = setTimeout(() => {
+      if (!this._costruito || !this.isConnected) return;
+      this._giroCompleto();
+    }, 60);
+  }
+
+  _giroCompleto() {
+    this._conservaPosto(() => {
+      // gli schemi cambiano solo se cambia il TIPO di casella, non i valori
+      const forma = (this._config.entity || "") + "|" + (this._config.azione || "")
+        + "|" + ((this._config.acceso_entita || []).length ? "1" : "0");
+      if (this._formaOra !== forma) {
+        this._formaOra = forma;
+        this._aggiornaSchemi();
+      }
+      // e agli altri do i valori solo se i LORO campi sono cambiati: se no
+      // ridisegno quindici moduli a ogni movimento del dito sul colore
+      this._forms.forEach((f) => {
+        if (f === this._formInUso) return;
+        const firma = this._firmaValori(f.schema);
+        if (f._valori === firma) return;
+        f._valori = firma;
+        f.data = this._config;
+      });
+      this._costruisciColori();
+      this._costruisciPosti();
+      this._costruisciScelte();
+      this._costruisciFoto();
+      this._costruisciTrovati();
+      this._costruisciNomi();
+      this._costruisciBlocco();
+    });
     requestAnimationFrame(() => this._adattaCatalogo());
-    this._costruisciFoto();
-    this._costruisciTrovati();
-    this._costruisciNomi();
-    this._costruisciBlocco();
+  }
+
+  // Home Assistant rifa' le impostazioni a ogni modifica: se in mezzo un
+  // riquadro si accorcia, la pagina salta in cima e lui perde di vista
+  // proprio l'impostazione che stava provando. Qui mi segno dov'era.
+  _conservaPosto(azione) {
+    const box = this._scorrevole();
+    const dove = box ? box.scrollTop : 0;
+    azione();
+    if (!box || box.scrollTop === dove) return;
+    box.scrollTop = dove;
+    // e ancora dopo il disegno, che certe altezze arrivano tardi
+    requestAnimationFrame(() => {
+      if (box.isConnected && box.scrollTop !== dove) box.scrollTop = dove;
+    });
+  }
+
+  // chi e' che scorre davvero: puo' essere un pezzo della finestra di
+  // Home Assistant, anche dentro a un'ombra
+  _scorrevole() {
+    if (this._boxScorr && this._boxScorr.isConnected) return this._boxScorr;
+    const su = (x) => (x.parentNode ? x.parentNode : (x.host || null));
+    let n = su(this);
+    let passi = 0;
+    while (n && passi < 30) {
+      passi += 1;
+      if (n.nodeType === 1 && n.scrollHeight > n.clientHeight + 4) {
+        const come = getComputedStyle(n).overflowY;
+        if (come === "auto" || come === "scroll") { this._boxScorr = n; return n; }
+      }
+      n = su(n);
+    }
+    return null;
   }
 
   // icona e colore si scelgono guardandoli
@@ -6289,18 +7726,14 @@ class CasaTileEditor extends HTMLElement {
       libero.className = "sceltaColore coloreLibero";
       libero.dataset.nome = "personalizzato";
       libero.title = "Un colore qualsiasi";
-      const scelta = document.createElement("input");
-      scelta.type = "color";
-      scelta.addEventListener("input", () => {
-        const t = scelta.value;
-        const rgb = [parseInt(t.slice(1, 3), 16), parseInt(t.slice(3, 5), 16),
-                     parseInt(t.slice(5, 7), 16)];
+      // niente finestra dei colori del computer: la ruota, che si apre subito
+      const scelta = this._sceltaColore(this._config.colore_rgb, (rgb) => {
         this._config = { ...this._config, colore: "personalizzato", colore_rgb: rgb };
         this._emetti();
-        this._costruisciScelte();
       });
-      libero.appendChild(scelta);
+      libero.addEventListener("click", scelta.apriChiudi);
       fila.appendChild(libero);
+      fila.after(scelta.cassetto);
       tin._libero = libero;
       tin._scelta = scelta;
 
@@ -6408,7 +7841,7 @@ class CasaTileEditor extends HTMLElement {
       const tinta = daRgb(c.colore_rgb);
       if (tinta) {
         tin._libero.style.background = tinta;
-        tin._scelta.value = tinta;
+        if (tin._scelta && tin._scelta.aggiorna) tin._scelta.aggiorna(c.colore_rgb);
       }
     } else if (tin && tin._libero) {
       tin._libero.style.background =
@@ -6450,10 +7883,882 @@ class CasaTileEditor extends HTMLElement {
 
   // dai un nome tuo a ogni misura: "Scarica", "Uscita casa"... senza questo
   // due sensori di watt sono due caselline uguali con dentro numeri diversi
-  _costruisciNomi() {
+  // I selettori di colore di Home Assistant sono pesantissimi: aprirli
+  // fermava tutta la pagina. Qui basta il colore del sistema, che si apre
+  // di colpo, piu' una X per toglierlo.
+  _costruisciColori() {
+    (this._gruppi || []).forEach((suoi) => {
+      suoi.forEach((g) => {
+        if (!g.colori) return;
+        const campi = g.gruppo.colori;
+        // la firma NON guarda i colori scelti: se no la ruota si richiude
+        // in faccia ogni volta che ne tocchi uno
+        const firma = campi.join(",");
+        if (g.colori._firma === firma) {
+          g.colori.hidden = g.form.hidden && !campi.length;
+          g.colori.childNodes.forEach((n2) => { if (n2._aggiorna) n2._aggiorna(); });
+          return;
+        }
+        g.colori._firma = firma;
+        g.colori.innerHTML = "";
+        campi.forEach((campo) => g.colori.appendChild(this._rigaColore(campo)));
+      });
+    });
+  }
+
+  // La ruota dei colori: la uso sia per le tinte della casella sia per le
+  // schede del pop-up. Restituisce la pastiglia da toccare, il cassetto che
+  // si apre, e un modo per rimetterla in pari.
+  _sceltaColore(iniziale, quandoCambia) {
+    const bolla = document.createElement("button");
+    bolla.type = "button";
+    bolla.className = "bolla";
+    bolla.title = "Scegli il colore";
+
+    const cassetto = document.createElement("div");
+    cassetto.className = "ruota-cassetto";
+    cassetto.hidden = true;
+    const ruota = document.createElement("div");
+    ruota.className = "ruota";
+    const mira = document.createElement("i");
+    mira.className = "mira";
+    ruota.appendChild(mira);
+    const luce = document.createElement("input");
+    luce.type = "range";
+    luce.className = "luce";
+    luce.min = "0"; luce.max = "100"; luce.step = "1";
+
+    let H = 210; let S2 = 60;
+    const metti = (rgb) => {
+      if (Array.isArray(rgb)) {
+        const [h2, s3, l2] = rgbAHsl(rgb[0], rgb[1], rgb[2]);
+        H = h2; S2 = s3; luce.value = String(Math.round(l2));
+        bolla.style.background = daRgb(rgb);
+      } else {
+        luce.value = "50";
+        bolla.style.background = "transparent";
+      }
+    };
+    metti(iniziale);
+
+    const mettiMira = () => {
+      const r = (S2 / 100) * 46;
+      const a2 = H * Math.PI / 180;
+      mira.style.left = (50 + Math.cos(a2) * r) + "%";
+      mira.style.top = (50 + Math.sin(a2) * r) + "%";
+      mira.style.background = hslATesto(H, S2, Number(luce.value));
+    };
+    const mostra = () => {
+      bolla.style.background = hslATesto(H, S2, Number(luce.value));
+      mettiMira();
+    };
+    const manda = () => quandoCambia(hslARgb(H, S2, Number(luce.value)));
+
+    const prendi = (e) => {
+      const q = ruota.getBoundingClientRect();
+      if (!q.width || !q.height) return;
+      const dx = (e.clientX - q.left) / q.width * 2 - 1;
+      const dy = (e.clientY - q.top) / q.height * 2 - 1;
+      const r = Math.min(1, Math.sqrt(dx * dx + dy * dy));
+      const h2 = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+      if (!isFinite(h2) || !isFinite(r)) return;
+      H = h2;
+      S2 = Math.round(r * 100);
+      mostra();
+    };
+    ruota.addEventListener("pointerdown", (e) => {
+      ruota.setPointerCapture(e.pointerId);
+      ruota._giu = true;
+      prendi(e);
+    });
+    ruota.addEventListener("pointermove", (e) => { if (ruota._giu) prendi(e); });
+    ["pointerup", "pointercancel"].forEach((ev) =>
+      ruota.addEventListener(ev, () => { ruota._giu = false; manda(); }));
+    luce.addEventListener("input", mostra);
+    luce.addEventListener("change", manda);
+    const apriChiudi = () => {
+      cassetto.hidden = !cassetto.hidden;
+      if (!cassetto.hidden) mettiMira();
+    };
+    bolla.addEventListener("click", apriChiudi);
+
+    cassetto.append(ruota, luce);
+    return {
+      bolla: bolla, cassetto: cassetto, aggiorna: metti,
+      apriChiudi: apriChiudi, aperto: () => !cassetto.hidden,
+    };
+  }
+
+  _rigaColore(campo) {
+    const riga = document.createElement("div");
+    riga.className = "riga-colore";
+    const eti = document.createElement("span");
+    eti.className = "eti";
+    eti.textContent = ETICHETTE[campo] || campo;
+
+    const via = document.createElement("button");
+    via.type = "button";
+    via.className = "togli";
+    via.textContent = "✕";
+    via.title = "Togli il colore";
+    via.hidden = !Array.isArray(this._config[campo]);
+    via.addEventListener("click", () => {
+      const c2 = { ...this._config };
+      delete c2[campo];
+      this._config = c2;
+      this._emetti();
+      this._costruisciColori();
+    });
+
+    const scelta = this._sceltaColore(this._config[campo], (rgb) => {
+      this._config = { ...this._config, [campo]: rgb };
+      via.hidden = false;
+      this._emetti();
+    });
+
+    riga.append(eti, scelta.bolla, via);
+    const fuori = document.createElement("div");
+    fuori.className = "colore-riga-fuori";
+    fuori.append(riga, scelta.cassetto);
+    fuori._aggiorna = () => {
+      const ora = this._config[campo];
+      scelta.aggiorna(ora);
+      via.hidden = !Array.isArray(ora);
+    };
+    return fuori;
+  }
+
+
+
+  // Il riquadro dove si trascinano i pezzi: dentro c'e' una casella vera,
+  // in piccolo, della stessa forma dell'anteprima.
+  _costruisciPosti() {
+    const box = this._postiBox;
+    if (!box) return;
+    // dentro all'editor di una scheda del pop-up il riquadro non ci va, e
+    // non ci va nemmeno un avviso al suo posto: niente roba morta
+    if (this._perIlPopup()) {
+      if (box.innerHTML) box.innerHTML = "";
+      box.hidden = true;
+      return;
+    }
+    if (!box._fatto) {
+      box._fatto = true;
+      box.innerHTML = "<h4>Dove va ogni pezzo</h4>"
+        + "<p class='aiuto'>Prendi il nome, il valore, l'icona o una misura e "
+        + "trascinali dove vuoi dentro alla casella qui sotto.</p>";
+      const pista = document.createElement("div");
+      pista.className = "pista";
+      const carta = document.createElement("casa-tile");
+      carta.setAttribute("solo-casella", "");
+      carta.setAttribute("trascinabile", "");
+      pista.appendChild(carta);
+      box.appendChild(pista);
+      const sotto = document.createElement("div");
+      sotto.className = "pista-tasti";
+      const rimetti = document.createElement("button");
+      rimetti.type = "button";
+      rimetti.className = "tastoPiatto";
+      rimetti.textContent = "Rimetti tutto a posto";
+      // Il tasto butta via tutta la disposizione: una manata per sbaglio
+      // gli faceva perdere il lavoro senza modo di tornare indietro. Ora la
+      // disposizione la metto da parte e compare il tasto per riprenderla.
+      const annulla = document.createElement("button");
+      annulla.type = "button";
+      annulla.className = "tastoPiatto";
+      annulla.textContent = "Rimetti come prima";
+      annulla.hidden = true;
+      rimetti.addEventListener("click", () => {
+        // e dimentico anche la misura piu' stretta che mi ero segnato: se
+        // rifa la disposizione da capo, deve poterla rifare su quella di adesso
+        const c0 = this._cfgPista() || {};
+        const base = "casa-tile:misura3:" + (c0.entity || "") + "|" + (c0.name || "");
+        try {
+          localStorage.removeItem(base);
+          localStorage.removeItem(base + "|pop");
+        } catch (e) { /* pazienza */ }
+        const ora = this._cfgPista().posti;
+        if (ora && Object.keys(ora).length) box._salvati = ora;
+        this._scriviPosti(null);
+        this._aggiornaPista();
+        annulla.hidden = !box._salvati;
+        this._dico("disposizione tolta - puoi riprenderla col tasto qui di fianco");
+      });
+      annulla.addEventListener("click", () => {
+        if (!box._salvati) return;
+        this._scriviPosti(box._salvati);
+        box._salvati = null;
+        annulla.hidden = true;
+        this._aggiornaPista();
+        this._dico("disposizione ripresa");
+      });
+      sotto.appendChild(rimetti);
+      sotto.appendChild(annulla);
+      box.appendChild(sotto);
+      const nota = document.createElement("div");
+      nota.className = "pista-nota";
+      nota.textContent = "pronto: tocca un pezzo qui sopra";
+      box.appendChild(nota);
+      box._nota = nota;
+      box._carta = carta;
+      // chi sto sistemando: la casella stessa o una scheda del suo pop-up
+      const chi = document.createElement("div");
+      chi.className = "pista-chi";
+      box.insertBefore(chi, pista);
+      box._chi = chi;
+      this._pistaTrascina(carta);
+    }
+    this._aggiornaPista();
+  }
+
+  _aggiornaPista() {
+    const box = this._postiBox;
+    if (!box || !box._carta || !this._hass) return;
+    try {
+      box._carta.setConfig({ ...this._cfgPista() });
+      box._carta.hass = this._hass;
+    } catch (e) { /* una configurazione a meta' non deve rompere niente */ }
+    this._diciChi();
+    this._formaPista();
+    if (!box._guarda && window.ResizeObserver) {
+      const vera0 = this._cartaVera();
+      if (vera0) {
+        box._guarda = new ResizeObserver(() => this._formaPista());
+        box._guarda.observe(vera0);
+      }
+    }
+    clearTimeout(this._ricontrolla);
+    this._ricontrolla = setTimeout(() => this._formaPista(), 350);
+    clearTimeout(this._ricontrolla2);
+    this._ricontrolla2 = setTimeout(() => this._formaPista(), 1200);
+    clearTimeout(this._rimedio);
+    this._rimedio = setTimeout(() => this._rimediaVecchi(box._carta), 500);
+  }
+
+
+
+
+  // Sto sistemando una casella che vive dentro a un pop-up? Lo capisco dal
+  // fatto che sopra di me c'e' un altro editor casa-tile: quello della
+  // casella che il pop-up ce l'ha.
+  _perIlPopup() {
+    let n = this;
+    for (let i = 0; i < 40; i += 1) {
+      n = n.parentNode || n.host;
+      if (!n) return false;
+      if (n.localName === "casa-tile-editor") return true;
+      const cl = (n.classList && n.classList.contains) ? n.classList : null;
+      if (cl && (cl.contains("f-corpo") || cl.contains("popup-anteprima"))) return true;
+    }
+    return false;
+  }
+
+  // la casellina del riquadro prende la misura esatta dell'anteprima
+  _formaPista() {
+    const box = this._postiBox;
+    if (!box || !box._carta) return;
+    let largo = 0;
+    let alto = 0;
+    // 1) la misura che la card si e' segnata quando stava sulla plancia
+    //    FUORI dalla modifica: e' quella vera, quella che vedra' lui.
+    // 0) se sta sistemando una scheda del pop-up: la misura che ha li'
+    let daRicordo = false;
+    const scelta = this._sceltaPercorso && this._sceltaPercorso.length
+      ? this._misuraScelta : null;
+    if (scelta && scelta.w > 90 && scelta.h > 40) {
+      largo = scelta.w;
+      alto = scelta.h;
+      daRicordo = true;
+    }
+    const c0 = this._cfgPista() || {};
+    if (!largo && (c0.entity || c0.name)) {
+      // se sto sistemando una casella del pop-up, la misura buona e' quella
+      // che ha DENTRO al pop-up, non quella di una casella sulla plancia
+      const base = "casa-tile:misura3:" + (c0.entity || "") + "|" + (c0.name || "");
+      const dentroPop = this._perIlPopup()
+        || !!(this._sceltaPercorso && this._sceltaPercorso.length);
+      const chiavi = dentroPop ? [base + "|pop", base] : [base, base + "|pop"];
+      for (let i = 0; i < chiavi.length && !daRicordo; i += 1) {
+        try {
+          const pezzi = String(localStorage.getItem(chiavi[i]) || "").split("x");
+          const w = Number(pezzi[0]);
+          const h = Number(pezzi[1]);
+          // sotto ai 90px non e' una casella su cui si possa comporre
+          // qualcosa: meglio l'anteprima che un francobollo
+          if (w > 90 && h > 40) {
+            largo = w; alto = h; daRicordo = true;
+            this._ricordoDalPopup = chiavi[i].indexOf("|pop") > 0;
+          }
+        } catch (e) { /* pazienza */ }
+      }
+    }
+    // 2) se non se l'e' segnata, la card com'e' adesso sulla plancia
+    const plancia = largo ? null : this._cartaPlancia();
+    if (plancia) {
+      const q = plancia.getBoundingClientRect();
+      if (q.width > 90 && q.height > 40) { largo = q.width; alto = q.height; }
+    }
+    // 3) se non e' su nessuna plancia (card appena creata), l'anteprima
+    const vera = largo ? null : this._cartaVera();
+    if (vera) {
+      // ATTENZIONE: misuro la CASELLA, non tutto l'elemento: sotto alla
+      // casella l'anteprima si porta dietro il riquadro del pop-up, che e'
+      // piu' grande, e cosi' la casellina veniva larga il doppio
+      const suaCard = vera.shadowRoot && vera.shadowRoot.querySelector("ha-card");
+      const q = (suaCard || vera).getBoundingClientRect();
+      if (q.width > 40 && q.height > 20) { largo = q.width; alto = q.height; }
+    }
+    if (!largo) {
+      const g = this._config.grid_options || {};
+      const col = Number(g.columns) > 0 ? Number(g.columns) : 4;
+      const rig = Number(g.rows) > 0 ? Number(g.rows) : 2;
+      largo = Math.round(col / 12 * 500);
+      alto = rig * 56 + (rig - 1) * 8;
+    }
+    // Un filo piu' piccola dell'anteprima, ma SEMPRE in proporzione: se
+    // stringessi solo la larghezza cambierebbe forma e i pezzi finirebbero
+    // in un punto qui e in un altro sulla plancia.
+    // ESATTAMENTE la misura dell'anteprima: bastano pochi pixel di
+    // differenza e le misure vanno a capo in un modo qui e in un altro la',
+    // quindi le due caselle sembrano diverse.
+    const posto = Math.max(190, (box.clientWidth || 420) - 28);
+    let stretta = false;
+    if (largo > posto) {
+      alto = alto * posto / largo;
+      largo = posto;
+      stretta = true;
+    }
+    box._carta.style.width = Math.round(largo) + "px";
+    box._carta.style.height = Math.round(alto) + "px";
+    // scritto nero su bianco da dove ho preso la misura: se il riquadro non
+    // combacia con la plancia, si vede subito da qui il perche'
+    if (box._nota && !box._nota._occupata) {
+      box._nota.textContent = "riquadro " + Math.round(largo) + "x"
+        + Math.round(alto) + (stretta ? " (rimpicciolita per starci)" : "")
+        + " - " + (daRicordo
+          ? (this._ricordoDalPopup
+            ? "misura vera della casella dentro al pop-up"
+            : "misura vera della card sulla plancia")
+          : (plancia ? "misura della card mentre la plancia e' in modifica"
+            : (vera ? "misura dell'anteprima: la card non l'ho trovata sulla plancia"
+              : "misura calcolata dalle colonne del Layout")));
+    }
+  }
+
+  // La casella vera dell'anteprima. Attenzione: DENTRO la finestra delle
+  // impostazioni e basta. Dietro alla finestra c'e' la plancia con tutte le
+  // altre caselle, e cercando in tutta la pagina finivo per misurare una di
+  // quelle, che e' larga tutt'altro.
+  // la finestra delle impostazioni che mi contiene (e la cima, se non c'e')
+  _finestraMia() {
+    let cima = this;
+    let dialogo = null;
+    for (let i = 0; i < 60; i += 1) {
+      const p = cima.parentNode || cima.host;
+      if (!p) break;
+      cima = p;
+      const nome = String(cima.localName || "");
+      if (nome.indexOf("dialog") >= 0 || nome === "hui-dialog-edit-card") {
+        dialogo = cima;
+        break;
+      }
+    }
+    return { dialogo: dialogo, cima: cima };
+  }
+
+  // La stessa casella FUORI dalla finestra: e' quella vera sulla plancia,
+  // con la misura che le da' il "Layout" di Home Assistant (colonne e
+  // righe). E' quella che deve fare da modello al riquadro, se no lui
+  // compone su una forma e poi sulla plancia ne trova un'altra.
+  _cartaPlancia() {
+    if (this._planciaSalvata && this._planciaSalvata.isConnected) {
+      return this._planciaSalvata;
+    }
+    // Girare tutta la pagina costa: lo faccio UNA volta per ogni casella
+    // che sto sistemando. Prima, quando non la trovavo (e' il caso delle
+    // caselle che vivono solo dentro ai pop-up), rifacevo il giro a ogni
+    // ricontrollo e la finestra delle impostazioni si trascinava.
+    const chi = (this._config || {}).entity + "|" + (this._config || {}).name;
+    if (this._planciaCercata === chi) return null;
+    this._planciaCercata = chi;
+    // una scheda che vive dentro al pop-up sulla plancia non c'e': il giro
+    // di tutta la pagina sarebbe fatica buttata via
+    if (this._perIlPopup()) return null;
+    const { dialogo, cima } = this._finestraMia();
+    const mia = this._config || {};
+    if (!mia.entity && !mia.name) return null;
+    // la plancia e' grande: di nodi da girare ce ne vogliono tanti
+    let restano = 120000;
+    let precisa = null;
+    // dentro a un pop-up? allora non e' lei la card sulla plancia
+    const dentroUnaltra = (el) => {
+      let n = el;
+      for (let i = 0; i < 14; i += 1) {
+        n = n.parentNode || n.host;
+        if (!n) return false;
+        if (n.localName === "casa-tile") return true;
+      }
+      return false;
+    };
+    const cerca = (n) => {
+      if (!n || restano <= 0 || precisa) return;
+      if (n === dialogo) return;   // dentro alla finestra non guardo
+      restano -= 1;
+      if (n.nodeType === 1) {
+        if (n.localName === "casa-tile" && !n.hasAttribute("solo-casella")) {
+          const suo = n._config || {};
+          // nome E entita' uguali: la sola entita' non basta, gli stessi
+          // comandi rapidi (0W, 95W, 110W...) la condividono e sono grandi
+          // come un francobollo
+          if (suo.entity === mia.entity
+              && String(suo.name || "") === String(mia.name || "")
+              && n.getBoundingClientRect().width > 40
+              && !dentroUnaltra(n)) {
+            precisa = n;
+            return;
+          }
+        }
+        if (n.shadowRoot) cerca(n.shadowRoot);
+      }
+      const figli = n.children || [];
+      for (let i = 0; i < figli.length && !precisa; i += 1) cerca(figli[i]);
+    };
+    try { cerca(document.body || cima); } catch (e) { /* pazienza */ }
+    this._planciaSalvata = precisa;
+    this._nodiGirati = 120000 - restano;
+    return this._planciaSalvata;
+  }
+
+  _cartaVera() {
+    if (this._veraSalvata && this._veraSalvata.isConnected) return this._veraSalvata;
+    const { dialogo, cima } = this._finestraMia();
+    const partenza = dialogo || cima;
+    const mia = JSON.stringify(this._config || {});
+    let restano = 8000;
+    const trovate = [];
+    const cerca = (n) => {
+      if (!n || restano <= 0) return;
+      restano -= 1;
+      if (n.nodeType === 1) {
+        if (n.localName === "casa-tile" && !n.hasAttribute("solo-casella")) {
+          trovate.push(n);
+        }
+        if (n.shadowRoot) cerca(n.shadowRoot);
+      }
+      const figli = n.children || [];
+      for (let i = 0; i < figli.length; i += 1) cerca(figli[i]);
+    };
+    try { cerca(partenza); } catch (e) { /* pazienza */ }
+    // fra quelle trovate scelgo quella che ha la MIA configurazione
+    let vera = trovate.find((c) => {
+      try { return JSON.stringify(c._config || {}) === mia; } catch (e) { return false; }
+    });
+    if (!vera) {
+      vera = trovate.find((c) => c._config
+        && c._config.entity === (this._config || {}).entity);
+    }
+    if (!vera && dialogo) vera = trovate[0] || null;
+    this._veraSalvata = vera || null;
+    return this._veraSalvata;
+  }
+
+
+
+  // il trascinamento vero e proprio
+  // Passando a mano libera ogni pezzo prende la sua misura naturale, che
+  // puo' essere piu' larga di quando stavano in fila (in fila si stringono
+  // a vicenda). Cosi' due misure possono finire una sull'altra. Questa
+  // passata le distanzia, e la faccio UNA volta sola: quando trascina lui
+  // il pezzo resta esattamente dove l'ha lasciato.
+  _sbrogliaPosti(posti) {
+    const fuori = { ...posti };
+    const chiavi = Object.keys(fuori).filter((k) => k !== "misure"
+      && k !== "_base" && fuori[k]
+      && isFinite(fuori[k].x) && isFinite(fuori[k].w) && isFinite(fuori[k].h));
+    chiavi.sort((a, b) => (fuori[a].y - fuori[b].y) || (fuori[a].x - fuori[b].x));
+    const tocca = (a, b) => a.x < b.x + b.w - 0.6 && a.x + a.w > b.x + 0.6
+      && a.y < b.y + b.h - 0.6 && a.y + a.h > b.y + 0.6;
+    const messi = [];
+    chiavi.forEach((k) => {
+      const p = { ...fuori[k] };
+      for (let giro = 0; giro < 20; giro += 1) {
+        const sotto = messi.find((m) => tocca(p, m));
+        if (!sotto) break;
+        p.y = Math.round((sotto.y + sotto.h + 1.2) * 10) / 10;
+        if (p.y + p.h > 100) { p.y = Math.max(0, Math.round((100 - p.h) * 10) / 10); break; }
+      }
+      p.dx = Math.round((100 - p.x - p.w) * 10) / 10;
+      fuori[k] = p;
+      messi.push(p);
+    });
+    return fuori;
+  }
+
+  // le disposizioni salvate prima della 2.4.18 si portavano dietro le
+  // larghezze in percentuale: adesso che ogni pezzo prende la sua misura
+  // vera si sovrappongono. Le rimetto in ordine una volta sola.
+  _rimediaVecchi(carta) {
+    if (this._giaSbrogliato) return;
+    const posti = this._cfgPista().posti;
+    if (!posti || !Object.keys(posti).length) return;
+    const daRifare = Object.keys(posti).some((k) => k !== "misure"
+      && k !== "_base" && posti[k] && !isFinite(posti[k].dx));
+    // se e' gia' a posto non tocco niente: le sue posizioni sono sue
+    if (!daRifare) { this._giaSbrogliato = true; return; }
+    const veri = carta.posizioniAdesso();
+    if (!Object.keys(veri).length) {
+      // la casellina non e' ancora impaginata (la scheda "Aspetto" e' chiusa):
+      // riprovo, se no il rimedio non parte piu' per tutta la sessione
+      this._tentativi = (this._tentativi || 0) + 1;
+      if (this._tentativi < 20) {
+        clearTimeout(this._rimedio);
+        this._rimedio = setTimeout(() => this._rimediaVecchi(carta), 600);
+      }
+      return;
+    }
+    this._giaSbrogliato = true;
+    const uniti = {};
+    Object.keys(posti).forEach((k) => {
+      uniti[k] = veri[k] ? { ...posti[k], ...veri[k] } : posti[k];
+    });
+    this._scriviPosti(this._sbrogliaPosti(uniti));
+    this._aggiornaPista();
+  }
+
+  // ---- quale casella sto sistemando nel riquadro ----
+  // Il riquadro e' UNO SOLO, nella pagina principale. Toccando una casella
+  // nell'anteprima del pop-up si sceglie lei: cosi' non serve rifare tutto
+  // l'armamentario dentro a ogni scheda.
+  _schedaA(percorso) {
+    let lista = this._schede();
+    let c = null;
+    for (let i = 0; i < percorso.length; i += 1) {
+      c = lista[percorso[i]];
+      if (!c) return null;
+      lista = c.cards || [];
+    }
+    return c;
+  }
+
+  _conScheda(percorso, nuova) {
+    const clona = (lista, liv) => {
+      const fuori = lista.slice();
+      const i = percorso[liv];
+      if (liv === percorso.length - 1) fuori[i] = nuova;
+      else fuori[i] = { ...fuori[i], cards: clona(fuori[i].cards || [], liv + 1) };
+      return fuori;
+    };
+    return clona(this._schede(), 0);
+  }
+
+  _trovaPercorso(cfg) {
+    const uguale = (a, b) => String(a.type) === String(b.type)
+      && String(a.entity || "") === String(b.entity || "")
+      && String(a.name || "") === String(b.name || "");
+    const cerca = (lista, base) => {
+      for (let i = 0; i < lista.length; i += 1) {
+        const c = lista[i] || {};
+        if (uguale(c, cfg)) return base.concat([i]);
+        if (Array.isArray(c.cards)) {
+          const giu = cerca(c.cards, base.concat([i]));
+          if (giu) return giu;
+        }
+      }
+      return null;
+    };
+    return cerca(this._schede(), []);
+  }
+
+  // la configurazione della casella che il riquadro sta mostrando
+  _cfgPista() {
+    const p = this._sceltaPercorso;
+    if (p && p.length) {
+      const c = this._schedaA(p);
+      if (c) return c;
+    }
+    return this._config;
+  }
+
+  // e dove vanno scritte le posizioni quando lui trascina
+  _scriviPosti(posti) {
+    const p = this._sceltaPercorso;
+    if (!p || !p.length) {
+      const c2 = { ...this._config };
+      if (posti) c2.posti = posti; else delete c2.posti;
+      this._config = c2;
+      this._emetti();
+      return;
+    }
+    const vecchia = this._schedaA(p);
+    if (!vecchia) return;
+    const nuova = { ...vecchia };
+    if (posti) nuova.posti = posti; else delete nuova.posti;
+    this._salvaSchede(this._conScheda(p, nuova), false);
+  }
+
+  _diciChi() {
+    const box = this._postiBox;
+    if (!box || !box._chi) return;
+    box._chi.innerHTML = "";
+    const p = this._sceltaPercorso;
+    if (!p || !p.length) {
+      box._chi.textContent = "Stai sistemando: questa casella. "
+        + "Per una scheda del pop-up, toccala nell'anteprima qui di fianco.";
+      return;
+    }
+    const c = this._schedaA(p) || {};
+    const eti = document.createElement("span");
+    eti.className = "chi-nome";
+    eti.textContent = "Stai sistemando: " + (c.name || c.entity || "una scheda del pop-up");
+    const torna = document.createElement("button");
+    torna.type = "button";
+    torna.className = "tastoPiatto";
+    torna.textContent = "Torna alla casella";
+    torna.addEventListener("click", () => {
+      this._sceltaPercorso = null;
+      this._misuraScelta = null;
+      this._giaSbrogliato = false;
+      this._planciaCercata = null;
+      this._planciaSalvata = null;
+      this._aggiornaPista();
+    });
+    box._chi.append(eti, torna);
+  }
+
+  _dico(testo) {
+    const box = this._postiBox;
+    if (!box || !box._nota) return;
+    box._nota._occupata = true;
+    box._nota.textContent = testo;
+  }
+
+  _pistaTrascina(carta) {
+    const PEZZI = [
+      ["valore", ".valore"],
+      ["nome", ".testi"],
+      ["cursore", ".cursore:not([hidden])"],
+      ["comandi", ".comandi:not([hidden])"],
+      ["icona", "svg.icona,img.ritratto,.iconaHa,.iconaFoto"],
+    ];
+    // Chi sta sotto al dito? Lo cerco confrontando le posizioni invece di
+    // chiedere al browser "cosa c'e' qui": quella strada non risponde se il
+    // riquadro e' fuori dallo schermo o dentro a un'ombra.
+    const chiSono = (x, y) => {
+      const radice = carta.shadowRoot;
+      if (!radice) return null;
+      const dentro = (el) => {
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && x >= r.left - 2 && x <= r.right + 2
+          && y >= r.top - 2 && y <= r.bottom + 2;
+      };
+      // le misure per prime: sono le piu' piccole e stanno sopra le altre
+      const misure = radice.querySelectorAll(".chips .metrica");
+      for (let i = 0; i < misure.length; i += 1) {
+        if (dentro(misure[i]) && misure[i].dataset.eid) {
+          return { chi: "misura:" + misure[i].dataset.eid, el: misure[i] };
+        }
+      }
+      for (let i = 0; i < PEZZI.length; i += 1) {
+        const el = radice.querySelector(PEZZI[i][1]);
+        if (dentro(el)) return { chi: PEZZI[i][0], el: el };
+      }
+      return null;
+    };
+    let preso = null;
+
+    // Ascolto sulla FINESTRA, in cattura: cosi' arrivo prima di chiunque
+    // altro. Attaccandomi alla casellina, qualcuno piu' in alto (la
+    // finestra delle impostazioni, gli elenchi trascinabili di Home
+    // Assistant) poteva fermare il tocco prima che arrivasse a me.
+    const giu = (e) => {
+      const radice = carta.shadowRoot;
+      if (!radice || !carta.isConnected) return;
+      const rq = carta.getBoundingClientRect();
+      if (!rq.width) return;
+      if (e.clientX < rq.left || e.clientX > rq.right
+          || e.clientY < rq.top || e.clientY > rq.bottom) return;
+      const q = chiSono(e.clientX, e.clientY);
+      this._dico(q ? "preso: " + q.chi : "sotto al dito non c'e' nessun pezzo");
+      if (!q) return;
+      e.preventDefault();
+      e.stopPropagation();
+      // la prima volta fisso tutti i pezzi dove stanno adesso, se no
+      // saltano tutti appena ne muovo uno
+      const mia = this._cfgPista();
+      if (!mia.posti || !Object.keys(mia.posti).length) {
+        const ora = carta.posizioniAdesso();
+        if (!Object.keys(ora).length) return;
+        this._scriviPosti(ora);
+        // la metto subito in modo libero, se no il primo trascinamento
+        // partirebbe dalla disposizione automatica
+        try { carta.setConfig({ ...this._cfgPista() }); } catch (e2) { /* pazienza */ }
+        try { carta.hass = this._hass; } catch (e3) { /* pazienza */ }
+        // adesso che sono liberi hanno preso la loro misura vera: rimisuro
+        // e li distanzio, se no partono gia' uno sopra l'altro
+        const veri = carta.posizioniAdesso();
+        if (Object.keys(veri).length) {
+          this._giaSbrogliato = true;
+          this._scriviPosti(this._sbrogliaPosti(veri));
+          try { carta.setConfig({ ...this._cfgPista() }); } catch (e4) { /* pazienza */ }
+          try { carta.hass = this._hass; } catch (e5) { /* pazienza */ }
+        }
+      }
+      const rc = carta.riquadroCasella();
+      if (!rc) return;
+      const re = q.el.getBoundingClientRect();
+      preso = {
+        chi: q.chi, el: q.el, rc: rc,
+        dx: e.clientX - re.left, dy: e.clientY - re.top,
+        largo: re.width, alto: re.height,
+      };
+      q.el.classList.add("inmano");
+      try { carta.setPointerCapture(e.pointerId); } catch (e2) { /* pazienza */ }
+    };
+
+    const muovi = (e) => {
+      if (!preso) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const x = (e.clientX - preso.dx - preso.rc.left) / preso.rc.width * 100;
+      const y = (e.clientY - preso.dy - preso.rc.top) / preso.rc.height * 100;
+      const maxX = 100 - (preso.largo / preso.rc.width * 100);
+      const maxY = 100 - (preso.alto / preso.rc.height * 100);
+      const px = Math.round(Math.max(0, Math.min(maxX, x)) * 10) / 10;
+      const py = Math.round(Math.max(0, Math.min(maxY, y)) * 10) / 10;
+      preso.finito = { x: px, y: py };
+      this._dico("sposto " + preso.chi + " a " + px + "% " + py + "%");
+      // muovo subito il pezzo, senza rifare la casella: cosi' e' liscio
+      const quali = preso.chi === "icona"
+        ? ["svg.icona", "img.ritratto", ".iconaHa", ".iconaFoto"] : [null];
+      if (preso.chi === "icona") {
+        quali.forEach((sel) => {
+          const el = carta.shadowRoot.querySelector(sel);
+          if (el) {
+            el.style.right = "auto"; el.style.left = px + "%";
+            el.style.top = py + "%";
+          }
+        });
+      } else {
+        preso.el.style.right = "auto";
+        preso.el.style.left = px + "%";
+        preso.el.style.top = py + "%";
+      }
+    };
+
+    const lascia = () => {
+      if (!preso) return;
+      preso.el.classList.remove("inmano");
+      this._dico(preso.finito
+        ? "salvato " + preso.chi + " a " + preso.finito.x + "% " + preso.finito.y + "%"
+        : "lasciato senza spostare " + preso.chi);
+      if (preso.finito) {
+        carta._appenaSpostato = true;
+        const posti = { ...(this._cfgPista().posti || {}) };
+        const vecchio = posti[preso.chi] || {};
+        // il pezzo resta esattamente dove l'ha lasciato: prima lo scansavo
+        // da solo se toccava un altro, ma cosi' non si capiva piu' dove
+        // sarebbe finito. Se li vuole uno sopra l'altro, sono affari suoi.
+        posti[preso.chi] = {
+          ...vecchio,
+          x: preso.finito.x,
+          y: preso.finito.y,
+          w: Math.round(preso.largo / preso.rc.width * 1000) / 10,
+          h: Math.round(preso.alto / preso.rc.height * 1000) / 10,
+          dx: Math.round((preso.rc.width - preso.largo)
+            / preso.rc.width * 1000) / 10 - preso.finito.x,
+        };
+        this._scriviPosti(posti);
+      }
+      preso = null;
+    };
+    // Mi metto in ascolto sulla FINESTRA, non sulla casellina: se il dito
+    // esce dal riquadrino il trascinamento deve continuare lo stesso.
+    // (Prima, con l'ascolto sulla casellina, uscire di un pixel lo
+    // chiudeva subito e non si salvava niente.)
+    // ...ma me li devo anche RIPRENDERE quando la finestra si chiude: ogni
+    // volta che apriva le impostazioni ne restavano tre attaccati per
+    // sempre, e dopo un po' di aperture ogni movimento del dito faceva
+    // lavorare tutti quelli delle volte prima. Di qui il rallentamento
+    // che peggiorava a ogni apertura.
+    window.addEventListener("pointerdown", giu, true);
+    window.addEventListener("pointermove", muovi, true);
+    ["pointerup", "pointercancel"].forEach((ev) =>
+      window.addEventListener(ev, lascia, true));
+    // e quando lui tocca una casella dentro all'anteprima del pop-up
+    const scegli = (e) => {
+      const cfg = e.detail && e.detail.config;
+      if (!cfg || !this.isConnected) return;
+      const p = this._trovaPercorso(cfg);
+      const mia = this._config || {};
+      const eLaMia = String(cfg.entity || "") === String(mia.entity || "")
+        && String(cfg.name || "") === String(mia.name || "");
+      if (!p && !eLaMia) return;
+      // toccando la casella grande in cima si torna a sistemare lei
+      this._sceltaPercorso = p && !eLaMia ? p : null;
+      // la misura buona e' quella che ha adesso dentro al pop-up: la prendo
+      // dall'elemento che ha toccato (offsetWidth, non il rettangolo sullo
+      // schermo, che potrebbe essere rimpicciolito dall'anteprima)
+      const chi = e.detail && e.detail.elemento;
+      this._misuraScelta = (this._sceltaPercorso && chi && chi.offsetWidth > 60)
+        ? { w: chi.offsetWidth, h: chi.offsetHeight } : null;
+      this._giaSbrogliato = false;
+      this._planciaCercata = null;
+      this._planciaSalvata = null;
+      this._aggiornaPista();
+      const box = this._postiBox;
+      if (box) box.scrollIntoView({ block: "nearest" });
+    };
+    window.addEventListener("casa-scegli-scheda", scegli, true);
+    this._ascolti = () => {
+      window.removeEventListener("casa-scegli-scheda", scegli, true);
+      window.removeEventListener("pointerdown", giu, true);
+      window.removeEventListener("pointermove", muovi, true);
+      ["pointerup", "pointercancel"].forEach((ev) =>
+        window.removeEventListener(ev, lascia, true));
+    };
+    // e mentre sposto un pezzo la casella non deve fare il suo mestiere
+    carta.addEventListener("click", (e) => {
+      if (!preso && !carta._appenaSpostato) return;
+      e.preventDefault();
+      e.stopPropagation();
+      carta._appenaSpostato = false;
+    }, true);
+  }
+
+  // se Home Assistant mi stacca e mi riattacca (cambio di linguetta) gli
+  // ascoltatori del trascinamento vanno rimessi
+  connectedCallback() {
+    const box = this._postiBox;
+    if (box && box._carta && !this._ascolti) this._pistaTrascina(box._carta);
+  }
+
+  // La finestra delle impostazioni si chiude: mi riprendo tutto quello che
+  // avevo lasciato in giro, se no si accumula apertura dopo apertura.
+  disconnectedCallback() {
+    if (this._ascolti) { this._ascolti(); this._ascolti = null; }
+    clearTimeout(this._propagaDopo);
+    this._propagaDopo = 0;
+    const box = this._postiBox;
+    if (box && box._guarda) { box._guarda.disconnect(); box._guarda = null; }
+    clearTimeout(this._ricontrolla);
+    clearTimeout(this._ricontrolla2);
+    clearTimeout(this._rimedio);
+    clearTimeout(this._scordaForm);
+    clearTimeout(this._ripassoAnt);
+    this._planciaSalvata = null;
+    this._veraSalvata = null;
+  }
+
+  _costruisciNomi(forza) {
     const box = this._nomiMisure;
     if (!box) return;
     const scelte = this._config.info_entita || [];
+    // se l'elenco e' lo stesso non tocco niente: rifare il riquadro fa
+    // saltare la pagina in cima e perdere il campo dove sta scrivendo
+    const firma = scelte.join(",");
+    if (!forza && box._firma === firma) return;
+    box._firma = firma;
     box.innerHTML = "";
     if (!scelte.length || !this._hass) return;
     const titolo = document.createElement("h4");
@@ -6490,8 +8795,34 @@ class CasaTileEditor extends HTMLElement {
       };
       campo.addEventListener("change", salva);
       campo.addEventListener("blur", salva);
-      riga.append(chi, campo);
+
+      // e il colore suo, staccato da quello degli effetti
+      const suoColore = (this._config.info_colori || {})[eid];
+      const via = document.createElement("button");
+      via.type = "button";
+      via.className = "togli";
+      via.textContent = "✕";
+      via.title = "Torna al colore della casella";
+      via.hidden = !Array.isArray(suoColore);
+      const scelta = this._sceltaColore(suoColore, (rgb) => {
+        const tinte = { ...(this._config.info_colori || {}) };
+        tinte[eid] = rgb;
+        this._config = { ...this._config, info_colori: tinte };
+        via.hidden = false;
+        this._emetti();
+      });
+      scelta.bolla.title = "Colore di questa misura";
+      via.addEventListener("click", () => {
+        const tinte = { ...(this._config.info_colori || {}) };
+        delete tinte[eid];
+        this._config = { ...this._config, info_colori: tinte };
+        this._emetti();
+        this._costruisciNomi(true);
+      });
+
+      riga.append(chi, campo, scelta.bolla, via);
       elenco.appendChild(riga);
+      elenco.appendChild(scelta.cassetto);
     });
     box.appendChild(elenco);
   }
@@ -6520,6 +8851,24 @@ class CasaTileEditor extends HTMLElement {
   _costruisciTrovati() {
     const box = this._sensori;
     const trovati = this._trovaSensori();
+    const scelti0 = this._config.info_entita || [];
+    // stessi sensori e stesse spunte: aggiorno solo i numeri, senza rifare
+    // il riquadro (se no la pagina salta in cima a ogni modifica)
+    const firma = (this._config.entity || "") + "|" + trovati.join(",")
+      + "|" + scelti0.join(",");
+    if (box._firma === firma) {
+      box.querySelectorAll(".trovato").forEach((riga) => {
+        const eid = riga.dataset.eid;
+        const st2 = this._hass ? this._hass.states[eid] : null;
+        if (!st2) return;
+        const u2 = st2.attributes.unit_of_measurement;
+        const val = riga.querySelector(".val");
+        const testo = String(st2.state).slice(0, 18) + (u2 ? " " + u2 : "");
+        if (val && val.textContent !== testo) val.textContent = testo;
+      });
+      return;
+    }
+    box._firma = firma;
     box.innerHTML = "<h4>Sensori collegati a questa entita</h4>";
     if (!this._config.entity) {
       const vuoto = document.createElement("div");
@@ -6548,6 +8897,7 @@ class CasaTileEditor extends HTMLElement {
       const st = this._hass.states[eid];
       const riga = document.createElement("label");
       riga.className = "trovato";
+      riga.dataset.eid = eid;
       const spunta = document.createElement("input");
       spunta.type = "checkbox";
       spunta.checked = scelti.includes(eid);
@@ -6580,6 +8930,14 @@ class CasaTileEditor extends HTMLElement {
     const azione = this._config.azione || "toggle";
     const vale = (nome) => {
       if (SOLO_AZIONE[nome] && SOLO_AZIONE[nome] !== azione) return false;
+      // le due della batteria si vedono solo dove c'e' davvero una batteria
+      if (nome === "carica_entita" || nome === "scarica_entita") {
+        if (this._config.icona === "batteria") return true;
+        if (this._config.icona && this._config.icona !== "auto") return false;
+        const st0 = (this._hass && this._config.entity)
+          ? this._hass.states[this._config.entity] : null;
+        return iconaAutomatica(this._config.entity, st0) === "batteria";
+      }
       // se l'accensione la decidono altre entita', la soglia serve sempre
       const rif = this._config.acceso_entita;
       if (nome === "soglia" && (Array.isArray(rif) ? rif.length : !!rif)) return true;
@@ -6599,6 +8957,20 @@ class CasaTileEditor extends HTMLElement {
   }
 
   // la firma serve a capire se lo schema e' cambiato davvero
+  // com'e' messo adesso un modulo: solo i campi che ha davvero dentro
+  _firmaValori(elenco) {
+    const c = this._config;
+    const dentro = [];
+    const gira = (lista) => (lista || []).forEach((v) => {
+      if (v.schema) { gira(v.schema); return; }
+      if (!v.name) return;
+      const x = c[v.name];
+      dentro.push(v.name + "=" + (x === undefined ? "" : JSON.stringify(x)));
+    });
+    gira(elenco);
+    return dentro.join("|");
+  }
+
   _firmaSchema(elenco) {
     return JSON.stringify(elenco.map((v) => v.name
       || (v.schema || []).map((x) => x.name).join("+")));
@@ -6621,11 +8993,17 @@ class CasaTileEditor extends HTMLElement {
           g.form.schema = nuovo;
           g.form._firma = firma;
         }
-        const quanti = this._quantiCampi(nuovo);
+        let quanti = this._quantiCampi(nuovo);
+        // il modulo puo' essere vuoto ma il gruppo avere i suoi colori
+        const conColori = !!(g.gruppo.colori && g.gruppo.colori.length
+          && (!g.gruppo.soloAzione
+              || g.gruppo.soloAzione === (this._config.azione || "toggle")));
+        g.form.hidden = quanti === 0;
+        if (conColori) quanti += g.gruppo.colori.length;
         campi += quanti;
         // il titoletto sparisce insieme ai suoi campi
-        g.form.hidden = quanti === 0;
         if (g.titolo) g.titolo.hidden = quanti === 0;
+        if (g.colori) g.colori.hidden = quanti === 0;
       });
       // certe schede hanno anche i riquadri fatti a mano, quindi restano
       const conBlocchi = ["icona", "sfondo", "tocco", "aspetto"].includes(sez.chiave);
@@ -6721,6 +9099,18 @@ class CasaTileEditor extends HTMLElement {
   }
 
   _scegliScheda(i) {
+    // Le linguette non si buttano via, si nascondono: l'editor della scheda
+    // che aveva aperto in "Tocco" restava vivo per sempre - con la sua
+    // anteprima - e continuava a lavorare anche stando su un'altra
+    // linguetta. Uscendo da "Tocco" lo chiudo.
+    let tocco = -1;
+    SEZIONI.forEach((s, k) => { if (s.chiave === "tocco") tocco = k; });
+    if (tocco >= 0 && i !== tocco
+      && (this._apertaIdx !== null && this._apertaIdx !== undefined)) {
+      this._apertaIdx = null;
+      this._pickerAperto = false;
+      this._costruisciBlocco(true);
+    }
     this._tasti.forEach((b, k) => {
       if (k === i) b.setAttribute("scelta", "");
       else b.removeAttribute("scelta");
@@ -6732,28 +9122,13 @@ class CasaTileEditor extends HTMLElement {
     requestAnimationFrame(() => this._adattaCatalogo());
   }
 
-  // il selettore di colore di Home Assistant non ha la X: senza questi
-  // tastini una tinta scelta per sbaglio non si toglierebbe piu'
-  _tastoTogli(dove, campo, scritta) {
-    if (!Array.isArray(this._config[campo])) return;
-    const b = document.createElement("button");
-    b.className = "bt chiaro";
-    b.type = "button";
-    b.textContent = scritta;
-    b.addEventListener("click", () => {
-      const c = { ...this._config };
-      delete c[campo];
-      this._config = c;
-      this._emetti();
-      this._costruisciFoto();
-      this._costruisciScelte();
-      this._render();
-    });
-    dove.appendChild(b);
-  }
+
 
   _costruisciFoto() {
     const box = this._foto;
+    const firma = String(this._config.sfondo_immagine || "");
+    if (box._firma === firma) return;
+    box._firma = firma;
     box.innerHTML = "<h4>Foto di sfondo</h4>";
     const riga = document.createElement("div");
     riga.className = "foto-riga";
@@ -6805,12 +9180,7 @@ class CasaTileEditor extends HTMLElement {
 
     const tinte = document.createElement("div");
     tinte.className = "foto-riga";
-    this._tastoTogli(tinte, "sfondo_colore", "Togli la tinta della casella");
-    this._tastoTogli(tinte, "pannello_sfondo", "Togli lo sfondo del riquadro casse");
-    this._tastoTogli(tinte, "colore_testo", "Togli il colore della scritta");
-    this._tastoTogli(tinte, "finestra_sfondo", "Togli la tinta del pop-up");
-    this._tastoTogli(tinte, "finestra_schede_sfondo",
-      "Togli la tinta delle schede del pop-up");
+    // i tastini per togliere non servono piu': ogni riga del colore ha la sua X
     if (tinte.children.length) box.appendChild(tinte);
     // in fondo alla scheda Sfondo, che e' dove uno li va a cercare
 
@@ -7108,6 +9478,8 @@ class CasaTileEditor extends HTMLElement {
     const multi = MULTI.includes(card.type) || Array.isArray(card.entities);
     const form = document.createElement("ha-form");
     form.hass = this._hass;
+    form._ebbeHass = !!this._hass;
+    form._quandoHass = Date.now();
     form.schema = [
       multi
         ? { name: "entities", selector: { entity: { multiple: true } } }
@@ -7195,6 +9567,58 @@ class CasaTileEditor extends HTMLElement {
     });
   }
 
+  // il vestito della singola scheda: tinta e trasparenza sue, non di tutte
+  _vestitoScheda(i) {
+    const riga = document.createElement("div");
+    riga.className = "vestito-riga";
+    const suoi = Array.isArray(this._config.finestra_schede_stile)
+      ? this._config.finestra_schede_stile.slice() : [];
+    const mio = suoi[i] || {};
+    const salva = (dati) => {
+      const l = (Array.isArray(this._config.finestra_schede_stile)
+        ? this._config.finestra_schede_stile.slice() : []);
+      while (l.length <= i) l.push({});
+      l[i] = { ...(l[i] || {}), ...dati };
+      // se non ha piu' niente addosso lo tolgo
+      if (l[i].sfondo === null) delete l[i].sfondo;
+      if (l[i].trasparenza === null) delete l[i].trasparenza;
+      this._config = { ...this._config, finestra_schede_stile: l };
+      this._emetti();
+    };
+
+    const eti = document.createElement("span");
+    eti.className = "eti";
+    eti.textContent = "Sfondo di questa scheda";
+
+    const scelta = this._sceltaColore(mio.sfondo, (rgb) => salva({ sfondo: rgb }));
+
+    const barra = document.createElement("input");
+    barra.type = "range";
+    barra.min = "0"; barra.max = "100"; barra.step = "5";
+    barra.title = "Quanto e trasparente";
+    barra.value = String(mio.trasparenza === undefined ? 0 : mio.trasparenza);
+    const quanto = document.createElement("span");
+    quanto.className = "quanto";
+    quanto.textContent = barra.value + "%";
+    barra.addEventListener("input", () => { quanto.textContent = barra.value + "%"; });
+    barra.addEventListener("change", () => salva({ trasparenza: Number(barra.value) }));
+
+    const via = this._bottone("✕", "Togli il vestito a questa scheda", () => {
+      const l = (Array.isArray(this._config.finestra_schede_stile)
+        ? this._config.finestra_schede_stile.slice() : []);
+      if (l[i]) l[i] = {};
+      this._config = { ...this._config, finestra_schede_stile: l };
+      this._emetti();
+      this._costruisciBlocco(true);
+    });
+
+    riga.append(eti, scelta.bolla, barra, quanto, via);
+    const fuori = document.createElement("div");
+    fuori.className = "colore-riga-fuori";
+    fuori.append(riga, scelta.cassetto);
+    return fuori;
+  }
+
   _costruisciBlocco(forza) {
     const mostra = this._config.azione === "finestra";
     this._blocco.style.display = mostra ? "" : "none";
@@ -7208,7 +9632,8 @@ class CasaTileEditor extends HTMLElement {
     // se cambiano solo i VALORI di una scheda non rifaccio l'elenco:
     // altrimenti il pannello aperto si richiude ad ogni tocco
     const firma = JSON.stringify(lista.map((c) => (c || {}).type))
-      + "|" + this._apertaIdx + "|" + (this._pickerAperto ? 1 : 0);
+      + "|" + this._apertaIdx + "|" + (this._pickerAperto ? 1 : 0)
+      + "|" + JSON.stringify(this._config.finestra_schede_stile || []);
     if (!forza && this._firmaBlocco === firma) return;
     this._firmaBlocco = firma;
     this._blocco.innerHTML =
@@ -7265,6 +9690,7 @@ class CasaTileEditor extends HTMLElement {
       );
       riga.append(num, tipo, spinta);
       this._blocco.appendChild(riga);
+      this._blocco.appendChild(this._vestitoScheda(i));
 
       if (this._apertaIdx === i) {
         const box = document.createElement("div");
