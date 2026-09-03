@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.11.4";
+const VERSIONE = "2.11.5";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2101,31 +2101,10 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([disposizione="musica"]) .comandi { margin-top: 12px; }
 :host([disposizione="musica"]) .cursore { margin-top: 8px; }
 
-/* minimo e massimo del periodo, piccoli agli estremi */
 /* Erano due numeretti nudi appiccicati a sinistra, uno sopra all'icona e
    uno sotto: si leggevano male e sporcavano il disegno. Adesso sono due
    pastigliette in alto a destra del grafico, con la freccia che dice quale
    e' il massimo e quale il minimo. */
-.estremi { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
-  min-height: 24px; max-height: 72px; z-index: 1; pointer-events: none;
-  font-size: 9.5px; font-variant-numeric: tabular-nums;
-  color: var(--testo2, var(--secondary-text-color, #8ea0b8));
-  /* le due righe tratteggiate sono i livelli del massimo e del minimo:
-     il disegno sta esattamente fra quelle due, quindi si legge come la
-     scala di un grafico vero */
-  border-top: 1px dashed rgba(255,255,255,.13);
-  border-bottom: 1px dashed rgba(255,255,255,.13); }
-.estremi[hidden] { display: none !important; }
-.estremi span { position: absolute; left: 6px; padding: 1px 6px 1.5px;
-  border-radius: 99px; line-height: 1.45;
-  background: rgba(8,12,20,.62); border: 1px solid rgba(255,255,255,.07);
-  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
-.estremi span:empty { display: none; }
-/* ognuna a cavallo della sua riga, come le tacche di un grafico */
-.estremi .alto { top: 0; transform: translateY(-50%); }
-.estremi .basso { bottom: 0; transform: translateY(50%); }
-.estremi .alto::before { content: "max"; opacity: .6; margin-right: 4px; font-size: 8.5px; letter-spacing: .03em; }
-.estremi .basso::before { content: "min"; opacity: .6; margin-right: 4px; font-size: 8.5px; letter-spacing: .03em; }
 
 /* --- il mirino sul grafico: dice quanto e quando --- */
 .mirino { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
@@ -3669,7 +3648,6 @@ class CasaTile extends HTMLElement {
           <defs><linearGradient class="scala" x1="0" y1="1" x2="0" y2="0"></linearGradient></defs>
           <path class="pieno"></path><path class="riga"></path>
         </svg>
-        <div class="estremi" hidden><span class="alto"></span><span class="basso"></span></div>
         <div class="mirino" hidden><i class="mira"></i><b class="palla"></b></div>
         <div class="cartellino" hidden></div>
         <div class="tempo" hidden>
@@ -3762,7 +3740,6 @@ class CasaTile extends HTMLElement {
     this._firmaChips = null;
     this._andamento = root.querySelector(".andamento");
     this._mirino = root.querySelector(".mirino");
-    this._estremi = root.querySelector(".estremi");
     this._scala = root.querySelector(".andamento .scala");
     this._cartellino = root.querySelector(".cartellino");
     const card0 = root.querySelector("ha-card");
@@ -5952,19 +5929,6 @@ class CasaTile extends HTMLElement {
         box.querySelector(".riga").style.stroke = "";
       }
     }
-
-    // minimo e massimo del periodo
-    if (this._estremi) {
-      const vuole = !!this._config.grafico_estremi;
-      this._estremi.hidden = !vuole;
-      if (vuole) {
-        const u = suoSt ? (suoSt.attributes.unit_of_measurement || "") : "";
-        const scrivi = (n2) => (Math.round(n2 * 10) / 10).toLocaleString("it-IT")
-          + (u ? " " + u : "");
-        this._estremi.querySelector(".alto").textContent = scrivi(alto);
-        this._estremi.querySelector(".basso").textContent = scrivi(basso);
-      }
-    }
     box.title = "Ultime " + (Number(this._config.grafico_ore) > 0
       ? Number(this._config.grafico_ore) : 24) + " ore: da "
       + (Math.round(basso * 10) / 10) + " a " + (Math.round(alto * 10) / 10);
@@ -7316,7 +7280,6 @@ const SEZIONI = [
           { value: "area", label: "Area piena" },
           { value: "linea", label: "Solo la linea" },
         ] } } },
-        { name: "grafico_estremi", selector: { boolean: {} } },
       ] },
     ],
   },
@@ -7403,7 +7366,6 @@ const DIPENDE = {
   grafico_ore: (c) => !!c.grafico,
   grafico_colore: (c) => !!c.grafico,
   grafico_stile: (c) => !!c.grafico,
-  grafico_estremi: (c) => !!c.grafico,
   distanza_entita: (c) => !!c.mostra_distanza,
   info_nomi_auto: (c) => (c.info_entita || []).length > 0,
   segui_attivo: (c) => (c.lettori || []).length > 0 || c.multiroom !== false,
@@ -7444,7 +7406,6 @@ const SOLO_PER = {
   grafico_colore: ["sensor", "number", "input_number", "counter", "climate", "light"],
   grafico_ore: ["sensor", "number", "input_number", "counter", "climate", "light"],
   grafico_stile: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_estremi: ["sensor", "number", "input_number", "counter", "climate", "light"],
   gira_copertina: ["media_player"],
   segui_attivo: ["media_player"],
   multiroom: ["media_player"],
@@ -7503,7 +7464,6 @@ const ETICHETTE = {
   grafico: "Mostra il grafico dell'andamento dentro la casella",
   grafico_ore: "Quante ore di storia (di serie 24)",
   grafico_stile: "Come si disegna",
-  grafico_estremi: "Scrivi il minimo e il massimo del periodo",
   gira_copertina: "Fai girare la copertina tonda come un disco",
   segui_attivo: "Passa da sola alla cassa che sta suonando",
   multiroom: "Tasto Casse: unisci gli altoparlanti e regola i volumi",
