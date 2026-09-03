@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.10.3";
+const VERSIONE = "2.11.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -7604,6 +7604,9 @@ const STILE_EDITOR = `
   font-size: 12px; }
 ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
   outline-offset: 4px; border-radius: 10px; }
+.gruppoBox { margin-top: 12px; }
+.gruppoBox[hidden] { display: none !important; }
+.gruppoBox > .titoloGruppo { margin: 0 0 6px; }
 .titoloGruppo { margin: 16px 0 2px; font-size: 12px; font-weight: 700;
   letter-spacing: .05em; text-transform: uppercase;
   color: var(--secondary-text-color, #8ea0b8); }
@@ -8038,12 +8041,18 @@ class CasaTileEditor extends HTMLElement {
         // ogni scheda e' fatta di gruppi: titoletto + campi
         const suoi = [];
         sez.gruppi.forEach((gruppo) => {
+          // ogni gruppo dentro al suo riquadro, come quelli fatti a mano:
+          // con quaranta impostazioni di fila non si capiva piu' dove
+          // finiva una cosa e cominciava l'altra
+          const scatola = document.createElement("div");
+          scatola.className = "blocco gruppoBox";
+          pannello.appendChild(scatola);
           let titolo = null;
           if (gruppo.titolo) {
             titolo = document.createElement("h4");
             titolo.className = "titoloGruppo";
             titolo.textContent = gruppo.titolo;
-            pannello.appendChild(titolo);
+            scatola.appendChild(titolo);
           }
           const form = document.createElement("ha-form");
           // i valori GLIELI DO SUBITO: senza, i selettori di Home Assistant
@@ -8105,14 +8114,15 @@ class CasaTileEditor extends HTMLElement {
             }
           });
           this._forms.push(form);
-          pannello.appendChild(form);
+          scatola.appendChild(form);
           let boxColori = null;
           if (gruppo.colori && gruppo.colori.length) {
             boxColori = document.createElement("div");
             boxColori.className = "colori-blocco";
-            pannello.appendChild(boxColori);
+            scatola.appendChild(boxColori);
           }
-          suoi.push({ gruppo: gruppo, form: form, titolo: titolo, colori: boxColori });
+          suoi.push({ gruppo: gruppo, form: form, titolo: titolo,
+                      colori: boxColori, scatola: scatola });
 
           // i riquadri fatti a mano vanno sotto al gruppo che li riguarda
           if (sez.chiave === "base" && gruppo.titolo === "Cosa c'e scritto") {
@@ -9599,7 +9609,9 @@ class CasaTileEditor extends HTMLElement {
     if (!forza && box._firma === firma) return;
     box._firma = firma;
     box.innerHTML = "";
-    if (!scelte.length || !this._hass) return;
+    // niente misure, niente riquadro: se no resta una cornice vuota in mezzo
+    box.hidden = !scelte.length || !this._hass;
+    if (box.hidden) return;
     const titolo = document.createElement("h4");
     titolo.textContent = "Come si chiamano le misure";
     box.appendChild(titolo);
@@ -9868,6 +9880,9 @@ class CasaTileEditor extends HTMLElement {
         // il titoletto sparisce insieme ai suoi campi
         if (g.titolo) g.titolo.hidden = quanti === 0;
         if (g.colori) g.colori.hidden = quanti === 0;
+        // il riquadro sparisce con quello che c'e' dentro, se no restano
+        // cornici vuote in mezzo alle impostazioni
+        if (g.scatola) g.scatola.hidden = quanti === 0;
       });
       // certe schede hanno anche i riquadri fatti a mano, quindi restano
       const conBlocchi = ["icona", "sfondo", "tocco", "aspetto"].includes(sez.chiave);
