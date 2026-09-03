@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.11.0";
+const VERSIONE = "2.11.2";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2102,13 +2102,22 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([disposizione="musica"]) .cursore { margin-top: 8px; }
 
 /* minimo e massimo del periodo, piccoli agli estremi */
-.estremi { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+/* Erano due numeretti nudi appiccicati a sinistra, uno sopra all'icona e
+   uno sotto: si leggevano male e sporcavano il disegno. Adesso sono due
+   pastigliette in alto a destra del grafico, con la freccia che dice quale
+   e' il massimo e quale il minimo. */
+.estremi { position: absolute; left: 0; right: 8px; bottom: 0; height: 46%;
   min-height: 24px; max-height: 72px; z-index: 1; pointer-events: none;
+  display: flex; align-items: flex-start; justify-content: flex-end; gap: 5px;
   font-size: 9.5px; font-variant-numeric: tabular-nums;
   color: var(--testo2, var(--secondary-text-color, #8ea0b8)); }
 .estremi[hidden] { display: none !important; }
-.estremi .alto { position: absolute; top: 0; left: 2px; }
-.estremi .basso { position: absolute; bottom: 0; left: 2px; }
+.estremi span { padding: 1px 6px 1.5px; border-radius: 99px; line-height: 1.45;
+  background: rgba(8,12,20,.5); border: 1px solid rgba(255,255,255,.07);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.estremi span:empty { display: none; }
+.estremi .alto::before { content: "91"; opacity: .65; margin-right: 3px; }
+.estremi .basso::before { content: "93"; opacity: .65; margin-right: 3px; }
 
 /* --- il mirino sul grafico: dice quanto e quando --- */
 .mirino { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
@@ -2144,9 +2153,9 @@ svg.iconafondo[hidden] { display: none !important; }
   text-shadow: 0 1px 2px rgba(6,10,16,.85);
 }
 :host([congrafico]) .andamento { opacity: .68; }
-.andamento .riga { fill: none; stroke: var(--c); stroke-width: 1.6;
+.andamento .riga { fill: none; stroke: var(--c-grafico, var(--c)); stroke-width: 1.6;
   stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
-.andamento .pieno { fill: var(--velo, transparent); stroke: none; }
+.andamento .pieno { fill: var(--velo-grafico, var(--velo, transparent)); stroke: none; }
 :host([grande]) .andamento { height: 44px; }
 :host([disposizione="persona"]) .andamento,
 :host([disposizione="musica"]) .andamento,
@@ -6802,6 +6811,16 @@ class CasaTile extends HTMLElement {
     this.style.setProperty("--alone1", conAlfa(col, 0.06 + 0.30 * k));
     this.style.setProperty("--alone2", conAlfa(col, 0.06 + 0.38 * k));
     this.style.setProperty("--velo", conAlfa(col, 0.05 + 0.38 * k));
+    // anche il grafico puo' avere il suo colore: prima si tingeva per forza
+    // come la casella, e su una batteria che sta sul verde si vedeva poco
+    const suoGrafico = Array.isArray(c.grafico_colore) ? daRgb(c.grafico_colore) : null;
+    if (suoGrafico) {
+      this.style.setProperty("--c-grafico", suoGrafico);
+      this.style.setProperty("--velo-grafico", conAlfa(suoGrafico, 0.05 + 0.38 * k));
+    } else {
+      this.style.removeProperty("--c-grafico");
+      this.style.removeProperty("--velo-grafico");
+    }
     this.setAttribute("effetto", c.effetto || "alone");
     this.toggleAttribute("acceso", acceso);
     const quando = c.anima || (c.entity ? "attiva" : "mai");
@@ -7281,7 +7300,7 @@ const SEZIONI = [
   {
     chiave: "grafico", titolo: "Grafico", segno: "📈",
     gruppi: [
-      { schema: [
+      { colori: ["grafico_colore"], schema: [
         { name: "grafico", selector: { boolean: {} } },
         { name: "grafico_ore",
           selector: { number: { min: 1, max: 168, step: 1, mode: "box" } } },
@@ -7374,6 +7393,7 @@ const DIPENDE = {
   cursore_max: (c) => !!c.mostra_cursore,
   colore_striscia: (c) => !!c.cursore_colore,
   grafico_ore: (c) => !!c.grafico,
+  grafico_colore: (c) => !!c.grafico,
   grafico_stile: (c) => !!c.grafico,
   grafico_estremi: (c) => !!c.grafico,
   distanza_entita: (c) => !!c.mostra_distanza,
@@ -7413,6 +7433,7 @@ const SOLO_PER = {
   pannello_trasparenza: ["media_player"],
   comandi_rapidi: ["cover", "lock", "vacuum"],
   grafico: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  grafico_colore: ["sensor", "number", "input_number", "counter", "climate", "light"],
   grafico_ore: ["sensor", "number", "input_number", "counter", "climate", "light"],
   grafico_stile: ["sensor", "number", "input_number", "counter", "climate", "light"],
   grafico_estremi: ["sensor", "number", "input_number", "counter", "climate", "light"],
@@ -7440,6 +7461,7 @@ const ETICHETTE = {
   azione: "Cosa fa quando la tocchi", anima: "Quando si muove l'icona",
   effetto: "Effetto della casella", intensita: "Intensita del colore (%)",
   anima: "Quando si muove (icona ed effetti)",
+  grafico_colore: "Colore del grafico (vuoto = come la casella)",
   colore_testo: "Colore del nome e del sottotitolo (vuoto = quello del tema)",
   colore_valore: "Colore del valore, quello grande (vuoto = come il nome)",
   colore_rgb: "Colore personalizzato (vale solo scegliendo \"personalizzato\" qui sopra)",
@@ -8504,11 +8526,30 @@ class CasaTileEditor extends HTMLElement {
   // I selettori di colore di Home Assistant sono pesantissimi: aprirli
   // fermava tutta la pagina. Qui basta il colore del sistema, che si apre
   // di colpo, piu' una X per toglierlo.
+  // quali ruote di colore hanno senso adesso: le stesse regole dei campi
+  // normali (tipo di entita', azione, e l'interruttore da cui dipendono)
+  _coloriDi(gruppo) {
+    const dom = (this._config.entity || "").split(".")[0];
+    const azione = this._config.azione || "toggle";
+    return (gruppo.colori || []).filter((nome) => {
+      if (SOLO_AZIONE[nome] && SOLO_AZIONE[nome] !== azione) return false;
+      const amm = SOLO_PER[nome];
+      if (amm && (!dom || !amm.includes(dom))) return false;
+      if (DIPENDE[nome] && !DIPENDE[nome](this._config)) {
+        const ora = this._config[nome];
+        const scritto = ora !== undefined && ora !== null && ora !== ""
+          && !(Array.isArray(ora) && !ora.length);
+        if (!scritto) return false;
+      }
+      return true;
+    });
+  }
+
   _costruisciColori() {
     (this._gruppi || []).forEach((suoi) => {
       suoi.forEach((g) => {
         if (!g.colori) return;
-        const campi = g.gruppo.colori;
+        const campi = this._coloriDi(g.gruppo);
         // la firma NON guarda i colori scelti: se no la ruota si richiude
         // in faccia ogni volta che ne tocchi uno
         const firma = campi.join(",");
@@ -9871,11 +9912,12 @@ class CasaTileEditor extends HTMLElement {
         }
         let quanti = this._quantiCampi(nuovo);
         // il modulo puo' essere vuoto ma il gruppo avere i suoi colori
-        const conColori = !!(g.gruppo.colori && g.gruppo.colori.length
+        const suoiColori = this._coloriDi(g.gruppo);
+        const conColori = !!(suoiColori.length
           && (!g.gruppo.soloAzione
               || g.gruppo.soloAzione === (this._config.azione || "toggle")));
         g.form.hidden = quanti === 0;
-        if (conColori) quanti += g.gruppo.colori.length;
+        if (conColori) quanti += suoiColori.length;
         campi += quanti;
         // il titoletto sparisce insieme ai suoi campi
         if (g.titolo) g.titolo.hidden = quanti === 0;
