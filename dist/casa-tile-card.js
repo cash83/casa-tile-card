@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.11.8";
+const VERSIONE = "2.11.9";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -10572,6 +10572,15 @@ class CasaTileEditor extends HTMLElement {
   }
 
   // il vestito della singola scheda: tinta e trasparenza sue, non di tutte
+  // ha un fondo suo da vestire, questa scheda?
+  _vestibile(tipo) {
+    const t = String(tipo || "");
+    if (t === "custom:casa-tile") return false;
+    return ["grid", "vertical-stack", "horizontal-stack", "conditional",
+      "entity-filter", "custom:stack-in-card", "custom:vertical-stack-in-card",
+      "custom:layout-card", "custom:swipe-card"].indexOf(t) === -1;
+  }
+
   _vestitoScheda(i) {
     const riga = document.createElement("div");
     riga.className = "vestito-riga";
@@ -10690,10 +10699,11 @@ class CasaTileEditor extends HTMLElement {
       this._riordinaCol(presa, riga, i);
       riga.append(presa, num, tipo, spinta);
       this._blocco.appendChild(riga);
-      // Una casa-tile dentro al pop-up si disegna lo sfondo da sola, dalle
-      // SUE impostazioni: il vestito di qui non la tocca nemmeno. Meglio non
-      // mostrare un cursore che non comanda niente.
-      if (String(card.type || "") !== "custom:casa-tile") {
+      // Il vestito vale solo per le schede che hanno un fondo loro. Una
+      // casa-tile se lo disegna da sola dalle SUE impostazioni, e le schede
+      // che ne contengono altre (griglia, pile, condizionale) un fondo non
+      // ce l'hanno proprio: li' il cursore non comandava niente.
+      if (this._vestibile(card.type)) {
         this._blocco.appendChild(this._vestitoScheda(i));
       }
 
