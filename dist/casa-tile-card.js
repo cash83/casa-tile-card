@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.11.2";
+const VERSIONE = "2.11.4";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2106,18 +2106,26 @@ svg.iconafondo[hidden] { display: none !important; }
    uno sotto: si leggevano male e sporcavano il disegno. Adesso sono due
    pastigliette in alto a destra del grafico, con la freccia che dice quale
    e' il massimo e quale il minimo. */
-.estremi { position: absolute; left: 0; right: 8px; bottom: 0; height: 46%;
+.estremi { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
   min-height: 24px; max-height: 72px; z-index: 1; pointer-events: none;
-  display: flex; align-items: flex-start; justify-content: flex-end; gap: 5px;
   font-size: 9.5px; font-variant-numeric: tabular-nums;
-  color: var(--testo2, var(--secondary-text-color, #8ea0b8)); }
+  color: var(--testo2, var(--secondary-text-color, #8ea0b8));
+  /* le due righe tratteggiate sono i livelli del massimo e del minimo:
+     il disegno sta esattamente fra quelle due, quindi si legge come la
+     scala di un grafico vero */
+  border-top: 1px dashed rgba(255,255,255,.13);
+  border-bottom: 1px dashed rgba(255,255,255,.13); }
 .estremi[hidden] { display: none !important; }
-.estremi span { padding: 1px 6px 1.5px; border-radius: 99px; line-height: 1.45;
-  background: rgba(8,12,20,.5); border: 1px solid rgba(255,255,255,.07);
+.estremi span { position: absolute; left: 6px; padding: 1px 6px 1.5px;
+  border-radius: 99px; line-height: 1.45;
+  background: rgba(8,12,20,.62); border: 1px solid rgba(255,255,255,.07);
   backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
 .estremi span:empty { display: none; }
-.estremi .alto::before { content: "91"; opacity: .65; margin-right: 3px; }
-.estremi .basso::before { content: "93"; opacity: .65; margin-right: 3px; }
+/* ognuna a cavallo della sua riga, come le tacche di un grafico */
+.estremi .alto { top: 0; transform: translateY(-50%); }
+.estremi .basso { bottom: 0; transform: translateY(50%); }
+.estremi .alto::before { content: "max"; opacity: .6; margin-right: 4px; font-size: 8.5px; letter-spacing: .03em; }
+.estremi .basso::before { content: "min"; opacity: .6; margin-right: 4px; font-size: 8.5px; letter-spacing: .03em; }
 
 /* --- il mirino sul grafico: dice quanto e quando --- */
 .mirino { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
