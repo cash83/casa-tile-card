@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.9.6";
+const VERSIONE = "2.9.7";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2245,7 +2245,6 @@ svg.iconafondo[hidden] { display: none !important; }
   box-shadow: 0 6px 18px color-mix(in srgb, var(--c) 38%, transparent);
 }
 :host([ytm]) .comandi button.grosso svg { width: 26px; height: 26px; }
-:host([ytm]) .comandi button.stop { display: none; }
 /* La copertina ONDEGGIA mentre suona, come nella sua card: resta tonda ma
    il bordo si deforma piano, sale e scende e ruota di un paio di gradi.
    Sono gli stessi fotogrammi della sua "fp-ondula". Da ferma sta ferma, e
@@ -3939,6 +3938,12 @@ class CasaTile extends HTMLElement {
   }
 
   _azione() {
+    // ho appena chiuso il riquadro delle casse toccando fuori: quel tocco
+    // serviva a chiudere, non a fare quello che fa la casella
+    if (this._nonToccare && Date.now() - this._nonToccare < 400) {
+      this._nonToccare = 0;
+      return;
+    }
     // Se sono l'anteprima della finestra delle impostazioni, toccarmi non
     // deve aprire il pop-up: deve dire "sistema ME" al riquadro qui sotto.
     // (Prima era l'unica casella che non si riusciva a scegliere.)
@@ -5201,7 +5206,40 @@ class CasaTile extends HTMLElement {
     this._bGruppo.toggleAttribute("aperto", !this._panGruppo.hidden);
     this._bFonte.toggleAttribute("aperto", !this._panFonti.hidden);
     this._ricordaPannello();
+    this._guardaFuori();
     this._render();
+  }
+
+  // Il riquadro delle casse (e quello delle sorgenti) si chiude anche
+  // toccando fuori, non solo con la X: e' quello che uno si aspetta da una
+  // finestrella. Ascolto in cattura sul documento, cosi' arrivo prima di
+  // chiunque altro, e mi levo di mezzo appena si chiude.
+  _guardaFuori() {
+    const aperto = !this._panGruppo.hidden || !this._panFonti.hidden;
+    if (!aperto) {
+      if (this._fuori) {
+        document.removeEventListener("pointerdown", this._fuori, true);
+        this._fuori = null;
+      }
+      return;
+    }
+    if (this._fuori) return;
+    this._fuori = (e) => {
+      if (!this.isConnected) {
+        document.removeEventListener("pointerdown", this._fuori, true);
+        this._fuori = null;
+        return;
+      }
+      const strada = e.composedPath ? e.composedPath() : [];
+      const dentro = strada.some((n) => n === this._panGruppo || n === this._panFonti
+        || n === this._bGruppo || n === this._bFonte);
+      if (dentro) return;
+      // se il tocco e' sulla casella, il riquadro si chiude e basta: non
+      // deve anche partire quello che fa la casella quando la tocchi
+      if (strada.indexOf(this) !== -1) this._nonToccare = Date.now();
+      this._chiudiPannelli();
+    };
+    document.addEventListener("pointerdown", this._fuori, true);
   }
 
   // me lo segno fuori dall'elemento, cosi' sopravvive a un rifacimento
@@ -5219,6 +5257,7 @@ class CasaTile extends HTMLElement {
     PANNELLI_APERTI.delete((this._config && this._config.entity) || "");
     this._bGruppo.removeAttribute("aperto");
     this._bFonte.removeAttribute("aperto");
+    this._guardaFuori();
     this._render();
   }
 
