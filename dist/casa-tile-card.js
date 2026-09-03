@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.11.5";
+const VERSIONE = "2.11.6";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -446,6 +446,16 @@ function disegnoBatteria(perc, carica, scarica) {
 // della colonnina che sale all'infinito: la colonna parte dal bulbo e si
 // alza quanto serve, e prende il colore della scala (azzurro freddo,
 // arancione caldo). Sotto ai -10 e sopra ai 60 resta attaccata agli estremi.
+// L'indirizzo di una foto scritto a mano sbaglia sempre nello stesso modo:
+// le barre rovesciate copiate da Windows ("\local\foto.jpg") e la barra
+// davanti che manca. Invece di non far niente in silenzio, lo raddrizzo.
+function indirizzoFoto(x) {
+  let v = String(x || "").trim().split("\\").join("/");
+  if (!v) return "";
+  if (/^(https?:|data:|\/)/.test(v)) return v;
+  return "/" + v.replace(/^\/+/, "");
+}
+
 function disegnoTermometro(gradi) {
   const n = Number(gradi);
   if (!isFinite(n)) return ICONE.termometro;
@@ -4433,12 +4443,15 @@ class CasaTile extends HTMLElement {
     const tinta = Array.isArray(c.finestra_sfondo) ? daRgb(c.finestra_sfondo) : null;
     const opaco = 1 - (c.finestra_trasparenza === undefined
       ? 0 : Number(c.finestra_trasparenza)) / 100;
-    const foto = String(c.finestra_immagine || "").trim();
+    const foto = indirizzoFoto(c.finestra_immagine);
     if (tinta || opaco < 1 || foto) {
       const alto = tinta || "#111a26";
       const basso = tinta ? scurisci(tinta, 0.62) : "#0a1019";
-      let fondo = "linear-gradient(160deg, " + conAlfa(alto, opaco) + " 0%, "
-        + conAlfa(basso, opaco) + " 100%)";
+      // con la foto dietro, la tinta sopra diventa un VELO: se restasse
+      // piena la coprirebbe del tutto e sembrerebbe che la foto non funzioni
+      const q = foto ? Math.min(opaco, 0.5) : opaco;
+      let fondo = "linear-gradient(160deg, " + conAlfa(alto, q) + " 0%, "
+        + conAlfa(basso, q) + " 100%)";
       if (foto) fondo += ', url("' + foto + '") center/cover no-repeat';
       this.style.setProperty("--fin-bg", fondo);
     } else {
@@ -6747,13 +6760,14 @@ class CasaTile extends HTMLElement {
       fondo = "linear-gradient(rgba(6,9,14," + (velo * 0.5) + "), rgba(6,9,14,"
         + (velo + 0.12) + ")), " + cielo[0];
     }
-    if (c.sfondo_immagine) {
+    const suaFoto0 = indirizzoFoto(c.sfondo_immagine);
+    if (suaFoto0) {
       const velo = (c.sfondo_velo === undefined ? 45 : Number(c.sfondo_velo)) / 100;
       // come si adatta: riempie tagliando, ci sta tutta, o grandezza vera
       const adatta = c.sfondo_adatta === "intera" ? "center/contain"
         : (c.sfondo_adatta === "vera" ? "center/auto" : "center/cover");
       fondo = "linear-gradient(rgba(6,9,14," + velo + "), rgba(6,9,14," + velo + ")), "
-        + 'url("' + c.sfondo_immagine + '") ' + adatta + ' no-repeat';
+        + 'url("' + suaFoto0 + '") ' + adatta + ' no-repeat';
     }
     // la telecamera a tutta casella: l'immagine si rifa' da sola, cosi' e'
     // una diretta e non lo scatto di quando hai aperto la pagina

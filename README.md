@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.11.5-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.11.6-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -90,6 +90,7 @@ finestra_cards:
 
 ## Novità della 2.11
 
+- **La foto di sfondo perdona le sviste**: l'indirizzo copiato da Windows con le barre rovesciate (`\localoto.jpg`) o senza la barra davanti adesso funziona lo stesso. E con una foto dietro, la tinta sopra diventa un velo invece di coprirla del tutto.
 - **Via il minimo e il massimo**: su una casella piccola rubavano spazio al disegno senza aggiungere niente. Il grafico resta.
 - **Il grafico ha il suo colore**: prima si tingeva per forza come la casella. Ora nella scheda Grafico c'è la sua ruota — vuota, resta com'era.
 - **Impostazioni ordinate nei riquadri**: ogni gruppo sta dentro alla sua cornice, come già facevano «Sensori collegati» e «Come si chiamano le misure». Con quaranta voci di fila non si capiva più dove finiva una cosa e cominciava l'altra. I riquadri che restano senza campi spariscono, cornice compresa.
