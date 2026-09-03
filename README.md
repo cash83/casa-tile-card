@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.8.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.8.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -90,6 +90,8 @@ finestra_cards:
 
 ## Novità della 2.8
 
+- **Il riquadro si può vedere a grandezza vera**: per stare nella finestra delle impostazioni si rimpicciolisce, e su una card larga diventava un francobollo — ci si accorgeva di com'era venuta solo dopo aver salvato. Il tasto «Grandezza vera» la mostra com'è davvero, e il riquadro scorre.
+- **Funziona anche con l'altezza automatica**: a pezzi liberi sono tutti staccati dal flusso, la casella non ha più niente da misurare e si accartocciava. Adesso si ricorda l'altezza che aveva mentre componevi e la usa come minima.
 - **Ogni tasto per conto suo**: play, avanti, indietro, stop, su, giù, «torna alla base»… si prendono e si spostano uno alla volta, non più tutti insieme come un blocco. Il primo che sposti stacca la fila e gli altri restano dove sono.
 - **Nel lettore musicale i pezzi si spostano anche in verticale**: nelle disposizioni «Musica» e «Persone» la casella è una griglia e ogni pezzo aveva la sua casellina; staccato dal flusso, si muoveva solo dentro a quella — larga quanto la card, alta un dito. Da qui il «riesco a spostarli solo a destra e a sinistra». A pezzi liberi la griglia non fa più da gabbia.
 

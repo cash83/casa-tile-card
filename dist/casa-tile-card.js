@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.8.0";
+const VERSIONE = "2.8.1";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -3926,6 +3926,16 @@ class CasaTile extends HTMLElement {
     const liberi = !!posti && Object.keys(posti).length > 0;
     if (!liberi && !this.hasAttribute("liberi")) return;
     this.toggleAttribute("liberi", liberi);
+    // niente da misurare quando sono tutti staccati: con l'altezza
+    // automatica la casella si accartoccerebbe e i pezzi finirebbero uno
+    // sopra l'altro. L'altezza di quando li ha messi a posto se l'e' segnata
+    // il riquadro delle impostazioni.
+    const altoSuo = Number(this._config.posti_alto);
+    if (liberi && altoSuo > 40) {
+      this.style.setProperty("--casa-min-height", Math.round(altoSuo) + "px");
+    } else if (this.style.getPropertyValue("--casa-min-height")) {
+      this.style.removeProperty("--casa-min-height");
+    }
     const pezzi = {
       nome: [".testi"],
       misure: [".chips"],
@@ -7396,6 +7406,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .pista-maniglia:hover .q { transform: scale(1.15); }
 .pista-maniglia.inmano .q { transform: scale(1.3); }
 .pista-maniglia[hidden] { display: none !important; }
+.pista.larga { overflow: auto; }
 .pista { position: relative; padding: 26px 14px 16px; border-radius: 12px; touch-action: none;
   background: var(--secondary-background-color, rgba(255,255,255,.04));
   display: flex; justify-content: center; }
@@ -8395,6 +8406,21 @@ class CasaTileEditor extends HTMLElement {
         this._aggiornaPista();
         this._dico("disposizione ripresa");
       });
+      // Il riquadro si stringe per stare nella finestra delle impostazioni,
+      // e su una card larga diventa un francobollo: si sposta al buio e ci
+      // si accorge di com'e' venuta solo dopo aver salvato. Con questo lo si
+      // vede alla misura VERA, e il riquadro scorre.
+      const vero = document.createElement("button");
+      vero.type = "button";
+      vero.className = "tastoPiatto";
+      vero.textContent = "Grandezza vera";
+      vero.addEventListener("click", () => {
+        box._grande = !box._grande;
+        vero.textContent = box._grande ? "Rimpicciolisci per starci" : "Grandezza vera";
+        this._formaPista();
+        if (box._carta && box._carta._aggiornaManiglia) box._carta._aggiornaManiglia();
+      });
+      sotto.appendChild(vero);
       sotto.appendChild(rimetti);
       sotto.appendChild(annulla);
       box.appendChild(sotto);
@@ -8524,20 +8550,28 @@ class CasaTileEditor extends HTMLElement {
     // ESATTAMENTE la misura dell'anteprima: bastano pochi pixel di
     // differenza e le misure vanno a capo in un modo qui e in un altro la',
     // quindi le due caselle sembrano diverse.
+    // l'altezza VERA della casella, prima di rimpicciolirla per farla stare
+    // nella finestra: serve a chi compone i pezzi con l'altezza automatica
+    box._altoVero = alto;
     const posto = Math.max(190, (box.clientWidth || 420) - 28);
     let stretta = false;
-    if (largo > posto) {
+    let quanto = 100;
+    if (largo > posto && !box._grande) {
+      quanto = Math.round(posto / largo * 100);
       alto = alto * posto / largo;
       largo = posto;
       stretta = true;
     }
+    const pista = box.querySelector(".pista");
+    if (pista) pista.classList.toggle("larga", !!box._grande && largo > posto);
     box._carta.style.width = Math.round(largo) + "px";
     box._carta.style.height = Math.round(alto) + "px";
     // scritto nero su bianco da dove ho preso la misura: se il riquadro non
     // combacia con la plancia, si vede subito da qui il perche'
     if (box._nota && !box._nota._occupata) {
       box._nota.textContent = "riquadro " + Math.round(largo) + "x"
-        + Math.round(alto) + (stretta ? " (rimpicciolita per starci)" : "")
+        + Math.round(alto) + (stretta ? " (rimpicciolita al " + quanto
+          + "%: premi \"Grandezza vera\" per vederla com'e' davvero)" : "")
         + " - " + (daRicordo
           ? (this._ricordoDalPopup
             ? "misura vera della casella dentro al pop-up"
@@ -8784,10 +8818,18 @@ class CasaTileEditor extends HTMLElement {
 
   // e dove vanno scritte le posizioni quando lui trascina
   _scriviPosti(posti) {
+    // Con i pezzi liberi sono tutti staccati dal flusso: la casella non ha
+    // piu' niente da misurare e con "Altezza automatica" si accartoccia.
+    // Allora mi segno l'altezza che aveva mentre lui componeva, e la casella
+    // la usa come altezza minima: le percentuali tornano a voler dire
+    // qualcosa. Vedi _mettiAPosto.
+    const box = this._postiBox;
+    const suo = box && box._altoVero > 40 ? Math.round(box._altoVero) : 0;
     const p = this._sceltaPercorso;
     if (!p || !p.length) {
       const c2 = { ...this._config };
       if (posti) c2.posti = posti; else delete c2.posti;
+      if (posti && suo) c2.posti_alto = suo; else delete c2.posti_alto;
       this._config = c2;
       this._emetti();
       return;
@@ -8796,6 +8838,7 @@ class CasaTileEditor extends HTMLElement {
     if (!vecchia) return;
     const nuova = { ...vecchia };
     if (posti) nuova.posti = posti; else delete nuova.posti;
+    if (posti && suo) nuova.posti_alto = suo; else delete nuova.posti_alto;
     this._salvaSchede(this._conScheda(p, nuova), false);
   }
 
@@ -8949,8 +8992,8 @@ class CasaTileEditor extends HTMLElement {
       // il quadratino sta in mezzo all'angolo, ma la parte che risponde al
       // dito e' piu' larga di lui: sulle caselle fitte finiva sopra ai tasti
       // e bastava sbagliare di due pixel per prendere il pezzo di sotto
-      maniglia.style.left = (r.right - rp.left - 14) + "px";
-      maniglia.style.top = (r.bottom - rp.top - 14) + "px";
+      maniglia.style.left = (r.right - rp.left - 14 + pista.scrollLeft) + "px";
+      maniglia.style.top = (r.bottom - rp.top - 14 + pista.scrollTop) + "px";
     };
     carta._aggiornaManiglia = aggiornaManiglia;
 
