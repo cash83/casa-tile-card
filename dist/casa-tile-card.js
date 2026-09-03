@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.10.0";
+const VERSIONE = "2.10.1";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -442,6 +442,29 @@ function disegnoBatteria(perc, carica, scarica) {
 // La tapparella si disegna a quanto e' davvero abbassata: 100 = tutta su,
 // 0 = tutta giu'. Ferma li', senza muoversi: quello che conta e' vedere
 // dov'e' arrivata.
+// Il termometro col liquido che si ferma dove dice la temperatura, invece
+// della colonnina che sale all'infinito: la colonna parte dal bulbo e si
+// alza quanto serve, e prende il colore della scala (azzurro freddo,
+// arancione caldo). Sotto ai -10 e sopra ai 60 resta attaccata agli estremi.
+function disegnoTermometro(gradi) {
+  const n = Number(gradi);
+  if (!isFinite(n)) return ICONE.termometro;
+  const q = Math.max(0.06, Math.min(1, (n + 10) / 70));
+  const alto = Math.round(30 * q * 10) / 10;
+  const su = Math.round((46 - alto) * 10) / 10;
+  const tinta = coloreTemperatura(n) || "#ff5f5f";
+  return '<g class="an glow alone"><circle cx="30" cy="46" r="16" fill="' + tinta
+    + '" opacity=".2"/></g>'
+    + '<rect x="24" y="6" width="12" height="36" rx="6" fill="#1b2433" '
+    + 'stroke="#3e5570" stroke-width="1.6"/>'
+    + '<circle cx="30" cy="46" r="10" fill="#1b2433" stroke="#3e5570" stroke-width="1.6"/>'
+    + '<rect x="27" y="' + su + '" width="6" height="' + alto + '" rx="3" fill="'
+    + tinta + '"/>'
+    + '<circle cx="30" cy="46" r="6.5" fill="' + tinta + '"/>'
+    + '<g stroke="#5f7189" stroke-width="1.6" stroke-linecap="round">'
+    + '<path d="M40 14h5"/><path d="M40 22h5"/><path d="M40 30h5"/></g>';
+}
+
 function disegnoTapparella(moto) {
   const CIMA = 17.5;
   const VANO = 40;
@@ -7022,6 +7045,16 @@ class CasaTile extends HTMLElement {
       // solo il fulmine cambia l'ingombro
       forma = b.carica ? "batteria|c" : "batteria|-";
     }
+    if (nomeIcona === "termometro") {
+      const gradi = this._gradiDi(st);
+      if (gradi !== null) {
+        disegno = disegnoTermometro(gradi);
+        // il disegno cambia col grado, ma l'ingombro no: cosi' non si
+        // rimisura il riquadro a ogni mezzo grado
+        chiave = "termometro|" + Math.round(gradi);
+        forma = "termometro";
+      }
+    }
     const dove = this._posizioneMostrata(st);
     if (nomeIcona === "tapparella" && dove !== null) {
       // si muove se lo dice Home Assistant o se lo sto ancora portando io
@@ -7034,6 +7067,17 @@ class CasaTile extends HTMLElement {
       taglia = this._posizioneDisegno(st);
     }
     return { disegno: disegno, chiave: chiave, forma: forma, taglia: taglia };
+  }
+
+  // quanti gradi segna, in centigradi: se il sensore parla in Fahrenheit lo
+  // converto, se no la colonnina andrebbe sempre a fondo scala
+  _gradiDi(st) {
+    if (!st) return null;
+    const n = parseFloat(st.state);
+    if (!isFinite(n)) return null;
+    const u = String(st.attributes.unit_of_measurement || "");
+    if (u.indexOf("F") !== -1 && u.indexOf("C") === -1) return (n - 32) * 5 / 9;
+    return n;
   }
 
   // l'icona in grande dietro alle scritte: e' lo stesso disegno, sbiadito.
