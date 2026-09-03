@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.6.4";
+const VERSIONE = "2.6.5";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -7276,6 +7276,15 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .riga-scheda .tipo .piccolo { font-size: 11px; opacity: .55; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap; }
 .riga-scheda .spinta { margin-left: auto; display: flex; gap: 2px; }
+/* la manina per riordinare: si tiene premuta e si trascina */
+.riga-scheda .presa { cursor: grab; touch-action: none; user-select: none;
+  opacity: .45; font-size: 15px; line-height: 1; padding: 2px 4px;
+  margin-left: -4px; flex: none; }
+.riga-scheda .presa:hover { opacity: .95; }
+.riga-scheda.inmano { position: relative; z-index: 3; cursor: grabbing;
+  box-shadow: 0 6px 18px rgba(0,0,0,.55); opacity: .95; }
+.riga-scheda.segnaSopra { box-shadow: inset 0 2px 0 var(--primary-color, #f0b429); }
+.riga-scheda.segnaSotto { box-shadow: inset 0 -2px 0 var(--primary-color, #f0b429); }
 .editor-scheda { margin: 0 0 14px; padding: 12px; border-radius: 10px;
   border: 1px dashed var(--divider-color, #444); }
 .vuoto { font-size: 13px; color: var(--secondary-text-color); margin-bottom: 10px; }
@@ -9873,6 +9882,70 @@ class CasaTileEditor extends HTMLElement {
     return box;
   }
 
+  // Tieni premuta la manina e trascini la scheda dove la vuoi. Non sposto
+  // niente nel documento mentre trascini: alzo solo la riga e segno con una
+  // riga colorata dove andra' a finire. L'ordine vero lo scrivo quando molli.
+  _riordinaCol(presa, riga, indice) {
+    let tira = null;
+    const pulisci = () => {
+      if (!this._blocco) return;
+      this._blocco.querySelectorAll(".riga-scheda").forEach((r) => {
+        r.classList.remove("segnaSopra", "segnaSotto");
+      });
+    };
+    const muovi = (e) => {
+      if (!tira) return;
+      e.preventDefault();
+      riga.style.transform = "translateY(" + (e.clientY - tira.y0) + "px)";
+      let a = 0;
+      tira.righe.forEach((x, k) => {
+        if (k === tira.da) return;
+        if (e.clientY > x.r.top + x.r.height / 2) a += 1;
+      });
+      tira.a = a;
+      pulisci();
+      // la riga colorata dove finira': sopra a quella che verra' spinta giu',
+      // o sotto all'ultima se la stai portando in fondo
+      const altre = tira.righe.filter((x, k) => k !== tira.da);
+      if (altre.length) {
+        if (a < altre.length) altre[a].el.classList.add("segnaSopra");
+        else altre[altre.length - 1].el.classList.add("segnaSotto");
+      }
+    };
+    const su = () => {
+      if (!tira) return;
+      window.removeEventListener("pointermove", muovi, true);
+      window.removeEventListener("pointerup", su, true);
+      window.removeEventListener("pointercancel", su, true);
+      riga.classList.remove("inmano");
+      riga.style.transform = "";
+      pulisci();
+      const da = tira.da;
+      const a = tira.a;
+      tira = null;
+      if (a === da) return;
+      const l = this._schede().slice();
+      l.splice(a, 0, l.splice(da, 1)[0]);
+      this._apertaIdx = null;
+      this._salvaSchede(l, true);
+    };
+    presa.addEventListener("pointerdown", (e) => {
+      if (!this._blocco) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const righe = [...this._blocco.querySelectorAll(".riga-scheda")];
+      tira = {
+        y0: e.clientY, da: indice, a: indice,
+        righe: righe.map((r) => ({ el: r, r: r.getBoundingClientRect() })),
+      };
+      riga.classList.add("inmano");
+      // ascolto sulla finestra: il dito esce quasi subito dalla manina
+      window.addEventListener("pointermove", muovi, true);
+      window.addEventListener("pointerup", su, true);
+      window.addEventListener("pointercancel", su, true);
+    });
+  }
+
   _moduloSemplice(card, aggiorna) {
     const MULTI = ["entities", "glance", "history-graph", "statistics-graph",
                    "logbook", "map", "distribution"];
@@ -10057,7 +10130,8 @@ class CasaTileEditor extends HTMLElement {
     this._blocco.innerHTML =
       "<h4>Schede dentro il pop-up</h4>" +
       "<p class='aiuto'>Aggiungi tutte le schede che vuoi: sono le stesse di Home Assistant, " +
-      "e le puoi modificare o riordinare quando vuoi.</p>";
+      "e le puoi modificare quando vuoi. Per riordinarle tieni premuto il "
+      + "puntino a sinistra e trascinale.</p>";
 
     if (!lista.length) {
       const vuoto = document.createElement("div");
@@ -10085,20 +10159,6 @@ class CasaTileEditor extends HTMLElement {
           this._apertaIdx = this._apertaIdx === i ? null : i;
           this._costruisciBlocco(true);
         }),
-        this._bottone("\u2191", "Sposta su", () => {
-          if (i === 0) return;
-          const l = lista.slice();
-          l.splice(i - 1, 0, l.splice(i, 1)[0]);
-          this._apertaIdx = null;
-          this._salvaSchede(l, true);
-        }),
-        this._bottone("\u2193", "Sposta giu", () => {
-          if (i === lista.length - 1) return;
-          const l = lista.slice();
-          l.splice(i + 1, 0, l.splice(i, 1)[0]);
-          this._apertaIdx = null;
-          this._salvaSchede(l, true);
-        }),
         this._bottone("\u2715", "Elimina", () => {
           const l = lista.slice();
           l.splice(i, 1);
@@ -10106,7 +10166,14 @@ class CasaTileEditor extends HTMLElement {
           this._salvaSchede(l, true);
         })
       );
-      riga.append(num, tipo, spinta);
+      // per riordinare si tiene premuto qui e si trascina, invece delle due
+      // frecce: con piu' di tre schede portarne una in cima erano cinque clic
+      const presa = document.createElement("span");
+      presa.className = "presa";
+      presa.textContent = "\u283f";
+      presa.title = "Tieni premuto e trascina per riordinare";
+      this._riordinaCol(presa, riga, i);
+      riga.append(presa, num, tipo, spinta);
       this._blocco.appendChild(riga);
       this._blocco.appendChild(this._vestitoScheda(i));
 
