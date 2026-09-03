@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.9.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.9.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -92,6 +92,7 @@ finestra_cards:
 
 - **Disposizione «come la tua ytmusic-card»**: copertina tonda, nome della cassa in alto, titolo grande a sinistra con l'artista sotto, onda del tempo con i minuti ai due capi, tasti tondi col play grosso e pieno, e le pastiglie **Casuale** e **Ripeti** — che sono comandi veri di Home Assistant (`shuffle_set` e `repeat_set`, con il ripeti che gira su tre: niente, tutta la coda, questo brano). Compaiono solo se il lettore li sa fare.
 - Scegliendo quella disposizione si accendono da sole la **copertina tonda davanti** e quella **sfocata dietro**: sono metà di quello che le dà quell'aria, e se erano spente da una disposizione precedente non si vedeva la differenza.
+- **La copertina del disco si può spostare** come tutti gli altri pezzi: prima non si prendeva col dito, perché fra i quattro disegni possibili (disegno nostro, icona di Home Assistant, foto tua, copertina) si cercava solo il primo — e con la copertina vera il primo è spento.
 - Nel pannello **Casse**: la freccia per **portare la coda su un'altra cassa** (fra lettori Music Assistant) e **Svuota la coda** (vale per tutti i lettori che lo sanno fare).
 - Via dall'elenco la vecchia «Musica compatta».
 

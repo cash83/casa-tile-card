@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.9.2";
+const VERSIONE = "2.9.3";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -2226,35 +2226,44 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([ytm]) .tempo .orologio::before { content: attr(data-ora); font-size: 11px; }
 :host([ytm]) .tempo .orologio::after { content: attr(data-fine); font-size: 11px; }
 :host([ytm]) .ondabox path.fatta { stroke-width: 3; }
-/* i tasti: tondi, e quello centrale grosso e pieno */
-:host([ytm]) .comandi { flex-wrap: wrap; justify-content: center; gap: 8px;
+/* i tasti come nella sua card: rettangoli con gli angoli tondi, non cerchi,
+   e quello del play grosso e pieno del colore della casella */
+:host([ytm]) .comandi { flex-wrap: wrap; justify-content: center; gap: 10px;
   margin-top: 10px; }
 :host([ytm]) .comandi button {
-  width: 46px; height: 46px; border-radius: 50%; font-size: 15px;
-  background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.08);
+  width: 58px; height: 46px; border-radius: 13px; font-size: 15px;
+  background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.06);
+  box-shadow: none;
 }
 :host([ytm]) .comandi button svg { width: 22px; height: 22px; }
 :host([ytm]) .comandi button.grosso {
-  width: 62px; height: 62px; border-radius: 50%;
-  background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 78%, #000));
+  width: 92px; height: 56px; border-radius: 16px;
+  background: var(--c);
   border-color: color-mix(in srgb, var(--c) 60%, transparent);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--c) 40%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--c) 38%, transparent);
 }
-:host([ytm]) .comandi button.grosso svg { width: 28px; height: 28px; }
+:host([ytm]) .comandi button.grosso svg { width: 26px; height: 26px; }
 /* "Casuale" e "Ripeti": pastiglie con la scritta, a capo sotto ai tasti */
 :host([ytm]) .comandi button.casuale, :host([ytm]) .comandi button.ripeti {
-  width: auto; height: 30px; border-radius: 99px; padding: 0 12px 0 9px;
-  gap: 6px; display: inline-flex; align-items: center; font-size: 12px;
-  font-weight: 600;
+  width: auto; height: 34px; border-radius: 99px; padding: 0 14px 0 11px;
+  gap: 7px; display: inline-flex; align-items: center; font-size: 12.5px;
+  font-weight: 600; background: rgba(255,255,255,.10);
 }
 :host([ytm]) .comandi button.casuale svg,
 :host([ytm]) .comandi button.ripeti svg { width: 17px; height: 17px; }
 :host([ytm]) .comandi button.casuale b, :host([ytm]) .comandi button.ripeti b {
   font-weight: 600; }
 :host([ytm]) .comandi button.stop { display: none; }
-/* il volume: barra piena con l'altoparlante di fianco */
-:host([ytm]) .cursore { margin-top: 12px; gap: 8px; }
+/* il volume: barra grossa e piena, con l'altoparlante a DESTRA come da lui */
+:host([ytm]) .cursore { margin-top: 14px; gap: 10px; }
 :host([ytm]) .cursore .quanto { display: none; }
+:host([ytm]) .cursore .muto { order: 2; background: none; width: 22px; height: 22px; }
+:host([ytm]) .cursore .muto svg { width: 20px; height: 20px; }
+:host([ytm]) .cursore input { height: 18px; border-radius: 99px; }
+:host([ytm]) .cursore input::-webkit-slider-thumb {
+  width: 18px; height: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
+:host([ytm]) .cursore input::-moz-range-thumb {
+  width: 18px; height: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
 /* la scritta dentro ai tasti si vede SOLO qui: altrove sono tondi e basta */
 .comandi button b { display: none; }
 /* manda "Casuale" e "Ripeti" a capo insieme, sotto ai tasti tondi */
@@ -9118,8 +9127,14 @@ class CasaTileEditor extends HTMLElement {
         }
       }
       for (let i = 0; i < PEZZI.length; i += 1) {
-        const el = radice.querySelector(PEZZI[i][1]);
-        if (dentro(el)) return { chi: PEZZI[i][0], el: el };
+        // querySelector da' SOLO il primo: per l'icona i disegni possibili
+        // sono quattro (disegno nostro, icona di Home Assistant, foto tua,
+        // copertina del disco) e quello buono e' l'unico acceso. Cercando
+        // solo il primo, con la copertina vera non si prendeva niente.
+        const tutti = radice.querySelectorAll(PEZZI[i][1]);
+        for (let k = 0; k < tutti.length; k += 1) {
+          if (dentro(tutti[k])) return { chi: PEZZI[i][0], el: tutti[k] };
+        }
       }
       return null;
     };
