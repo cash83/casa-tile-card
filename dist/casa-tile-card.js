@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.10.2";
+const VERSIONE = "2.10.3";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -9691,13 +9691,16 @@ class CasaTileEditor extends HTMLElement {
     const box = this._sensori;
     const trovati = this._trovaSensori();
     const scelti0 = this._config.info_entita || [];
-    // stessi sensori e stesse spunte: aggiorno solo i numeri, senza rifare
-    // il riquadro (se no la pagina salta in cima a ogni modifica)
-    const firma = (this._config.entity || "") + "|" + trovati.join(",")
-      + "|" + scelti0.join(",");
+    // Stessi sensori: non rifaccio il riquadro, aggiorno solo i numeri e le
+    // spunte. Le spunte NON stanno nella firma apposta: mettendocele, ogni
+    // volta che ne spuntavi una l'elenco si rifaceva da capo e la pagina
+    // saltava in cima - proprio mentre stavi spuntando la voce dopo.
+    const firma = (this._config.entity || "") + "|" + trovati.join(",");
     if (box._firma === firma) {
       box.querySelectorAll(".trovato").forEach((riga) => {
         const eid = riga.dataset.eid;
+        const spunta = riga.querySelector("input");
+        if (spunta) spunta.checked = scelti0.includes(eid);
         const st2 = this._hass ? this._hass.states[eid] : null;
         if (!st2) return;
         const u2 = st2.attributes.unit_of_measurement;
