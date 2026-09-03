@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.6.5";
+const VERSIONE = "2.6.6";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1752,13 +1752,17 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([liberi]) .testi, :host([liberi]) .chips, :host([liberi]) .valore,
 :host([liberi]) svg.icona, :host([liberi]) img.ritratto,
 :host([liberi]) .iconaHa, :host([liberi]) .iconaFoto,
-:host([liberi]) .cursore, :host([liberi]) .comandi {
+:host([liberi]) .cursore, :host([liberi]) .comandi,
+:host([liberi]) .tempo, :host([liberi]) .extra,
+:host([liberi]) .lettori, :host([liberi]) .colori {
   position: absolute; margin: 0; max-width: 88%;
 }
 /* mentre sposti i pezzi la barra non deve rispondere al dito, se no ti
    ritrovi a muovere la tapparella invece della barra */
 :host([trascinabile]) .cursore, :host([trascinabile]) .comandi,
-:host([trascinabile]) .colori { pointer-events: none; }
+:host([trascinabile]) .colori, :host([trascinabile]) .tempo,
+:host([trascinabile]) .extra, :host([trascinabile]) .lettori {
+  pointer-events: none; }
 :host([liberi]) .chips { display: contents; }
 :host([liberi]) .chips .metrica { position: absolute; max-width: 88%; }
 :host([liberi]) .valore { margin-left: 0; }
@@ -3910,10 +3914,18 @@ class CasaTile extends HTMLElement {
       icona: ["svg.icona", "img.ritratto", ".iconaHa", ".iconaFoto"],
       cursore: [".cursore"],
       comandi: [".comandi"],
+      // i pezzi del lettore musicale: l'onda del tempo, i tasti del gruppo
+      // e della sorgente, l'elenco delle casse, la striscia dei colori.
+      // Senza questi, in una casella a pezzi liberi restavano piantati in
+      // cima uno sopra l'altro, e non c'era modo di prenderli.
+      tempo: [".tempo"],
+      extra: [".extra"],
+      lettori: [".lettori"],
+      colori: [".colori"],
     };
     // la barra e i tasti tengono la loro larghezza in percentuale: non sono
     // scritte, allargarli o stringerli e' proprio quello che vuole
-    const larghi = { cursore: 1, comandi: 1 };
+    const larghi = { cursore: 1, comandi: 1, tempo: 1, colori: 1, lettori: 1 };
     // Ogni pezzo si porta scritto addosso l'ultima disposizione che gli ho
     // dato: se non e' cambiata non riscrivo niente. Serve, perche' qui si
     // passa due volte per ogni ridisegno di ogni casella.
@@ -4184,6 +4196,10 @@ class CasaTile extends HTMLElement {
         + ".iconaHa:not([hidden]), .iconaFoto:not([hidden])",
       cursore: ".cursore:not([hidden])",
       comandi: ".comandi:not([hidden])",
+      tempo: ".tempo:not([hidden])",
+      extra: ".extra:not([hidden])",
+      lettori: ".lettori:not([hidden])",
+      colori: ".colori:not([hidden])",
     };
     const fuori = {};
     const segna = (chi, el) => {
@@ -8763,6 +8779,10 @@ class CasaTileEditor extends HTMLElement {
     const PEZZI = [
       ["valore", ".valore"],
       ["nome", ".testi"],
+      ["extra", ".extra:not([hidden])"],
+      ["colori", ".colori:not([hidden])"],
+      ["lettori", ".lettori:not([hidden])"],
+      ["tempo", ".tempo:not([hidden])"],
       ["cursore", ".cursore:not([hidden])"],
       ["comandi", ".comandi:not([hidden])"],
       ["icona", "svg.icona,img.ritratto,.iconaHa,.iconaFoto"],
