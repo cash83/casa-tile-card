@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.11.7";
+const VERSIONE = "2.11.8";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -10635,9 +10635,11 @@ class CasaTileEditor extends HTMLElement {
     const lista = this._schede();
     // se cambiano solo i VALORI di una scheda non rifaccio l'elenco:
     // altrimenti il pannello aperto si richiude ad ogni tocco
+    // Il vestito delle schede NON sta nella firma: muovendo il cursore la
+    // lista si rifaceva da capo e la pagina risaliva in cima, proprio
+    // mentre lo stavi trascinando.
     const firma = JSON.stringify(lista.map((c) => (c || {}).type))
-      + "|" + this._apertaIdx + "|" + (this._pickerAperto ? 1 : 0)
-      + "|" + JSON.stringify(this._config.finestra_schede_stile || []);
+      + "|" + this._apertaIdx + "|" + (this._pickerAperto ? 1 : 0);
     if (!forza && this._firmaBlocco === firma) return;
     this._firmaBlocco = firma;
     this._blocco.innerHTML =
@@ -10688,7 +10690,12 @@ class CasaTileEditor extends HTMLElement {
       this._riordinaCol(presa, riga, i);
       riga.append(presa, num, tipo, spinta);
       this._blocco.appendChild(riga);
-      this._blocco.appendChild(this._vestitoScheda(i));
+      // Una casa-tile dentro al pop-up si disegna lo sfondo da sola, dalle
+      // SUE impostazioni: il vestito di qui non la tocca nemmeno. Meglio non
+      // mostrare un cursore che non comanda niente.
+      if (String(card.type || "") !== "custom:casa-tile") {
+        this._blocco.appendChild(this._vestitoScheda(i));
+      }
 
       if (this._apertaIdx === i) {
         const box = document.createElement("div");
