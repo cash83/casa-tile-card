@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.8.1";
+const VERSIONE = "2.8.2";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -3487,8 +3487,10 @@ class CasaTile extends HTMLElement {
     const modo = c.disposizione || (dominio === "media_player" ? "vinile" : "");
     if (modo === "vinile") {
       return c.grande
-        ? { columns: 8, rows: 8, min_columns: 6, min_rows: 1, max_rows: 12 }
-        : { columns: 6, rows: 7, min_columns: 4, min_rows: 1, max_rows: 12 };
+        ? { columns: 8, rows: 8, min_columns: 4, max_columns: 12,
+            min_rows: 1, max_rows: 12 }
+        : { columns: 6, rows: 7, min_columns: 3, max_columns: 12,
+            min_rows: 1, max_rows: 12 };
     }
     // Quanto spazio chiedere appena nasce: sei colonne (mezza sezione
     // stretta, un sesto di una larga) e DUE righe per tutti. Avevo provato a
@@ -3498,8 +3500,11 @@ class CasaTile extends HTMLElement {
     // troppo alte. Solo la "casella grande" ne chiede tre.
     // "min_rows: 1": se no Home Assistant prende queste righe come minimo e
     // il cursore del Layout risale da solo quando lui lo abbassa.
+    // E i limiti li scrivo tutti e quattro: quelli che non dico se li
+    // inventa Home Assistant, e il cursore del Layout si ferma dove vuole lui.
     const righe = c.grande ? 3 : 2;
-    return { columns: 6, rows: righe, min_columns: 4, min_rows: 1, max_rows: 12 };
+    return { columns: 6, rows: righe, min_columns: 3, max_columns: 12,
+             min_rows: 1, max_rows: 12 };
   }
 
   _costruisci() {
