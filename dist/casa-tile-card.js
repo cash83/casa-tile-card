@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.9.7";
+const VERSIONE = "2.9.8";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -8082,7 +8082,11 @@ class CasaTileEditor extends HTMLElement {
   _giroCompleto() {
     this._conservaPosto(() => {
       // gli schemi cambiano solo se cambia il TIPO di casella, non i valori
+      // la disposizione fa parte della forma: cambiandola cambiano anche le
+      // impostazioni che hanno senso (il giradischi, per dire, in "come la
+      // tua ytmusic-card" non comanda niente e non si fa vedere)
       const forma = (this._config.entity || "") + "|" + (this._config.azione || "")
+        + "|" + (this._config.disposizione || "")
         + "|" + ((this._config.acceso_entita || []).length ? "1" : "0");
       if (this._formaOra !== forma) {
         this._formaOra = forma;
@@ -9693,6 +9697,12 @@ class CasaTileEditor extends HTMLElement {
         const st0 = (this._hass && this._config.entity)
           ? this._hass.states[this._config.entity] : null;
         return iconaAutomatica(this._config.entity, st0) === "batteria";
+      }
+      // nel vestito "come la tua ytmusic-card" la copertina ondeggia e non
+      // gira: l'interruttore del giradischi non comanderebbe niente, e un
+      // interruttore che non fa niente e' peggio che non averlo
+      if (nome === "gira_copertina" && this._config.disposizione === "ytmusic") {
+        return false;
       }
       // se l'accensione la decidono altre entita', la soglia serve sempre
       const rif = this._config.acceso_entita;
