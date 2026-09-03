@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.9.8-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.10.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -87,6 +87,11 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.10
+
+- **Meno roba in mezzo nelle impostazioni**: le voci che dipendono da un interruttore spento non si fanno più vedere. Le tre del grafico compaiono quando accendi il grafico, la scelta della striscia quando accendi la striscia, i secondi della telecamera quando accendi la diretta, e così via. Se un valore è già scritto la voce resta visibile lo stesso, così non diventa un'impostazione che non si può più togliere.
+- La freccia «porta qui la coda» si vede solo quando c'è davvero qualcosa da portare: a coda vuota Home Assistant rispondeva *«The queue is empty»* e sembrava rotto.
 
 ## Novità della 2.9
 

@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.9.8";
+const VERSIONE = "2.10.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -5537,8 +5537,12 @@ class CasaTile extends HTMLElement {
       r.querySelector(".chi").textContent = nome
         + (eid === padrone ? " \u2022 questa" : (spento ? " \u2022 non disponibile" : ""));
       const tras = r.querySelector(".tras");
-      if (tras) tras.hidden = eid === padrone || spento || !this._daMusicAssistant(eid)
-        || !this._daMusicAssistant(padrone);
+      // La freccia si vede solo se c'e' davvero qualcosa da portare: a coda
+      // vuota Home Assistant risponde "The queue is empty" e sembra rotto.
+      const inCoda = ["playing", "paused", "buffering"]
+        .includes(String(st.state).toLowerCase());
+      if (tras) tras.hidden = eid === padrone || spento || !inCoda
+        || !this._daMusicAssistant(eid) || !this._daMusicAssistant(padrone);
       const sw = r.querySelector(".sw");
       // finche' aspetto la risposta del lettore tengo la posizione chiesta
       let inAttesa = r._attesa !== undefined && Date.now() < r._attesaFino;
@@ -7310,6 +7314,28 @@ const SEZIONI = [
 ];
 
 // campi che compaiono solo con una certa azione al tocco
+// Le impostazioni che dipendono da un'altra: finche' l'interruttore
+// principale e' spento non servono a niente e stanno solo in mezzo. Se pero'
+// un valore c'e' gia' scritto, la voce si vede lo stesso - se no diventerebbe
+// roba impostata che non si puo' piu' togliere.
+const DIPENDE = {
+  icona_sfondo_forza: (c) => !!c.icona_sfondo,
+  camera_secondi: (c) => !!c.camera_diretta,
+  sfondo_adatta: (c) => !!c.sfondo_immagine || !!c.camera_diretta,
+  sfondo_sfocatura: (c) => !!c.sfondo_copertina,
+  cursore_min: (c) => !!c.mostra_cursore,
+  cursore_max: (c) => !!c.mostra_cursore,
+  colore_striscia: (c) => !!c.cursore_colore,
+  grafico_ore: (c) => !!c.grafico,
+  grafico_stile: (c) => !!c.grafico,
+  grafico_estremi: (c) => !!c.grafico,
+  distanza_entita: (c) => !!c.mostra_distanza,
+  info_nomi_auto: (c) => (c.info_entita || []).length > 0,
+  segui_attivo: (c) => (c.lettori || []).length > 0 || c.multiroom !== false,
+  soglia: (c) => c.acceso_se === "sopra" || c.acceso_se === "sotto"
+    || (Array.isArray(c.acceso_entita) ? c.acceso_entita.length : !!c.acceso_entita),
+};
+
 const SOLO_AZIONE = {
   servizio: "servizio", servizio_dati: "servizio",
   indirizzo_web: "link", popup: "popup", finestra_titolo: "finestra",
@@ -8085,9 +8111,15 @@ class CasaTileEditor extends HTMLElement {
       // la disposizione fa parte della forma: cambiandola cambiano anche le
       // impostazioni che hanno senso (il giradischi, per dire, in "come la
       // tua ytmusic-card" non comanda niente e non si fa vedere)
+      // ...e ci metto anche gli interruttori da cui dipendono altre voci: se
+      // no accendi "grafico" e le sue tre impostazioni non compaiono finche'
+      // non riapri la finestra
+      const dip = Object.keys(DIPENDE)
+        .map((k) => (DIPENDE[k](this._config) ? "1" : "0")).join("");
       const forma = (this._config.entity || "") + "|" + (this._config.azione || "")
         + "|" + (this._config.disposizione || "")
-        + "|" + ((this._config.acceso_entita || []).length ? "1" : "0");
+        + "|" + ((this._config.acceso_entita || []).length ? "1" : "0")
+        + "|" + dip;
       if (this._formaOra !== forma) {
         this._formaOra = forma;
         this._aggiornaSchemi();
@@ -9704,9 +9736,14 @@ class CasaTileEditor extends HTMLElement {
       if (nome === "gira_copertina" && this._config.disposizione === "ytmusic") {
         return false;
       }
-      // se l'accensione la decidono altre entita', la soglia serve sempre
-      const rif = this._config.acceso_entita;
-      if (nome === "soglia" && (Array.isArray(rif) ? rif.length : !!rif)) return true;
+      // le voci che dipendono da un interruttore spento non si fanno vedere,
+      // a meno che non abbiano gia' un valore scritto
+      if (DIPENDE[nome] && !DIPENDE[nome](this._config)) {
+        const ora = this._config[nome];
+        const scritto = ora !== undefined && ora !== null && ora !== ""
+          && !(Array.isArray(ora) && !ora.length);
+        if (!scritto) return false;
+      }
       const ammessi = SOLO_PER[nome];
       if (!ammessi) return true;
       if (!dominio) return false;
