@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.6.7";
+const VERSIONE = "2.8.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1756,13 +1756,28 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([liberi]) .tempo, :host([liberi]) .extra,
 :host([liberi]) .lettori, :host([liberi]) .colori {
   position: absolute; margin: 0; max-width: 88%;
+  /* niente casella della griglia: vedi qui sotto */
+  grid-area: auto;
 }
+/* LA GABBIA: nelle disposizioni "Musica", "Persone" e vinile la casella e'
+   una griglia e ogni pezzo ha la SUA casellina. Un pezzo staccato dal flusso
+   dentro a una griglia si muove solo dentro alla sua casellina: larga quanto
+   la card (e infatti di lato si spostava) ma alta un dito. Ecco perche' si
+   poteva spostare solo a destra e a sinistra. A pezzi liberi la griglia
+   sparisce e ognuno si misura sulla casella intera. */
+:host([liberi][disposizione="vinile"]) ha-card,
+:host([liberi][disposizione="musica"]) ha-card,
+:host([liberi][disposizione="persona"]) ha-card { display: block; }
 /* mentre sposti i pezzi la barra non deve rispondere al dito, se no ti
    ritrovi a muovere la tapparella invece della barra */
 :host([trascinabile]) .cursore, :host([trascinabile]) .comandi,
 :host([trascinabile]) .colori, :host([trascinabile]) .tempo,
 :host([trascinabile]) .extra, :host([trascinabile]) .lettori {
   pointer-events: none; }
+/* Quando anche un solo tasto ha un posto suo, la fila sparisce dal conto e
+   ogni tasto si mette dove gli ha detto lui - come gia' fanno le misure. */
+:host([tastiliberi]) ha-card > .comandi { display: contents; }
+:host([tastiliberi]) .comandi button { position: absolute; margin: 0; }
 :host([liberi]) .chips { display: contents; }
 :host([liberi]) .chips .metrica { position: absolute; max-width: 88%; }
 :host([liberi]) .valore { margin-left: 0; }
@@ -3071,6 +3086,10 @@ function scartoDi(nome) {
   return d;
 }
 
+// come si chiama un tasto: la sua classe (play, prec, su, casa...). "grosso"
+// dice solo che e' piu' grande degli altri, non e' il suo nome.
+const nomeTasto = (b) => [...b.classList].filter((c) => c !== "grosso")[0] || "";
+
 const segno = (nome) => {
   if (!SEGNI[nome]) return "";
   const d = scartoDi(nome);
@@ -3965,6 +3984,21 @@ class CasaTile extends HTMLElement {
         }
       });
     });
+    // e ogni tasto per conto suo, se lui gliene ha dato uno
+    const tastiSuoi = liberi
+      && Object.keys(posti).some((k) => k.indexOf("tasto:") === 0);
+    this.toggleAttribute("tastiliberi", !!tastiSuoi);
+    this.shadowRoot.querySelectorAll(".comandi button").forEach((b) => {
+      if (b._posato === firma) return;
+      b._posato = firma;
+      const suo = tastiSuoi ? posti["tasto:" + nomeTasto(b)] : null;
+      if (!suo || !isFinite(suo.x)) {
+        b.style.left = ""; b.style.top = ""; b.style.right = "";
+        b.style.transform = ""; b.style.transformOrigin = "";
+        return;
+      }
+      this._posaPezzo(b, suo, false, false, true);
+    });
     // e ogni misura per conto suo: si spostano una per una
     const base = (liberi && posti.misure) ? posti.misure : { x: 58, y: 8 };
     this.shadowRoot.querySelectorAll(".chips .metrica").forEach((el, i) => {
@@ -3990,7 +4024,7 @@ class CasaTile extends HTMLElement {
   // - se il pezzo sta nella meta' destra lo attacco al bordo DESTRO. Cosi'
   //   su una casella piu' stretta resta al suo posto invece di scivolare
   //   verso il centro.
-  _posaPezzo(el, dove, eIcona, eLargo) {
+  _posaPezzo(el, dove, eIcona, eLargo, soloPosto) {
     const w = isFinite(dove.w) ? dove.w : 0;
     const aDestra = isFinite(dove.dx) && (dove.x + w / 2) > 50;
     if (aDestra) {
@@ -4014,6 +4048,9 @@ class CasaTile extends HTMLElement {
       el.style.transform = "";
       el.style.transformOrigin = "";
     }
+    // i tasti tondi tengono la loro misura: se gli tocco la larghezza
+    // diventano ovali
+    if (soloPosto) return;
     if (eIcona) {
       if (isFinite(dove.h)) {
         el.style.height = dove.h + "%";
@@ -4219,6 +4256,29 @@ class CasaTile extends HTMLElement {
       segna(chi, this.shadowRoot.querySelector(pezzi[chi])));
     this.shadowRoot.querySelectorAll(".chips .metrica").forEach((el) =>
       segna("misura:" + el.dataset.eid, el));
+    return fuori;
+  }
+
+  // Dove stanno adesso i tasti, uno per uno. Serve al riquadro: appena lui
+  // ne prende uno fisso anche gli altri dove sono, se no la fila si sfascia
+  // nel momento in cui smette di contare come un blocco solo.
+  posizioniTasti() {
+    const q = this.riquadroCasella();
+    if (!q) return {};
+    const fuori = {};
+    this.shadowRoot.querySelectorAll(".comandi button").forEach((b) => {
+      if (b.hidden) return;
+      const r = b.getBoundingClientRect();
+      const chi = nomeTasto(b);
+      if (!r.width || !chi) return;
+      fuori["tasto:" + chi] = {
+        x: Math.round((r.left - q.left) / q.width * 1000) / 10,
+        y: Math.round((r.top - q.top) / q.height * 1000) / 10,
+        w: Math.round(r.width / q.width * 1000) / 10,
+        h: Math.round(r.height / q.height * 1000) / 10,
+        dx: Math.round((q.left + q.width - r.right) / q.width * 1000) / 10,
+      };
+    });
     return fuori;
   }
 
@@ -8799,7 +8859,15 @@ class CasaTileEditor extends HTMLElement {
         return r.width > 0 && x >= r.left - 2 && x <= r.right + 2
           && y >= r.top - 2 && y <= r.bottom + 2;
       };
-      // le misure per prime: sono le piu' piccole e stanno sopra le altre
+      // i tasti per primi, poi le misure: sono i pezzi piu' piccoli e
+      // stanno sopra agli altri
+      const tasti = radice.querySelectorAll(".comandi button");
+      for (let i = 0; i < tasti.length; i += 1) {
+        const chi = nomeTasto(tasti[i]);
+        if (!tasti[i].hidden && chi && dentro(tasti[i])) {
+          return { chi: "tasto:" + chi, el: tasti[i] };
+        }
+      }
       const misure = radice.querySelectorAll(".chips .metrica");
       for (let i = 0; i < misure.length; i += 1) {
         if (dentro(misure[i]) && misure[i].dataset.eid) {
@@ -8829,6 +8897,11 @@ class CasaTileEditor extends HTMLElement {
     const pezziDi = (chi) => {
       const radice = carta.shadowRoot;
       if (!radice || !chi) return [];
+      if (chi.indexOf("tasto:") === 0) {
+        const q = chi.slice(6);
+        return [...radice.querySelectorAll(".comandi button")]
+          .filter((b) => !b.hidden && [...b.classList].indexOf(q) !== -1);
+      }
       if (chi.indexOf("misura:") === 0) {
         const eid = chi.slice(7);
         return [...radice.querySelectorAll(".chips .metrica")]
@@ -8998,6 +9071,20 @@ class CasaTileEditor extends HTMLElement {
           this._scriviPosti(this._sbrogliaPosti(veri));
           try { carta.setConfig({ ...this._cfgPista() }); } catch (e4) { /* pazienza */ }
           try { carta.hass = this._hass; } catch (e5) { /* pazienza */ }
+        }
+      }
+      // Il primo tasto che prende stacca tutta la fila: gli altri li fisso
+      // dove sono adesso, se no saltano tutti nell'istante in cui la fila
+      // smette di contare come un blocco solo.
+      if (q.chi.indexOf("tasto:") === 0) {
+        const p0 = (this._cfgPista() || {}).posti || {};
+        if (!Object.keys(p0).some((k) => k.indexOf("tasto:") === 0)) {
+          const dove = carta.posizioniTasti();
+          if (Object.keys(dove).length) {
+            this._scriviPosti({ ...p0, ...dove });
+            try { carta.setConfig({ ...this._cfgPista() }); } catch (e6) { /* pazienza */ }
+            try { carta.hass = this._hass; } catch (e7) { /* pazienza */ }
+          }
         }
       }
       const rc = carta.riquadroCasella();
