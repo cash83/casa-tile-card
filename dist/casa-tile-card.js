@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.9.0";
+const VERSIONE = "2.9.2";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -726,6 +726,7 @@ const MDI = {
   casuale: "M14.83,13.41L13.42,14.82L16.55,17.95L14.5,20H20V14.5L17.96,16.54L14.83,13.41M14.5,4"
     + "L16.54,6.04L4,18.59L5.41,20L17.96,7.46L20,9.5V4M10.59,9.17L5.41,4L4,5.41L9.17,10.58L10.59,9.17Z",
   ripeti: "M17,17H7V14L3,18L7,22V19H19V13H17M7,7H17V10L21,6L17,2V5H5V11H7V7Z",
+  trasferisci: "M8,5V9H2V15H8V19L14,12M20,5V19H17V5H20Z",
   ripeti1: "M13,15V9H12L10,10V11H11.5V15M17,17H7V14L3,18L7,22V19H19V13H17M7,7H17V10L21,6L17,2V5H5V11H7V7Z",
   gioco: "M7,6H17A6,6 0 0,1 23,12A6,6 0 0,1 17,18C15.22,18 13.63,17.23 12.53,16H11.47C10.37,17.23 8.78,18 7,18A6,6 0 0,1 1,12A6,6 0 0,1 7,6M6,9V11H4V13H6V15H8V13H10V11H8V9H6M15.5,12A1.5,1.5 0 0,0 14,13.5A1.5,1.5 0 0,0 15.5,15A1.5,1.5 0 0,0 17,13.5A1.5,1.5 0 0,0 15.5,12M18.5,9A1.5,1.5 0 0,0 17,10.5A1.5,1.5 0 0,0 18.5,12A1.5,1.5 0 0,0 20,10.5A1.5,1.5 0 0,0 18.5,9Z",
   playstation: "M9.5,4.27C10.88,4.53 12.9,5.14 14,5.5C16.75,6.45 17.69,7.63 17.69,10.29C17.69,12.89 16.09,13.87 14.05,12.89V8.05C14.05,7.5 13.95,6.97 13.41,6.82C13,6.69 12.76,7.07 12.76,7.63V19.73L9.5,18.69V4.27M13.37,17.62L18.62,15.75C19.22,15.54 19.31,15.24 18.83,15.08C18.34,14.92 17.47,14.97 16.87,15.18L13.37,16.41V14.45L13.58,14.38C13.58,14.38 14.59,14 16,13.87C17.43,13.71 19.17,13.89 20.53,14.4C22.07,14.89 22.25,15.61 21.86,16.1C21.46,16.6 20.5,16.95 20.5,16.95L13.37,19.5V17.62M3.5,17.42C1.93,17 1.66,16.05 2.38,15.5C3.05,15 4.18,14.65 4.18,14.65L8.86,13V14.88L5.5,16.09C4.9,16.3 4.81,16.6 5.29,16.76C5.77,16.92 6.65,16.88 7.24,16.66L8.86,16.08V17.77L8.54,17.83C6.92,18.09 5.2,18 3.5,17.42Z",
@@ -2353,6 +2354,25 @@ svg.iconafondo[hidden] { display: none !important; }
 .pannello .voce .sw[on]::after { left: 17px; }
 .pannello .voce .sw:disabled { opacity: .35; cursor: default; }
 .pannello .voce[spento] .chi { opacity: .5; }
+/* porta la coda su un'altra cassa, e svuota la coda */
+.pannello .voce .tras {
+  appearance: none; border: none; padding: 0; flex: none; cursor: pointer;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb);
+  display: grid; place-items: center;
+}
+.pannello .voce .tras svg { width: 15px; height: 15px; fill: currentColor; }
+.pannello .voce .tras:hover { background: color-mix(in srgb, var(--c) 40%, rgba(255,255,255,.1)); }
+.pannello .voce .tras[hidden] { display: none !important; }
+.pannello .svuota-coda {
+  appearance: none; border: none; cursor: pointer; font: inherit; font-size: 12px;
+  margin-top: 8px; padding: 7px 10px; border-radius: 9px; width: 100%;
+  background: rgba(255,255,255,.06); color: var(--primary-text-color, #eaf1fb);
+  display: flex; align-items: center; gap: 8px;
+}
+.pannello .svuota-coda svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
+.pannello .svuota-coda:hover { background: rgba(255,255,255,.12); }
+.pannello .svuota-coda[hidden] { display: none !important; }
 @keyframes casa-attesa { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 .pannello .voce[attesa] .sw { animation: casa-attesa 1.1s ease-in-out infinite; }
 @keyframes casa-nope { 0%, 100% { background: transparent; }
@@ -5414,6 +5434,13 @@ class CasaTile extends HTMLElement {
     if (!this._panFonti.hidden) this._disegnaFonti(st);
   }
 
+  // Music Assistant o no? Il trasferimento della coda e' roba sua: su un
+  // lettore di un'altra integrazione il servizio non esiste nemmeno.
+  _daMusicAssistant(eid) {
+    const reg = this._hass && this._hass.entities ? this._hass.entities[eid] : null;
+    return !!reg && reg.platform === "music_assistant";
+  }
+
   _disegnaGruppo(st) {
     const box = this._panGruppo.querySelector(".p-corpo");
     const padrone = this._config.entity;
@@ -5431,8 +5458,19 @@ class CasaTile extends HTMLElement {
         r.dataset.eid = eid;
         r.innerHTML = '<button class="sw" type="button"></button>'
           + '<span class="chi"></span>'
-          + '<input class="vol" type="range" min="0" max="100" step="1">';
+          + '<input class="vol" type="range" min="0" max="100" step="1">'
+          + '<button class="tras" type="button" hidden title="Porta qui la coda '
+          + 'che sta suonando">' + segno("trasferisci") + "</button>";
         r.querySelector(".sw").addEventListener("click", () => this._cambiaGruppo(eid, r));
+        // porta la coda su un'altra cassa: e' un servizio di Music Assistant,
+        // quindi si vede solo fra lettori di Music Assistant
+        r.querySelector(".tras").addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (!this._hass) return;
+          this._hass.callService("music_assistant", "transfer_queue",
+            { entity_id: eid, source_player: padrone });
+          this._chiudiPannelli();
+        });
         const vol = r.querySelector(".vol");
         const manda = () => {
           if (!this._hass) return;
@@ -5455,7 +5493,27 @@ class CasaTile extends HTMLElement {
         box.appendChild(r);
       });
     }
+    // in fondo, "svuota la coda": e' un comando di serie di Home Assistant
+    // (clear_playlist), quindi vale per Music Assistant come per yTube
+    let via = box.querySelector(".svuota-coda");
+    const puoSvuotare = (Number(st.attributes.supported_features || 0) & 8192) > 0;
+    if (puoSvuotare && !via) {
+      via = document.createElement("button");
+      via.className = "svuota-coda";
+      via.type = "button";
+      via.innerHTML = segno("svuota") + "<span>Svuota la coda</span>";
+      via.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!this._hass) return;
+        this._hass.callService("media_player", "clear_playlist",
+          { entity_id: this._config.entity });
+        this._chiudiPannelli();
+      });
+      box.appendChild(via);
+    }
+    if (via) via.hidden = !puoSvuotare;
     Array.from(box.children).forEach((r) => {
+      if (!r.dataset.eid) return;
       const eid = r.dataset.eid;
       const suo = stati[eid];
       const dentro = eid === padrone || membri.includes(eid);
@@ -5465,6 +5523,9 @@ class CasaTile extends HTMLElement {
       r.toggleAttribute("spento", spento);
       r.querySelector(".chi").textContent = nome
         + (eid === padrone ? " \u2022 questa" : (spento ? " \u2022 non disponibile" : ""));
+      const tras = r.querySelector(".tras");
+      if (tras) tras.hidden = eid === padrone || spento || !this._daMusicAssistant(eid)
+        || !this._daMusicAssistant(padrone);
       const sw = r.querySelector(".sw");
       // finche' aspetto la risposta del lettore tengo la posizione chiesta
       let inAttesa = r._attesa !== undefined && Date.now() < r._attesaFino;
@@ -7925,11 +7986,23 @@ class CasaTileEditor extends HTMLElement {
             // la barra - o viceversa. Da qui prendo SOLO i campi che sono
             // suoi, e il resto della configurazione non lo tocca nessuno.
             const suoi = this._nomiSchema(form.schema);
+            const dispPrima = this._config.disposizione;
             const c2 = { ...this._config };
             suoi.forEach((nome) => {
               if (nome in e.detail.value) c2[nome] = e.detail.value[nome];
               else delete c2[nome];
             });
+            // "come la tua ytmusic-card" e' un vestito completo, non solo
+            // la disposizione: la copertina tonda davanti e quella sfocata
+            // dietro sono meta' di quello che la fa somigliare alla sua. Se
+            // le trovo spente (magari da un'altra disposizione di prima) le
+            // riaccendo appena sceglie questa. Poi puo' rispegnerle.
+            if (c2.disposizione === "ytmusic" && dispPrima !== "ytmusic") {
+              c2.mostra_icona = true;
+              c2.usa_foto = true;
+              if (c2.sfondo_copertina === undefined) c2.sfondo_copertina = true;
+              if (!(Number(c2.sfondo_sfocatura) > 0)) c2.sfondo_sfocatura = 34;
+            }
             this._config = c2;
             this._emetti();
             if (prima !== this._config.azione) {
