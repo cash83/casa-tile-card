@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.11.9";
+const VERSIONE = "2.11.10";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -8220,12 +8220,19 @@ class CasaTileEditor extends HTMLElement {
     const box = this._scorrevole();
     const dove = box ? box.scrollTop : 0;
     azione();
-    if (!box || box.scrollTop === dove) return;
-    box.scrollTop = dove;
-    // e ancora dopo il disegno, che certe altezze arrivano tardi
-    requestAnimationFrame(() => {
+    if (!box) return;
+    // Rimetto il segno piu' volte: la finestra di Home Assistant si ridisegna
+    // a pezzi (l'anteprima della card arriva dopo, e cambia altezza), quindi
+    // un solo ripasso non bastava e la pagina risaliva lo stesso.
+    const rimetti = () => {
       if (box.isConnected && box.scrollTop !== dove) box.scrollTop = dove;
-    });
+    };
+    rimetti();
+    requestAnimationFrame(rimetti);
+    clearTimeout(this._rimettiPosto1);
+    clearTimeout(this._rimettiPosto2);
+    this._rimettiPosto1 = setTimeout(rimetti, 60);
+    this._rimettiPosto2 = setTimeout(rimetti, 240);
   }
 
   // chi e' che scorre davvero: puo' essere un pezzo della finestra di
@@ -10596,7 +10603,8 @@ class CasaTileEditor extends HTMLElement {
       if (l[i].sfondo === null) delete l[i].sfondo;
       if (l[i].trasparenza === null) delete l[i].trasparenza;
       this._config = { ...this._config, finestra_schede_stile: l };
-      this._emetti();
+      // il cursore lo sta trascinando lui: la pagina deve restare ferma
+      this._conservaPosto(() => this._emetti());
     };
 
     const eti = document.createElement("span");
