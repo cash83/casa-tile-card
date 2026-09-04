@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.12.0";
+const VERSIONE = "2.12.1";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1792,7 +1792,12 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([liberi]) .cursore, :host([liberi]) .comandi,
 :host([liberi]) .tempo, :host([liberi]) .extra,
 :host([liberi]) .lettori, :host([liberi]) .colori {
-  position: absolute; margin: 0; max-width: 88%;
+  position: absolute; max-width: 88%;
+  /* Il margine DEVE sparire: a pezzi liberi il posto lo decide lui, e un
+     margine rimasto da un'altra disposizione (il volume del vestito
+     ytmusic ne aveva 14px) sposta il pezzo di quei pixel senza motivo.
+     Serve "!important" perche' le regole delle disposizioni vengono dopo. */
+  margin: 0 !important;
   /* niente casella della griglia: vedi qui sotto */
   grid-area: auto;
 }
@@ -4133,7 +4138,25 @@ class CasaTile extends HTMLElement {
     }
     zoom = Math.round(zoom * 100) / 100;
     this._zoomPosti = zoom;
-    const firma = this._firmaPosti + "|" + zoom;
+    // Anche la MISURA dei tasti entra nella firma: la prima volta il foglio
+    // di stile puo' non aver ancora dato al play la sua forma piu' grande,
+    // e senza questo il ripasso si fermava sul "gia' fatto" lasciandolo
+    // storto rispetto agli altri.
+    let firmaTasti = "";
+    if (liberi) {
+      this.shadowRoot.querySelectorAll(".comandi button").forEach((b) => {
+        if (!b.hidden) firmaTasti += b.offsetWidth + "x" + b.offsetHeight + ",";
+      });
+      // e l'altezza delle file intere (volume, tasti, onda, casse): anche
+      // quelle possono cambiare forma e vanno rimesse in mezzo
+      [".cursore", ".comandi", ".tempo", ".extra", ".lettori", ".colori"]
+        .forEach((sel) => {
+          const el = this.shadowRoot.querySelector(sel);
+          firmaTasti += (el ? el.offsetHeight : 0) + ";";
+        });
+    }
+    const firma = this._firmaPosti + "|" + zoom + "|" + firmaTasti;
+    let rcFile = null;
     // se non e' cambiato niente - ne la disposizione, ne le misure che
     // vengono rifatte a ogni valore nuovo - non c'e' niente da rimettere
     // a posto: qui ci si passa due volte per ogni ridisegno.
@@ -4148,7 +4171,19 @@ class CasaTile extends HTMLElement {
         if (el._posato === firma) return;
         el._posato = firma;
         if (dove && isFinite(dove.x) && isFinite(dove.y)) {
-          this._posaPezzo(el, dove, chi === "icona", larghi[chi]);
+          // Le file (volume, tasti, onda, casse) le tengo ferme per il
+          // centro: se cambio la loro forma - come e' successo alla barra
+          // del volume, diventata piu' alta - ancorandole all'angolo si
+          // spostano da sole. Il centro invece resta dove l'ha messo lui.
+          let qui = dove;
+          if (larghi[chi] && isFinite(dove.h) && el.offsetHeight) {
+            const rc2 = rcFile || (rcFile = this.riquadroCasella());
+            if (rc2 && rc2.height > 10) {
+              const altoOra = el.offsetHeight / rc2.height * 100;
+              qui = { ...dove, y: dove.y + (dove.h - altoOra) / 2, h: altoOra };
+            }
+          }
+          this._posaPezzo(el, qui, chi === "icona", larghi[chi]);
         } else {
           el.style.left = "";
           el.style.top = "";
@@ -4166,16 +4201,41 @@ class CasaTile extends HTMLElement {
     const tastiSuoi = liberi
       && Object.keys(posti).some((k) => k.indexOf("tasto:") === 0);
     this.toggleAttribute("tastiliberi", !!tastiSuoi);
+    // I tasti li tengo fermi per il CENTRO, non per l'angolo in alto a
+    // sinistra: sono di misure diverse fra loro (il play e' piu' grande) e
+    // se un giorno cambio la loro forma, ancorandoli all'angolo si
+    // spostano tutti. Cosi' invece restano allineati dove li ha messi.
+    const rcT = tastiSuoi ? this.riquadroCasella() : null;
     this.shadowRoot.querySelectorAll(".comandi button").forEach((b) => {
-      if (b._posato === firma) return;
-      b._posato = firma;
       const suo = tastiSuoi ? posti["tasto:" + nomeTasto(b)] : null;
       if (!suo || !isFinite(suo.x)) {
+        if (b._posato === firma) return;
+        b._posato = firma;
+        b._misuraPosata = "";
         b.style.left = ""; b.style.top = ""; b.style.right = "";
         b.style.transform = ""; b.style.transformOrigin = "";
         return;
       }
-      this._posaPezzo(b, suo, false, false, true);
+      // ATTENZIONE: il tasto puo' essere misurato PRIMA che il foglio di
+      // stile gli abbia dato la sua forma (il play e' piu' grande degli
+      // altri). Se mi fermassi al solito "gia' fatto" resterebbe posato
+      // sulla misura sbagliata: guardo anche quanto e' grande adesso.
+      const m = b.offsetWidth + "x" + b.offsetHeight;
+      if (b._posato === firma && b._misuraPosata === m) return;
+      b._posato = firma;
+      b._misuraPosata = m;
+      let dove = suo;
+      if (rcT && rcT.width > 10 && rcT.height > 10
+        && isFinite(suo.w) && isFinite(suo.h) && b.offsetWidth) {
+        const largoOra = b.offsetWidth / rcT.width * 100;
+        const altoOra = b.offsetHeight / rcT.height * 100;
+        const dx2 = (suo.w - largoOra) / 2;
+        const dy2 = (suo.h - altoOra) / 2;
+        dove = { ...suo, x: suo.x + dx2, y: suo.y + dy2,
+                 dx: isFinite(suo.dx) ? suo.dx + dx2 : suo.dx,
+                 w: largoOra, h: altoOra };
+      }
+      this._posaPezzo(b, dove, false, false, true);
     });
     // e ogni misura per conto suo: si spostano una per una
     const base = (liberi && posti.misure) ? posti.misure : { x: 58, y: 8 };

@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.12.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.12.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -90,6 +90,7 @@ finestra_cards:
 
 ## Novità della 2.12
 
+- **I pezzi liberi non si spostano più da soli quando cambia la loro forma**: tasti e file (volume, comandi, onda) restano fermi per il centro, non per l'angolo — così se un tasto diventa più grande resta in riga con gli altri.
 - **I pezzi liberi si rimpiccioliscono con la casella**: le posizioni erano in percentuale ma le scritte no, quindi stringendo la finestra il nome finiva addosso alle misure. Adesso, quando la casella è più stretta di quando l'hai composta, tutto si riduce nella stessa proporzione — come un foglio stampato in scala. Le disposizioni fatte prima imparano la misura di riferimento da sole.
 
 ## Novità della 2.11
