@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.12.1";
+const VERSIONE = "2.12.2";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -4227,8 +4227,10 @@ class CasaTile extends HTMLElement {
       let dove = suo;
       if (rcT && rcT.width > 10 && rcT.height > 10
         && isFinite(suo.w) && isFinite(suo.h) && b.offsetWidth) {
-        const largoOra = b.offsetWidth / rcT.width * 100;
-        const altoOra = b.offsetHeight / rcT.height * 100;
+        // la misura che conta e' quella dopo il rimpicciolimento, se no il
+        // centro finisce da un'altra parte quando la casella e' stretta
+        const largoOra = b.offsetWidth * zoom / rcT.width * 100;
+        const altoOra = b.offsetHeight * zoom / rcT.height * 100;
         const dx2 = (suo.w - largoOra) / 2;
         const dy2 = (suo.h - altoOra) / 2;
         dove = { ...suo, x: suo.x + dx2, y: suo.y + dy2,
@@ -4278,8 +4280,13 @@ class CasaTile extends HTMLElement {
     // disegno, per la barra e per i tasti, e il pezzo non va a capo mentre
     // cresce. Il punto fermo e' l'angolo da cui e' attaccato, se no
     // ingrandendo scapperebbe via dal posto dove l'ha messo.
-    const k = (isFinite(dove.s) && dove.s > 0 ? dove.s : 1)
-      * (this._zoomPosti > 0 ? this._zoomPosti : 1);
+    // Il rimpicciolimento serve solo a quello che NON si adatta da solo:
+    // le scritte e i tastini, che sono grandi quanto il loro carattere.
+    // La barra, l'onda e il disegno hanno gia' la misura in percentuale
+    // della casella: rimpicciolirli ancora li faceva scappare di lato.
+    const suoZoom = (eIcona || eLargo) ? 1
+      : (this._zoomPosti > 0 ? this._zoomPosti : 1);
+    const k = (isFinite(dove.s) && dove.s > 0 ? dove.s : 1) * suoZoom;
     if (k !== 1) {
       el.style.transformOrigin = aDestra ? "top right" : "top left";
       el.style.transform = "scale(" + k + ")";
