@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.12.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.13.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -87,6 +87,19 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.13
+
+Il lettore adesso si comanda tutto dalla casella, senza aprire niente d'altro.
+
+- **La fila dei tastini**: lente, cartella, coda e schermo intero. Si accendono dalla scheda Lettore e, come ogni altro pezzo, si possono prendere e portare dove vuoi.
+- **Cerca**: scrivi e trovi brani, album, artisti, playlist e radio. Su un risultato scegli se farlo partire subito, metterlo in coda o partire con la radio.
+- **Sfoglia**: le tue playlist, gli album, gli artisti, i preferiti e i consigliati, con l'andare avanti e indietro nelle cartelle.
+- **La coda**: si apre a tutta casella. Vedi cosa suona adesso, tocchi un brano per saltarci, e ogni riga ha i tasti per spostarla su, giù, subito dopo, o toglierla.
+- **Il cuore**: mette e toglie dai preferiti quello che sta suonando.
+- **Schermo intero**: la casella si stacca e si prende tutta la pagina, con la copertina grande dietro. Va bene anche sul telefono.
+- **Via la disposizione con la card di YouTube Music incastrata dentro**: chi ce l'aveva passa da sola a quella nostra, con i tastini già accesi.
+- **Nelle impostazioni i riquadri restano aperti**: prima, girando un cursore, quello che stavi guardando si chiudeva e dovevi riaprirlo per vedere l'effetto. E l'anteprima adesso segue la cassa che sta suonando davvero, non quella scritta nella casella.
 
 ## Novità della 2.12
 

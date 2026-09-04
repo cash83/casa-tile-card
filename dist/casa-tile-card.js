@@ -4,7 +4,14 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.12.2";
+const VERSIONE = "2.13.0";
+
+// come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
+// "pieno". Serve per dargli un posto suo nella disposizione.
+const nomeAttrezzo = (b) => {
+  const trovato = [...b.classList].find((k) => k.indexOf("t-") === 0);
+  return trovato ? trovato.slice(2) : "";
+};
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -1266,6 +1273,9 @@ ha-card {
   min-height: var(--casa-min-height, 116px);
   transition: border-color .3s ease, box-shadow .3s ease, transform .12s ease;
 }
+/* Altezza imposta dalla griglia: la casella la riempie esatta e NON si
+   difende con un minimo suo, se no il cursore dell'altezza del Layout non
+   riesce a scendere (era il difetto: sotto le due righe non si muoveva). */
 ha-card:active { transform: scale(.985); }
 ha-card:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
 :host([acceso]) ha-card {
@@ -1791,7 +1801,9 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([liberi]) .iconaHa, :host([liberi]) .iconaFoto,
 :host([liberi]) .cursore, :host([liberi]) .comandi,
 :host([liberi]) .tempo, :host([liberi]) .extra,
-:host([liberi]) .lettori, :host([liberi]) .colori {
+:host([liberi]) .lettori, :host([liberi]) .colori,
+:host([liberi]) .ytattrezzi,
+:host([liberi]) .ytcuore {
   position: absolute; max-width: 88%;
   /* Il margine DEVE sparire: a pezzi liberi il posto lo decide lui, e un
      margine rimasto da un'altra disposizione (il volume del vestito
@@ -1814,18 +1826,29 @@ svg.iconafondo[hidden] { display: none !important; }
    ritrovi a muovere la tapparella invece della barra */
 :host([trascinabile]) .cursore, :host([trascinabile]) .comandi,
 :host([trascinabile]) .colori, :host([trascinabile]) .tempo,
-:host([trascinabile]) .extra, :host([trascinabile]) .lettori {
+:host([trascinabile]) .extra, :host([trascinabile]) .lettori,
+:host([trascinabile]) .ytcoda {
   pointer-events: none; }
 /* Quando anche un solo tasto ha un posto suo, la fila sparisce dal conto e
    ogni tasto si mette dove gli ha detto lui - come gia' fanno le misure. */
 :host([tastiliberi]) ha-card > .comandi { display: contents; }
 :host([tastiliberi]) .comandi button { position: absolute; margin: 0; }
+/* lo stesso per i tastini delle funzioni: quando anche uno solo ha un posto
+   suo, la fila sparisce dal conto e ognuno va dove gli ha detto lui */
+:host([attrezziliberi]) ha-card > .ytattrezzi { display: contents; }
+:host([attrezziliberi]) .ytattrezzi button { position: absolute; margin: 0; }
 :host([liberi]) .chips { display: contents; }
 :host([liberi]) .chips .metrica { position: absolute; max-width: 88%; }
 :host([liberi]) .valore { margin-left: 0; }
 /* un pezzo spostato non deve spezzarsi: "74 %" resta "74 %" anche se la
    casella vera e' piu' stretta dell'anteprima */
 :host([liberi]) .valore, :host([liberi]) .chips .metrica { white-space: nowrap; }
+/* e se proprio non ci sta, si accorcia con i puntini invece di sbordare
+   addosso al pezzo di fianco (succedeva sul telefono, dove le caselle hanno
+   una forma diversa da quella su cui lui ha composto) */
+:host([liberi]) .testi .nome, :host([liberi]) .testi .sotto,
+:host([liberi]) .valore, :host([liberi]) .chips .metrica {
+  overflow: hidden; text-overflow: ellipsis; }
 /* La casellina del riquadro sta ferma: e' una copia di servizio, non ha
    senso che consumi per animarsi mentre lui sposta i pezzi. E lo stesso
    vale per TUTTE le caselle disegnate dentro alla finestra delle
@@ -1854,7 +1877,8 @@ svg.iconafondo[hidden] { display: none !important; }
   outline-offset: 2px; border-radius: 5px; }
 
 .testa, .chips, .cursore, svg.icona, img.ritratto, .valore,
-.lettori, .extra, .pannello, .tempo, .comandi, .colori,
+.lettori, .extra, .pannello, .tempo, .comandi, .colori, .ytcoda,
+.ytattrezzi, .ytcuore,
 .iconaHa, .iconaFoto { position: relative; z-index: 1; }
 
 /* --- il cielo del meteo, fatto di pezzi veri --- */
@@ -2085,7 +2109,7 @@ svg.iconafondo[hidden] { display: none !important; }
 /* --- disposizione "musica": copertina, titolo, comandi incolonnati --- */
 :host([disposizione="musica"]) ha-card {
   display: grid; grid-template-columns: auto 1fr;
-  grid-template-areas: "lettori lettori" "art testo" "misure misure" "tempo tempo" "comandi comandi" "cursore cursore" "extra extra";
+  grid-template-areas: "attrezzi attrezzi" "lettori lettori" "art testo" "misure misure" "tempo tempo" "comandi comandi" "cursore cursore" "extra extra";
   column-gap: 13px; row-gap: 0; align-items: center;
 }
 :host([disposizione="musica"]) .riga { display: contents; }
@@ -2183,7 +2207,7 @@ svg.iconafondo[hidden] { display: none !important; }
 /* --- disposizione "vinile": copertina tonda, onda, comandi grandi --- */
 :host([disposizione="vinile"]) ha-card {
   display: grid; grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "lettori" "art" "testo" "misure" "tempo" "comandi" "cursore" "extra";
+  grid-template-areas: "attrezzi" "lettori" "art" "testo" "misure" "tempo" "comandi" "cursore" "extra";
   justify-items: center; align-content: center; row-gap: 0;
 }
 :host([disposizione="vinile"]) .riga { display: contents; }
@@ -2325,6 +2349,359 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([ytm]) .cursore input::-moz-range-thumb {
   width: 18px; height: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
 
+
+/* --- la sua ytmusic-card montata dentro alla casella ------------------ */
+/* --- I TASTINI DELLE FUNZIONI: cerca, sfoglia, coda, schermo intero.
+   Vestiti come "Casse" e "Sorgente", cioe' come il resto di casa-tile:
+   non e' una copia della sua card, sono attrezzi nostri. --- */
+.ytattrezzi { display: flex; gap: 6px; flex-wrap: wrap; width: 100%;
+  min-width: 0; }
+.ytattrezzi[hidden] { display: none !important; }
+.ytattrezzi button { all: unset; cursor: pointer; width: 30px; height: 30px;
+  display: grid; place-items: center; border-radius: 10px;
+  /* fondo scuro suo, non un velo bianco: sopra a una copertina chiara e
+     movimentata i tastini sparivano e non si capiva piu' dove fossero */
+  background: rgba(10,15,23,.55);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.16); opacity: .95;
+  color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.ytattrezzi button:hover { opacity: 1; background: rgba(255,255,255,.14); }
+.ytattrezzi button[aperto] { opacity: 1;
+  background: color-mix(in srgb, var(--c) 45%, rgba(12,18,28,.6));
+  border-color: color-mix(in srgb, var(--c) 55%, transparent); }
+.ytattrezzi ha-icon { --mdc-icon-size: 17px; display: block; }
+
+/* --- il cuoricino --- */
+.ytcuore { all: unset; cursor: pointer; width: 28px; height: 28px;
+  display: grid; place-items: center; border-radius: 50%; opacity: .75; }
+.ytcuore[hidden] { display: none !important; }
+.ytcuore:hover { opacity: 1; background: rgba(255,255,255,.12); }
+.ytcuore[acceso] { opacity: 1; color: var(--casa-acceso, var(--c)); }
+.ytcuore ha-icon { --mdc-icon-size: 19px; display: block; }
+
+/* le fonti stanno DENTRO al riquadro dello sfogliare, non in facciata */
+.pannello.sfoglia .s-fonti { display: flex; gap: 5px; flex-wrap: wrap;
+  margin: 4px 0 6px; }
+.pannello.sfoglia .s-fonti button { all: unset; cursor: pointer;
+  font-size: 11px; padding: 3px 9px; border-radius: 999px;
+  background: rgba(255,255,255,.07); }
+.pannello.sfoglia .s-fonti button[scelta] { background: #fff; color: #111; }
+
+/* I riquadri nuovi NON prendono la trasparenza che lui ha messo agli altri:
+   sono elenchi da leggere, e con il lettore che si vede in mezzo alle righe
+   non si capisce piu' niente. Fondo pieno. */
+.pannello.cerca, .pannello.sfoglia, .pannello.incoda {
+  background: var(--lista-bg, #0e141d);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+/* la ricerca e lo sfoglia sono scelte al volo: stanno in basso e non
+   coprono quello che sta suonando */
+.pannello.cerca, .pannello.sfoglia {
+  inset: auto 8px 8px 8px; max-height: min(68%, 330px); }
+/* la coda invece e' una schermata a se', come la linguetta "In coda" della
+   sua card: si prende tutta la casella e si torna indietro con la X. Deve
+   fare cosi', se no in una casella a pezzi liberi finisce sotto o sopra ai
+   pezzi sistemati a mano. */
+.pannello.incoda { inset: 8px; max-height: none; }
+
+/* Dentro ai riquadri la casella non e' piu' "una cosa da premere": la
+   manina resta solo su quello che si preme davvero. Nel campo di ricerca
+   ci vuole la barretta del testo. */
+.pannello, .pannello *, .menucoda, .menucoda * { cursor: default; }
+.pannello button, .pannello button *,
+.pannello .voce, .pannello .voce *,
+.pannello .esito, .pannello .esito *,
+.pannello .coda-riga, .pannello .coda-riga *,
+.menucoda button, .menucoda button * { cursor: pointer; }
+.pannello input, .pannello .c-testo { cursor: text; }
+
+/* --- il riquadro per sfogliare --- */
+.pannello.sfoglia .s-indietro { all: unset; cursor: pointer; width: 22px;
+  height: 22px; display: grid; place-items: center; border-radius: 50%;
+  font-size: 17px; opacity: .8; }
+.pannello.sfoglia .s-indietro[hidden] { display: none; }
+.pannello.sfoglia .s-titolo { flex: 1 1 auto; min-width: 0; font-size: 12.5px;
+  font-weight: 700; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; }
+.pannello.sfoglia .s-elenco { overflow: auto; display: flex;
+  flex-direction: column; gap: 2px; }
+.pannello.sfoglia .voce { display: flex; align-items: center; gap: 8px;
+  padding: 4px 6px; border-radius: 9px; cursor: pointer; }
+.pannello.sfoglia .voce:hover { background: rgba(255,255,255,.1); }
+.pannello.sfoglia .voce img, .pannello.sfoglia .voce i.vuota {
+  width: 32px; height: 32px; border-radius: 6px; flex: none; object-fit: cover;
+  background: rgba(255,255,255,.08); display: grid; place-items: center; }
+.pannello.sfoglia .voce .dati { display: flex; flex-direction: column;
+  min-width: 0; flex: 1 1 auto; line-height: 1.15; }
+.pannello.sfoglia .voce b { font-size: 12.5px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pannello.sfoglia .voce i { font-size: 11px; font-style: normal; opacity: .55;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pannello.sfoglia .voce .piu { all: unset; cursor: pointer; width: 24px;
+  height: 24px; flex: none; display: grid; place-items: center;
+  border-radius: 50%; opacity: .6; }
+.pannello.sfoglia .voce .piu:hover { opacity: 1;
+  background: rgba(255,255,255,.16); }
+.pannello.sfoglia .s-nota { font-size: 12px; opacity: .6; padding: 8px 4px; }
+
+/* --- il menu "che ne faccio" --- */
+.menucoda { position: absolute; inset: auto 10px 10px 10px; z-index: 6;
+  display: flex; flex-direction: column; gap: 2px; padding: 6px;
+  border-radius: 14px; background: var(--lista-bg, #0e141d);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 12px 32px rgba(0,0,0,.55); }
+.menucoda[hidden] { display: none !important; }
+.menucoda button { all: unset; cursor: pointer; display: flex; gap: 9px;
+  align-items: center; padding: 7px 9px; border-radius: 9px; font-size: 12.5px; }
+.menucoda button:hover { background: rgba(255,255,255,.12); }
+.menucoda ha-icon { --mdc-icon-size: 16px; opacity: .8; }
+
+/* --- la ricerca --- */
+.pannello.cerca .c-riga { display: flex; gap: 6px; margin: 4px 0 6px; }
+.pannello.cerca .c-testo { flex: 1 1 auto; min-width: 0; all: unset;
+  box-sizing: border-box; padding: 7px 10px; border-radius: 10px;
+  background: rgba(255,255,255,.07); font-size: 13px; color: inherit;
+  /* "all: unset" azzera anche il mestiere del campo di testo: senza queste
+     righe niente barretta lampeggiante, niente selezione, e il puntatore
+     resta la freccia invece di diventare il trattino. Vanno scritte QUI
+     dentro, dopo l'azzeramento: da fuori le rimangiava. */
+  cursor: text; caret-color: var(--casa-acceso, currentColor);
+  user-select: text; -webkit-user-select: text; }
+/* anche la fascia intorno al campo: il trattino appena ci arrivi sopra */
+.pannello.cerca .c-riga { cursor: text; }
+.pannello.cerca .c-testo::placeholder { color: currentColor; opacity: .45; }
+.pannello.cerca .c-vai { all: unset; cursor: pointer; width: 32px; height: 32px;
+  display: grid; place-items: center; border-radius: 10px;
+  background: var(--casa-acceso, var(--c)); color: #fff; }
+.pannello.cerca .c-tipi { display: flex; gap: 5px; flex-wrap: wrap;
+  margin-bottom: 6px; }
+.pannello.cerca .c-tipi button { all: unset; cursor: pointer; font-size: 11px;
+  padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,.07); }
+.pannello.cerca .c-tipi button[scelto] { background: #fff; color: #111; }
+.pannello.cerca .c-esiti { overflow: auto; display: flex;
+  flex-direction: column; gap: 2px; }
+.pannello.cerca .esito { display: flex; align-items: center; gap: 8px;
+  padding: 4px 6px; border-radius: 9px; cursor: pointer; }
+.pannello.cerca .esito:hover { background: rgba(255,255,255,.1); }
+.pannello.cerca .esito img, .pannello.cerca .esito i.vuota {
+  width: 30px; height: 30px; border-radius: 6px; flex: none; object-fit: cover;
+  background: rgba(255,255,255,.08); }
+.pannello.cerca .esito .dati { display: flex; flex-direction: column;
+  min-width: 0; line-height: 1.15; }
+.pannello.cerca .esito b { font-size: 12.5px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pannello.cerca .esito i { font-size: 11px; font-style: normal; opacity: .55;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pannello.cerca .c-nota { font-size: 12px; opacity: .6; padding: 8px 4px; }
+
+:host([pienoschermo]) { position: fixed; inset: 0; z-index: 99;
+  height: 100% !important; max-height: none !important; }
+:host([pienoschermo]) ha-card {
+  /* "100dvh" e non "100%": sul telefono la barra degli indirizzi entra e
+     esce, e con l'altezza vecchia il lettore sbordava sopra e sotto */
+  height: 100dvh !important; max-height: none !important;
+  border-radius: 0; padding: clamp(16px, 4vh, 40px);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px;
+  /* niente scorrimento: il lettore e' calcolato per starci dentro, e con
+     "auto" comparivano barre e si scendeva su una pagina nera vuota */
+  overflow: hidden;
+  /* FONDO PIENO. La casella sulla plancia puo' essere trasparente quanto
+     vuole - li' dietro c'e' la plancia ed e' bello cosi'. A schermo intero
+     no: si vedevano le altre caselle attraverso il lettore. */
+  background: #05080d; }
+/* la copertina sfocata fa da sfondo, come si conviene */
+:host([pienoschermo]) .copertina { display: block !important; inset: 0 !important;
+  opacity: 1; z-index: 0; }
+/* nessun pezzo si allunga: stanno tutti insieme al centro, senza buchi */
+:host([pienoschermo]) ha-card > * { flex: 0 0 auto; }
+/* A SCHERMO INTERO LE POSIZIONI LIBERE NON VALGONO. Sono percentuali scelte
+   su una casella piccola: su tutto il monitor spalmano i pezzi agli angoli.
+   Qui rimetto tutto in colonna, largo al massimo quanto un lettore vero e
+   centrato. Le posizioni restano salvate: tornando dalla casella piccola
+   sono ancora quelle. */
+:host([pienoschermo]) ha-card > .testa,
+:host([pienoschermo]) ha-card > .riga { display: flex !important;
+  flex-direction: column; align-items: center; }
+:host([pienoschermo]) .testi, :host([pienoschermo]) .chips,
+:host([pienoschermo]) .valore, :host([pienoschermo]) svg.icona,
+:host([pienoschermo]) img.ritratto, :host([pienoschermo]) .iconaHa,
+:host([pienoschermo]) .iconaFoto, :host([pienoschermo]) .cursore,
+:host([pienoschermo]) .comandi, :host([pienoschermo]) .tempo,
+:host([pienoschermo]) .extra, :host([pienoschermo]) .lettori,
+:host([pienoschermo]) .colori, :host([pienoschermo]) .ytattrezzi,
+:host([pienoschermo]) .ytcuore, :host([pienoschermo]) .comandi button,
+:host([pienoschermo]) .ytattrezzi button {
+  position: static !important; left: auto !important; top: auto !important;
+  right: auto !important; bottom: auto !important;
+  width: auto !important; height: auto !important;
+  max-width: none !important; max-height: none !important;
+  transform: none !important; margin: 0 !important; }
+/* la larghezza del lettore vale per i PEZZI, non per gli sfondi: prima la
+   davo anche alla copertina, e infatti lo sfondo copriva solo una striscia
+   a sinistra invece di tutta la pagina */
+:host([pienoschermo]) ha-card > *:not(.copertina):not(.cielo):not(.pannello):not(.menucoda):not(.velo):not(.andamento),
+:host([pienoschermo]) .testa,
+:host([pienoschermo]) .riga { width: min(760px, 92%); }
+:host([pienoschermo]) .copertina { position: absolute !important;
+  inset: 0 !important; width: auto !important; height: auto !important; }
+/* E L'ORDINE LO DECIDO IO, invece di sperare che i pezzi si dispongano da
+   soli: prima i tastini, poi la copertina, il titolo, l'onda del tempo, i
+   comandi, il volume e le casse. Senza questo il titolo restava appiccicato
+   in cima e in mezzo si apriva un buco. */
+:host([pienoschermo]) ha-card > .testa { position: static !important;
+  left: auto !important; top: auto !important; right: auto !important;
+  display: flex !important; flex-direction: column; align-items: center;
+  order: 3; }
+:host([pienoschermo]) .ytattrezzi { order: 1; }
+:host([pienoschermo]) .ytcuore { order: 4; }
+:host([pienoschermo]) ha-card > .riga { order: 2; }
+:host([pienoschermo]) .chips { order: 4; }
+:host([pienoschermo]) .tempo { order: 5; }
+:host([pienoschermo]) .comandi { order: 6; }
+:host([pienoschermo]) .cursore { order: 7; }
+:host([pienoschermo]) .extra { order: 8; }
+:host([pienoschermo]) .lettori { order: 0; }
+:host([pienoschermo]) .testi { text-align: center; }
+/* la copertina grande, come si conviene a uno schermo intero */
+:host([pienoschermo]) svg.icona, :host([pienoschermo]) img.ritratto,
+:host([pienoschermo]) .iconaHa, :host([pienoschermo]) .iconaFoto {
+  /* La copertina si misura su TUTTE E DUE le dimensioni: sul telefono, alto
+     e stretto, il 44% dell'altezza era piu' largo dello schermo e spingeva
+     fuori i tastini sopra e le casse sotto. */
+  width: min(40vh, 82vw, 470px) !important;
+  height: min(40vh, 82vw, 470px) !important; }
+/* a schermo intero anche il resto cresce: titolo, tasti e onda */
+:host([pienoschermo]) .nome { font-size: clamp(20px, 2.4vw, 30px); }
+:host([pienoschermo]) .sotto { font-size: clamp(13px, 1.3vw, 17px); }
+/* Le misure vanno con "!important", se no le mangia la regola qui sopra che
+   rimette i pezzi in colonna azzerando larghezze e altezze. Era per questo
+   che i tasti restavano piccoli come nella casella. */
+:host([pienoschermo]) .comandi button { width: 48px !important;
+  height: 48px !important; font-size: 20px; }
+:host([pienoschermo]) .comandi button.grosso { width: 62px !important;
+  height: 62px !important; font-size: 26px; }
+/* e i tastini delle funzioni, che erano rimasti tali e quali */
+:host([pienoschermo]) .ytattrezzi { gap: 10px; }
+:host([pienoschermo]) .ytattrezzi button { width: 44px !important;
+  height: 44px !important; border-radius: 13px; }
+:host([pienoschermo]) .ytattrezzi ha-icon { --mdc-icon-size: 24px; }
+:host([pienoschermo]) .ytcuore { width: 42px !important; height: 42px !important; }
+:host([pienoschermo]) .ytcuore ha-icon { --mdc-icon-size: 26px; }
+/* il volume piu' spesso, se no su tutto lo schermo e' un filo */
+:host([pienoschermo]) .cursore input[type="range"] { height: 22px; }
+/* Anche qui serve "!important": la barra del volume e l'onda del tempo
+   restavano larghe 165px perche' la regola che rimette i pezzi in colonna
+   azzera le larghezze. */
+:host([pienoschermo]) .cursore, :host([pienoschermo]) .tempo,
+:host([pienoschermo]) .testa, :host([pienoschermo]) .testi {
+  width: min(760px, 92%) !important; }
+
+/* --- SUL TELEFONO: schermi alti e stretti, o bassi e larghi. Tutto si
+   stringe, se no il lettore non ci sta e viene tagliato ai bordi. --- */
+@media (max-width: 620px) {
+  :host([pienoschermo]) ha-card { padding: 10px; gap: 8px; }
+  :host([pienoschermo]) ha-card > *:not(.copertina):not(.cielo):not(.pannello):not(.menucoda):not(.velo):not(.andamento):not(.ytcuore),
+  :host([pienoschermo]) .testa,
+  :host([pienoschermo]) .riga,
+  :host([pienoschermo]) .cursore, :host([pienoschermo]) .tempo,
+  :host([pienoschermo]) .testi { width: 96% !important; }
+  :host([pienoschermo]) .comandi button { width: 42px !important;
+    height: 42px !important; font-size: 17px; }
+  :host([pienoschermo]) .comandi button.grosso { width: 54px !important;
+    height: 54px !important; font-size: 22px; }
+  :host([pienoschermo]) .ytattrezzi button { width: 40px !important;
+    height: 40px !important; }
+  :host([pienoschermo]) .ytattrezzi ha-icon { --mdc-icon-size: 21px; }
+  :host([pienoschermo]) .ytcuore { width: 36px !important; height: 36px !important; }
+  :host([pienoschermo]) .nome { font-size: 19px; }
+  :host([pienoschermo]) .sotto { font-size: 13.5px; }
+  :host([pienoschermo]) .tempo { transform: none; }
+  :host([pienoschermo]) .pannello { width: 94% !important;
+    top: 4% !important; bottom: 4% !important; }
+}
+/* schermi bassi (telefono coricato, tablet piccoli): la copertina cede lei */
+@media (max-height: 700px) {
+  :host([pienoschermo]) svg.icona, :host([pienoschermo]) img.ritratto,
+  :host([pienoschermo]) .iconaHa, :host([pienoschermo]) .iconaFoto {
+    width: min(34vh, 70vw, 470px) !important;
+    height: min(34vh, 70vw, 470px) !important; }
+  :host([pienoschermo]) ha-card { gap: 7px; }
+}
+
+/* --- i riquadri a schermo intero: al centro, non larghi come il monitor,
+   e con le scritte leggibili da lontano --- */
+:host([pienoschermo]) .pannello {
+  left: 50% !important; right: auto !important;
+  transform: translateX(-50%);
+  width: min(760px, 92%) !important;
+  top: 7% !important; bottom: 7% !important; max-height: none !important; }
+:host([pienoschermo]) .pannello .p-testa { font-size: 15px; padding-bottom: 9px; }
+:host([pienoschermo]) .pannello .p-chiudi { width: 34px; height: 34px;
+  font-size: 26px; }
+:host([pienoschermo]) .coda-riga { padding: 7px 9px; }
+:host([pienoschermo]) .coda-riga .cop { width: 42px; height: 42px; }
+:host([pienoschermo]) .coda-riga .dati b, :host([pienoschermo]) .voce b,
+:host([pienoschermo]) .esito b { font-size: 15.5px; }
+:host([pienoschermo]) .coda-riga .dati i, :host([pienoschermo]) .voce i,
+:host([pienoschermo]) .esito i { font-size: 13px; }
+:host([pienoschermo]) .voce img, :host([pienoschermo]) .voce i.vuota,
+:host([pienoschermo]) .esito img, :host([pienoschermo]) .esito i.vuota {
+  width: 44px; height: 44px; }
+:host([pienoschermo]) .voce, :host([pienoschermo]) .esito { padding: 7px 9px; }
+:host([pienoschermo]) .s-fonti button, :host([pienoschermo]) .c-tipi button {
+  font-size: 13.5px; padding: 5px 13px; }
+:host([pienoschermo]) .pannello.cerca .c-testo { font-size: 15px;
+  padding: 10px 13px; }
+:host([pienoschermo]) .pannello.cerca .c-vai { width: 40px; height: 40px; }
+:host([pienoschermo]) .menucoda button { font-size: 15px; padding: 10px 12px; }
+:host([pienoschermo]) .tempo { transform: scale(1.15);
+  transform-origin: center; }
+:host([pienoschermo]) .comandi { display: flex !important;
+  justify-content: center; gap: 12px; }
+:host([pienoschermo]) .ytattrezzi { display: flex !important;
+  justify-content: center; }
+
+/* LA CODA - l'elenco dei brani che verranno. Stessa aria della sua card:
+   fondo scuro appena appoggiato, righe basse, la copertina piccola a
+   sinistra e i tre tastini che compaiono quando ci passi sopra. */
+.ytcoda { display: flex; flex-direction: column; gap: 4px; min-height: 0;
+  width: 100%; overflow: hidden; flex: 1 1 auto; }
+.ytcoda[hidden] { display: none; }
+/* il titolo lo mette gia' la testata del riquadro */
+.coda-testa { display: none; }
+.coda-lista { display: flex; flex-direction: column; gap: 2px;
+  overflow: auto; scrollbar-width: thin; min-height: 0; }
+.coda-vuota { font-size: 12px; opacity: .6; padding: 6px 2px; }
+.coda-riga { display: flex; align-items: center; gap: 8px; padding: 4px 6px;
+  border-radius: 9px; cursor: pointer; position: relative;
+  background: var(--casa-riga, rgba(255,255,255,.04)); }
+.coda-riga:hover { background: rgba(255,255,255,.1); }
+.coda-riga[adesso] { background: rgba(255,255,255,.14);
+  box-shadow: inset 3px 0 0 0 var(--casa-acceso, #ff2d55); }
+.coda-riga .cop { width: 30px; height: 30px; border-radius: 6px; flex: none;
+  object-fit: cover; background: rgba(255,255,255,.08); display: grid;
+  place-items: center; overflow: hidden; }
+.coda-riga i.cop ha-icon { --mdc-icon-size: 16px; opacity: .5; }
+.coda-riga .suona { --mdc-icon-size: 15px; flex: none; opacity: .85;
+  color: var(--casa-acceso, currentColor); }
+.coda-riga .dati { display: flex; flex-direction: column; min-width: 0;
+  flex: 1 1 auto; line-height: 1.15; }
+.coda-riga .dati b { font-size: 12.5px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.coda-riga .dati i { font-size: 11px; font-style: normal; opacity: .6;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:host([disposizione="musica"]) .ytattrezzi,
+:host([disposizione="vinile"]) .ytattrezzi { grid-area: attrezzi;
+  width: 100%; justify-content: center; margin-bottom: 8px; }
+.coda-riga .tasti { display: flex; gap: 2px; flex: none; opacity: 0;
+  transition: opacity .15s; }
+.coda-riga:hover .tasti, .coda-riga[adesso] .tasti { opacity: 1; }
+.coda-riga .tasti button { all: unset; width: 22px; height: 22px;
+  display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+  color: inherit; opacity: .75; }
+.coda-riga .tasti ha-icon { --mdc-icon-size: 15px; display: block; }
+.coda-riga .tasti button:hover { opacity: 1; background: rgba(255,255,255,.16); }
+@media (hover: none) { .coda-riga .tasti { opacity: 1; } }
 
 /* --- scelta della cassa (come nella card della musica) --- */
 .lettori {
@@ -2488,6 +2865,19 @@ svg.iconafondo[hidden] { display: none !important; }
   :host([disposizione="musica"]) .iconaFoto,
   :host([disposizione="musica"]) img.ritratto { width: 50px; height: 50px; }
 }
+
+/* PEZZI LIBERI: LE SCRITTE NON CRESCONO CON LA CASELLA.
+   Le posizioni che lui sceglie sono percentuali, ma i caratteri no: la card
+   ha regole che li ingrandiscono quando la casella e' larga. Sul computer
+   "Casa Batteria" e' stretta (titolo piccolo, ed e' su quello che ha
+   composto); sul telefono la stessa casella e' larga il triplo, il titolo
+   cresce e finisce addosso alla misura di fianco. Con i pezzi liberi tengo
+   quindi la misura compatta ovunque: la disposizione composta una volta
+   vale identica su qualunque schermo. Se un pezzo lo vuole piu' grande, c'e'
+   il quadratino giallo. */
+/* a schermo intero invece comanda il lettore grande */
+:host([pienoschermo]) .nome, :host([pienoschermo]) .sotto,
+:host([pienoschermo]) .valore { font-size: revert !important; }
 
 /* --- strettissima: i quattro comandi non ci stanno in fila --- */
 @container (max-width: 205px) {
@@ -2837,6 +3227,10 @@ function fotoDi(st) {
 // dall'elemento apposta: serve a ritrovarlo se Home Assistant, mentre si
 // modificano le impostazioni, rifa' la casella da zero.
 const PANNELLI_APERTI = new Map();
+// L'ultima ricerca fatta, per casella: nell'anteprima delle impostazioni la
+// casella viene rifatta da capo a ogni ritocco, e senza questo il riquadro
+// si riapriva sì, ma vuoto - parola cancellata e risultati spariti.
+const RICERCHE = new Map();
 
 // quanto ci mette ogni tapparella per un punto percentuale: si impara
 // guardando quanto ci mette davvero, cosi' il movimento disegnato va
@@ -3320,9 +3714,26 @@ class CasaTile extends HTMLElement {
   setConfig(config) {
     this._base = { icona: "auto", colore: "ambra", azione: "toggle",
                    usa_foto: true, ...config };
+    // La disposizione con la sua ytmusic-card incastrata dentro non esiste
+    // piu': le caselle che ce l'hanno ancora scritta passano a quella
+    // nostra, con i tastini gia' accesi. Cosi' non si svuotano da sole.
+    if (this._base.disposizione === "ytcard") {
+      this._base = { ...this._base, disposizione: "ytmusic",
+        yt_attrezzi: this._base.yt_attrezzi === undefined
+          ? true : this._base.yt_attrezzi,
+        coda: this._base.coda === undefined ? true : this._base.coda,
+        yt_cuore: this._base.yt_cuore === undefined
+          ? true : this._base.yt_cuore };
+    }
     this._config = this._base;
     this._firmaLettori = null;
-    if (this._lettori().length > 1) {
+    // La cassa ricordata la rimetto SOLO se non ne sto gia' seguendo una.
+    // Prima la rimettevo sempre: e siccome l'anteprima delle impostazioni
+    // riceve la configurazione da capo a ogni ritocco (e a ogni pezzo che
+    // lui sposta), la casella si dimenticava la cassa che stava suonando e
+    // tornava a quella scritta - ferma, quindi senza copertina, senza barra
+    // del tempo e senza sfondo, proprio mentre lui sistemava i pezzi.
+    if (!this._scelto && this._lettori().length > 1) {
       const ricordato = this._leggiScelto();
       if (ricordato && this._lettori().includes(ricordato)) this._scelto = ricordato;
     }
@@ -3626,6 +4037,15 @@ class CasaTile extends HTMLElement {
   // e poi rimpicciolisco tutto insieme, cosi' le schede stanno come
   // staranno davvero invece di stringersi e andare a capo per conto loro.
   getCardSize() { return this._config && this._config.grande ? 3 : 2; }
+  // CHI COMANDA L'ALTEZZA. Home Assistant, quando la casella dichiara un
+  // NUMERO di righe, mette al contenitore un'altezza precisa
+  //   height: calc(righe * (altezza_riga + spazio) - spazio)
+  // e si aspetta che la casella ci stia dentro. Quando invece le righe sono
+  // "auto" (che e' anche il valore di partenza se non le dichiaro) non
+  // impone niente: alta quanto il contenuto.
+  // Quindi: righe a numero -> nessun minimo mio, se no il cursore del
+  // Layout non riesce a scendere; righe automatiche -> il minimo serve, se
+  // no una casella vuota si accartoccia.
   getGridOptions() {
     const c = this._config || {};
     const dominio = c.entity ? c.entity.split(".")[0] : "";
@@ -3660,6 +4080,32 @@ class CasaTile extends HTMLElement {
         <svg class="iconafondo" viewBox="0 0 64 64" fill="none" aria-hidden="true" hidden></svg>
         <div class="copertina" hidden></div>
         <div class="lettori" hidden></div>
+        <div class="ytattrezzi" hidden>
+          <button class="t-cerca" type="button" title="Cerca"><ha-icon icon="mdi:magnify"></ha-icon></button>
+          <button class="t-sfoglia" type="button" title="Sfoglia la musica"><ha-icon icon="mdi:folder-music"></ha-icon></button>
+          <button class="t-coda" type="button" title="Mostra la coda"><ha-icon icon="mdi:playlist-music"></ha-icon></button>
+          <button class="t-pieno" type="button" title="Schermo intero"><ha-icon icon="mdi:fullscreen"></ha-icon></button>
+        </div>
+        <button class="ytcuore" type="button" hidden title="Preferito"><ha-icon icon="mdi:heart-outline"></ha-icon></button>
+        <div class="pannello incoda" hidden>
+          <div class="p-testa"><span>In coda</span><button class="p-chiudi" type="button">&times;</button></div>
+          <div class="ytcoda"></div>
+        </div>
+        <div class="pannello sfoglia" hidden>
+          <div class="p-testa"><button class="s-indietro" type="button" hidden>&#8249;</button><span class="s-titolo"></span><button class="p-chiudi" type="button">&times;</button></div>
+          <div class="s-fonti"></div>
+          <div class="p-corpo s-elenco"></div>
+        </div>
+        <div class="menucoda" hidden></div>
+        <div class="pannello cerca" hidden>
+          <div class="p-testa"><span>Cerca</span><button class="p-chiudi" type="button">&times;</button></div>
+          <div class="c-riga">
+            <input class="c-testo" type="search" placeholder="Brani, album, artisti...">
+            <button class="c-vai" type="button"><ha-icon icon="mdi:magnify"></ha-icon></button>
+          </div>
+          <div class="c-tipi"></div>
+          <div class="p-corpo c-esiti"></div>
+        </div>
         <div class="testa"><div class="testi"><div class="nome"></div><div class="sotto"></div></div><div class="chips"></div><div class="meteo" hidden><div class="gradi"></div><div class="cond"></div></div></div>
         <div class="riga"><svg class="icona" viewBox="0 0 64 64" fill="none"></svg><ha-icon class="iconaHa" hidden></ha-icon><img class="iconaFoto" alt="" hidden><img class="ritratto" alt="" hidden><div class="valore"></div></div>
         <svg class="andamento" viewBox="0 0 100 30" preserveAspectRatio="none" hidden>
@@ -3786,6 +4232,62 @@ class CasaTile extends HTMLElement {
       quali.forEach((servizio) => suona(servizio));
     });
     this._lettoriBox = root.querySelector(".lettori");
+    this._codaBox = root.querySelector(".ytcoda");
+    this._panCoda = root.querySelector(".pannello.incoda");
+    this._attrezziYt = root.querySelector(".ytattrezzi");
+    this._panCerca = root.querySelector(".pannello.cerca");
+    this._pastiglie = root.querySelector(".pannello.sfoglia .s-fonti");
+    this._cuore = root.querySelector(".ytcuore");
+    this._panSfoglia = root.querySelector(".pannello.sfoglia");
+    this._menuCoda = root.querySelector(".menucoda");
+    // "keydown" compreso: la casella prende Invio e Spazio come "mi hanno
+    // premuto" e apriva la finestra mentre lui scriveva nella ricerca.
+    if (this._panCoda) {
+      this._panCoda.querySelector(".p-chiudi")
+        .addEventListener("click", () => this._apriCoda(false));
+    }
+    [this._pastiglie, this._cuore, this._panSfoglia, this._menuCoda,
+      this._panCerca, this._attrezziYt, this._panCoda].forEach((el) => {
+        if (!el) return;
+        ["click", "pointerdown", "keydown", "keyup"].forEach((ev) =>
+          el.addEventListener(ev, (e) => e.stopPropagation()));
+      });
+    if (this._cuore) {
+      this._cuore.addEventListener("click", () => this._cambiaCuore());
+    }
+    if (this._panSfoglia) {
+      this._panSfoglia.querySelector(".p-chiudi")
+        .addEventListener("click", () => this._apriSfoglia(false));
+      this._panSfoglia.querySelector(".s-indietro")
+        .addEventListener("click", () => this._sfogliaIndietro());
+    }
+    if (this._attrezziYt) {
+      this._attrezziYt.querySelector(".t-cerca")
+        .addEventListener("click", () => this._apriCerca());
+      this._attrezziYt.querySelector(".t-sfoglia")
+        .addEventListener("click", () => this._apriSfoglia(
+          this._panSfoglia && this._panSfoglia.hidden, "recommendations",
+          "Consigliati"));
+      this._attrezziYt.querySelector(".t-coda")
+        .addEventListener("click", () => this._apriCoda());
+      this._attrezziYt.querySelector(".t-pieno")
+        .addEventListener("click", () => this._schermoPieno());
+    }
+    if (this._panCerca) {
+      this._panCerca.querySelector(".p-chiudi")
+        .addEventListener("click", () => this._apriCerca(false));
+      this._panCerca.querySelector(".c-vai")
+        .addEventListener("click", () => this._cerca());
+      this._panCerca.querySelector(".c-testo")
+        .addEventListener("keydown", (e) => {
+          e.stopPropagation();
+          if (e.key === "Enter") { e.preventDefault(); this._cerca(); }
+        });
+    }
+    if (this._codaBox) {
+      ["click", "pointerdown"].forEach((ev) =>
+        this._codaBox.addEventListener(ev, (e) => e.stopPropagation()));
+    }
     ["click", "pointerdown"].forEach((ev) =>
       this._lettoriBox.addEventListener(ev, (e) => e.stopPropagation()));
     this._colori = root.querySelector(".colori");
@@ -3858,8 +4360,8 @@ class CasaTile extends HTMLElement {
     [this._extra, this._panGruppo, this._panFonti].forEach((el) =>
       ["click", "pointerdown"].forEach((ev) =>
         el.addEventListener(ev, (e) => e.stopPropagation())));
-    root.querySelectorAll(".p-chiudi").forEach((b) =>
-      b.addEventListener("click", () => this._chiudiPannelli()));
+    root.querySelectorAll(".pannello.gruppo .p-chiudi, .pannello.fonti .p-chiudi")
+      .forEach((b) => b.addEventListener("click", () => this._chiudiPannelli()));
     // i comandi rapidi: ogni tasto il suo servizio
     const rapido = (classe, dominio, servizio) => {
       const b = root.querySelector(".comandi ." + classe);
@@ -3967,10 +4469,22 @@ class CasaTile extends HTMLElement {
       if (e.target === this._velo) this._chiudiFinestra();
     });
     root.querySelector(".f-chiudi").addEventListener("click", () => this._chiudiFinestra());
-    const azione = () => this._azione();
+    // I comandi nostri (tastini, riquadri, cuoricino) fermano gia' il clic
+    // per conto loro, ma qui controllo comunque DA DOVE arriva: se viene da
+    // uno di quelli, la casella non deve fare la sua azione. Bastava un
+    // pezzo aggiunto domani senza il fermo, e si riapriva la finestra a
+    // ogni tocco.
+    const nostro = (e) => {
+      const strada = e && e.composedPath ? e.composedPath() : [];
+      return strada.some((el) => el && el.classList && (
+        el.classList.contains("ytattrezzi") || el.classList.contains("ytcuore")
+        || el.classList.contains("pannello") || el.classList.contains("menucoda")));
+    };
+    const azione = (e) => { if (!nostro(e)) this._azione(); };
     this._card.addEventListener("click", azione);
     this._card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); azione(); }
+      if (nostro(e)) return;
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this._azione(); }
     });
     this._costruito = true;
   }
@@ -4077,7 +4591,10 @@ class CasaTile extends HTMLElement {
   // sulla casella, cosi' vanno bene a qualsiasi misura.
   _mettiAPosto() {
     const posti = this._config.posti;
-    const liberi = !!posti && Object.keys(posti).length > 0;
+    // a schermo intero comanda il foglio di stile: le posizioni salvate le
+    // lascio dove sono, ma non le applico
+    const liberi = !this.hasAttribute("pienoschermo")
+      && !!posti && Object.keys(posti).length > 0;
     if (!liberi && !this.hasAttribute("liberi")) return;
     this.toggleAttribute("liberi", liberi);
     // niente da misurare quando sono tutti staccati: con l'altezza
@@ -4105,10 +4622,13 @@ class CasaTile extends HTMLElement {
       extra: [".extra"],
       lettori: [".lettori"],
       colori: [".colori"],
+      attrezzi: [".ytattrezzi"],
+      cuore: [".ytcuore"],
     };
     // la barra e i tasti tengono la loro larghezza in percentuale: non sono
     // scritte, allargarli o stringerli e' proprio quello che vuole
-    const larghi = { cursore: 1, comandi: 1, tempo: 1, colori: 1, lettori: 1 };
+    const larghi = { cursore: 1, comandi: 1, tempo: 1, colori: 1, lettori: 1,
+      attrezzi: 1 };
     // Ogni pezzo si porta scritto addosso l'ultima disposizione che gli ho
     // dato: se non e' cambiata non riscrivo niente. Serve, perche' qui si
     // passa due volte per ogni ridisegno di ogni casella.
@@ -4194,6 +4714,12 @@ class CasaTile extends HTMLElement {
           el.style.maxHeight = "";
           el.style.transform = "";
           el.style.transformOrigin = "";
+          // A pezzi liberi la regola stacca dal flusso TUTTI i pezzi, anche
+          // quelli a cui lui non ha ancora dato un posto: quelli finiscono
+          // impilati nello stesso punto e l'ultimo si prende i clic degli
+          // altri (era il caso dei tastini, coperti dall'elenco della coda).
+          // Chi non ha un posto suo torna in fila con gli altri.
+          el.style.position = liberi ? "static" : "";
         }
       });
     });
@@ -4201,6 +4727,36 @@ class CasaTile extends HTMLElement {
     const tastiSuoi = liberi
       && Object.keys(posti).some((k) => k.indexOf("tasto:") === 0);
     this.toggleAttribute("tastiliberi", !!tastiSuoi);
+    const attrezziSuoi = liberi
+      && Object.keys(posti).some((k) => k.indexOf("attrezzo:") === 0);
+    this.toggleAttribute("attrezziliberi", !!attrezziSuoi);
+    // I tastini delle funzioni: STESSO trattamento dei tasti del lettore.
+    // Li tengo fermi per il CENTRO e con la loro misura vera, e non passo
+    // dal rimpicciolimento delle scritte - era quello a farli diventare
+    // stretti e a spostarli da soli appena ne toccavo uno.
+    const rcA = attrezziSuoi ? this.riquadroCasella() : null;
+    this.shadowRoot.querySelectorAll(".ytattrezzi button").forEach((b) => {
+      const suo = attrezziSuoi ? posti["attrezzo:" + nomeAttrezzo(b)] : null;
+      if (!suo || !isFinite(suo.x)) {
+        b.style.left = ""; b.style.top = ""; b.style.right = "";
+        b.style.transform = ""; b.style.transformOrigin = "";
+        b.style.position = attrezziSuoi ? "static" : "";
+        return;
+      }
+      b.style.position = "";
+      let dove = suo;
+      if (rcA && rcA.width > 10 && rcA.height > 10
+        && isFinite(suo.w) && isFinite(suo.h) && b.offsetWidth) {
+        const largoOra = b.offsetWidth * zoom / rcA.width * 100;
+        const altoOra = b.offsetHeight * zoom / rcA.height * 100;
+        const dx2 = (suo.w - largoOra) / 2;
+        const dy2 = (suo.h - altoOra) / 2;
+        dove = { ...suo, x: suo.x + dx2, y: suo.y + dy2,
+                 dx: isFinite(suo.dx) ? suo.dx + dx2 : suo.dx,
+                 w: largoOra, h: altoOra };
+      }
+      this._posaPezzo(b, dove, false, false, true);
+    });
     // I tasti li tengo fermi per il CENTRO, non per l'angolo in alto a
     // sinistra: sono di misure diverse fra loro (il play e' piu' grande) e
     // se un giorno cambio la loro forma, ancorandoli all'angolo si
@@ -4265,6 +4821,8 @@ class CasaTile extends HTMLElement {
   //   su una casella piu' stretta resta al suo posto invece di scivolare
   //   verso il centro.
   _posaPezzo(el, dove, eIcona, eLargo, soloPosto) {
+    if (el.style.position === "static") el.style.position = "";
+
     const w = isFinite(dove.w) ? dove.w : 0;
     const aDestra = isFinite(dove.dx) && (dove.x + w / 2) > 50;
     if (aDestra) {
@@ -4354,6 +4912,10 @@ class CasaTile extends HTMLElement {
 
   _inModifica() { return this._dovesto() === "prova"; }
 
+  // La PLANCIA e' in modifica? Li' le sezioni sono piu' strette (c'e' il
+  // tasto "+" che ruba spazio) e le caselle si misurano diverse dal vero.
+  // Una misura presa in quel momento non va segnata, se no il riquadro
+  // "Dove va ogni pezzo" ti fa comporre su una casella che non esiste.
   // Sono l'anteprima dentro alla finestra delle impostazioni? Allora mi
   // metto della misura che ho davvero sulla plancia: guardare un'anteprima
   // larga il doppio e poi trovarsi la casella stretta e' il modo migliore
@@ -4503,6 +5065,8 @@ class CasaTile extends HTMLElement {
       extra: ".extra:not([hidden])",
       lettori: ".lettori:not([hidden])",
       colori: ".colori:not([hidden])",
+      attrezzi: ".ytattrezzi:not([hidden])",
+      cuore: ".ytcuore:not([hidden])",
     };
     const fuori = {};
     const segna = (chi, el) => {
@@ -4522,12 +5086,38 @@ class CasaTile extends HTMLElement {
       segna(chi, this.shadowRoot.querySelector(pezzi[chi])));
     this.shadowRoot.querySelectorAll(".chips .metrica").forEach((el) =>
       segna("misura:" + el.dataset.eid, el));
+    this.shadowRoot.querySelectorAll(".ytattrezzi button").forEach((el) => {
+      const chi = nomeAttrezzo(el);
+      if (chi) segna("attrezzo:" + chi, el);
+    });
     return fuori;
   }
 
   // Dove stanno adesso i tasti, uno per uno. Serve al riquadro: appena lui
   // ne prende uno fisso anche gli altri dove sono, se no la fila si sfascia
   // nel momento in cui smette di contare come un blocco solo.
+  // dove stanno adesso i tastini delle funzioni: serve a fissarli tutti
+  // quando lui ne prende uno, se no gli altri saltano via
+  posizioniAttrezzi() {
+    const q = this.riquadroCasella();
+    if (!q) return {};
+    const fuori = {};
+    this.shadowRoot.querySelectorAll(".ytattrezzi button").forEach((b) => {
+      if (b.hidden) return;
+      const r = b.getBoundingClientRect();
+      const chi = nomeAttrezzo(b);
+      if (!r.width || !chi) return;
+      fuori["attrezzo:" + chi] = {
+        x: Math.round((r.left - q.left) / q.width * 1000) / 10,
+        y: Math.round((r.top - q.top) / q.height * 1000) / 10,
+        w: Math.round(r.width / q.width * 1000) / 10,
+        h: Math.round(r.height / q.height * 1000) / 10,
+        dx: Math.round((q.left + q.width - r.right) / q.width * 1000) / 10,
+      };
+    });
+    return fuori;
+  }
+
   posizioniTasti() {
     const q = this.riquadroCasella();
     if (!q) return {};
@@ -5217,6 +5807,12 @@ class CasaTile extends HTMLElement {
   connectedCallback() {
     // cambiato posto: le risposte che mi ero segnato non valgono piu'
     this._postoSalvato = null;
+    this._inSportello = undefined;
+    if (this.hasAttribute("pienoschermo")) {
+      this.removeAttribute("pienoschermo");
+      try { document.body.style.overflow = this._scorrimentoPrima || ""; }
+      catch (e) { /* pazienza */ }
+    }
     this._sonoAnteprima = undefined;
     this._anteprimaVestita = null;
     this._largaPrima = null;
@@ -5234,6 +5830,684 @@ class CasaTile extends HTMLElement {
       this._cartaOsservata = null;
     }
     this._controllaMisura();
+  }
+
+  // La sua ytmusic-card, viva, dentro alla casella. Non la riscrivo: la
+  // monto. Cosi' quando lui la aggiorna, la casella si aggiorna da sola, e
+  // non ci sono due copie della stessa cosa da tenere buone.
+  // I tastini delle funzioni. Non e' una copia della sua card: e' una fila
+  // di attrezzi nostri, vestiti come "Casse" e "Sorgente".
+  _disegnaAttrezzi() {
+    const attr = this._attrezziYt;
+    if (!attr) return;
+    const c = this._config;
+    attr.hidden = !(this.hasAttribute("ytm") && c.yt_attrezzi);
+    if (attr.hidden) return;
+    attr.querySelector(".t-coda").hidden = !c.coda;
+    attr.querySelector(".t-coda").toggleAttribute("aperto",
+      !!(this._panCoda && !this._panCoda.hidden));
+    attr.querySelector(".t-cerca").toggleAttribute("aperto",
+      !!(this._panCerca && !this._panCerca.hidden));
+    attr.querySelector(".t-sfoglia").toggleAttribute("aperto",
+      !!(this._panSfoglia && !this._panSfoglia.hidden));
+    attr.querySelector(".t-pieno").toggleAttribute("aperto",
+      this.hasAttribute("pienoschermo"));
+  }
+
+  // --- LE PASTIGLIE E IL RIQUADRO PER SFOGLIARE ----------------------
+  // Stessa logica della sua card: "Consigliati" arriva da
+  // mass_queue.get_recommendations, "Recenti" da music_assistant.get_library
+  // ordinato per ultimo ascolto, "Libreria" sono le cartelle per tipo.
+  _disegnaPastiglie() {
+    const dove = this._pastiglie;
+    if (!dove || dove._fatto) return;
+    dove._fatto = true;
+    [["recommendations", "Consigliati"], ["recent", "Recenti"],
+      ["library", "Libreria"]].forEach(function (coppia) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.chiave = coppia[0];
+      b.textContent = coppia[1];
+      b.addEventListener("click", () =>
+        this._caricaFonte(coppia[0], coppia[1]));
+      dove.appendChild(b);
+    }, this);
+  }
+
+  // cambio fonte restando dentro al riquadro
+  _caricaFonte(chiave, nome) {
+    this._pila = [];
+    if (this._pastiglie) {
+      Array.from(this._pastiglie.children).forEach((b) =>
+        b.toggleAttribute("scelta", b.dataset.chiave === chiave));
+    }
+    this._caricaSfoglia(chiave, nome);
+  }
+
+  _apriSfoglia(vuole, chiave, nome) {
+    const pan = this._panSfoglia;
+    if (!pan) return;
+    const apri = vuole === undefined ? pan.hidden : !!vuole;
+    pan.hidden = !apri;
+    if (this._menuCoda) this._menuCoda.hidden = true;
+    if (!apri) { this._render(); return; }
+    this._disegnaPastiglie();
+    if (this._pastiglie) {
+      Array.from(this._pastiglie.children).forEach((b) =>
+        b.toggleAttribute("scelta", b.dataset.chiave === chiave));
+    }
+    if (this._panCerca) this._panCerca.hidden = true;
+    this._pila = [];
+    this._caricaSfoglia(chiave, nome || "Sfoglia");
+    this._ricordaPannello();
+    this._guardaFuori();
+    this._render();
+  }
+
+  _sfogliaIndietro() {
+    const prima = (this._pila || []).pop();
+    if (!prima) { this._apriSfoglia(false); return; }
+    this._scriviSfoglia(prima.voci, prima.titolo, true);
+  }
+
+  _caricaSfoglia(chiave, titolo) {
+    const pan = this._panSfoglia;
+    const elenco = pan.querySelector(".s-elenco");
+    pan.querySelector(".s-titolo").textContent = titolo;
+    elenco.innerHTML = '<div class="s-nota">Un attimo...</div>';
+    const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
+    const finita = (voci) => this._scriviSfoglia(voci, titolo);
+    const male = (e) => {
+      elenco.innerHTML = '<div class="s-nota">Non risponde ('
+        + ((e && e.message) || "errore") + ")</div>";
+    };
+    this._collegamentoMA(eid).then((cfg) => {
+    if (chiave === "library") {
+      if (!cfg) { male(new Error("serve Music Assistant")); return; }
+      finita([["playlist", "Playlist"], ["album", "Album"],
+        ["artist", "Artisti"], ["track", "Brani"], ["radio", "Radio"]]
+        .map((coppia) => ({ nome: coppia[1], cartella: true,
+          carica: { domain: "music_assistant", service: "get_library",
+            service_data: { config_entry_id: cfg, media_type: coppia[0],
+              limit: 300 } } })));
+      return;
+    }
+    if (chiave === "recent") {
+      if (!cfg) { male(new Error("serve Music Assistant")); return; }
+      this._hass.callWS({ type: "call_service", domain: "music_assistant",
+        service: "get_library", return_response: true,
+        service_data: { config_entry_id: cfg, media_type: "track",
+          order_by: "last_played_desc", limit: 100 },
+      }).then((r) => finita(this._vociDa(((r || {}).response || {}).items)))
+        .catch(male);
+      return;
+    }
+    this._hass.callWS({ type: "call_service", domain: "mass_queue",
+      service: "get_recommendations", service_data: { entity: eid },
+      return_response: true,
+    }).then((r) => {
+      const dentro = (r && r.response) || {};
+      const roba = dentro.response || dentro;
+      const gruppi = Array.isArray(roba) ? roba : [];
+      finita(gruppi.map((g) => ({
+        nome: g.name || "", cartella: true,
+        foto: g.image || ((g.items || [])[0] || {}).image || "",
+        voci: this._vociDa(g.items),
+      })));
+    }).catch(male);
+    });
+  }
+
+  _vociDa(roba) {
+    return (Array.isArray(roba) ? roba : []).map((v) => {
+      const chi = Array.isArray(v.artists)
+        ? v.artists.map((a) => a && a.name).filter(Boolean).join(", ") : "";
+      return { nome: v.name || v.title || "", chi, foto: v.image || "",
+        uri: v.uri || v.media_content_id, tipo: v.media_type || "track" };
+    });
+  }
+
+  _scriviSfoglia(voci, titolo, indietro) {
+    const pan = this._panSfoglia;
+    const elenco = pan.querySelector(".s-elenco");
+    pan.querySelector(".s-titolo").textContent = titolo;
+    pan.querySelector(".s-indietro").hidden = !(this._pila || []).length;
+    elenco.innerHTML = "";
+    if (!voci || !voci.length) {
+      elenco.innerHTML = '<div class="s-nota">Qui non c-e niente.</div>'
+        .replace("c-e", "c" + String.fromCharCode(39) + "e");
+      return;
+    }
+    if (!indietro) this._ultimeVoci = { voci, titolo };
+    const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
+    voci.forEach((v) => {
+      const riga = document.createElement("div");
+      riga.className = "voce";
+      riga.innerHTML = (v.foto ? '<img alt="">' : '<i class="vuota"></i>')
+        + '<span class="dati"><b></b><i></i></span>'
+        + (v.cartella ? ""
+          : '<button class="piu" type="button" title="Che ne faccio">'
+            + '<ha-icon icon="mdi:dots-vertical"></ha-icon></button>');
+      if (v.foto) riga.querySelector("img").src = v.foto;
+      riga.querySelector("b").textContent = v.nome;
+      riga.querySelector(".dati i").textContent = v.chi
+        || (v.cartella ? "" : String(v.tipo || ""));
+      riga.addEventListener("click", (e) => {
+        if (e.target.closest && e.target.closest(".piu")) return;
+        if (v.cartella) { this._entraCartella(v, titolo); return; }
+        this._mandaInAscolto(eid, v, "play");
+      });
+      const piu = riga.querySelector(".piu");
+      if (piu) {
+        piu.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this._apriMenuCoda(eid, v);
+        });
+      }
+      elenco.appendChild(riga);
+    });
+  }
+
+  _entraCartella(v) {
+    this._pila = this._pila || [];
+    if (this._ultimeVoci) {
+      this._pila.push({ voci: this._ultimeVoci.voci,
+        titolo: this._ultimeVoci.titolo });
+    }
+    if (v.voci) { this._scriviSfoglia(v.voci, v.nome); return; }
+    if (!v.carica) return;
+    const elenco = this._panSfoglia.querySelector(".s-elenco");
+    elenco.innerHTML = '<div class="s-nota">Un attimo...</div>';
+    this._hass.callWS({ type: "call_service", domain: v.carica.domain,
+      service: v.carica.service, service_data: v.carica.service_data,
+      return_response: true,
+    }).then((r) => {
+      const dentro = (r || {}).response || {};
+      this._scriviSfoglia(this._vociDa(dentro.items || dentro), v.nome);
+    }).catch((e) => {
+      elenco.innerHTML = '<div class="s-nota">Non risponde ('
+        + ((e && e.message) || "errore") + ")</div>";
+    });
+  }
+
+  // --- che ne faccio: subito, dopo, in fondo, radio ------------------
+  _apriMenuCoda(eid, v) {
+    const menu = this._menuCoda;
+    if (!menu) return;
+    menu.innerHTML = "";
+    [["play", "mdi:play", "Riproduci ora"],
+      ["next", "mdi:playlist-play", "Riproduci dopo"],
+      ["add", "mdi:playlist-plus", "Aggiungi in coda"],
+      ["replace", "mdi:playlist-remove", "Riproduci e svuota la coda"],
+      ["radio", "mdi:radio-tower", "Fai partire la radio"]]
+      .forEach((riga) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.innerHTML = '<ha-icon icon="' + riga[1] + '"></ha-icon><span></span>';
+        b.querySelector("span").textContent = riga[2];
+        b.addEventListener("click", () => {
+          this._mandaInAscolto(eid, v, riga[0]);
+          menu.hidden = true;
+        });
+        menu.appendChild(b);
+      });
+    menu.hidden = false;
+  }
+
+  _mandaInAscolto(eid, v, come) {
+    if (!v.uri || !this._hass) return;
+    const dati = { entity_id: eid, media_id: v.uri,
+      media_type: v.tipo || "track" };
+    if (come === "radio") dati.radio_mode = true;
+    else if (come && come !== "play") dati.enqueue = come;
+    this._hass.callService("music_assistant", "play_media", dati);
+    if (come === "play" || come === "replace") this._apriSfoglia(false);
+    setTimeout(() => this._chiediCoda(eid), 1400);
+  }
+
+  // --- il cuoricino ---------------------------------------------------
+  _disegnaCuore(st) {
+    const cuore = this._cuore;
+    if (!cuore) return;
+    const c = this._config;
+    cuore.hidden = !(this.hasAttribute("ytm") && c.yt_cuore && st);
+    if (cuore.hidden) return;
+    const acceso = !!this._preferito;
+    cuore.toggleAttribute("acceso", acceso);
+    const icona = cuore.querySelector("ha-icon");
+    const vuole = acceso ? "mdi:heart" : "mdi:heart-outline";
+    if (icona.getAttribute("icon") !== vuole) icona.setAttribute("icon", vuole);
+  }
+
+  _collegamentoCoda() {
+    if (this._cfgCoda !== undefined) return Promise.resolve(this._cfgCoda);
+    if (!this._hass || !this._hass.callWS) return Promise.resolve(null);
+    return this._hass.callWS({ type: "config_entries/get",
+      domain: "mass_queue" }).then((r) => {
+      const uno = (Array.isArray(r) ? r : []).find((x) => x && x.entry_id);
+      this._cfgCoda = uno ? uno.entry_id : null;
+      return this._cfgCoda;
+    }).catch(() => { this._cfgCoda = null; return null; });
+  }
+
+  _cambiaCuore() {
+    const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
+    const st = this._hass && this._hass.states[eid];
+    const roba = st && st.attributes.media_content_id;
+    if (!roba) return;
+    const prima = !!this._preferito;
+    this._preferito = !prima;
+    this._disegnaCuore(st);
+    this._collegamentoCoda().then((cfg) => {
+      if (!cfg) { this._preferito = prima; this._disegnaCuore(st); return; }
+      // Aggiungere e togliere non si fanno allo stesso modo: per aggiungere
+      // basta l'indirizzo del brano, per togliere ci vuole il numero che ha
+      // in libreria. Presa pari pari dalla sua card.
+      if (!prima) {
+        this._hass.callService("mass_queue", "send_command", {
+          config_entry_id: cfg, command: "music/favorites/add_item",
+          data: { item: roba } });
+        return;
+      }
+      const dentro = String(roba || "");
+      const numero = dentro.indexOf("library://") === 0
+        ? dentro.split("/").pop() : null;
+      if (!numero) return;
+      this._hass.callService("mass_queue", "send_command", {
+        config_entry_id: cfg, command: "music/favorites/remove_item",
+        data: { media_type: "track", library_item_id: numero } });
+    });
+  }
+
+  _apriCoda(vuole) {
+    const pan = this._panCoda;
+    if (!pan) return;
+    const apri = vuole === undefined ? pan.hidden : !!vuole;
+    pan.hidden = !apri;
+    if (apri) {
+      if (this._panCerca) this._panCerca.hidden = true;
+      if (this._panSfoglia) this._panSfoglia.hidden = true;
+      const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
+      if (eid) this._chiediCoda(eid);
+    }
+    this._ricordaPannello();
+    this._guardaFuori();
+    this._render();
+  }
+
+  // schermo intero: la casella si stacca e copre la pagina. Niente finestre
+  // nuove, niente card doppie - e' sempre la stessa, solo piu' grande.
+  _schermoPieno() {
+    const acceso = this.hasAttribute("pienoschermo");
+    this.toggleAttribute("pienoschermo", !acceso);
+    // e blocco anche la pagina sotto: la casella copre tutto, ma la plancia
+    // dietro continuava a scorrere e ci si ritrovava sul nero
+    try {
+      const corpo = document.body;
+      if (!acceso) {
+        this._scorrimentoPrima = corpo.style.overflow;
+        corpo.style.overflow = "hidden";
+      } else {
+        corpo.style.overflow = this._scorrimentoPrima || "";
+        this._scorrimentoPrima = null;
+      }
+    } catch (e) { /* pazienza */ }
+    if (!acceso) {
+      this._viaDaPieno = (e) => {
+        if (e.key === "Escape") this._schermoPieno();
+      };
+      document.addEventListener("keydown", this._viaDaPieno);
+    } else if (this._viaDaPieno) {
+      document.removeEventListener("keydown", this._viaDaPieno);
+      this._viaDaPieno = null;
+    }
+    this._render();
+  }
+
+  _apriCerca(vuole) {
+    const pan = this._panCerca;
+    if (!pan) return;
+    const apri = vuole === undefined ? pan.hidden : !!vuole;
+    pan.hidden = !apri;
+    if (apri) {
+      if (this._panGruppo) this._panGruppo.hidden = true;
+      if (this._panFonti) this._panFonti.hidden = true;
+      this._disegnaTipiCerca();
+      setTimeout(() => {
+        const campo = pan.querySelector(".c-testo");
+        if (campo) campo.focus();
+      }, 60);
+    }
+    this._ricordaPannello();
+    this._guardaFuori();
+    this._render();
+  }
+
+  _disegnaTipiCerca() {
+    const dove = this._panCerca.querySelector(".c-tipi");
+    if (dove._fatto) {
+      Array.from(dove.children).forEach((b) =>
+        b.toggleAttribute("scelto", b.dataset.tipo === (this._tipoCerca || "")));
+      return;
+    }
+    dove._fatto = true;
+    dove.innerHTML = "";
+    [["", "Tutto"], ["track", "Brani"], ["album", "Album"],
+      ["artist", "Artisti"], ["playlist", "Playlist"], ["radio", "Radio"]]
+      .forEach(([tipo, nome]) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.dataset.tipo = tipo;
+        b.textContent = nome;
+        b.toggleAttribute("scelto", tipo === (this._tipoCerca || ""));
+        b.addEventListener("click", () => {
+          this._tipoCerca = tipo;
+          this._disegnaTipiCerca();
+          if ((this._panCerca.querySelector(".c-testo").value || "").trim()) {
+            this._cerca();
+          }
+        });
+        dove.appendChild(b);
+      });
+  }
+
+  // il codice del collegamento a Music Assistant: sta nel registro delle
+  // entita', ed e' quello che i suoi comandi vogliono come "config_entry_id"
+  // Il codice del collegamento a Music Assistant. Sta nel registro delle
+  // entita', ma Home Assistant non sempre lo mette li' dentro: quando manca
+  // lo si chiede al server, com'e' costretta a fare anche la sua card.
+  _collegamentoMA(eid) {
+    if (this._cfgMA) return Promise.resolve(this._cfgMA);
+    const h = this._hass;
+    const dal = h && h.entities && h.entities[eid]
+      && h.entities[eid].config_entry_id;
+    if (dal) { this._cfgMA = dal; return Promise.resolve(dal); }
+    if (!h || !h.callWS) return Promise.resolve(null);
+    return h.callWS({ type: "config_entries/get", domain: "music_assistant" })
+      .then((r) => {
+        const elenco = Array.isArray(r) ? r : (r && (r.entries || r.data)) || [];
+        const uno = elenco.find((x) => x && x.domain === "music_assistant")
+          || elenco[0];
+        this._cfgMA = uno && (uno.entry_id || uno.entryId || uno.id);
+        return this._cfgMA || null;
+      }).catch(() => null);
+  }
+
+  _cerca() {
+    const pan = this._panCerca;
+    if (!pan || !this._hass) return;
+    const esiti = pan.querySelector(".c-esiti");
+    const testo = (pan.querySelector(".c-testo").value || "").trim();
+    if (!testo) { esiti.innerHTML = ""; return; }
+    const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
+    esiti.innerHTML = '<div class="c-nota">Sto cercando...</div>';
+    this._collegamentoMA(eid).then((collegamento) => {
+    if (!collegamento) {
+      esiti.innerHTML = '<div class="c-nota">La ricerca ha bisogno di Music '
+        + "Assistant: qui non lo trovo.</div>";
+      return;
+    }
+    const dati = { config_entry_id: collegamento, name: testo, limit: 20 };
+    if (this._tipoCerca) dati.media_type = [this._tipoCerca];
+    return this._hass.callWS({
+      type: "call_service", domain: "music_assistant", service: "search",
+      service_data: dati, return_response: true,
+    }).then((r) => {
+      const roba = (r && r.response) || {};
+      const mappa = { track: "tracks", album: "albums", artist: "artists",
+        playlist: "playlists", radio: "radio" };
+      const gruppi = this._tipoCerca ? [mappa[this._tipoCerca]]
+        : ["tracks", "artists", "albums", "playlists", "radio"];
+      const trovati = [];
+      gruppi.forEach((g) => {
+        (roba[g] || []).forEach((v) => {
+          const chi = Array.isArray(v.artists)
+            ? v.artists.map((a) => a && a.name).filter(Boolean).join(", ") : "";
+          trovati.push({ nome: v.name || "", chi,
+            foto: v.image || "", uri: v.uri, tipo: v.media_type });
+        });
+      });
+      RICERCHE.set((this._config && this._config.entity) || "",
+        { testo, tipo: this._tipoCerca || "", trovati });
+      this._scriviEsiti(trovati, eid);
+    }).catch((e) => {
+      esiti.innerHTML = '<div class="c-nota">La ricerca non ha risposto ('
+        + ((e && e.message) || "errore") + ")</div>";
+    });
+    });
+  }
+
+  _scriviEsiti(elenco, eid) {
+    const esiti = this._panCerca.querySelector(".c-esiti");
+    esiti.innerHTML = "";
+    if (!elenco.length) {
+      esiti.innerHTML = '<div class="c-nota">Non ho trovato niente.</div>';
+      return;
+    }
+    elenco.forEach((v) => {
+      const riga = document.createElement("div");
+      riga.className = "esito";
+      riga.innerHTML = (v.foto ? '<img alt="">' : '<i class="vuota"></i>')
+        + '<span class="dati"><b></b><i></i></span>';
+      if (v.foto) riga.querySelector("img").src = v.foto;
+      riga.querySelector("b").textContent = v.nome;
+      riga.querySelector(".dati i").textContent = v.chi
+        || (v.tipo ? String(v.tipo) : "");
+      riga.addEventListener("click", () => {
+        if (!v.uri) return;
+        this._hass.callService("music_assistant", "play_media",
+          { entity_id: eid, media_id: v.uri, media_type: v.tipo || "track" });
+        this._apriCerca(false);
+        setTimeout(() => this._chiediCoda(eid), 1200);
+      });
+      esiti.appendChild(riga);
+    });
+  }
+
+  // LA CODA, quella vera di Music Assistant. Non un elenco finto: i brani
+  // arrivano da "mass_queue.get_queue_items" e i tasti chiamano i suoi
+  // comandi - suona questo, spostalo su, spostalo giu', toglilo.
+  _disegnaCoda(st) {
+    const box = this._codaBox;
+    if (!box) return;
+    const c = this._config;
+    const eid = this._entitaAttiva ? this._entitaAttiva() : c.entity;
+    const pan = this._panCoda;
+    const vuole = !!c.coda && !!eid && this.hasAttribute("ytm");
+    if (pan && !vuole) pan.hidden = true;
+    // l'elenco lo riempio solo quando la finestra e' aperta: non ha senso
+    // interrogare il server per una cosa che nessuno sta guardando
+    if (!vuole || (pan && pan.hidden)) return;
+    if (!box._fatto) {
+      box._fatto = true;
+      box.innerHTML = '<div class="coda-testa">In coda</div><div class="coda-lista"></div>';
+      box._lista = box.querySelector(".coda-lista");
+    }
+    // la ricarico quando cambia il brano, e comunque non piu' di una volta
+    // ogni due secondi: e' una chiamata al server, non un attributo.
+    // Il segno di "gia' chiesta" lo metto solo quando la domanda parte
+    // davvero: al primo giro la casella esiste ma Home Assistant non le ha
+    // ancora dato i dati, e segnandolo li' la coda restava vuota.
+    const chi = (st && st.attributes.media_title) || "";
+    // col lettore yt il titolo puo' restare uguale mentre cambia il posto
+    // nella fila: ci metto dentro anche quello
+    const dove = (st && st.attributes.current_track !== undefined)
+      ? "#" + st.attributes.current_track : "";
+    this._chiediCoda(eid, eid + "|" + chi + dove);
+  }
+
+  _chiediCoda(eid, quale) {
+    const box = this._codaBox;
+    if (!box || !this._hass || !this._hass.callWS) return;
+    const ora = Date.now();
+    if (quale !== undefined) {
+      if (box._perChi === quale || ora - (box._quando || 0) < 2000) return;
+      box._perChi = quale;
+    }
+    box._quando = ora;
+    const st = this._hass.states[eid];
+    if (!st || st.state === "off" || st.state === "unavailable") {
+      this._scriviCoda([], eid);
+      return;
+    }
+    // Due lettori, due code diverse. Music Assistant la tiene lui e la da'
+    // per intero (con i numeri dei brani, quindi si possono spostare);
+    // ytube_music_player invece la fa vedere sfogliando la playlist in
+    // corso, e li' si puo' solo saltare al brano.
+    if (this._codaDiYt(st)) {
+      this._hass.callWS({
+        type: "media_player/browse_media", entity_id: eid,
+        media_content_type: "cur_playlists", media_content_id: "",
+      }).then((r) => {
+        const figli = (r && r.children) || [];
+        this._scriviCoda(figli.map((v) => ({
+          titolo: this._senzaPrefisso(v.title),
+          chi: "",
+          foto: v.thumbnail || (v.media_content_id ? "" : ""),
+          id: v.media_content_id,
+          cid: null,
+        })), eid, null, false, "yt");
+      }).catch((e) => {
+        this._scriviCoda(null, eid, e && e.message ? e.message : "non risponde");
+      });
+      return;
+    }
+    // Prima la strada buona: "mass_queue" da' la coda INTERA, con il numero
+    // di ogni brano - quello che serve per spostarli e toglierli. Se non
+    // c'e' (non tutte le casse hanno quell'aggiunta) ripiego su Music
+    // Assistant, che pero' sa dire solo "questo e il prossimo".
+    this._hass.callWS({
+      type: "call_service", domain: "mass_queue", service: "get_queue_items",
+      service_data: { entity: eid, limit_before: 3, limit_after: 400 },
+      return_response: true,
+    }).then((r) => {
+      const roba = (r && r.response) ? (r.response[eid] || r.response) : null;
+      if (!Array.isArray(roba)) throw new Error("coda vuota");
+      this._scriviCoda(roba.map((v) => ({
+        titolo: v.media_title || v.name || "",
+        chi: v.media_artist || "",
+        foto: v.local_image_encoded || v.media_image || "",
+        id: v.queue_item_id,
+        cid: v.media_content_id,
+      })), eid, null, true, "ma");
+    }).catch(() => {
+      this._hass.callWS({
+        type: "call_service", domain: "music_assistant", service: "get_queue",
+        target: { entity_id: eid }, return_response: true,
+      }).then((r) => {
+        const q = (r && r.response) ? r.response[eid] : null;
+        const due = [q && q.current_item, q && q.next_item].filter(Boolean);
+        this._scriviCoda(due.map((v) => {
+          const m = v.media_item || {};
+          const art = (m.artists && m.artists[0] && m.artists[0].name) || "";
+          return { titolo: m.name || v.name || "", chi: art,
+            foto: m.image || "", id: undefined, cid: undefined };
+        }), eid, null, false, "ma");
+      }).catch((e) => {
+        this._scriviCoda(null, eid, e && e.message ? e.message : "non risponde");
+      });
+    });
+  }
+
+  // il lettore della vecchia integrazione YouTube Music si riconosce dalle
+  // sue cose: il numero del brano in corso e il codice del video
+  _codaDiYt(st) {
+    if (!st) return false;
+    const a = st.attributes || {};
+    if (a.app_id === "music_assistant") return false;
+    return a.current_track !== undefined || a.videoId !== undefined;
+  }
+
+  // i titoli della playlist arrivano come "Brano: Tizio - Cosa"
+  _senzaPrefisso(t) {
+    return String(t || "").replace(
+      /^(Track|Album|Artist|Playlist|Radio|Video|Brano|Artista|Brani):\s*/i, "");
+  }
+
+  // Il brano che suona adesso lo riconosco dal media_content_id, come fa
+  // la sua card: il titolo puo' ripetersi, quel codice no.
+  _scriviCoda(elenco, eid, errore, comandabile, tipo) {
+    const box = this._codaBox;
+    if (!box || !box._lista) return;
+    const lista = box._lista;
+    if (!elenco) {
+      lista.innerHTML = '<div class="coda-vuota">Non riesco a leggere la coda'
+        + (errore ? " (" + errore + ")" : "") + "</div>";
+      return;
+    }
+    if (!elenco.length) {
+      lista.innerHTML = '<div class="coda-vuota">Non c\'e\' niente in coda</div>';
+      return;
+    }
+    const st = this._hass && this._hass.states[eid];
+    const ora = st ? st.attributes.media_content_id : null;
+    let adesso = -1;
+    if (tipo === "yt") {
+      // qui il posto nella fila lo dice il lettore stesso
+      const n = st ? Number(st.attributes.current_track) : NaN;
+      if (!isNaN(n)) adesso = n;
+    }
+    if (adesso < 0) adesso = elenco.findIndex((v) => v.cid && v.cid === ora);
+    if (adesso < 0 && st && st.attributes.media_title) {
+      adesso = elenco.findIndex((v) => v.titolo === st.attributes.media_title);
+    }
+    lista.innerHTML = "";
+    elenco.forEach((v, n) => {
+      const riga = document.createElement("div");
+      riga.className = "coda-riga";
+      riga.toggleAttribute("adesso", n === adesso);
+      const foto = v.foto
+        ? '<img class="cop" alt="">'
+        : '<i class="cop"><ha-icon icon="mdi:music"></ha-icon></i>';
+      // i tastini solo sui brani che devono ancora venire: su quelli gia'
+      // passati non servono a niente, e sul brano che suona nemmeno
+      const puo = !!(comandabile && v.id !== undefined && adesso >= 0 && n > adesso);
+      const tasto = (cosa, titolo, icona) =>
+        '<button data-fa="' + cosa + '" title="' + titolo + '">'
+        + '<ha-icon icon="' + icona + '"></ha-icon></button>';
+      riga.innerHTML = foto
+        + '<span class="dati"><b></b><i></i></span>'
+        + (n === adesso ? '<ha-icon class="suona" icon="mdi:volume-high"></ha-icon>' : "")
+        + (puo ? '<span class="tasti">'
+          + tasto("move_queue_item_next", "Riproduci dopo", "mdi:playlist-play")
+          + (n > adesso + 1
+            ? tasto("move_queue_item_up", "Su", "mdi:arrow-up") : "")
+          + tasto("move_queue_item_down", "Giu", "mdi:arrow-down")
+          + tasto("remove_queue_item", "Rimuovi", "mdi:close")
+          + "</span>" : "");
+      if (v.foto) riga.querySelector("img.cop").src = v.foto;
+      riga.querySelector(".dati b").textContent = v.titolo || "(senza titolo)";
+      riga.querySelector(".dati i").textContent = v.chi || "";
+      if (!v.chi) riga.querySelector(".dati i").hidden = true;
+      riga.addEventListener("click", (e) => {
+        if (e.target.closest && e.target.closest(".tasti")) return;
+        if (!this._hass) return;
+        if (tipo === "yt") {
+          this._hass.callService("ytube_music_player", "call_method",
+            { entity_id: eid, command: "goto_track", parameters: n + 1 });
+          setTimeout(() => this._chiediCoda(eid), 1200);
+          return;
+        }
+        if (v.id === undefined) return;
+        this._hass.callService("mass_queue", "play_queue_item",
+          { entity: eid, queue_item_id: v.id });
+        setTimeout(() => this._chiediCoda(eid), 1000);
+      });
+      riga.querySelectorAll(".tasti button").forEach((b) => {
+        b.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this._hass.callService("mass_queue", b.dataset.fa,
+            { entity: eid, queue_item_id: v.id });
+          setTimeout(() => this._chiediCoda(eid), 400);
+        });
+      });
+      lista.appendChild(riga);
+    });
+    // la riga che suona la porto sotto gli occhi, senza scossoni
+    const q = lista.querySelector(".coda-riga[adesso]");
+    if (q && q.offsetParent) {
+      lista.scrollTop = Math.max(0, q.offsetTop - 6);
+    }
   }
 
   _disegnaComandi(st) {
@@ -5365,8 +6639,58 @@ class CasaTile extends HTMLElement {
   // toccando fuori, non solo con la X: e' quello che uno si aspetta da una
   // finestrella. Ascolto in cattura sul documento, cosi' arrivo prima di
   // chiunque altro, e mi levo di mezzo appena si chiude.
+  // tutti i riquadri della casella, non solo quelli vecchi
+  _tuttiIRiquadri() {
+    return [this._panGruppo, this._panFonti, this._panCerca, this._panSfoglia,
+      this._panCoda, this._menuCoda].filter(Boolean);
+  }
+
+  _chiudiTuttiIRiquadri() {
+    let cambiato = false;
+    this._tuttiIRiquadri().forEach((pan) => {
+      if (!pan.hidden) { pan.hidden = true; cambiato = true; }
+    });
+    if (this._bGruppo) this._bGruppo.removeAttribute("aperto");
+    if (this._bFonte) this._bFonte.removeAttribute("aperto");
+    PANNELLI_APERTI.delete((this._config && this._config.entity) || "");
+    if (cambiato) {
+      this._guardaFuori();
+      this._render();
+    }
+  }
+
+  // Sto dentro alla finestra "Configurazione scheda"? Me lo guardo da solo
+  // risalendo i genitori: mi appoggiavo a un controllo fatto altrove, che
+  // pero' non e' sempre gia' stato eseguito quando serve qui.
+  _dentroSportello() {
+    if (this._inSportello !== undefined) return this._inSportello;
+    let n = this;
+    this._inSportello = false;
+    for (let i = 0; i < 40; i += 1) {
+      n = n.parentNode || n.host;
+      if (!n) break;
+      const nome = String(n.localName || "");
+      const classi = n.classList;
+      // i nomi con cui Home Assistant chiama l'anteprima delle
+      // impostazioni cambiano di versione in versione: li accetto tutti
+      if (nome === "hui-dialog-edit-card" || nome === "hui-card-preview"
+          || nome === "hui-card-element-editor" || nome === "ha-dialog"
+          || (classi && classi.contains && classi.contains("element-preview"))) {
+        this._inSportello = true;
+        break;
+      }
+    }
+    return this._inSportello;
+  }
+
   _guardaFuori() {
-    const aperto = !this._panGruppo.hidden || !this._panFonti.hidden;
+    // Nell'anteprima delle impostazioni NON si chiude niente da soli: li'
+    // ogni clic (su un cursore, su un interruttore) e' fuori dalla casella,
+    // e il riquadro si chiudeva prima ancora che lui potesse leggere il
+    // valore che stava cambiando.
+    const inAnteprima = this._dentroAnteprima();
+    const aperto = !inAnteprima
+      && this._tuttiIRiquadri().some((pan) => !pan.hidden);
     if (!aperto) {
       if (this._fuori) {
         document.removeEventListener("pointerdown", this._fuori, true);
@@ -5382,13 +6706,27 @@ class CasaTile extends HTMLElement {
         return;
       }
       const strada = e.composedPath ? e.composedPath() : [];
-      const dentro = strada.some((n) => n === this._panGruppo || n === this._panFonti
-        || n === this._bGruppo || n === this._bFonte);
-      if (dentro) return;
+      const suoi = this._tuttiIRiquadri()
+        .concat([this._bGruppo, this._bFonte, this._attrezziYt].filter(Boolean));
+      if (strada.some((n) => suoi.indexOf(n) !== -1)) return;
+      // Se il tocco arriva da una FINESTRA di Home Assistant - quella delle
+      // impostazioni, il dettaglio dell'entita', qualunque altra - non e'
+      // roba nostra: non si chiude niente. Prima cercavo di indovinare come
+      // si chiamasse l'anteprima, versione per versione; cosi' invece il
+      // problema non si pone: la finestra si riconosce da sola, ovunque
+      // stia la casella. Cosi' lui puo' girare i cursori e vedere l'effetto
+      // sul riquadro aperto, senza doverlo riaprire ogni volta.
+      const daUnaFinestra = strada.some((n) => {
+        const nome = n && n.localName ? String(n.localName) : "";
+        return nome.indexOf("dialog") !== -1
+          || nome === "hui-card-preview" || nome === "hui-card-element-editor"
+          || nome === "casa-tile-editor";
+      });
+      if (daUnaFinestra) return;
       // se il tocco e' sulla casella, il riquadro si chiude e basta: non
       // deve anche partire quello che fa la casella quando la tocchi
       if (strada.indexOf(this) !== -1) this._nonToccare = Date.now();
-      this._chiudiPannelli();
+      this._chiudiTuttiIRiquadri();
     };
     document.addEventListener("pointerdown", this._fuori, true);
   }
@@ -5396,8 +6734,12 @@ class CasaTile extends HTMLElement {
   // me lo segno fuori dall'elemento, cosi' sopravvive a un rifacimento
   _ricordaPannello() {
     const chi = (this._config && this._config.entity) || "";
-    const quale = !this._panGruppo.hidden
-      ? "gruppo" : (!this._panFonti.hidden ? "fonti" : null);
+    let quale = null;
+    if (!this._panGruppo.hidden) quale = "gruppo";
+    else if (!this._panFonti.hidden) quale = "fonti";
+    else if (this._panCerca && !this._panCerca.hidden) quale = "cerca";
+    else if (this._panSfoglia && !this._panSfoglia.hidden) quale = "sfoglia";
+    else if (this._panCoda && !this._panCoda.hidden) quale = "coda";
     if (quale) PANNELLI_APERTI.set(chi, quale);
     else PANNELLI_APERTI.delete(chi);
   }
@@ -5593,6 +6935,32 @@ class CasaTile extends HTMLElement {
       this._panFonti.hidden = !(quale === "fonti" && conFonti);
       this._bGruppo.toggleAttribute("aperto", !this._panGruppo.hidden);
       this._bFonte.toggleAttribute("aperto", !this._panFonti.hidden);
+      // stessa cosa per i riquadri nuovi: nell'anteprima la casella viene
+      // rifatta a ogni ritocco, e senza questo si chiudevano da soli
+      if (this._panCerca) {
+        this._panCerca.hidden = quale !== "cerca";
+        // le pastiglie dei tipi le disegnavo solo all'apertura col tastino:
+        // riaprendosi da solo il riquadro restava senza
+        if (!this._panCerca.hidden) {
+          const prima = RICERCHE.get(c.entity);
+          if (prima) this._tipoCerca = prima.tipo;
+          this._disegnaTipiCerca();
+          if (prima) {
+            const campo = this._panCerca.querySelector(".c-testo");
+            if (campo && !campo.value) campo.value = prima.testo;
+            const esiti = this._panCerca.querySelector(".c-esiti");
+            if (esiti && !esiti.children.length) {
+              this._scriviEsiti(prima.trovati, c.entity);
+            }
+          }
+        }
+      }
+      if (this._panSfoglia) this._panSfoglia.hidden = quale !== "sfoglia";
+      if (this._panCoda) this._panCoda.hidden = quale !== "coda";
+      if (quale === "sfoglia" && this._panSfoglia
+          && !this._panSfoglia.querySelector(".s-elenco").children.length) {
+        this._caricaFonte("recommendations", "Consigliati");
+      }
     }
     if (!this._panGruppo.hidden) this._disegnaGruppo(st);
     if (!this._panFonti.hidden) this._disegnaFonti(st);
@@ -5777,7 +7145,14 @@ class CasaTile extends HTMLElement {
       // per il resto comanda quello che ha toccato l'utente
       const nuovo = prima === undefined
         ? oraSuona[0] : oraSuona.find((e) => !prima.includes(e));
-      if (nuovo) this._scelto = nuovo;
+      if (nuovo) {
+        this._scelto = nuovo;
+        // e me la segno: l'anteprima delle impostazioni e' una casella NUOVA
+        // ogni volta, e l'unico modo che ha di sapere cosa stavo seguendo e'
+        // trovarselo scritto qui. Senza, tornava alla cassa della
+        // configurazione - ferma - e restava senza copertina e senza barra.
+        this._ricordaScelto(nuovo);
+      }
     }
     if (this._scelto && lista.includes(this._scelto)) {
       const suo = stati[this._scelto];
@@ -6826,6 +8201,18 @@ class CasaTile extends HTMLElement {
       this.style.removeProperty("--pan-bg");
     }
 
+    // I riquadri lunghi (ricerca, sfoglia, coda) hanno una trasparenza loro,
+    // che parte da ZERO: sono elenchi da leggere, e con il lettore che si
+    // vede attraverso le righe non si capisce niente. Ma la manopola c'e',
+    // se lui la vuole trasparente la fa trasparente.
+    const listaOpaco = 1 - (c.riquadri_trasparenza === undefined
+      ? 0 : Number(c.riquadri_trasparenza)) / 100;
+    const listaAlto = panTinta || "#111926";
+    const listaBasso = panTinta ? scurisci(panTinta, 0.62) : "#0a0f17";
+    this.style.setProperty("--lista-bg", "linear-gradient(160deg, "
+      + conAlfa(listaAlto, listaOpaco) + " 0%, "
+      + conAlfa(listaBasso, listaOpaco) + " 100%)");
+
     // il vestito del pop-up: tinta, foto e trasparenza della finestra, e
     // i colori che passano alle schede di Home Assistant che stanno dentro
     this._vestiFinestra();
@@ -7057,6 +8444,10 @@ class CasaTile extends HTMLElement {
     if (this._velo && this._velo.hasAttribute("aperto")) this._aggiornaFinestra();
     this._disegnaTempo(st);
     this._disegnaComandi(st);
+    this._disegnaAttrezzi();
+    this._disegnaPastiglie();
+    this._disegnaCuore(st);
+    this._disegnaCoda(st);
     this._disegnaLettori();
     this._disegnaExtra(st);
     this._disegnaColori(st);
@@ -7422,11 +8813,16 @@ const SEZIONI = [
         { name: "comandi_media", selector: { boolean: {} } },
         { name: "tempo_media", selector: { boolean: {} } },
         { name: "gira_copertina", selector: { boolean: {} } },
+        { name: "yt_attrezzi", selector: { boolean: {} } },
+        { name: "coda", selector: { boolean: {} } },
+        { name: "yt_cuore", selector: { boolean: {} } },
       ] },
       { titolo: "La copertina come sfondo", schema: [
         { name: "sfondo_copertina", selector: { boolean: {} } },
         { name: "sfondo_sfocatura",
           selector: { number: { min: 0, max: 24, step: 1, mode: "slider" } } },
+      ] },
+      { titolo: "La tua ytmusic-card dentro alla casella", schema: [
       ] },
       { titolo: "Casse e sorgenti", schema: [
         { name: "lettori", selector: { entity: { domain: "media_player", multiple: true } } },
@@ -7436,6 +8832,8 @@ const SEZIONI = [
       ] },
       { titolo: "Il riquadro delle casse", colori: ["pannello_sfondo"], schema: [
         { name: "pannello_trasparenza",
+          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+        { name: "riquadri_trasparenza",
           selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
       ] },
     ],
@@ -7497,6 +8895,9 @@ const DIPENDE = {
   colore_striscia: (c) => !!c.cursore_colore,
   grafico_ore: (c) => !!c.grafico,
   grafico_colore: (c) => !!c.grafico,
+  coda: (c) => c.disposizione === "ytmusic",
+  yt_attrezzi: (c) => c.disposizione === "ytmusic",
+  yt_cuore: (c) => c.disposizione === "ytmusic",
   grafico_stile: (c) => !!c.grafico,
   distanza_entita: (c) => !!c.mostra_distanza,
   info_nomi_auto: (c) => (c.info_entita || []).length > 0,
@@ -7533,12 +8934,15 @@ const SOLO_PER = {
   camera_secondi: ["camera", "image"],
   pannello_sfondo: ["media_player"],
   pannello_trasparenza: ["media_player"],
+  riquadri_trasparenza: ["media_player"],
   comandi_rapidi: ["cover", "lock", "vacuum"],
   grafico: ["sensor", "number", "input_number", "counter", "climate", "light"],
   grafico_colore: ["sensor", "number", "input_number", "counter", "climate", "light"],
   grafico_ore: ["sensor", "number", "input_number", "counter", "climate", "light"],
   grafico_stile: ["sensor", "number", "input_number", "counter", "climate", "light"],
   gira_copertina: ["media_player"],
+  coda: ["media_player"], yt_attrezzi: ["media_player"],
+  yt_cuore: ["media_player"],
   segui_attivo: ["media_player"],
   multiroom: ["media_player"],
   sorgente: ["media_player"],
@@ -7562,6 +8966,9 @@ const ETICHETTE = {
   azione: "Cosa fa quando la tocchi", anima: "Quando si muove l'icona",
   effetto: "Effetto della casella", intensita: "Intensita del colore (%)",
   anima: "Quando si muove (icona ed effetti)",
+  coda: "Elenco In coda (serve Music Assistant)",
+  yt_attrezzi: "Tastini cerca / sfoglia / coda / schermo intero",
+  yt_cuore: "Cuoricino dei preferiti",
   grafico_colore: "Colore del grafico (vuoto = come la casella)",
   colore_testo: "Colore del nome e del sottotitolo (vuoto = quello del tema)",
   colore_valore: "Colore del valore, quello grande (vuoto = come il nome)",
@@ -7592,6 +8999,7 @@ const ETICHETTE = {
   pannello_sfondo: "Sfondo del riquadro casse e sorgenti (vuoto = scuro di serie; "
     + "le scritte seguono il colore della scritta)",
   pannello_trasparenza: "Trasparenza del riquadro casse e sorgenti (%)",
+  riquadri_trasparenza: "Trasparenza dei riquadri ricerca, sfoglia e coda (%)",
   comandi_rapidi: "Tasti rapidi (tapparelle, serrature, aspirapolvere)",
   grafico: "Mostra il grafico dell'andamento dentro la casella",
   grafico_ore: "Quante ore di storia (di serie 24)",
@@ -7988,6 +9396,20 @@ class CasaTileEditor extends HTMLElement {
       if (this._config.multiroom === undefined) this._config.multiroom = true;
       if (this._config.sorgente === undefined) this._config.sorgente = true;
     }
+    // La disposizione con la sua card incastrata dentro non c'e' piu':
+    // chi ce l'aveva passa a quella nostra, con i tastini gia' accesi, se no
+    // la casella si ritroverebbe spoglia senza aver chiesto niente.
+    if (this._config.disposizione === "ytcard") {
+      this._config.disposizione = "ytmusic";
+      if (this._config.yt_attrezzi === undefined) this._config.yt_attrezzi = true;
+      if (this._config.coda === undefined) this._config.coda = true;
+      if (this._config.yt_cuore === undefined) this._config.yt_cuore = true;
+    }
+    // Gli interruttori della SUA card partono tutti accesi (la card fa
+    // cosi': quello che non e' scritto e' acceso). Ma un interruttore senza
+    // valore Home Assistant lo disegna SPENTO, e allora si vedevano tutti
+    // grigi mentre nell'anteprima la roba c'era. Glieli scrivo, cosi' lo
+    // sportello dice la verita' su quello che sta guardando.
     this._planciaCercata = null;
     this._planciaSalvata = null;
     this._render();
@@ -8899,6 +10321,17 @@ class CasaTileEditor extends HTMLElement {
     if (!box || !box._carta || !this._hass) return;
     try {
       box._carta.setConfig({ ...this._cfgPista() });
+      // LA CASSA CHE SEGUE LA CASELLA VERA. Il riquadro qui dentro e' una
+      // casella nuova di zecca: da sola non puo' sapere quale cassa stavo
+      // guardando, e ripartiva da quella scritta nella configurazione -
+      // spesso ferma, quindi senza copertina, senza sfondo e senza barra del
+      // tempo proprio mentre lui sistema i pezzi. Gliela chiedo alla casella
+      // vera che sta sulla plancia.
+      const vera = this._cartaVera();
+      if (vera && vera._scelto) {
+        box._carta._scelto = vera._scelto;
+        box._carta._suonavano = vera._suonavano;
+      }
       box._carta.hass = this._hass;
     } catch (e) { /* una configurazione a meta' non deve rompere niente */ }
     this._diciChi();
@@ -9343,6 +10776,8 @@ class CasaTileEditor extends HTMLElement {
       ["extra", ".extra:not([hidden])"],
       ["colori", ".colori:not([hidden])"],
       ["lettori", ".lettori:not([hidden])"],
+      ["attrezzi", ".ytattrezzi:not([hidden])"],
+      ["cuore", ".ytcuore:not([hidden])"],
       ["tempo", ".tempo:not([hidden])"],
       ["cursore", ".cursore:not([hidden])"],
       ["comandi", ".comandi:not([hidden])"],
@@ -9367,6 +10802,13 @@ class CasaTileEditor extends HTMLElement {
         const chi = nomeTasto(tasti[i]);
         if (!tasti[i].hidden && chi && dentro(tasti[i])) {
           return { chi: "tasto:" + chi, el: tasti[i] };
+        }
+      }
+      const attrezzi = radice.querySelectorAll(".ytattrezzi button");
+      for (let i = 0; i < attrezzi.length; i += 1) {
+        const chi = nomeAttrezzo(attrezzi[i]);
+        if (!attrezzi[i].hidden && chi && dentro(attrezzi[i])) {
+          return { chi: "attrezzo:" + chi, el: attrezzi[i] };
         }
       }
       const misure = radice.querySelectorAll(".chips .metrica");
@@ -9409,6 +10851,11 @@ class CasaTileEditor extends HTMLElement {
         return [...radice.querySelectorAll(".comandi button")]
           .filter((b) => !b.hidden && [...b.classList].indexOf(q) !== -1);
       }
+      if (chi.indexOf("attrezzo:") === 0) {
+        const q = chi.slice(9);
+        return [...radice.querySelectorAll(".ytattrezzi button")]
+          .filter((b) => !b.hidden && nomeAttrezzo(b) === q);
+      }
       if (chi.indexOf("misura:") === 0) {
         const eid = chi.slice(7);
         return [...radice.querySelectorAll(".chips .metrica")]
@@ -9418,6 +10865,9 @@ class CasaTileEditor extends HTMLElement {
         nome: [".testi"], misure: [".chips"], valore: [".valore"],
         icona: ["svg.icona", "img.ritratto", ".iconaHa", ".iconaFoto"],
         cursore: [".cursore"], comandi: [".comandi"],
+        attrezzi: [".ytattrezzi"], cuore: [".ytcuore"],
+        tempo: [".tempo"], extra: [".extra"], lettori: [".lettori"],
+        colori: [".colori"],
       };
       return (mappa[chi] || []).map((sel) => radice.querySelector(sel))
         .filter((el) => el && !el.hidden && el.getBoundingClientRect().width);
@@ -9583,13 +11033,42 @@ class CasaTileEditor extends HTMLElement {
       // Il primo tasto che prende stacca tutta la fila: gli altri li fisso
       // dove sono adesso, se no saltano tutti nell'istante in cui la fila
       // smette di contare come un blocco solo.
+      if (q.chi.indexOf("attrezzo:") === 0) {
+        const p0 = (this._cfgPista() || {}).posti || {};
+        if (!Object.keys(p0).some((k) => k.indexOf("attrezzo:") === 0)) {
+          const dove = carta.posizioniAttrezzi ? carta.posizioniAttrezzi() : {};
+          if (Object.keys(dove).length) {
+            // Rifare la configurazione all'anteprima le fa dimenticare QUALE
+            // cassa sta seguendo: tornava a quella scritta nella casella, che
+            // magari e' ferma, e sparivano copertina e barra del tempo
+            // proprio mentre lui sistemava i pezzi. Me la segno e gliela
+            // rimetto.
+            const seguiva = carta._scelto;
+            const suonavano = carta._suonavano;
+            this._scriviPosti({ ...p0, ...dove });
+            try { carta.setConfig({ ...this._cfgPista() }); } catch (e8) { /* pazienza */ }
+            carta._scelto = seguiva;
+            carta._suonavano = suonavano;
+            try { carta.hass = this._hass; } catch (e9) { /* pazienza */ }
+          }
+        }
+      }
       if (q.chi.indexOf("tasto:") === 0) {
         const p0 = (this._cfgPista() || {}).posti || {};
         if (!Object.keys(p0).some((k) => k.indexOf("tasto:") === 0)) {
           const dove = carta.posizioniTasti();
           if (Object.keys(dove).length) {
+            // Rifare la configurazione all'anteprima le fa dimenticare QUALE
+            // cassa sta seguendo: tornava a quella scritta nella casella, che
+            // magari e' ferma, e sparivano copertina e barra del tempo
+            // proprio mentre lui sistemava i pezzi. Me la segno e gliela
+            // rimetto.
+            const seguiva = carta._scelto;
+            const suonavano = carta._suonavano;
             this._scriviPosti({ ...p0, ...dove });
             try { carta.setConfig({ ...this._cfgPista() }); } catch (e6) { /* pazienza */ }
+            carta._scelto = seguiva;
+            carta._suonavano = suonavano;
             try { carta.hass = this._hass; } catch (e7) { /* pazienza */ }
           }
         }
