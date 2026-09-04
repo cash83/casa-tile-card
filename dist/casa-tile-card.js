@@ -4,7 +4,7 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.11.10";
+const VERSIONE = "2.12.0";
 
 const COLORI = {
   ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
@@ -4114,7 +4114,26 @@ class CasaTile extends HTMLElement {
       this._firmaPostiDi = posti;
       this._firmaPosti = liberi ? JSON.stringify(posti) : "-";
     }
-    const firma = this._firmaPosti;
+    // A pezzi liberi le posizioni sono in percentuale, ma le SCRITTE non
+    // rimpiccioliscono con la casella: stringendo la finestra il nome
+    // finiva addosso alle misure. Se la casella e' piu' stretta di quando
+    // lui li ha sistemati, rimpicciolisco tutto della stessa proporzione -
+    // come farebbe un foglio stampato in scala.
+    let zoom = 1;
+    if (liberi) {
+      const q = this.getBoundingClientRect().width;
+      // la larghezza di riferimento: quella salvata quando li ha sistemati,
+      // o - per le caselle sistemate prima che me la segnassi - la piu'
+      // larga che le ho mai visto addosso, che se la impara da sola
+      const largo0 = Number(this._config.posti_largo) > 40
+        ? Number(this._config.posti_largo) : this._largaMaiVista(q);
+      if (largo0 > 40 && q > 40) {
+        zoom = Math.max(0.55, Math.min(1, q / largo0));
+      }
+    }
+    zoom = Math.round(zoom * 100) / 100;
+    this._zoomPosti = zoom;
+    const firma = this._firmaPosti + "|" + zoom;
     // se non e' cambiato niente - ne la disposizione, ne le misure che
     // vengono rifatte a ogni valore nuovo - non c'e' niente da rimettere
     // a posto: qui ci si passa due volte per ogni ridisegno.
@@ -4199,7 +4218,8 @@ class CasaTile extends HTMLElement {
     // disegno, per la barra e per i tasti, e il pezzo non va a capo mentre
     // cresce. Il punto fermo e' l'angolo da cui e' attaccato, se no
     // ingrandendo scapperebbe via dal posto dove l'ha messo.
-    const k = isFinite(dove.s) && dove.s > 0 ? dove.s : 1;
+    const k = (isFinite(dove.s) && dove.s > 0 ? dove.s : 1)
+      * (this._zoomPosti > 0 ? this._zoomPosti : 1);
     if (k !== 1) {
       el.style.transformOrigin = aDestra ? "top right" : "top left";
       el.style.transform = "scale(" + k + ")";
@@ -4342,6 +4362,26 @@ class CasaTile extends HTMLElement {
     if (dove === "prova") return "";
     return "casa-tile:misura3:" + (c.entity || "") + "|" + (c.name || "")
       + (dove === "pop" ? "|pop" : "");
+  }
+
+  // La casella piu' larga che ho mai visto: serve alle disposizioni fatte a
+  // mano prima che mi segnassi la larghezza di quando le ha composte. Cosi'
+  // la proporzione se la impara da sola, senza toccare la configurazione.
+  _largaMaiVista(ora) {
+    if (this._inModifica() || this.hasAttribute("solo-casella")) return 0;
+    const k = this._chiaveMisura();
+    if (!k) return 0;
+    const chiave = k.replace("misura3:", "largo0:");
+    if (this._largoMax === undefined) {
+      let letto = 0;
+      try { letto = Number(localStorage.getItem(chiave)) || 0; } catch (e) { letto = 0; }
+      this._largoMax = letto;
+    }
+    if (ora > this._largoMax + 2) {
+      this._largoMax = Math.round(ora);
+      try { localStorage.setItem(chiave, String(this._largoMax)); } catch (e) { /* pazienza */ }
+    }
+    return this._largoMax;
   }
 
   // me la segno: e' quella che il riquadro delle impostazioni deve copiare
@@ -5015,6 +5055,9 @@ class CasaTile extends HTMLElement {
       const mio = this.getBoundingClientRect();
       this._ricordaMisura(mio.width, mio.height);
       this._vestiAnteprima();
+      // la casella ha cambiato larghezza: a pezzi liberi va rifatta la
+      // proporzione, se no le scritte si accavallano quando si stringe
+      if (this.hasAttribute("liberi")) this._mettiAPosto();
     }
     this._decidiCompatta();
   }
@@ -8897,6 +8940,7 @@ class CasaTileEditor extends HTMLElement {
     // l'altezza VERA della casella, prima di rimpicciolirla per farla stare
     // nella finestra: serve a chi compone i pezzi con l'altezza automatica
     box._altoVero = alto;
+    box._largoVero = largo;
     const posto = Math.max(190, (box.clientWidth || 420) - 28);
     let stretta = false;
     let quanto = 100;
@@ -9169,11 +9213,13 @@ class CasaTileEditor extends HTMLElement {
     // qualcosa. Vedi _mettiAPosto.
     const box = this._postiBox;
     const suo = box && box._altoVero > 40 ? Math.round(box._altoVero) : 0;
+    const suoLargo = box && box._largoVero > 40 ? Math.round(box._largoVero) : 0;
     const p = this._sceltaPercorso;
     if (!p || !p.length) {
       const c2 = { ...this._config };
       if (posti) c2.posti = posti; else delete c2.posti;
       if (posti && suo) c2.posti_alto = suo; else delete c2.posti_alto;
+      if (posti && suoLargo) c2.posti_largo = suoLargo; else delete c2.posti_largo;
       this._config = c2;
       this._emetti();
       return;
@@ -9183,6 +9229,7 @@ class CasaTileEditor extends HTMLElement {
     const nuova = { ...vecchia };
     if (posti) nuova.posti = posti; else delete nuova.posti;
     if (posti && suo) nuova.posti_alto = suo; else delete nuova.posti_alto;
+    if (posti && suoLargo) nuova.posti_largo = suoLargo; else delete nuova.posti_largo;
     this._salvaSchede(this._conScheda(p, nuova), false);
   }
 
