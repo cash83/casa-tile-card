@@ -10,7 +10,7 @@
 // finche' resta aperta la pagina e non dipende da nessuno.
 let APPUNTI_POSTI = null;
 
-const VERSIONE = "2.14.0";
+const VERSIONE = "2.14.1";
 
 // come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
 // "pieno". Serve per dargli un posto suo nella disposizione.
@@ -516,6 +516,66 @@ function disegnoTapparella(moto) {
     + '<rect x="5.5" y="5" width="53" height="11.5" rx="3.2" fill="#5b6b84"/>'
     + '<rect x="5.5" y="5" width="53" height="4" rx="3.2" fill="#7f92ad"/>';
 }
+
+// L'ASPIRAPOLVERE, con la sua base. Quando pulisce il robot sta fuori e
+// gira; quando e' in carica sta dentro alla base, fermo.
+// e' fuori a lavorare, o sta attaccato alla base? "docked" e' l'unico
+// stato in cui sta davvero fermo dentro; il resto (spento, sconosciuto)
+// non e' un lavoro, quindi sta fermo anche quello
+function aspiraFuori(st) {
+  const q = st ? String(st.state) : "";
+  return !!q && q !== "docked" && q !== "unavailable"
+    && q !== "unknown" && q !== "off";
+}
+
+function disegnoAspira(fuori) {
+  // l'ingombro non deve cambiare quando il robot esce: se no la casella
+  // rimisura il riquadro e l'icona fa un saltino proprio mentre parte
+  // l'animazione. Questo rettangolo non si vede e tiene ferma la misura.
+  const fermo = '<rect x="3" y="4" width="57" height="55" '
+    + 'fill="none" stroke="none"/>';
+  // la sfumatura del disco se la porta dietro il disegno: nel disegno
+  // vecchio non ci arrivo piu'
+  const tinta = '<defs><radialGradient id="asp1" cx="42%" cy="34%" r="70%">'
+    + '<stop offset="0" stop-color="#33475f"/>'
+    + '<stop offset="1" stop-color="#16202e"/></radialGradient></defs>';
+  // la base: la torre chiara con la finestra del serbatoio e il piano su
+  // cui il robot ci sale
+  const torre = '<rect x="6" y="4" width="22" height="41" rx="5" '
+    + 'fill="#e6ebf2" stroke="#9fb0c4" stroke-width="1.6"/>'
+    + '<rect x="10" y="13" width="14" height="12" rx="2.4" fill="#b9c5d4"/>'
+    + '<rect x="3" y="43" width="28" height="6.5" rx="3" '
+    + 'fill="#cfd8e4" stroke="#9fb0c4" stroke-width="1.4"/>';
+  // il robot: disco, paraurti, la torretta con l'occhio e la spazzola
+  const robot = '<circle cx="42" cy="44" r="15" fill="url(#asp1)" '
+    + 'stroke="#41607f" stroke-width="2"/>'
+    + '<path d="M27 42a15 15 0 0 1 30 0z" fill="#2c3d54"/>'
+    + '<rect x="33.5" y="37" width="17" height="7.5" rx="2.6" fill="#101a27" '
+    + 'stroke="#5ec8ff" stroke-width="1.3"/>'
+    + '<circle cx="42" cy="40.8" r="1.8" fill="#9fe2ff"/>'
+    + '<g class="an rotaspazzola">'
+    + '<g stroke="#8ef0d8" stroke-width="2.2" stroke-linecap="round">'
+    + '<path d="M42 50v-4.5"/><path d="M42 50v4.5"/>'
+    + '<path d="M42 50h-4.5"/><path d="M42 50h4.5"/></g>'
+    + '<circle cx="42" cy="50" r="2.4" fill="#8ef0d8"/></g>';
+  // attaccato alla base: spostato sulla base e un filo piu' piccolo. Il
+  // conto e' gia' fatto attorno al suo centro (42,44), lo stesso punto da
+  // cui parte l'animazione: le due cose combaciano e non si vede scatto.
+  if (!fuori) {
+    return tinta + fermo + torre
+      + '<g transform="translate(-15.44,4.92) scale(.82)" opacity=".95">'
+      + robot + '</g>';
+  }
+  // fuori: scivola via dalla base una volta sola, poi va avanti e indietro
+  return tinta + fermo + torre
+    + '<g class="an aspiraesce"><g class="an aspiragira">'
+    + robot + "</g></g>";
+}
+
+// nella tendina delle icone e ovunque si peschi il disegno "a nome", faccio
+// vedere il robot fuori dalla base: e' quello che si riconosce a colpo
+// d'occhio. La casella e il pop-up poi ci mettono lo stato vero.
+ICONE.aspirapolvere = disegnoAspira(true);
 
 // quanto della tapparella si vede giu': un numero solo, niente da ridisegnare
 function tagliaTapparella(svg, pos) {
@@ -1516,6 +1576,23 @@ svg .glow { animation: casa-glow calc(5s / var(--vel, 1)) ease-in-out infinite; 
 svg .alone { display: none; }
 @keyframes casa-caricafulmine { 0%, 100% { opacity: .82; } 50% { opacity: 1; } }
 svg .caricafulmine { animation: casa-caricafulmine calc(2.6s / var(--vel, 1)) ease-in-out infinite; }
+/* l'aspirapolvere che esce dalla base e va a spasso. L'uscita si vede una
+   volta sola - quando cambia stato il disegno si rifa' da capo, ed e' li'
+   che la vuoi vedere - il girovagare invece continua. */
+@keyframes casa-aspira-esce {
+  from { transform: translate(-23px, -3px) scale(.82); }
+  to { transform: none; }
+}
+@keyframes casa-aspira-gira {
+  0%, 100% { transform: translateX(-3px) rotate(-2.5deg); }
+  50% { transform: translateX(3px) rotate(2.5deg); }
+}
+svg .aspiraesce { transform-origin: 42px 44px;
+  animation: casa-aspira-esce calc(.95s / var(--vel, 1)) cubic-bezier(.2,.8,.3,1) both; }
+svg .rotaspazzola { transform-origin: 42px 50px;
+  animation: casa-rota calc(2.2s / var(--vel, 1)) linear infinite; }
+svg .aspiragira { transform-origin: 42px 44px;
+  animation: casa-aspira-gira calc(3.4s / var(--vel, 1)) ease-in-out infinite; }
 /* la tapparella che si muove davvero: le stecche scorrono nel vano */
 @keyframes casa-tappagiu { from { transform: translateY(0); } to { transform: translateY(6.6px); } }
 @keyframes casa-tappasu { from { transform: translateY(0); } to { transform: translateY(-6.6px); } }
@@ -1790,28 +1867,34 @@ ha-card::before, ha-card::after { z-index: 1; }
   background: radial-gradient(130% 100% at 50% -12%, rgba(0,0,0,0) 48%, rgba(0,0,0,.30) 100%);
 }
 /* l'icona in grande dietro a tutto: un timbro, non un disegno da guardare */
-svg.iconafondo {
+svg.iconafondo, img.fotofondo {
   position: absolute; right: 3%; bottom: 5%; top: auto; transform: none;
   height: 74%; width: auto; max-width: 44%; z-index: 0; pointer-events: none;
   opacity: var(--fondoico, .14);
 }
+/* la foto tiene le sue proporzioni: schiacciata sarebbe peggio del disegno */
+img.fotofondo { object-fit: contain; object-position: right bottom; }
+:host([fondo-giu]) img.fotofondo { object-position: left bottom; }
 /* Posato a mano il timbro tiene la misura che gli e' stata data, e non le
    due che gli darebbe il foglio di stile a seconda di dove sta la fotina. */
-:host([liberi]) svg.iconafondo,
-:host([fondo-giu][liberi]) svg.iconafondo {
+:host([liberi]) svg.iconafondo, :host([liberi]) img.fotofondo,
+:host([fondo-giu][liberi]) svg.iconafondo,
+:host([fondo-giu][liberi]) img.fotofondo {
   right: auto; top: auto; max-width: none; }
-svg.iconafondo[hidden] { display: none !important; }
+svg.iconafondo[hidden], img.fotofondo[hidden] { display: none !important; }
 /* il numerino in fondo alla barra: spesso e' un doppione della percentuale
    grande in mezzo alla casella, e si puo' spegnere */
 :host([senzaquanto]) .cursore .quanto { display: none !important; }
 /* se la fotina davanti non c'e', il timbro va in basso a sinistra: prende
    il posto che ha lasciato libero e non copre il numero */
-:host([fondo-giu]) svg.iconafondo {
+:host([fondo-giu]) svg.iconafondo, :host([fondo-giu]) img.fotofondo {
   right: auto; left: 2%; top: auto; bottom: 4%;
   transform: none; height: 72%; max-width: 48%;
 }
-:host([fondo-giu][compatta]) svg.iconafondo { height: 62%; }
-:host([acceso]) svg.iconafondo { opacity: var(--fondoico-acceso, .2); }
+:host([fondo-giu][compatta]) svg.iconafondo,
+:host([fondo-giu][compatta]) img.fotofondo { height: 62%; }
+:host([acceso]) svg.iconafondo, :host([acceso]) img.fotofondo {
+  opacity: var(--fondoico-acceso, .2); }
 
 /* A mano libera: ogni pezzo sta dove l'ha messo lui. I contenitori
    spariscono dal conto (display:contents) e i pezzi si posano da soli. */
@@ -3665,6 +3748,9 @@ const SEGNI = {
   stop: "M18,18H6V6H18V18Z",
   svuota: "M2,6V8H14V6H2M2,10V12H11V10H2M14,10.88L12.88,12L15.88,15L12.88,18L14,19.12L17,"
     + "16.12L20,19.12L21.12,18L18.12,15L21.12,12L20,10.88L17,13.88L14,10.88M2,14V16H11V14H2Z",
+  // porta qui la coda: le stesse righe di "svuota", con la freccia invece
+  // della ics - si leggono in coppia
+  trasferisci: "M19,9H2V11H19V9M19,5H2V7H19V5M2,15H15V13H2V15M17,13V19L22,16L17,13Z",
   tavolozza: "M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,"
     + "1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,"
     + "6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 "
@@ -4484,6 +4570,7 @@ class CasaTile extends HTMLElement {
       <ha-card tabindex="0">
         <div class="cielo" hidden></div>
         <svg class="iconafondo" viewBox="0 0 64 64" fill="none" aria-hidden="true" hidden></svg>
+        <img class="fotofondo" alt="" aria-hidden="true" hidden>
         <div class="copertina" hidden></div>
         <div class="lettori" hidden></div>
         <div class="ytattrezzi" hidden>
@@ -4602,6 +4689,7 @@ class CasaTile extends HTMLElement {
     this._cond = root.querySelector(".meteo .cond");
     this._svg = root.querySelector("svg.icona");
     this._svgFondo = root.querySelector("svg.iconafondo");
+    this._fotoFondo = root.querySelector("img.fotofondo");
     this._svgHa = root.querySelector(".iconaHa");
     this._svgFoto = root.querySelector(".iconaFoto");
     this._ritratto = root.querySelector("img.ritratto");
@@ -5032,8 +5120,9 @@ class CasaTile extends HTMLElement {
       attrezzi: [".ytattrezzi"],
       cuore: [".ytcuore"],
       // l'icona grande e sbiadita dietro alle scritte: era l'unica che non
-      // si poteva prendere
-      sfondo: ["svg.iconafondo"],
+      // si poteva prendere. Puo' essere un disegno o una sua foto: e' lo
+      // stesso pezzo, ne vive uno alla volta
+      sfondo: ["svg.iconafondo", "img.fotofondo"],
     };
     // la barra e i tasti tengono la loro larghezza in percentuale: non sono
     // scritte, allargarli o stringerli e' proprio quello che vuole
@@ -5546,7 +5635,7 @@ class CasaTile extends HTMLElement {
       colori: ".colori:not([hidden])",
       attrezzi: ".ytattrezzi:not([hidden])",
       cuore: ".ytcuore:not([hidden])",
-      sfondo: "svg.iconafondo:not([hidden])",
+      sfondo: "svg.iconafondo:not([hidden]), img.fotofondo:not([hidden])",
     };
     const fuori = {};
     const segna = (chi, el) => {
@@ -5663,7 +5752,9 @@ class CasaTile extends HTMLElement {
     this._fIcona.innerHTML = nomeIco === "batteria"
       ? (() => { const b = this._datiBatteria(suoStato);
                  return disegnoBatteria(b.perc, b.carica, b.scarica); })()
-      : (ICONE[nomeIco] || disegnoMdi(nomeIco) || ICONE.luce);
+      : (nomeIco === "aspirapolvere"
+        ? disegnoAspira(aspiraFuori(suoStato))
+        : (ICONE[nomeIco] || disegnoMdi(nomeIco) || ICONE.luce));
     riempiRiquadro(this._fIcona, nomeIco);
     this._vestiApertura();
     this.removeAttribute("chiude");
@@ -7952,13 +8043,23 @@ class CasaTile extends HTMLElement {
     return lista;
   }
 
+  // CHI COMANDA IL GRUPPO. Non e' detto che sia questa casella: in Music
+  // Assistant (e in Home Assistant in generale) il capo e' il primo della
+  // lista, ed e' l'unico che tiene la coda - le casse agganciate hanno la
+  // loro coda vuota. Dare per scontato di comandare e' esattamente quello
+  // che rompeva il trasferimento.
+  _capoGruppo(st) {
+    const membri = st && Array.isArray(st.attributes.group_members)
+      ? st.attributes.group_members : [];
+    return membri.length ? membri[0] : this._config.entity;
+  }
+
   _cambiaGruppo(eid, riga) {
     const padrone = this._config.entity;
     const st = this._hass ? this._hass.states[padrone] : null;
     if (!st) return;
     const membri = Array.isArray(st.attributes.group_members)
       ? st.attributes.group_members : [];
-    const altri = membri.filter((e) => e !== padrone);
 
     // il comando puo' non riuscire (cassa spenta, lettore che non sa unirsi):
     // in quel caso la riga lampeggia invece di non fare niente in silenzio
@@ -7981,7 +8082,12 @@ class CasaTile extends HTMLElement {
       }
     };
 
+    const capo = this._capoGruppo(st);
     const dentroOra = eid === padrone || membri.includes(eid);
+    // la riga di se stessi quando comando io non fa niente: sciogliere il
+    // gruppo da li' non se lo aspetta nessuno (e' anche quello che fanno la
+    // card yt e quella ufficiale di Music Assistant)
+    if (eid === padrone && capo === padrone) return;
     if (riga) {
       // l'interruttore va subito dove l'ho messo io e ci resta finche'
       // il lettore non risponde (o per 10 secondi)
@@ -7999,31 +8105,19 @@ class CasaTile extends HTMLElement {
     }
 
     if (eid === padrone) {
-      // stacca chi comanda: la musica deve restare a chi era in gruppo
-      if (!altri.length) return;
-      const erede = altri[0];
-      // con Music Assistant staccare il capo scioglie la sessione e dopo
-      // qualche secondo tace anche l'altra cassa: prima le passo la coda
-      const conMA = String(st.attributes.app_id || "").includes("music_assistant")
-        || String(st.attributes.active_queue || "") !== "";
-      if (conMA) {
-        prova("transfer_queue",
-          { entity_id: erede, source_player: padrone, auto_play: true },
-          "music_assistant");
-        setTimeout(() => prova("unjoin", { entity_id: padrone }), 1200);
-      } else {
-        prova("unjoin", { entity_id: padrone });
-      }
-      this._scelto = erede;
-      if (this._lettori().includes(erede)) this._ricordaScelto(erede);
+      // sono una delle agganciate: mi sfilo e basta. La coda non e' mia, e
+      // chiedere di spostarla farebbe solo fallire il comando
+      prova("unjoin", { entity_id: padrone });
       return;
     }
     if (membri.includes(eid)) {
       prova("unjoin", { entity_id: eid });
     } else {
-      const insieme = altri.slice();
-      insieme.push(eid);
-      prova("join", { entity_id: padrone, group_members: insieme });
+      // agganciare passa sempre da chi comanda, anche quando la casella e'
+      // una delle agganciate: e' li' che sta la coda
+      const conLui = membri.filter((e) => e !== capo);
+      conLui.push(eid);
+      prova("join", { entity_id: capo, group_members: conLui });
     }
   }
 
@@ -8185,8 +8279,15 @@ class CasaTile extends HTMLElement {
         r.querySelector(".tras").addEventListener("click", (e) => {
           e.stopPropagation();
           if (!this._hass) return;
+          // la coda la prendo da chi ce l'ha davvero: se questa casella e'
+          // agganciata a un'altra, la sua e' vuota e il comando fallirebbe
+          const suo = this._hass.states[padrone];
           this._hass.callService("music_assistant", "transfer_queue",
-            { entity_id: eid, source_player: padrone });
+            { entity_id: eid, source_player: this._capoGruppo(suo),
+              auto_play: true });
+          // e da adesso seguo la cassa dove l'ho mandata
+          this._scelto = eid;
+          if (this._lettori().includes(eid)) this._ricordaScelto(eid);
           this._chiudiPannelli();
         });
         const vol = r.querySelector(".vol");
@@ -8239,15 +8340,26 @@ class CasaTile extends HTMLElement {
       const altri = membri.filter((e) => e !== padrone);
       const nome = (suo && suo.attributes.friendly_name) || eid.split(".")[1];
       r.toggleAttribute("spento", spento);
+      // chi comanda si legge: e' quello che tiene la coda, e quando non sono
+      // io il mio interruttore serve a sfilarmi, non a sciogliere il gruppo
+      const capoOra = this._capoGruppo(st);
+      const inGruppo = membri.length > 1;
+      r.toggleAttribute("comanda", inGruppo && eid === capoOra);
+      r.toggleAttribute("fisso", eid === padrone && capoOra === padrone);
+      const eti = [];
+      if (eid === padrone) eti.push("questa");
+      if (inGruppo && eid === capoOra) eti.push("comanda");
+      if (spento && eid !== padrone) eti.push("non disponibile");
       r.querySelector(".chi").textContent = nome
-        + (eid === padrone ? " \u2022 questa" : (spento ? " \u2022 non disponibile" : ""));
+        + (eti.length ? " \u2022 " + eti.join(" \u2022 ") : "");
       const tras = r.querySelector(".tras");
       // La freccia si vede solo se c'e' davvero qualcosa da portare: a coda
       // vuota Home Assistant risponde "The queue is empty" e sembra rotto.
       const inCoda = ["playing", "paused", "buffering"]
         .includes(String(st.state).toLowerCase());
       if (tras) tras.hidden = eid === padrone || spento || !inCoda
-        || !this._daMusicAssistant(eid) || !this._daMusicAssistant(padrone);
+        || !this._daMusicAssistant(eid)
+        || !this._daMusicAssistant(this._capoGruppo(st));
       const sw = r.querySelector(".sw");
       // finche' aspetto la risposta del lettore tengo la posizione chiesta
       let inAttesa = r._attesa !== undefined && Date.now() < r._attesaFino;
@@ -8258,11 +8370,17 @@ class CasaTile extends HTMLElement {
       }
       r.toggleAttribute("attesa", inAttesa);
       sw.toggleAttribute("on", inAttesa ? r._attesa : dentro);
-      sw.disabled = spento || (eid === padrone && altri.length === 0 && !inAttesa);
+      // sulla propria riga: se comando io non c'e' niente da fare (la coda
+      // e' qui, sciogliere il gruppo da qui non se lo aspetta nessuno); se
+      // sono agganciato serve a sfilarmi
+      const ioComando = capoOra === padrone;
+      sw.disabled = spento || (eid === padrone && ioComando && !inAttesa);
       sw.title = spento ? "Altoparlante spento o non raggiungibile"
         : (eid === padrone
-            ? (altri.length ? "Togli questa cassa e lascia suonare le altre"
-                            : "E' la cassa che comanda il gruppo")
+            ? (ioComando
+                ? (altri.length ? "E' questa che comanda: spegni le altre casse"
+                                : "E' la cassa che comanda il gruppo")
+                : "Sfila questa cassa dal gruppo")
             : (dentro ? "Togli dal gruppo" : "Unisci al gruppo"));
       const vol = r.querySelector(".vol");
       vol.hidden = !dentro || !suo || suo.attributes.volume_level === undefined;
@@ -8326,11 +8444,23 @@ class CasaTile extends HTMLElement {
     const oraSuona = lista.filter((e) => stati[e] && stati[e].state === "playing");
     const prima = this._suonavano;
     this._suonavano = oraSuona;
+    // due casse nello stesso gruppo stanno suonando la STESSA cosa
+    const insieme = (a, b) => {
+      if (!a || !b || a === b) return a === b;
+      const g = stati[a] && stati[a].attributes.group_members;
+      return Array.isArray(g) && g.indexOf(b) >= 0;
+    };
     if (segui) {
       // al primo giro, e ogni volta che una cassa ATTACCA a suonare, la si segue;
-      // per il resto comanda quello che ha toccato l'utente
+      // per il resto comanda quello che ha toccato l'utente.
+      // ATTENZIONE: una cassa che attacca perche' l'ho appena agganciata al
+      // gruppo NON e' musica nuova - e' la stessa, su piu' casse. Se la
+      // seguissi, la card salterebbe sulla cassa appena aggiunta e resterebbe
+      // li' quando poi la tolgo: sembrerebbe che il lettore si sia spento.
       const nuovo = prima === undefined
-        ? oraSuona[0] : oraSuona.find((e) => !prima.includes(e));
+        ? oraSuona[0]
+        : oraSuona.find((e) => !prima.includes(e)
+            && !insieme(e, this._scelto) && !insieme(e, base.entity));
       if (nuovo) {
         this._scelto = nuovo;
         // e me la segno: l'anteprima delle impostazioni e' una casella NUOVA
@@ -8346,8 +8476,24 @@ class CasaTile extends HTMLElement {
         .includes(String(suo.state).toLowerCase());
       const casa = stati[base.entity];
       const casaViva = casa && String(casa.state).toLowerCase() === "playing";
-      // se quella che seguivo ha smesso e la sua e' ripartita, torno alla sua
-      if (!viva && casaViva) this._scelto = base.entity;
+      if (!viva) {
+        // Music Assistant adesso, quando togli dal gruppo la cassa che
+        // suonava, sposta la sessione sulle altre. Quindi se quella che
+        // seguivo si e' fermata ma la musica c'e' ancora da un'altra parte,
+        // seguo la musica invece di restare appiccicato a una cassa ferma.
+        const altra = oraSuona.find((e) => e !== this._scelto);
+        if (altra) {
+          this._scelto = altra;
+          this._ricordaScelto(altra);
+          return altra;
+        }
+        if (casaViva) this._scelto = base.entity;
+      }
+      // se quella che seguo e' agganciata a un'altra, comanda chi tiene la
+      // coda: la sessione sta li', e i comandi vanno dati a lui
+      const g = suo && suo.attributes.group_members;
+      if (Array.isArray(g) && g.length > 1 && g[0] !== this._scelto
+        && stati[g[0]]) return g[0];
       return this._scelto;
     }
     return lista.find((e) => !!stati[e]) || lista[0] || base.entity;
@@ -9700,8 +9846,11 @@ class CasaTile extends HTMLElement {
     }
     // attenzione: il confronto va fatto sull'icona VERA (per il meteo
     // cambia da sola col tempo), non su quella scritta nelle impostazioni
-    // un'icona sua, presa dal telefono o dal PC, viene prima di tutto
-    const suaFoto = c.icona_immagine;
+    // un'icona sua, presa dal telefono o dal PC, viene prima di tutto. Se ne
+    // ha messa una anche per "quando e' acceso" (di solito una gif), quella
+    // vince finche' la casella e' accesa: e' cosi' che una figura animata
+    // si muove solo mentre l'apparecchio lavora.
+    const suaFoto = this._fotoSua(st);
     if (this._svgFoto) {
       this._svgFoto.hidden = !suaFoto || usaFoto;
       if (suaFoto && this._svgFoto.getAttribute("src") !== suaFoto) {
@@ -9769,6 +9918,12 @@ class CasaTile extends HTMLElement {
       }
     }
     const dove = this._posizioneMostrata(st);
+    if (nomeIcona === "aspirapolvere") {
+      const fuori = aspiraFuori(st);
+      disegno = disegnoAspira(fuori);
+      chiave = "aspira|" + (fuori ? "fuori" : "base");
+      forma = "aspirapolvere";
+    }
     if (nomeIcona === "tapparella" && dove !== null) {
       // si muove se lo dice Home Assistant o se lo sto ancora portando io
       let moto = (st && st.state === "opening") ? "su"
@@ -9793,19 +9948,51 @@ class CasaTile extends HTMLElement {
     return n;
   }
 
+  // QUALE IMMAGINE SUA: quella normale, o quella di quando e' acceso se ce
+  // l'ha messa. La usano in due - la fotina davanti e il timbro grande
+  // dietro - e devono dire la stessa cosa.
+  _fotoSua(st) {
+    const c = this._config || {};
+    const accesa = c.icona_immagine_accesa;
+    if (accesa && this._acceso(st)) return accesa;
+    return c.icona_immagine || accesa || null;
+  }
+
   // l'icona in grande dietro alle scritte: e' lo stesso disegno, sbiadito.
   // Vale anche se la fotina davanti l'ha tolta: anzi, e' proprio il bello.
   _timbro(st) {
     const box = this._svgFondo;
     if (!box) return;
     const c = this._config;
-    if (!c.icona_sfondo || !c.entity) {
-      this.toggleAttribute("fondo-giu", false);
+    const suaFoto = this._fotoSua(st);
+    const spegni = () => {
       if (!box.hasAttribute("hidden")) {
         box.toggleAttribute("hidden", true);
         box.innerHTML = "";
         box.dataset.icona = "";
       }
+    };
+    if (!c.icona_sfondo || !c.entity) {
+      this.toggleAttribute("fondo-giu", false);
+      spegni();
+      if (this._fotoFondo) this._fotoFondo.toggleAttribute("hidden", true);
+      return;
+    }
+    // se ha messo una sua immagine, il timbro e' quella: se no dietro c'e'
+    // il disegno e davanti la foto, due figure diverse per la stessa cosa
+    if (this._fotoFondo) {
+      this._fotoFondo.toggleAttribute("hidden", !suaFoto);
+      if (suaFoto && this._fotoFondo.getAttribute("src") !== suaFoto) {
+        this._fotoFondo.src = suaFoto;
+      }
+    }
+    if (suaFoto) {
+      this.toggleAttribute("fondo-giu", c.mostra_icona === false);
+      const forza0 = (c.icona_sfondo_forza === undefined
+        || c.icona_sfondo_forza === null ? 20 : Number(c.icona_sfondo_forza)) / 100;
+      this.style.setProperty("--fondoico", String(Math.max(0, forza0 * 0.7)));
+      this.style.setProperty("--fondoico-acceso", String(Math.max(0, forza0)));
+      spegni();
       return;
     }
     box.toggleAttribute("hidden", false);
@@ -10253,6 +10440,8 @@ const ETICHETTE = {
   servizio: "Servizio da chiamare (es. number.set_value)",
   servizio_dati: "Dati del servizio, in YAML (es. value: 95)",
   finestra_titolo: "Titolo del pop-up",
+  icona_immagine: "Immagine al posto dell'icona",
+  icona_immagine_accesa: "Immagine di quando e acceso (anche una gif)",
   finestra_apertura: "Come si apre la finestra",
   finestra_apertura_durata: "Quanto dura l'apertura (millesimi di secondo)",
   finestra_largo: "Larghezza del pop-up in punti (vuoto = 560, come tutti gli altri)",
@@ -10590,6 +10779,15 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .foto-riga { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .foto-anteprima { width: 64px; height: 44px; border-radius: 8px; object-fit: cover;
   border: 1px solid var(--divider-color, #555); }
+.indirizzoFoto { flex: 1 1 160px; min-width: 0; box-sizing: border-box;
+  padding: 8px 11px; border-radius: 10px; font: inherit; font-size: 13px;
+  border: 1px solid var(--divider-color, #444);
+  background: var(--card-background-color, #16202c);
+  color: var(--primary-text-color, #eaf1fb); }
+.suaIcona + .suaIcona { margin-top: 10px; }
+/* la riga di chi comanda quando e' questa casella: l'interruttore non fa
+   niente apposta, quindi non deve nemmeno sembrare che lo faccia */
+.voce[fisso] .sw { opacity: .55; cursor: default; }
 .foto-nota { font-size: 12.5px; color: var(--secondary-text-color); margin-top: 8px; }
 .foto-nota.errore { color: #ff8a80; }
 .bt { appearance: none; border: none; cursor: pointer; font: inherit; font-weight: 600;
@@ -11196,39 +11394,13 @@ class CasaTileEditor extends HTMLElement {
       tin._libero = libero;
       tin._scelta = scelta;
 
-      // un'icona tutta sua, presa dal telefono o dal PC
-      const suaRiga = document.createElement("div");
-      suaRiga.className = "foto-riga suaIcona";
-      const scegliIco = document.createElement("button");
-      scegliIco.className = "bt chiaro";
-      scegliIco.type = "button";
-      scegliIco.textContent = "Usa un'immagine mia (telefono o PC)";
-      const fileIco = document.createElement("input");
-      fileIco.type = "file";
-      fileIco.accept = "image/*";
-      fileIco.style.display = "none";
-      scegliIco.addEventListener("click", () => fileIco.click());
-      fileIco.addEventListener("change", () => {
-        if (fileIco.files && fileIco.files[0]) this._caricaIcona(fileIco.files[0]);
-      });
-      const viaIco = document.createElement("button");
-      viaIco.className = "bt chiaro";
-      viaIco.type = "button";
-      viaIco.textContent = "Togli l'immagine";
-      viaIco.addEventListener("click", () => {
-        const c2 = { ...this._config };
-        delete c2.icona_immagine;
-        this._config = c2;
-        this._emetti();
-        this._costruisciScelte();
-      });
-      const antIco = document.createElement("img");
-      antIco.className = "foto-anteprima";
-      const notaIco = document.createElement("div");
-      notaIco.className = "foto-nota";
-      suaRiga.append(antIco, scegliIco, fileIco, viaIco, notaIco);
-      box.appendChild(suaRiga);
-      box._suaIcona = { riga: suaRiga, ant: antIco, via: viaIco, nota: notaIco };
+      // un'icona tutta sua, presa dal telefono o dal PC - e la sua gemella
+      // per quando e' acceso
+      box._suaIcona = this._rigaImmagine(box, "icona_immagine",
+        "Usa un'immagine mia (telefono o PC)", "");
+      box._suaAccesa = this._rigaImmagine(box, "icona_immagine_accesa",
+        "Immagine di quando e' acceso (anche una gif)",
+        "si vede solo mentre lavora: alla base torna quella di sopra");
 
       const cerca = box.querySelector(".cercaIcona");
       cerca.addEventListener("input", () => {
@@ -11270,13 +11442,19 @@ class CasaTileEditor extends HTMLElement {
         ? daRgb(coloreLampada(rgb))
         : "linear-gradient(135deg, #ff5f5f, #ffc046, #5ec8ff)";
     }
-    if (box._suaIcona) {
-      const mia = c.icona_immagine;
-      box._suaIcona.ant.hidden = !mia;
-      box._suaIcona.via.hidden = !mia;
-      if (mia && box._suaIcona.ant.getAttribute("src") !== mia) {
-        box._suaIcona.ant.src = mia;
-      }
+    [box._suaIcona, box._suaAccesa].forEach((r) => {
+      if (!r) return;
+      const mia = c[r.chiave];
+      r.ant.hidden = !mia;
+      r.via.hidden = !mia;
+      if (mia && r.ant.getAttribute("src") !== mia) r.ant.src = mia;
+      // mentre ci sta scrivendo dentro non gliela cambio sotto le mani
+      if (document.activeElement !== r.campo) r.campo.value = mia || "";
+      if (r.nota && !r.fisso) r.nota.textContent = "";
+    });
+    // la seconda ha senso solo se c'e' la prima: se no non si torna indietro
+    if (box._suaAccesa) {
+      box._suaAccesa.riga.hidden = !c.icona_immagine && !c.icona_immagine_accesa;
     }
     const sceltaIcona = c.icona || "auto";
     box.querySelectorAll(".sceltaIcona").forEach((b) =>
@@ -12978,7 +13156,7 @@ class CasaTileEditor extends HTMLElement {
       ["icona", "svg.icona,img.ritratto,.iconaHa,.iconaFoto"],
       // il timbro per ultimo: sta dietro a tutto, e chi gli sta sopra deve
       // avere la precedenza sotto il dito
-      ["sfondo", "svg.iconafondo:not([hidden])"],
+      ["sfondo", "svg.iconafondo:not([hidden]), img.fotofondo:not([hidden])"],
     ];
     // Chi sta sotto al dito? Lo cerco confrontando le posizioni invece di
     // chiedere al browser "cosa c'e' qui": quella strada non risponde se il
@@ -13065,8 +13243,8 @@ class CasaTileEditor extends HTMLElement {
         attrezzi: [".ytattrezzi"], cuore: [".ytcuore"],
         tempo: [".tempo"], extra: [".extra"], lettori: [".lettori"],
         colori: [".colori"],
-        // l'icona grande e sbiadita dietro alle scritte
-        sfondo: ["svg.iconafondo"],
+        // l'icona grande e sbiadita dietro alle scritte, disegno o foto
+        sfondo: ["svg.iconafondo", "img.fotofondo"],
       };
       // su un <svg> ".hidden" non segue l'attributo: qui va chiesto
       // l'attributo, se no un timbro spento sembra acceso
@@ -14132,9 +14310,66 @@ class CasaTileEditor extends HTMLElement {
     box.appendChild(this._notaFoto);
   }
 
-  async _caricaIcona(file) {
-    const nota = this._scelte && this._scelte._suaIcona
-      ? this._scelte._suaIcona.nota : null;
+  // UNA RIGA "IMMAGINE": anteprima, il pulsante per pescarla dal telefono o
+  // dal PC, il campo per scrivere l'indirizzo se sta gia' in config/www, e
+  // il pulsante per toglierla. Ne servono due uguali (quella normale e
+  // quella di quando e' acceso), quindi la faccio una volta sola.
+  _rigaImmagine(box, chiave, titolo, sottotitolo) {
+    const riga = document.createElement("div");
+    riga.className = "foto-riga suaIcona";
+    const scegli = document.createElement("button");
+    scegli.className = "bt chiaro";
+    scegli.type = "button";
+    scegli.textContent = titolo;
+    const file = document.createElement("input");
+    file.type = "file";
+    file.accept = "image/*";
+    file.style.display = "none";
+    scegli.addEventListener("click", () => file.click());
+    file.addEventListener("change", () => {
+      if (file.files && file.files[0]) this._caricaIcona(file.files[0], chiave);
+    });
+    // se l'immagine e' gia' sul box non ha senso ricaricarla: basta l'indirizzo
+    const indirizzo = document.createElement("input");
+    indirizzo.type = "text";
+    indirizzo.className = "indirizzoFoto";
+    indirizzo.placeholder = "oppure l'indirizzo: /local/mia.gif";
+    indirizzo.addEventListener("change", () => {
+      const v = indirizzo.value.trim();
+      const c2 = { ...this._config };
+      if (v) c2[chiave] = v; else delete c2[chiave];
+      this._config = c2;
+      this._emetti();
+      this._costruisciScelte();
+    });
+    const via = document.createElement("button");
+    via.className = "bt chiaro";
+    via.type = "button";
+    via.textContent = "Togli l'immagine";
+    via.addEventListener("click", () => {
+      const c2 = { ...this._config };
+      delete c2[chiave];
+      this._config = c2;
+      this._emetti();
+      this._costruisciScelte();
+    });
+    const ant = document.createElement("img");
+    ant.className = "foto-anteprima";
+    const nota = document.createElement("div");
+    nota.className = "foto-nota";
+    if (sottotitolo) nota.textContent = sottotitolo;
+    riga.append(ant, scegli, file, indirizzo, via, nota);
+    box.appendChild(riga);
+    return { riga: riga, ant: ant, via: via, nota: nota, campo: indirizzo,
+             chiave: chiave, fisso: sottotitolo || "" };
+  }
+
+  async _caricaIcona(file, chiave) {
+    const dove = chiave || "icona_immagine";
+    const riga = this._scelte
+      ? (dove === "icona_immagine_accesa" ? this._scelte._suaAccesa
+        : this._scelte._suaIcona) : null;
+    const nota = riga ? riga.nota : null;
     if (nota) {
       nota.className = "foto-nota";
       nota.textContent = "Sto caricando " + file.name + "...";
@@ -14151,7 +14386,7 @@ class CasaTileEditor extends HTMLElement {
       const info = await risposta.json();
       this._config = {
         ...this._config,
-        icona_immagine: "/api/image/serve/" + info.id + "/original",
+        [dove]: "/api/image/serve/" + info.id + "/original",
       };
       if (nota) nota.textContent = "";
       this._emetti();

@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.13.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.14.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -87,6 +87,25 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.14
+
+Comporre la casella a mano libera, e le figure che seguono lo stato.
+
+- **Ridimensionare i pezzi si fa tirando l'angolo**, come si spostano: niente più scelta della disposizione da un elenco. Vale per il nome, il valore, l'icona, le misure, la barra, i tasti — e per la casella intera, che sulla plancia si aggancia agli scatti della griglia ma in mezzo scorre liscia.
+- **Il numero si può anche scrivere**: grandezza della casella e di ogni pezzo, in punti e in percentuale, per quando l'occhio non basta.
+- **Il codice YAML della singola casella**, anche quando sta dentro a una griglia, con la possibilità di applicarne solo un pezzo. E tre modi per replicare una disposizione su un'altra casella.
+- **Come si apre il pop-up si sceglie**: sale e sfuma, sboccia dalla casella che hai toccato, entra dal basso, o niente. Con il cursore per la velocità e un tasto per vederla subito, senza salvare.
+- **Un'immagine tua al posto dell'icona**, e una seconda **per quando è acceso**: così una gif si muove solo mentre l'apparecchio lavora e sta ferma quando non fa niente. Vale anche per il timbro grande dietro alle scritte, che adesso è la stessa figura e si sposta e si ridimensiona come ogni altro pezzo.
+- **L'aspirapolvere esce dalla base**: quando parte, il robot lascia la base, va avanti e indietro e la spazzola gira; quando torna, rientra.
+
+### Correzioni
+
+- **Le casse del gruppo**: la casella dava per scontato di comandare lei il gruppo. Adesso riconosce **chi tiene la coda** (`group_members[0]`): agganciare passa sempre da lì, togliere una cassa non tocca la coda, e il trasferimento è rimasto solo il suo tasto — prima partiva da solo con un tempo fisso e, quando falliva, spegneva il lettore.
+- **La casella non salta più sulla cassa appena agganciata**: quella attacca a suonare perché è la stessa musica, non una nuova. E se Music Assistant sposta la sessione su un'altra cassa, la casella la segue invece di restare su una cassa ferma.
+- **Il tasto “porta qui la coda” aveva il tondo vuoto**: il suo simbolo stava nel catalogo delle icone e non fra quelli dei tasti.
+- **Il fumetto del grafico** compariva anche passando sui tasti sotto.
+- **La percentuale sulla barra si può nascondere.**
 
 ## Novità della 2.13
 
