@@ -10,7 +10,7 @@
 // finche' resta aperta la pagina e non dipende da nessuno.
 let APPUNTI_POSTI = null;
 
-const VERSIONE = "2.13.1-prova102";
+const VERSIONE = "2.14.0";
 
 // come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
 // "pieno". Serve per dargli un posto suo nella disposizione.
