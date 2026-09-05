@@ -4,7 +4,13 @@
  * v2.4.55
  */
 
-const VERSIONE = "2.13.0";
+// LA DISPOSIZIONE MESSA DA PARTE. Gli appunti del browser sulla sua
+// installazione non ci sono (la pagina e' in http), e passare per la
+// casella di testo si rompe appena si cambia casella. Questo cassetto vive
+// finche' resta aperta la pagina e non dipende da nessuno.
+let APPUNTI_POSTI = null;
+
+const VERSIONE = "2.13.1-prova102";
 
 // come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
 // "pieno". Serve per dargli un posto suo nella disposizione.
@@ -1276,7 +1282,18 @@ ha-card {
 /* Altezza imposta dalla griglia: la casella la riempie esatta e NON si
    difende con un minimo suo, se no il cursore dell'altezza del Layout non
    riesce a scendere (era il difetto: sotto le due righe non si muoveva). */
+/* L'ALTEZZA GLIELA DAI TU (hai tirato l'angolo nel pop-up): allora la
+   casella non si difende con il suo minimo, la prende esatta e il
+   contenuto - icona compresa - si rifa' i conti su quella. */
+:host([misura-fissa]) ha-card { min-height: 0; height: 100%; max-height: 100%; }
 ha-card:active { transform: scale(.985); }
+/* ...ma NON dove si compone. Nel riquadro "Dove va ogni pezzo" la casella
+   serve a misurare: se si strizza quando la premi, ogni posizione che
+   calcolo mentre trascini e' presa dentro a una casella piu' piccola e
+   spostata di tre punti, e quando molli - tornando grande - il pezzo fa il
+   salto. */
+:host([trascinabile]) ha-card:active,
+:host([solo-casella]) ha-card:active { transform: none; }
 ha-card:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
 :host([acceso]) ha-card {
   border-color: var(--bordo, var(--c));
@@ -1778,7 +1795,15 @@ svg.iconafondo {
   height: 74%; width: auto; max-width: 44%; z-index: 0; pointer-events: none;
   opacity: var(--fondoico, .14);
 }
+/* Posato a mano il timbro tiene la misura che gli e' stata data, e non le
+   due che gli darebbe il foglio di stile a seconda di dove sta la fotina. */
+:host([liberi]) svg.iconafondo,
+:host([fondo-giu][liberi]) svg.iconafondo {
+  right: auto; top: auto; max-width: none; }
 svg.iconafondo[hidden] { display: none !important; }
+/* il numerino in fondo alla barra: spesso e' un doppione della percentuale
+   grande in mezzo alla casella, e si puo' spegnere */
+:host([senzaquanto]) .cursore .quanto { display: none !important; }
 /* se la fotina davanti non c'e', il timbro va in basso a sinistra: prende
    il posto che ha lasciato libero e non copre il numero */
 :host([fondo-giu]) svg.iconafondo {
@@ -2188,7 +2213,7 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([disposizione="vinile"]) .andamento { display: none !important; }
 
 /* --- l'onda del tempo (disposizione vinile) --- */
-.ondabox { display: none; position: relative; height: 26px; }
+.ondabox { display: none; position: relative; height: calc(26px * var(--lettore, 1)); }
 .ondabox svg { display: block; width: 100%; height: 100%; overflow: visible; }
 /* NIENTE vector-effect qui: con la riga stirata farebbe contare i trattini
    in pixel di schermo mentre pathLength li conta nel disegno, e il pezzo
@@ -2199,7 +2224,7 @@ svg.iconafondo[hidden] { display: none !important; }
 .ondabox .s1 { stop-color: var(--c); }
 .ondabox .s2 { stop-color: color-mix(in srgb, var(--c) 45%, #ffffff); }
 .ondabox .pallino {
-  position: absolute; width: 11px; height: 11px; border-radius: 50%; background: #fff;
+  position: absolute; width: calc(11px * var(--lettore, 1)); height: calc(11px * var(--lettore, 1)); border-radius: 50%; background: #fff;
   transform: translate(-50%, -50%); transition: left .9s linear, top .9s linear;
   box-shadow: 0 0 9px color-mix(in srgb, var(--c) 85%, transparent);
 }
@@ -2215,13 +2240,18 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([disposizione="vinile"]) .iconaFoto,
 :host([disposizione="vinile"]) svg.icona,
 :host([disposizione="vinile"]) img.ritratto {
-  grid-area: art; width: clamp(74px, 42%, 116px); height: auto; aspect-ratio: 1;
+  grid-area: art; height: auto; aspect-ratio: 1;
+  width: clamp(calc(74px * var(--lettore, 1)), 42%, calc(116px * var(--lettore, 1)));
+  /* al centro della sua riga e SENZA allungarsi: se no la riga bassa la
+     stira e la copertina tonda diventa un'ellisse */
+  align-self: center; justify-self: center;
   border-radius: 50%; flex: none; margin: 0;
 }
 :host([disposizione="vinile"][grande]) .iconaHa,
 :host([disposizione="vinile"][grande]) .iconaFoto,
 :host([disposizione="vinile"][grande]) svg.icona,
-:host([disposizione="vinile"][grande]) img.ritratto { width: clamp(94px, 46%, 148px); }
+:host([disposizione="vinile"][grande]) img.ritratto {
+  width: clamp(calc(94px * var(--lettore, 1)), 46%, calc(148px * var(--lettore, 1))); }
 :host([disposizione="vinile"]) img.ritratto {
   object-fit: cover; border: 3px solid rgba(255,255,255,.10);
   box-shadow: 0 7px 24px rgba(0,0,0,.45), 0 0 30px color-mix(in srgb, var(--c) 34%, transparent);
@@ -2234,17 +2264,17 @@ svg.iconafondo[hidden] { display: none !important; }
 :host([disposizione="vinile"]) .testa { grid-area: testo; width: 100%; margin-top: 11px; }
 :host([disposizione="vinile"]) .testa .testi { text-align: center; }
 :host([disposizione="vinile"]) .nome {
-  font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  font-size: calc(10.5px * var(--lettore, 1)); font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
   color: var(--testo2, var(--secondary-text-color, #8ea0b8));
 }
 :host([disposizione="vinile"]) .sotto { display: block; margin-top: 4px; }
 :host([disposizione="vinile"]) .sotto .brano {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-  font-size: 15px; font-weight: 700; line-height: 1.22;
+  font-size: calc(15px * var(--lettore, 1)); font-weight: 700; line-height: 1.22;
   color: var(--testo, var(--primary-text-color, #eaf1fb));
 }
 :host([disposizione="vinile"]) .sotto .artista {
-  display: block; margin-top: 2px; font-size: 12px; font-weight: 500;
+  display: block; margin-top: 2px; font-size: calc(12px * var(--lettore, 1)); font-weight: 500;
   color: var(--testo2, var(--secondary-text-color, #8ea0b8));
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -2254,14 +2284,18 @@ svg.iconafondo[hidden] { display: none !important; }
   flex-direction: column; align-items: stretch; gap: 2px; }
 :host([disposizione="vinile"]) .tempo .binario { display: none; }
 :host([disposizione="vinile"]) .ondabox { display: block; }
-:host([disposizione="vinile"]) .tempo .orologio { text-align: center; font-size: 10.5px; }
-:host([disposizione="vinile"]) .comandi { grid-area: comandi; gap: 10px; margin-top: 12px; }
+:host([disposizione="vinile"]) .tempo .orologio { text-align: center;
+  font-size: calc(10.5px * var(--lettore, 1)); }
+:host([disposizione="vinile"]) .comandi { grid-area: comandi;
+  gap: calc(10px * var(--lettore, 1)); margin-top: calc(12px * var(--lettore, 1)); }
 :host([disposizione="vinile"]) .comandi button {
-  width: 52px; height: 34px; border-radius: 11px; font-size: 15px;
+  width: calc(52px * var(--lettore, 1)); height: calc(34px * var(--lettore, 1));
+  border-radius: calc(11px * var(--lettore, 1)); font-size: calc(15px * var(--lettore, 1));
   background: rgba(12,18,28,.55);
 }
 :host([disposizione="vinile"]) .comandi button.grosso {
-  width: 64px; height: 40px; border-radius: 13px; font-size: 18px;
+  width: calc(64px * var(--lettore, 1)); height: calc(40px * var(--lettore, 1));
+  border-radius: calc(13px * var(--lettore, 1)); font-size: calc(18px * var(--lettore, 1));
   background: color-mix(in srgb, var(--c) 55%, rgba(12,18,28,.6));
 }
 :host([disposizione="vinile"]) .cursore { grid-area: cursore; width: 100%; margin-top: 10px; }
@@ -2272,27 +2306,31 @@ svg.iconafondo[hidden] { display: none !important; }
    "Ripeti" - che sono comandi veri di Home Assistant, non un disegno. */
 :host([ytm]) .testa { justify-items: start; }
 :host([ytm]) .testa .testi { text-align: left; width: 100%; }
-:host([ytm]) .nome { font-size: 10px; letter-spacing: .08em; opacity: .75; }
-:host([ytm]) .sotto .brano { font-size: 20px; line-height: 1.15; -webkit-line-clamp: 1;
-  text-align: left; }
-:host([ytm]) .sotto .artista { font-size: 13px; text-align: left; }
+:host([ytm]) .nome { font-size: calc(10px * var(--lettore, 1)); letter-spacing: .08em; opacity: .75; }
+:host([ytm]) .sotto .brano { font-size: calc(20px * var(--lettore, 1)); line-height: 1.15;
+  -webkit-line-clamp: 1; text-align: left; }
+:host([ytm]) .sotto .artista { font-size: calc(13px * var(--lettore, 1)); text-align: left; }
 /* i tempi ai due capi dell'onda, come nella sua card */
 :host([ytm]) .tempo { margin-top: 8px; }
 :host([ytm]) .tempo .orologio { display: flex; justify-content: space-between;
   letter-spacing: .02em; font-size: 0; }
-:host([ytm]) .tempo .orologio::before { content: attr(data-ora); font-size: 11px; }
-:host([ytm]) .tempo .orologio::after { content: attr(data-fine); font-size: 11px; }
+:host([ytm]) .tempo .orologio::before { content: attr(data-ora);
+  font-size: calc(11px * var(--lettore, 1)); }
+:host([ytm]) .tempo .orologio::after { content: attr(data-fine);
+  font-size: calc(11px * var(--lettore, 1)); }
 :host([ytm]) .ondabox path.fatta { stroke-width: 3; }
 /* i tasti come nella sua card: rettangoli con gli angoli tondi, non cerchi,
    e quello del play grosso e pieno del colore della casella */
-:host([ytm]) .comandi { flex-wrap: wrap; justify-content: center; gap: 10px;
-  margin-top: 10px; }
+:host([ytm]) .comandi { flex-wrap: wrap; justify-content: center;
+  gap: calc(10px * var(--lettore, 1)); margin-top: calc(10px * var(--lettore, 1)); }
 :host([ytm]) .comandi button {
-  width: 58px; height: 46px; border-radius: 13px; font-size: 15px;
+  width: calc(58px * var(--lettore, 1)); height: calc(46px * var(--lettore, 1));
+  border-radius: calc(13px * var(--lettore, 1)); font-size: calc(15px * var(--lettore, 1));
   background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.06);
   box-shadow: none;
 }
-:host([ytm]) .comandi button svg { width: 22px; height: 22px; }
+:host([ytm]) .comandi button svg {
+  width: calc(22px * var(--lettore, 1)); height: calc(22px * var(--lettore, 1)); }
 /* i disegnini dentro ai tasti prendono il colore della casella: erano
    bianchi fissi e restavano bianchi qualsiasi colore scegliesse */
 :host([ytm]) .comandi button { color: var(--c); }
@@ -2300,12 +2338,14 @@ svg.iconafondo[hidden] { display: none !important; }
 /* solo quello del play resta chiaro: sta sopra al pieno del colore */
 :host([ytm]) .comandi button.grosso { color: #fff; }
 :host([ytm]) .comandi button.grosso {
-  width: 92px; height: 56px; border-radius: 16px;
+  width: calc(92px * var(--lettore, 1)); height: calc(56px * var(--lettore, 1));
+  border-radius: calc(16px * var(--lettore, 1));
   background: var(--c);
   border-color: color-mix(in srgb, var(--c) 60%, transparent);
   box-shadow: 0 6px 18px color-mix(in srgb, var(--c) 38%, transparent);
 }
-:host([ytm]) .comandi button.grosso svg { width: 26px; height: 26px; }
+:host([ytm]) .comandi button.grosso svg {
+  width: calc(26px * var(--lettore, 1)); height: calc(26px * var(--lettore, 1)); }
 /* La copertina ONDEGGIA mentre suona, come nella sua card: resta tonda ma
    il bordo si deforma piano, sale e scende e ruota di un paio di gradi.
    Sono gli stessi fotogrammi della sua "fp-ondula". Da ferma sta ferma, e
@@ -2333,21 +2373,26 @@ svg.iconafondo[hidden] { display: none !important; }
   animation: none !important; }
 
 /* "Casse" e "Sorgente" vestiti come le pastiglie della sua card */
-:host([ytm]) .extra { margin-top: 12px; gap: 10px; }
+:host([ytm]) .extra { margin-top: calc(12px * var(--lettore, 1)); gap: calc(10px * var(--lettore, 1)); }
 :host([ytm]) .extra button {
-  height: 34px; padding: 0 14px; font-size: 12.5px; border-radius: 99px;
+  height: calc(34px * var(--lettore, 1)); padding: 0 calc(14px * var(--lettore, 1));
+  font-size: calc(12.5px * var(--lettore, 1)); border-radius: 99px;
   background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.06);
 }
 /* il volume: barra grossa e piena, con l'altoparlante a DESTRA come da lui */
-:host([ytm]) .cursore { margin-top: 14px; gap: 10px; }
+:host([ytm]) .cursore { margin-top: calc(14px * var(--lettore, 1)); gap: calc(10px * var(--lettore, 1)); }
 :host([ytm]) .cursore .quanto { display: none; }
-:host([ytm]) .cursore .muto { order: 2; background: none; width: 22px; height: 22px; }
-:host([ytm]) .cursore .muto svg { width: 20px; height: 20px; }
-:host([ytm]) .cursore input { height: 18px; border-radius: 99px; }
+:host([ytm]) .cursore .muto { order: 2; background: none;
+  width: calc(22px * var(--lettore, 1)); height: calc(22px * var(--lettore, 1)); }
+:host([ytm]) .cursore .muto svg {
+  width: calc(20px * var(--lettore, 1)); height: calc(20px * var(--lettore, 1)); }
+:host([ytm]) .cursore input { height: calc(18px * var(--lettore, 1)); border-radius: 99px; }
 :host([ytm]) .cursore input::-webkit-slider-thumb {
-  width: 18px; height: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  width: calc(18px * var(--lettore, 1)); height: calc(18px * var(--lettore, 1));
+  box-shadow: 0 1px 4px rgba(0,0,0,.5); }
 :host([ytm]) .cursore input::-moz-range-thumb {
-  width: 18px; height: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  width: calc(18px * var(--lettore, 1)); height: calc(18px * var(--lettore, 1));
+  box-shadow: 0 1px 4px rgba(0,0,0,.5); }
 
 
 /* --- la sua ytmusic-card montata dentro alla casella ------------------ */
@@ -2357,7 +2402,8 @@ svg.iconafondo[hidden] { display: none !important; }
 .ytattrezzi { display: flex; gap: 6px; flex-wrap: wrap; width: 100%;
   min-width: 0; }
 .ytattrezzi[hidden] { display: none !important; }
-.ytattrezzi button { all: unset; cursor: pointer; width: 30px; height: 30px;
+.ytattrezzi button { all: unset; cursor: pointer;
+  width: calc(30px * var(--lettore, 1)); height: calc(30px * var(--lettore, 1));
   display: grid; place-items: center; border-radius: 10px;
   /* fondo scuro suo, non un velo bianco: sopra a una copertina chiara e
      movimentata i tastini sparivano e non si capiva piu' dove fossero */
@@ -2369,7 +2415,7 @@ svg.iconafondo[hidden] { display: none !important; }
 .ytattrezzi button[aperto] { opacity: 1;
   background: color-mix(in srgb, var(--c) 45%, rgba(12,18,28,.6));
   border-color: color-mix(in srgb, var(--c) 55%, transparent); }
-.ytattrezzi ha-icon { --mdc-icon-size: 17px; display: block; }
+.ytattrezzi ha-icon { --mdc-icon-size: calc(17px * var(--lettore, 1)); display: block; }
 
 /* --- il cuoricino --- */
 .ytcuore { all: unset; cursor: pointer; width: 28px; height: 28px;
@@ -2951,9 +2997,46 @@ svg.iconafondo[hidden] { display: none !important; }
 /* minmax(0,1fr) e non "1fr": se no una scheda larga (il power-flow) si
    allarga la colonna e sfonda il riquadro, e da li' il taglio a destra e
    la barra di scorrimento che va e viene facendo sfarfallare tutto */
-.popup-anteprima .pa-dentro { display: grid; gap: 10px;
-  grid-template-columns: minmax(0, 1fr); }
-.popup-anteprima .pa-dentro > * { min-width: 0; max-width: 100%; overflow: hidden; }
+.popup-anteprima .pa-dentro { display: flex; flex-wrap: wrap; gap: 10px;
+  align-items: flex-start; }
+/* IL TAGLIO SEGUE GLI ANGOLI. Qui c'e' un "overflow: hidden" che serve
+   (una scheda larga sfondava la colonna dell'anteprima e faceva comparire
+   e sparire la barra di scorrimento), ma tagliava di squadro: l'alone
+   della casella accesa, che sborda apposta, veniva mozzato negli angoli e
+   si vedevano quattro sfumature quadrate. Succedeva SOLO qui, nelle
+   impostazioni, perche' questa regola vale solo per l'anteprima. Adesso il
+   taglio ha gli stessi angoli della casella. */
+/* IL QUADRATINO PER TIRARE. Nell'anteprima delle impostazioni ogni scheda
+   ha un angolo da prendere e trascinare per allargarla e alzarla, come si
+   fa con i pezzi liberi. Si vede quando ci passi sopra. */
+.popup-anteprima .vestito, .popup-anteprima .cella-mia { position: relative; }
+.popup-anteprima .maniglia {
+  position: absolute; right: 2px; bottom: 2px; width: 18px; height: 18px;
+  z-index: 4; cursor: nwse-resize; opacity: 0; touch-action: none;
+  transition: opacity .15s ease, transform .12s ease;
+  border-radius: 5px; background: var(--primary-color, #2b8ee6);
+  box-shadow: 0 0 0 2px rgba(0,0,0,.35);
+}
+.popup-anteprima .vestito:hover > .maniglia,
+.popup-anteprima .cella-mia:hover > .maniglia,
+.popup-anteprima .maniglia[tirando] { opacity: 1; transform: scale(1.25); }
+.popup-anteprima .maniglia::after {
+  content: ""; position: absolute; inset: 4px 4px auto auto;
+  width: 8px; height: 8px; border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+}
+.popup-anteprima .vestito[inmano], .popup-anteprima .cella-mia[inmano] {
+  opacity: .55; cursor: grabbing;
+  outline: 2px dashed var(--primary-color, #2b8ee6); outline-offset: -2px;
+  border-radius: var(--casa-radius, 18px);
+}
+.popup-anteprima .misurino {
+  position: absolute; right: 24px; bottom: 2px; z-index: 5;
+  background: #0b1220; color: #eaf1fb; font-size: 11px; font-weight: 700;
+  padding: 2px 6px; border-radius: 6px; pointer-events: none;
+  border: 1px solid var(--primary-color, #2b8ee6);
+}
+.popup-anteprima .pa-dentro > * { min-width: 0; max-width: 100%; overflow: hidden;
+  border-radius: var(--casa-radius, 18px); flex: 0 0 100%; }
 .cartellino-anteprima { display: flex; align-items: center; gap: 8px;
   padding: 14px; border-radius: 14px; font-size: 12px;
   color: var(--secondary-text-color, #8ea0b8);
@@ -2974,15 +3057,43 @@ svg .caricafulmine { animation-play-state: running; }
 }
 .velo[aperto] { display: flex; }
 .finestra {
-  width: min(560px, 100%); max-height: 84vh; overflow: auto;
+  /* con piu' colonne serve piu' spazio: la finestra si allarga da sola */
+  width: min(var(--fin-max, 560px), 100%); max-height: 84vh; overflow: auto;
   background: var(--fin-bg, var(--casa-popup-bg, #0f1620));
   background-size: cover; background-position: center;
   border: 1px solid var(--casa-border, #1e2b3d);
   border-radius: 26px; padding: 18px;
   box-shadow: 0 30px 80px rgba(0,0,0,.6);
-  animation: casa-entra calc(.22s / var(--vel, 1)) ease-out;
+  animation: casa-apre-sfuma var(--fin-dur, 220ms) cubic-bezier(.2,.7,.3,1);
 }
-@keyframes casa-entra { from { transform: translateY(14px) scale(.97); opacity: 0; } }
+/* COME SI APRE. Tre modi piu' il niente, si sceglie dalle impostazioni. */
+@keyframes casa-apre-sfuma { from { transform: translateY(12px); opacity: 0; } }
+@keyframes casa-apre-sboccia { from { transform: scale(.22); opacity: 0; } }
+@keyframes casa-apre-basso { from { transform: translateY(64%); opacity: 0; } }
+@keyframes casa-velo-entra { from { opacity: 0; } }
+@keyframes casa-chiude { to { transform: translateY(10px); opacity: 0; } }
+/* la finestra nasce dal punto dove sta la casella che hai toccato: il punto
+   glielo calcolo io quando apro, qui c'e' solo dove metterlo */
+:host([apertura="sboccia"]) .finestra {
+  animation-name: casa-apre-sboccia;
+  transform-origin: var(--nasce, 50% 50%);
+}
+:host([apertura="basso"]) .finestra {
+  animation-name: casa-apre-basso; transform-origin: 50% 100%;
+}
+:host([apertura="niente"]) .finestra,
+:host([apertura="niente"]) .velo[aperto] { animation: none; }
+.velo[aperto] { animation: casa-velo-entra var(--fin-dur, 220ms) ease-out; }
+/* chiudere deve sembrare piu' svelto che aprire: due terzi del tempo */
+:host([chiude]) .finestra {
+  animation: casa-chiude calc(var(--fin-dur, 220ms) * .66) ease-in forwards;
+}
+:host([chiude]) .velo[aperto] {
+  animation: casa-velo-entra calc(var(--fin-dur, 220ms) * .66) ease-in reverse forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .finestra, .velo[aperto] { animation: none !important; }
+}
 .f-testa { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .f-icona { width: 38px; height: 38px; flex: 0 0 38px; }
 .f-titolo { font-size: 18px; font-weight: 700; letter-spacing: -.01em;
@@ -2993,7 +3104,22 @@ svg .caricafulmine { animation-play-state: running; }
   font-size: 18px; line-height: 1; cursor: pointer;
 }
 .f-chiudi:hover { background: rgba(255,255,255,.16); }
-.f-corpo > * { margin-bottom: 10px; display: block; }
+/* LE SCHEDE DEL POP-UP, AFFIANCATE. Quante ne stanno per riga lo decidi
+   tu dalle impostazioni; con una sola colonna - com'e' sempre stato -
+   restano una sotto l'altra e non cambia niente. Ogni scheda puo' occupare
+   piu' di una colonna: quanto, glielo dice "--sua-col". */
+/* IN FILA, CHE VA A CAPO DA SOLA. Prima era una griglia a dodici colonne
+   e la larghezza poteva essere solo uno scatto su dodici. Cosi' invece
+   ognuna e' larga la percentuale che le si e' data - anche il 37% - e
+   quando non ci sta piu' si va a capo. Lo stacco fra le schede lo tolgo
+   dalla larghezza (vedi _stiliMisura), se no due da meta' non ci stanno. */
+.f-corpo { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; }
+.f-corpo > * { display: block; min-width: 0; flex: 0 0 100%; max-width: 100%; }
+/* Sul telefono la finestra e' larga quanto lo schermo: due schede
+   affiancate non ci starebbero, quindi ognuna si prende tutta la riga. */
+@media (max-width: 620px) {
+  .f-corpo > * { flex-basis: 100% !important; max-width: 100% !important; }
+}
 /* Le schede dentro al pop-up NON devono ereditare i colori di questa
    casella: ognuna ha i suoi. I colori viaggiano da soli da padre a figlio,
    quindi qui li azzero e ogni scheda si mette i propri. */
@@ -3008,8 +3134,20 @@ svg .caricafulmine { animation-play-state: running; }
 
 /* ogni scheda dentro al pop-up sta nella sua busta, che le da il colore */
 .f-corpo .vestito, .popup-anteprima .vestito { display: block; }
-.popup-anteprima .vestito[vestita] { border-radius: 14px; overflow: hidden; }
-.f-corpo .vestito[vestita] { border-radius: 14px; overflow: hidden; }
+/* LA BUSTA DEVE AVERE GLI STESSI ANGOLI DELLA CASELLA CHE CONTIENE.
+   Aveva 14 punti di raggio mentre la casella ne ha 18: negli angoli
+   restava scoperto uno spicchio della busta, che si vedeva come una
+   sfumatura quadrata. E "overflow: hidden" tagliava di netto l'alone
+   della casella accesa, che sborda apposta: per questo il difetto si
+   vedeva sulle caselle accese e non su quelle spente. */
+.popup-anteprima .vestito[vestita],
+.f-corpo .vestito[vestita] { border-radius: var(--casa-radius, 18px); }
+/* IL TAGLIO SEGUE GLI ANGOLI. Dando un'altezza a una scheda, il suo
+   riquadro taglia quello che avanza: senza angoli arrotondati mozzava
+   l'alone della casella accesa e si vedevano quattro sfumature quadrate.
+   Vale per le buste del pop-up e per le caselle dentro alle griglie. */
+.f-corpo .vestito, .popup-anteprima .vestito,
+.griglia-mia > .cella-mia { border-radius: var(--casa-radius, 18px); }
 @media (prefers-reduced-motion: reduce) { svg .an { animation: none !important; } }
 `;
 
@@ -3227,6 +3365,21 @@ function fotoDi(st) {
 // dall'elemento apposta: serve a ritrovarlo se Home Assistant, mentre si
 // modificano le impostazioni, rifa' la casella da zero.
 const PANNELLI_APERTI = new Map();
+
+// DOVE ERAVAMO ARRIVATI NELLA COLONNA DELL'ANTEPRIMA.
+// Quando si cambia un'impostazione, Home Assistant non aggiorna la casella:
+// la butta e ne fa una nuova (tutte quante, anche quelle dentro al pop-up).
+// La nuova nasce staccata dalla pagina, quindi da sola non puo' sapere
+// niente. Il segno va tenuto qui fuori, legato alla colonna: quella non
+// cambia mai, e cosi' sopravvive al ricambio.
+const SEGNI_ANTEPRIMA = new WeakMap();
+
+// QUALE SCHEDA DEL POP-UP STA MODIFICANDO. Serve a tenere ferma LEI mentre
+// cambia misura: se si sta allargando l'ultima e uno e' scorso in fondo,
+// rimpicciolendola il contenuto si accorcia proprio sotto di lui e il fondo
+// pagina gli viene incontro. Tenendo ferma la scheda che ha in mano, invece,
+// si muove solo quello che le sta sotto.
+const SCHEDA_APERTA = { indice: null };
 // L'ultima ricerca fatta, per casella: nell'anteprima delle impostazioni la
 // casella viene rifatta da capo a ogni ritocco, e senza questo il riquadro
 // si riapriva sì, ma vuoto - parola cancellata e risultati spariti.
@@ -3726,6 +3879,14 @@ class CasaTile extends HTMLElement {
           ? true : this._base.yt_cuore };
     }
     this._config = this._base;
+    // IL SEGNO DELLA COLONNA DI DESTRA. Ogni ritocco ridisegna la casella,
+    // che per un attimo e' piu' corta: il browser tronca lo scorrimento e
+    // lui perde di vista proprio la scheda che sta modificando. Mi segno
+    // dove sta PRIMA che cambi qualcosa.
+    // Questo tocca SOLO la colonna dell'anteprima: se non la riconosco
+    // (per esempio sulla plancia vera) non fa niente - vedi
+    // _scorrevoleAnteprima.
+    this._segnoAnteprima();
     this._firmaLettori = null;
     // La cassa ricordata la rimetto SOLO se non ne sto gia' seguendo una.
     // Prima la rimettevo sempre: e siccome l'anteprima delle impostazioni
@@ -3927,8 +4088,8 @@ class CasaTile extends HTMLElement {
   // basta un cartellino con il nome.
   _pesante(cfg) {
     const t = String((cfg && cfg.type) || "").toLowerCase();
-    // le nostre caselle si costruiscono sempre: sono leggere, e la diretta
-    // gliela spengo qui sotto
+    // le nostre caselle si costruiscono sempre: sono leggere, e alla
+    // telecamera qui sotto rallento la diretta (uno scatto ogni due minuti)
     if (t === "custom:casa-tile") return false;
     if (t.indexOf("camera") >= 0 || t.indexOf("webrtc") >= 0
       || t.indexOf("frigate") >= 0 || t.indexOf("stream") >= 0) return true;
@@ -3948,9 +4109,209 @@ class CasaTile extends HTMLElement {
     return d;
   }
 
+  // LA COLONNA DELL'ANTEPRIMA, E SOLO QUELLA. Quando rifaccio il contenuto
+  // del pop-up quella colonna si accorcia e risale in cima, e lui perde di
+  // vista proprio la scheda che sta modificando.
+  // ATTENZIONE: qui va preso il contenitore dell'ANTEPRIMA, non il primo
+  // che scorre. Il primo che scorre puo' essere quello che tiene TUTTE E
+  // DUE le colonne, e allora tirandolo sposto anche le impostazioni - era
+  // il difetto di prima, saltavano tutte e due. Se non riconosco la colonna
+  // dell'anteprima non faccio niente: meglio fermo che storto.
+  _scorrevoleAnteprima() {
+    if (this._boxAnt && this._boxAnt.isConnected) return this._boxAnt;
+    // La cerco PER NOME salendo: nella finestra di Home Assistant la
+    // colonna dell'anteprima si chiama "element-preview". Prima pretendevo
+    // anche che risultasse scorrevole nel momento in cui guardavo, e se in
+    // quell'istante il contenuto ci stava dentro la lasciavo perdere per
+    // sempre. Adesso basta il nome: e' lei, e nessun'altra.
+    const su = (x) => (x.parentNode ? x.parentNode : (x.host || null));
+    let n = su(this);
+    for (let i = 0; i < 30 && n; i += 1) {
+      const cl = n.nodeType === 1 ? n.classList : null;
+      if (cl && (cl.contains("element-preview") || cl.contains("card-preview")
+        || cl.contains("preview-container"))) {
+        this._boxAnt = n;
+        this._spiaLaColonna(n);
+        return n;
+      }
+      n = su(n);
+    }
+    // Rete di sicurezza: se il nome non lo trovo (versioni diverse di Home
+    // Assistant), prendo il primo contenitore che scorre - ma SOLO se
+    // dentro non ci sono anche le impostazioni. Se le contiene e' quello
+    // condiviso dalle due colonne, e tirarlo sposterebbe anche loro: quello
+    // lo tiene gia' l'editor per conto suo.
+    n = su(this);
+    for (let i = 0; i < 30 && n; i += 1) {
+      if (n.nodeType === 1 && n.scrollHeight > n.clientHeight + 4) {
+        const come = getComputedStyle(n).overflowY;
+        if (come === "auto" || come === "scroll") {
+          if (this._contieneImpostazioni(n)) return null;
+          this._boxAnt = n;
+          this._spiaLaColonna(n);
+          return n;
+        }
+      }
+      n = su(n);
+    }
+    return null;
+  }
+
+  // LA COLONNA SI SEGNA DA SOLA DOVE STA. Non posso aspettare che la
+  // casella se ne vada per chiederglielo: quando se ne accorge, il browser
+  // ha gia' azzerato lo scorrimento (il contenuto e' sparito e quel posto
+  // non esiste piu'). Allora e' la colonna a tenere il conto, mentre lui
+  // scorre. E le posizioni che arrivano mentre il contenuto e' accorciato
+  // non contano: quelle sono il salto, non una sua scelta.
+  // dove sta, dentro al contenuto, la scheda che sta modificando
+  _ancoraScheda(box) {
+    const carta = box.__casaCarta;
+    const i = SCHEDA_APERTA.indice;
+    if (!carta || !carta.shadowRoot || i === null || i === undefined) return null;
+    const b = carta.shadowRoot.querySelector(
+      '.pa-dentro .vestito[data-n="' + i + '"]');
+    if (!b) return null;
+    const rb = b.getBoundingClientRect();
+    const rx = box.getBoundingClientRect();
+    if (!rb.height) return null;
+    return Math.round(rb.top - rx.top + box.scrollTop);
+  }
+
+  _spiaLaColonna(box) {
+    if (!box || box.__casaSpia) return;
+    box.__casaSpia = true;
+    SEGNI_ANTEPRIMA.set(box, { dove: box.scrollTop, pieno: box.scrollHeight });
+    box.addEventListener("scroll", () => {
+      const m = SEGNI_ANTEPRIMA.get(box) || { dove: 0, pieno: 0 };
+      if (box.scrollHeight > m.pieno) m.pieno = box.scrollHeight;
+      // Mentre sto rimettendo a posto non do retta a niente: gli
+      // spostamenti di questi istanti sono il salto e i miei stessi
+      // ripassi, non una scelta sua. Senza questo mi segnavo lo zero del
+      // salto e da li' in poi rimettevo lo zero.
+      if (box.__casaFino && Date.now() < box.__casaFino) return;
+      if (box.scrollHeight >= m.pieno * 0.9) {
+        m.dove = box.scrollTop;
+        m.ancora = this._ancoraScheda(box);
+        // stava guardando proprio il FONDO? Allora il punto fermo e' il
+        // fondo, non il numero: sotto l'ultima scheda non c'e' niente che
+        // tenga su la pagina, e ogni volta che quella cambia misura il
+        // fondo gli viene incontro. Restando incollati al fondo, invece,
+        // non si muove niente.
+        m.alFondo = box.scrollTop >= box.scrollHeight - box.clientHeight - 6;
+        m.quando = Date.now();
+      }
+      SEGNI_ANTEPRIMA.set(box, m);
+    }, { passive: true });
+  }
+
+  // c'e' dentro anche il riquadro delle impostazioni? (guarda anche dentro
+  // ai gusci, ma senza esagerare: e' una risposta che si da' una volta sola)
+  _contieneImpostazioni(box) {
+    let visti = 0;
+    const cerca = (radice) => {
+      const roba = radice.querySelectorAll ? radice.querySelectorAll("*") : [];
+      for (let i = 0; i < roba.length; i += 1) {
+        visti += 1;
+        if (visti > 3000) return true;
+        const el = roba[i];
+        if (el.localName === "casa-tile-editor"
+          || el.localName === "hui-card-element-editor") return true;
+        if (el.shadowRoot && cerca(el.shadowRoot)) return true;
+      }
+      return false;
+    };
+    try { return cerca(box); } catch (e) { return true; }
+  }
+
+  _tornaDovEravamo() {
+    const box = this._scorrevoleAnteprima();
+    if (!box) return;
+    // da adesso la casella buona per le misure sono io
+    box.__casaCarta = this;
+    // quello che la colonna si e' segnata mentre lui scorreva. Se e' zero
+    // vuol dire che sta guardando l'inizio: non c'e' niente da rimettere.
+    const segno = SEGNI_ANTEPRIMA.get(box);
+    if (!segno || !(segno.dove > 4)) return;
+    // ATTENZIONE: in questo istante lo scorrimento e' ANCORA dov'era - il
+    // browser lo azzera un attimo dopo, quando rifa i conti. Qui prima
+    // controllavo "e' gia' a posto?" e buttavo via il segno: e infatti non
+    // rimetteva mai niente. Il ripasso va messo in piedi comunque.
+    const dove = segno.dove;
+    const inizio = Date.now();
+    box.__casaFino = Date.now() + 1400;
+    let mollato = false;
+    const molla = () => { mollato = true; box.__casaFino = 0; };
+    ["wheel", "touchmove", "keydown"].forEach((ev) =>
+      box.addEventListener(ev, molla, { passive: true, once: true }));
+    const rimetti = () => {
+      if (mollato || !box.isConnected) return;
+      // Se sta modificando una scheda, e' LEI il punto fermo: la rimetto
+      // dove stava sullo schermo, invece di rimettere il numero dello
+      // scorrimento. Cosi' allargandola e stringendola non gli si muove
+      // sotto gli occhi quello che sta guardando.
+      let mira = dove;
+      if (segno.alFondo) {
+        mira = Math.max(0, box.scrollHeight - box.clientHeight);
+      } else {
+        const ora = this._ancoraScheda(box);
+        if (segno.ancora !== null && segno.ancora !== undefined && ora !== null) {
+          mira = Math.max(0, dove + (ora - segno.ancora));
+        }
+      }
+      const fondo = box.scrollHeight - box.clientHeight;
+      if (mira > fondo) {
+        // quel posto non c'e' (ancora?). Per i primi istanti aspetto: il
+        // contenuto si sta ancora ricostruendo e fra poco si allunga. Dopo,
+        // vuol dire che la scheda si e' proprio accorciata: allora lo
+        // porto al fondo, che e' il piu' vicino possibile a dov'era. Senza
+        // questo, rimpicciolendo la scheda restava piantato in cima.
+        if (Date.now() - inizio < 400) return;
+        mira = Math.max(0, fondo);
+      }
+      if (box.scrollTop !== mira) box.scrollTop = mira;
+    };
+    rimetti();
+    requestAnimationFrame(rimetti);
+    (this._segni || []).forEach((t) => clearTimeout(t));
+    this._segni = [60, 150, 300, 500, 800, 1200]
+      .map((quando) => setTimeout(rimetti, quando));
+    this._segni.push(setTimeout(() => {
+      ["wheel", "touchmove", "keydown"].forEach((ev) =>
+        box.removeEventListener(ev, molla));
+    }, 1400));
+  }
+
+  _segnoAnteprima() {
+    let box = null;
+    try { box = this._scorrevoleAnteprima(); } catch (e) { box = null; }
+    if (!box) return;
+    if (box.scrollHeight <= box.clientHeight + 4) return;
+    const dove = box.scrollTop;
+    if (!dove) return;
+    const rimetti = () => {
+      if (!box.isConnected) return;
+      // finche' il contenuto non e' tornato lungo quel posto non esiste:
+      // aspetto il giro dopo invece di sbattere in fondo
+      if (dove > box.scrollHeight - box.clientHeight) return;
+      if (box.scrollTop !== dove) box.scrollTop = dove;
+    };
+    rimetti();
+    requestAnimationFrame(rimetti);
+    // Le schede del pop-up si ricostruiscono una per una e ci mettono un
+    // po': con venti caselle mezzo secondo non basta.
+    (this._segni || []).forEach((t) => clearTimeout(t));
+    this._segni = [60, 150, 300, 500, 800, 1200]
+      .map((quando) => setTimeout(rimetti, quando));
+  }
+
   async _disegnaAntPopup() {
     const box = this._antPopup;
     if (!box) return;
+    // MENTRE TIRA L'ANGOLO NON SI TOCCA NIENTE. Se no arriva un valore da
+    // casa, rifaccio il giro delle schede, ognuna si riprende la misura
+    // scritta nelle impostazioni - che e' ancora quella vecchia - e la
+    // scheda torna indietro sotto le sue dita.
+    if (this._tirando) return;
     const c = this._config || {};
     const schede = c.finestra_cards || (c.finestra_card ? [c.finestra_card] : null);
     // nel riquadro dove si trascinano i pezzi voglio SOLO la casella:
@@ -3962,7 +4323,21 @@ class CasaTile extends HTMLElement {
     box.hidden = !mostra;
     if (!mostra) { box.innerHTML = ""; this._firmaAnt = null; return; }
 
-    const firma = JSON.stringify(schede);
+    // LA MISURA NON CONTA NELLA FIRMA. Se cambia solo il layout di una
+    // scheda - ed e' quello che succede a ogni scatto mentre trascini il
+    // cursore - non c'e' niente da rifare: basta rivestire le schede che
+    // ci sono gia'. Rifacendo tutto, il contenuto spariva per un attimo a
+    // ogni scatto e la colonna saltava in cima.
+    // LA MISURA NON ENTRA NELLA FIRMA, nemmeno quella delle caselle dentro
+    // a una griglia: se no tirando l'angolo di una casella rifacevo tutto
+    // il pop-up a ogni scatto, con il lampeggio e la colonna che salta.
+    const senzaMisura = (c) => {
+      const x = { ...(c || {}) };
+      delete x.grid_options;
+      if (Array.isArray(x.cards)) x.cards = x.cards.map(senzaMisura);
+      return x;
+    };
+    const firma = JSON.stringify(schede.map(senzaMisura));
     if (this._firmaAnt === firma) {
       // I valori glieli do UNA volta sola: e' un'anteprima, serve a far
       // vedere com'e' fatto il pop-up, non a tenerlo aggiornato. Prima
@@ -3977,28 +4352,39 @@ class CasaTile extends HTMLElement {
           try { el.hass = this._hass; } catch (e) { /* pazienza */ }
         });
       }
+      this._misureFinestra(box.querySelector(".pa-dentro"));
       box.querySelectorAll(".vestito").forEach((b) =>
         this._vestiScheda(b, Number(b.dataset.n) || 0));
+      this._rimisuraCelle(box);
       this._largoAntPopup();
       return;
     }
     this._firmaAnt = firma;
+    this._segnoAnteprima();
     box.innerHTML = "<div class='titoletto'>Contenuto del pop-up</div>";
     const dentro = document.createElement("div");
     dentro.className = "pa-dentro";
+    this._misureFinestra(dentro);
     box.appendChild(dentro);
     this._anteprimaSchede = [];
     try {
       const aiuti = await window.loadCardHelpers();
-      schede.forEach((cfg, i) => {
+      this._pezziFinestra().forEach((pezzo) => {
+        const cfg = pezzo.cfg;
+        const i = pezzo.chiave;
         try {
-          // nell'anteprima niente diretta della telecamera: e' la cosa che
-          // mangia piu' memoria di tutte
+          // LA TELECAMERA VA IN DIRETTA ANCHE NELL'ANTEPRIMA, esattamente
+          // come nella casella vera. Prima gliela spegnevo (la diretta e' la
+          // cosa che mangia piu' memoria, e qui dentro di caselle ce ne
+          // possono essere venti) e la sua casella veniva fuori vuota: non
+          // si capiva nemmeno cosa ci sarebbe stato. Adesso non le tocco
+          // niente - se il riquadro delle impostazioni si appesantisce con
+          // molte telecamere, il posto dove rimediare e' questo.
           const suo = { ...cfg };
-          if (suo.camera_diretta) delete suo.camera_diretta;
-          const el = this._pesante(suo)
-            ? this._cartellino(suo)
-            : aiuti.createCardElement(suo);
+          const el = this._eGriglia(suo)
+            ? this._costruisciGriglia(suo, aiuti, this._anteprimaSchede)
+            : (this._pesante(suo) ? this._cartellino(suo)
+              : aiuti.createCardElement(suo));
           el.hass = this._hass;
           el._ebbeValori = !!this._hass;
           const busta = document.createElement("div");
@@ -4008,6 +4394,23 @@ class CasaTile extends HTMLElement {
           busta.appendChild(el);
           dentro.appendChild(busta);
           this._anteprimaSchede.push(el);
+          // il quadratino per tirare: alla scheda intera e, se e' una
+          // griglia, a ognuna delle sue caselle
+          // il quadratino della misura solo a chi nel riquadro "Dove va
+          // ogni pezzo" non ci puo' andare: le caselle nostre si toccano e
+          // si sistemano di la', grandezza compresa
+          const nostra = (x) => String((x || {}).type || "") === "custom:casa-tile";
+          if (!nostra(suo)) this._attaccaManiglia(busta, String(i), 12, dentro, 10);
+          this._attaccaSposta(busta, String(i), dentro, "vestito");
+          busta.querySelectorAll(".griglia-mia > .cella-mia").forEach((cella) => {
+            const g = cella.parentElement;
+            const k = Number(cella.dataset.k);
+            if (!nostra((suo.cards || [])[k])) {
+              this._attaccaManiglia(cella, i + "." + cella.dataset.k,
+                Math.max(1, Number(g.dataset.colonne) || 3), g, 8);
+            }
+            this._attaccaSposta(cella, i + "." + cella.dataset.k, g, "cella-mia");
+          });
         } catch (e) { /* una scheda che non va non ferma le altre */ }
       });
     } catch (e) { /* niente aiuti: pazienza */ }
@@ -4025,6 +4428,9 @@ class CasaTile extends HTMLElement {
       if (!scelta || !scelta._config) return;
       e.preventDefault();
       e.stopPropagation();
+      // se ho appena lasciato una scheda spostata, quel click e' la coda
+      // dello spostamento: non deve anche cambiare la scheda scelta
+      if (this._appenaSpostato && Date.now() - this._appenaSpostato < 500) return;
       this.dispatchEvent(new CustomEvent("casa-scegli-scheda", {
         detail: { config: scelta._config, elemento: scelta },
         bubbles: true, composed: true,
@@ -4465,6 +4871,7 @@ class CasaTile extends HTMLElement {
     this._fIcona = root.querySelector(".f-icona");
     this._fTitolo = root.querySelector(".f-titolo");
     this._fCorpo = root.querySelector(".f-corpo");
+    this._finestra = root.querySelector(".finestra");
     this._velo.addEventListener("click", (e) => {
       if (e.target === this._velo) this._chiudiFinestra();
     });
@@ -4624,6 +5031,9 @@ class CasaTile extends HTMLElement {
       colori: [".colori"],
       attrezzi: [".ytattrezzi"],
       cuore: [".ytcuore"],
+      // l'icona grande e sbiadita dietro alle scritte: era l'unica che non
+      // si poteva prendere
+      sfondo: ["svg.iconafondo"],
     };
     // la barra e i tasti tengono la loro larghezza in percentuale: non sono
     // scritte, allargarli o stringerli e' proprio quello che vuole
@@ -4699,11 +5109,15 @@ class CasaTile extends HTMLElement {
           if (larghi[chi] && isFinite(dove.h) && el.offsetHeight) {
             const rc2 = rcFile || (rcFile = this.riquadroCasella());
             if (rc2 && rc2.height > 10) {
-              const altoOra = el.offsetHeight / rc2.height * 100;
+              // misurato come e' salvato: sul video e senza l'ingrandimento
+              const altoOra = (el.getBoundingClientRect().height
+                / this.quantoIngrandito(el)) / rc2.height * 100;
               qui = { ...dove, y: dove.y + (dove.h - altoOra) / 2, h: altoOra };
             }
           }
-          this._posaPezzo(el, qui, chi === "icona", larghi[chi]);
+          // il timbro e' un disegno quadrato come l'icona: stessa regola
+          this._posaPezzo(el, qui, chi === "icona" || chi === "sfondo",
+            larghi[chi]);
         } else {
           el.style.left = "";
           el.style.top = "";
@@ -4859,6 +5273,13 @@ class CasaTile extends HTMLElement {
       if (isFinite(dove.h)) {
         el.style.height = dove.h + "%";
         el.style.maxHeight = "none";
+        // e LARGA QUANTO E' ALTA. L'altezza e' una percentuale della
+        // casella, la larghezza la decideva il foglio di stile: due numeri
+        // che vanno per conto loro, e appena la casella cambia forma il
+        // tondo diventa un ovale. Con "auto" la larghezza esce dall'altezza
+        // (i disegni sono tutti quadrati) e resta tonda comunque.
+        el.style.width = "auto";
+        el.style.maxWidth = "none";
       }
       return;
     }
@@ -4870,6 +5291,19 @@ class CasaTile extends HTMLElement {
     el.style.width = "max-content";
     const spazio = aDestra ? (dove.x + w) : (100 - dove.x);
     el.style.maxWidth = "calc(" + Math.max(15, Math.round(spazio)) + "% - 6px)";
+  }
+
+  // DI QUANTO E' INGRANDITO QUESTO PEZZO. Serve per togliere
+  // l'ingrandimento dalle misure: se no lo salvo dentro alla misura e poi
+  // me lo ritrovo applicato una seconda volta sopra.
+  quantoIngrandito(el) {
+    try {
+      const m = getComputedStyle(el).transform;
+      if (!m || m === "none") return 1;
+      const n = m.match(/matrix\(\s*([-\d.]+)/);
+      const k = n ? Math.abs(parseFloat(n[1])) : 1;
+      return (isFinite(k) && k > 0.05) ? k : 1;
+    } catch (e) { return 1; }
   }
 
   // Sto dentro alla plancia in modifica? In modifica Home Assistant mi
@@ -4920,6 +5354,45 @@ class CasaTile extends HTMLElement {
   // metto della misura che ho davvero sulla plancia: guardare un'anteprima
   // larga il doppio e poi trovarsi la casella stretta e' il modo migliore
   // per comporre una disposizione che poi non ci sta.
+  // Dalle impostazioni mi chiedono di far vedere come si apre: apro la
+  // finestra qui, con quello che c'e' scritto adesso nelle impostazioni -
+  // senza aspettare che salvi.
+  _ascoltaProve() {
+    if (this._ascoltoProve) return;
+    const preso = (e) => {
+      const suo = (e && e.detail && e.detail.config) || {};
+      const mia = this._config || {};
+      if (!this.isConnected || !this._dentroAnteprima()) return;
+      if (this._dentroUnAltraAnteprima()) return;
+      if (String(suo.entity || "") !== String(mia.entity || "")
+        || String(suo.name || "") !== String(mia.name || "")) return;
+      try {
+        this._config = { ...this._config, ...suo };
+        this._apriFinestra();
+      } catch (er) { /* pazienza */ }
+    };
+    window.addEventListener("casa-prova-apertura", preso, true);
+    this._ascoltoProve = () =>
+      window.removeEventListener("casa-prova-apertura", preso, true);
+  }
+
+  // Qualcuno ha cambiato la mia grandezza dal riquadro delle impostazioni:
+  // la misura segnata e' cambiata e io mi devo rivestire.
+  _ascoltaRivestiti() {
+    if (this._ascoltoVesti) return;
+    const preso = (e) => {
+      const d = (e && e.detail && e.detail.config) || {};
+      const mia = this._config || {};
+      if (String(d.entity || "") !== String(mia.entity || "")
+        || String(d.name || "") !== String(mia.name || "")) return;
+      this._anteprimaVestita = null;
+      this._vestiAnteprima();
+    };
+    window.addEventListener("casa-rivestiti", preso, true);
+    this._ascoltoVesti = () =>
+      window.removeEventListener("casa-rivestiti", preso, true);
+  }
+
   _vestiAnteprima() {
     if (this.hasAttribute("solo-casella")) return;
     // dentro alla finestra delle impostazioni sto fermo: niente animazioni
@@ -5042,11 +5515,17 @@ class CasaTile extends HTMLElement {
     const st = getComputedStyle(card);
     const bs = parseFloat(st.borderLeftWidth) || 0;
     const ba = parseFloat(st.borderTopWidth) || 0;
+    // DI QUANTO E' RIMPICCIOLITA. Il riquadro delle impostazioni puo' far
+    // vedere la casella piu' piccola di com'e' (la guarda da lontano): le
+    // misure prese sullo schermo sono ridotte, quelle dell'impaginazione
+    // no. Mescolarle vuol dire sbagliare ogni percentuale del tanto di cui
+    // e' ridotta - ed e' quello che succedeva.
+    const f = card.offsetWidth > 0 ? r.width / card.offsetWidth : 1;
     return {
-      left: r.left + bs,
-      top: r.top + ba,
-      width: card.clientWidth || r.width,
-      height: card.clientHeight || r.height,
+      left: r.left + bs * f,
+      top: r.top + ba * f,
+      width: (card.clientWidth || r.width) * f,
+      height: (card.clientHeight || r.height) * f,
     };
   }
 
@@ -5067,6 +5546,7 @@ class CasaTile extends HTMLElement {
       colori: ".colori:not([hidden])",
       attrezzi: ".ytattrezzi:not([hidden])",
       cuore: ".ytcuore:not([hidden])",
+      sfondo: "svg.iconafondo:not([hidden])",
     };
     const fuori = {};
     const segna = (chi, el) => {
@@ -5185,7 +5665,13 @@ class CasaTile extends HTMLElement {
                  return disegnoBatteria(b.perc, b.carica, b.scarica); })()
       : (ICONE[nomeIco] || disegnoMdi(nomeIco) || ICONE.luce);
     riempiRiquadro(this._fIcona, nomeIco);
+    this._vestiApertura();
+    this.removeAttribute("chiude");
     this._velo.toggleAttribute("aperto", true);
+    // "sboccia dalla casella" ha bisogno di sapere DOVE sta la casella:
+    // glielo dico adesso, che la finestra e' appena comparsa e la sua
+    // posizione si puo' misurare
+    if (this.getAttribute("apertura") === "sboccia") this._puntoDiNascita();
     document.addEventListener("keydown", this._esc = (e) => {
       if (e.key === "Escape") this._chiudiFinestra();
     });
@@ -5215,11 +5701,566 @@ class CasaTile extends HTMLElement {
     return this._montaSchede(schede);
   }
 
+  // le schede del pop-up, cosi' come stanno scritte
+  _schedeFinestra() {
+    const c = this._config || {};
+    return c.finestra_cards || (c.finestra_card ? [c.finestra_card] : []) || [];
+  }
+
+  // LA GRIGLIA LA DISEGNO IO, CON LE SUE COLONNE.
+  // La griglia di Home Assistant fa le caselle tutte uguali e la misura dei
+  // figli la ignora: non c'e' verso di dare a una casella una misura sua.
+  // Allora la rifaccio: stesse colonne che ha lei (cinque restano cinque,
+  // la disposizione non cambia di un pelo), ma ogni casella puo' prendersi
+  // piu' di una colonna. La misura la scrivo in dodicesimi come dappertutto
+  // e qui la riporto sulle colonne che ci sono: con cinque colonne, 12 = 5,
+  // 6 = 2, 3 = 1.
+  _costruisciGriglia(cfg, aiuti, figli) {
+    // Se la griglia non dice quante colonne vuole, Home Assistant ne fa
+    // TRE: se ne mettessi due la disposizione cambierebbe da sola.
+    const quante = Math.max(1, Math.min(12,
+      Math.round(Number(cfg.columns) > 0 ? Number(cfg.columns) : 3)));
+    const g = document.createElement("div");
+    g.className = "griglia-mia";
+    g.dataset.colonne = String(quante);
+    // in fila che va a capo, non a colonne fisse: cosi' una casella puo'
+    // essere larga quanto le pare, non solo uno scatto su cinque
+    g.style.display = "flex";
+    g.style.flexWrap = "wrap";
+    g.style.gap = "8px";
+    // OGNUNA ALTA QUANTO VUOLE LEI. In una griglia le caselle di una riga
+    // si allungano tutte insieme: alzandone una si alzavano anche le altre
+    // quattro, che non e' quello che uno chiede quando cambia l'altezza di
+    // UNA casella. Cosi' invece ognuna tiene la sua.
+    g.style.alignItems = "flex-start";
+    (cfg.cards || []).forEach((c, k) => {
+      const cc = c || {};
+      let el = null;
+      try {
+        el = this._pesante(cc) ? this._cartellino(cc) : aiuti.createCardElement(cc);
+      } catch (e) { return; }
+      try { el.hass = this._hass; } catch (e) { /* pazienza */ }
+      // Dentro a una griglia la misura si conta nelle SUE colonne: 1 vuol
+      // dire una colonna (il normale, come fa Home Assistant), 5 su una
+      // griglia da cinque vuol dire tutta la riga.
+      const cella = document.createElement("div");
+      cella.className = "cella-mia";
+      cella.dataset.k = String(k);
+      cella.style.minWidth = "0";
+      const mis = this._misuraDi(cc, quante);
+      this._stiliMisura(cella, mis.largo, mis.alto, 8);
+      // LA CASELLA RIEMPIE LA SUA CELLA. Prima alzavo la cella e la casella
+      // restava piccola in cima, col buco sotto: l'altezza deve prenderla
+      // lei, non il vuoto intorno.
+      cella.appendChild(el);
+      this._riempiBusta(cella);
+      g.appendChild(cella);
+      if (figli) figli.push(el);
+    });
+    return g;
+  }
+
+  // IL QUADRATINO PER TIRARE.
+  // Nell'anteprima del pop-up ogni scheda ha il suo, nell'angolo in basso a
+  // destra: si tiene premuto e si trascina, verso destra per allargarla e
+  // verso il basso per alzarla. Mentre si trascina la scheda si muove
+  // subito (se no sembra che non risponda) e alla fine la misura viene
+  // scritta nelle impostazioni, che ci pensa l'editor.
+  // "chiave" dice a chi appartiene: "2" e' la terza scheda, "2.1" la
+  // seconda casella della terza scheda quando quella e' una griglia.
+  _attaccaManiglia(cella, chiave, quante, contenitore, stacco) {
+    if (!cella || cella._maniglia) return;
+    const m = document.createElement("div");
+    m.className = "maniglia";
+    m.title = "Tieni premuto e trascina per cambiare la misura di questa scheda";
+    const targa = document.createElement("div");
+    targa.className = "misurino";
+    cella._maniglia = m;
+    cella.appendChild(m);
+    const g = Number(stacco) || 10;
+
+    // Le misure comode: mezza riga, un terzo, un quarto... Se il dito
+    // passa a un pelo da una di queste ci si appoggia, cosi' allineare due
+    // schede non e' un lavoro di precisione. Per tutto il resto la misura
+    // e' quella che si vede: 37%, 62%, quello che gli pare.
+    const COMODE = [100, 75, 200 / 3, 50, 100 / 3, 25, 20];
+    const appoggia = (q) => {
+      for (let i = 0; i < COMODE.length; i += 1) {
+        if (Math.abs(q - COMODE[i]) < 2.2) return COMODE[i];
+      }
+      return q;
+    };
+
+    let preso = null;
+    let inCorso = 0;
+    // a ogni pixel mi segno solo dov'e' il dito; il disegno si fa una volta
+    // per fotogramma, se no si arranca
+    const disegna = () => {
+      inCorso = 0;
+      if (!preso) return;
+      const dx = preso.px - preso.x;
+      const dy = preso.py - preso.y;
+      if (Math.abs(dy) > 8) preso.mossoY = true;
+      // la larghezza in percentuale di riga: la scheda e' larga
+      // "percentuale meno la sua parte di stacco", quindi il conto si
+      // rigira cosi'
+      const largo = Math.max(8, Math.min(100,
+        ((preso.w + dx + g) / (preso.cw + g)) * 100));
+      preso.largo = appoggia(largo);
+      preso.alto = Math.max(40, Math.min(4000, Math.round(preso.h + dy)));
+      this._stiliMisura(cella, preso.largo,
+        preso.mossoY ? preso.alto : 0, g);
+      this._riempiBusta(cella);
+      targa.textContent = Math.round(preso.largo) + "%"
+        + (preso.mossoY ? " \u00d7 " + preso.alto : "");
+    };
+    const giu = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const r = cella.getBoundingClientRect();
+      const cont = contenitore || cella.parentElement;
+      preso = {
+        x: e.clientX, y: e.clientY, px: e.clientX, py: e.clientY,
+        w: r.width, h: r.height,
+        cw: (cont && cont.clientWidth) || r.width,
+        largo: 0, alto: 0, mossoY: false,
+      };
+      m.setAttribute("tirando", "");
+      this._tirando = String(chiave);
+      cella.appendChild(targa);
+      try { m.setPointerCapture(e.pointerId); } catch (x) { /* pazienza */ }
+      window.addEventListener("pointermove", muovi, true);
+      window.addEventListener("pointerup", su, true);
+      window.addEventListener("pointercancel", su, true);
+    };
+    const muovi = (e) => {
+      if (!preso) return;
+      e.preventDefault();
+      e.stopPropagation();
+      preso.px = e.clientX;
+      preso.py = e.clientY;
+      if (!inCorso) inCorso = requestAnimationFrame(disegna);
+    };
+    const su = (e) => {
+      window.removeEventListener("pointermove", muovi, true);
+      window.removeEventListener("pointerup", su, true);
+      window.removeEventListener("pointercancel", su, true);
+      // un ultimo giro con la posizione buona: se lascio il dito fra un
+      // fotogramma e l'altro, l'ultimo tratto non si deve perdere
+      if (inCorso) cancelAnimationFrame(inCorso);
+      inCorso = 0;
+      if (preso && e) { preso.px = e.clientX; preso.py = e.clientY; }
+      disegna();
+      m.removeAttribute("tirando");
+      if (targa.parentElement) targa.remove();
+      // Il fermo lo tolgo un attimo dopo: la misura nuova deve prima fare
+      // il giro delle impostazioni e tornare indietro, se no l'ultimo
+      // rivestimento la cancella sul filo di lana.
+      clearTimeout(this._scordaTiro);
+      this._scordaTiro = setTimeout(() => {
+        this._tirando = null;
+        // e le schede si rimettono la misura che c'e' scritta adesso
+        this._disegnaAntPopup();
+      }, 700);
+      if (!preso) return;
+      const fatto = preso;
+      preso = null;
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      if (!fatto.largo) return;
+      this.dispatchEvent(new CustomEvent("casa-misura-scheda", {
+        detail: {
+          chiave: String(chiave),
+          largo: Math.round(fatto.largo * 10) / 10,
+          alto: fatto.mossoY ? fatto.alto : null,
+          quante,
+          config: this._config,
+        },
+        bubbles: true,
+        composed: true,
+      }));
+    };
+    m.addEventListener("pointerdown", giu);
+    // un tocco sul quadratino non deve anche scegliere la scheda
+    m.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
+  }
+
+  // TIENI PREMUTO E SPOSTA, come si fa con i pezzi dentro alla casella.
+  // Si tiene premuto un attimo su una scheda dell'anteprima: si stacca, e
+  // trascinandola fra le altre si mette dove la si lascia. Fuori si muove
+  // fra le schede del pop-up, dentro a una griglia fra le sue caselle.
+  // Il quadratino della misura resta fuori da questo giro: li' si tira, non
+  // si sposta.
+  _attaccaSposta(cella, chiave, contenitore, classe) {
+    if (!cella || cella._sposta) return;
+    cella._sposta = true;
+    let attesa = 0;
+    let preso = null;
+    let partito = null;
+    let inCorso = 0;
+    const dito = { x: 0, y: 0 };
+
+    const fratelli = () => Array.prototype.filter.call(contenitore.children,
+      (x) => x.classList && x.classList.contains(classe));
+
+    // La selezione del testo, spenta e riaccesa. La spengo dove serve
+    // davvero: sulla pagina intera, perche' trascinando si passa sopra a
+    // tutto, non solo sopra alle schede.
+    let primaSel = null;
+    const selezione = (accesa) => {
+      const corpo = document.body;
+      if (!accesa) {
+        if (primaSel === null && corpo) primaSel = corpo.style.userSelect || "";
+        if (corpo) {
+          corpo.style.userSelect = "none";
+          corpo.style.webkitUserSelect = "none";
+        }
+        contenitore.style.userSelect = "none";
+        contenitore.style.webkitUserSelect = "none";
+        try {
+          const sel = (cella.getRootNode() || document).getSelection
+            ? (cella.getRootNode()).getSelection() : window.getSelection();
+          if (sel && sel.removeAllRanges) sel.removeAllRanges();
+        } catch (e) { /* pazienza */ }
+        return;
+      }
+      if (corpo) {
+        corpo.style.userSelect = primaSel === null ? "" : primaSel;
+        corpo.style.webkitUserSelect = "";
+      }
+      primaSel = null;
+      contenitore.style.userSelect = "";
+      contenitore.style.webkitUserSelect = "";
+    };
+
+    // il tocco finale di uno spostamento non deve fare altro
+    const inghiotti = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      cella.removeEventListener("click", inghiotti, true);
+    };
+
+    const molla = () => {
+      clearTimeout(attesa);
+      attesa = 0;
+      if (inCorso) { cancelAnimationFrame(inCorso); inCorso = 0; }
+      window.removeEventListener("pointermove", muovi, true);
+      window.removeEventListener("pointerup", su, true);
+      window.removeEventListener("pointercancel", su, true);
+    };
+
+    const giu = (e) => {
+      // sul quadratino della misura non si sposta: li' si tira
+      const via = e.composedPath ? e.composedPath() : [];
+      for (let i = 0; i < via.length; i += 1) {
+        if (via[i] === cella) break;
+        if (via[i] && via[i].classList && via[i].classList.contains("maniglia")) return;
+        // c'e' una scheda piu' dentro (una casella di una griglia): tocca
+        // a lei, non a me che la contengo
+        if (via[i] && via[i]._sposta) return;
+      }
+      partito = {
+        x: e.clientX, y: e.clientY, id: e.pointerId,
+        mouse: String(e.pointerType || "mouse") === "mouse",
+      };
+      preso = null;
+      window.addEventListener("pointermove", muovi, true);
+      window.addEventListener("pointerup", su, true);
+      window.addEventListener("pointercancel", su, true);
+      // Col DITO ci vuole un attimo di attesa: se no ogni scorrimento
+      // della pagina diventerebbe uno spostamento. Col mouse no: si preme
+      // e si trascina subito, e la presa parte al primo movimento (vedi
+      // "muovi"). L'attesa la lascio comunque, per chi tiene premuto fermo.
+      attesa = setTimeout(prendi, partito.mouse ? 220 : 260);
+    };
+
+    // la scheda si stacca e da qui in poi il tocco e' mio
+    const prendi = () => {
+      clearTimeout(attesa);
+      attesa = 0;
+      if (preso || !partito) return;
+      preso = true;
+      this._tirando = "sposto";
+      cella.setAttribute("inmano", "");
+      cella.style.touchAction = "none";
+      // e niente selezione del testo: trascinando, il mouse evidenziava di
+      // blu tutte le scritte che incontrava per strada
+      selezione(false);
+      cella.addEventListener("click", inghiotti, true);
+      // quando lo mollo non deve anche premere il pulsante della scheda
+      // che ho in mano
+      // e il tocco lo prendo davvero: cosi' il cursore sotto le dita non
+      // si muove mentre porto in giro la scheda
+      try { cella.setPointerCapture(partito.id); } catch (x) { /* pazienza */ }
+    };
+
+    const muovi = (e) => {
+      if (!partito) return;
+      // se si muove prima che sia passato l'attimo, era solo uno
+      // scorrimento della pagina: lascio perdere
+      if (attesa) {
+        const dx = Math.abs(e.clientX - partito.x);
+        const dy = Math.abs(e.clientY - partito.y);
+        if (dx < 6 && dy < 6) return;
+        // col mouse muoversi VUOL DIRE spostare: si parte subito
+        if (partito.mouse) { prendi(); } else {
+          // col dito invece era solo uno scorrimento della pagina
+          clearTimeout(attesa); attesa = 0; molla(); partito = null;
+          return;
+        }
+      }
+      if (!preso) return;
+      e.preventDefault();
+      e.stopPropagation();
+      dito.x = e.clientX;
+      dito.y = e.clientY;
+      if (!inCorso) inCorso = requestAnimationFrame(sistema);
+    };
+
+    // e il rimescolamento si fa una volta per fotogramma: chiedere la
+    // misura di tutte le schede a ogni pixel faceva scattare il
+    // trascinamento
+    const sistema = () => {
+      inCorso = 0;
+      if (!preso) return;
+      let dove = null;
+      fratelli().forEach((f) => {
+        if (f === cella) return;
+        const r = f.getBoundingClientRect();
+        if (dito.x >= r.left && dito.x <= r.right
+          && dito.y >= r.top && dito.y <= r.bottom) dove = f;
+      });
+      if (!dove) return;
+      const r = dove.getBoundingClientRect();
+      // le schede larghe stanno una sotto l'altra: li' conta l'alto e il
+      // basso, non la destra e la sinistra
+      const larga = r.width > (contenitore.clientWidth || 1) * 0.8;
+      const dopo = larga
+        ? (dito.y - r.top) > r.height / 2
+        : (dito.x - r.left) > r.width / 2;
+      contenitore.insertBefore(cella, dopo ? dove.nextSibling : dove);
+    };
+
+    const su = (e) => {
+      const eraPreso = preso;
+      if (eraPreso && e) { dito.x = e.clientX; dito.y = e.clientY; sistema(); }
+      molla();
+      partito = null;
+      preso = null;
+      cella.removeAttribute("inmano");
+      cella.style.touchAction = "";
+      selezione(true);
+      // se il tocco finale non arriva (dito uscito dalla scheda) me lo
+      // tolgo di mezzo da solo, se no il prossimo tocco sparisce
+      setTimeout(() => cella.removeEventListener("click", inghiotti, true), 400);
+      clearTimeout(this._scordaTiro);
+      this._scordaTiro = setTimeout(() => {
+        this._tirando = null;
+        // l'ordine e' cambiato: il pop-up va rifatto da capo, se no le
+        // schede restano dove le ho lasciate a mano e i loro numeri non
+        // corrispondono piu' a quello che c'e' scritto nelle impostazioni
+        this._firmaAnt = null;
+        this._disegnaAntPopup();
+      }, 400);
+      if (!eraPreso) return;
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      // e adesso non deve anche "scegliere" la scheda che ho lasciato
+      this._appenaSpostato = Date.now();
+      const dove = fratelli().indexOf(cella);
+      if (dove < 0) return;
+      const parti = String(chiave).split(".");
+      const nuova = parti.length === 1 ? String(dove) : parti[0] + "." + dove;
+      if (nuova === String(chiave)) return;
+      this.dispatchEvent(new CustomEvent("casa-sposta-scheda", {
+        detail: { chiave: String(chiave), a: nuova, config: this._config },
+        bubbles: true,
+        composed: true,
+      }));
+    };
+
+    // ASCOLTO PER PRIMO, mentre il tocco scende. Molte schede se lo
+    // prendono e non lo lasciano passare oltre (un pulsante, un cursore):
+    // stando sotto al loro, su quelle non partivo mai.
+    cella.addEventListener("pointerdown", giu, true);
+  }
+
+  // LA SCHEDA RIEMPIE LA SUA BUSTA. Alzando la busta, la scheda restava
+  // piccola in cima e sotto veniva fuori un vuoto: l'altezza in piu' deve
+  // prendersela lei.
+  _riempiBusta(busta) {
+    if (!busta) return;
+    const alta = !!(busta.style.height || busta.style.minHeight);
+    // le caselle di una griglia stanno in colonna sempre, anche senza
+    // un'altezza data: e' cosi' che la scheda dentro riempie la sua cella
+    const inColonna = alta || busta.classList.contains("cella-mia");
+    busta.style.display = inColonna ? "flex" : "";
+    busta.style.flexDirection = inColonna ? "column" : "";
+    const dentro = busta.firstElementChild;
+    if (!dentro || dentro.classList.contains("maniglia")
+      || dentro.classList.contains("misurino")) return;
+    dentro.style.flex = inColonna ? "1 1 auto" : "";
+    dentro.style.minHeight = inColonna ? "0" : "";
+    // e se e' una casella nostra le dico di non difendersi con la sua
+    // altezza minima: se no resta alta com'era e viene solo tagliata
+    if (dentro.localName === "casa-tile") {
+      dentro.toggleAttribute("misura-fissa", alta);
+    }
+  }
+
+  // Ripassa la misura delle caselle dentro alle griglie: serve quando
+  // cambia solo la misura e il pop-up non viene rifatto da capo.
+  _rimisuraCelle(dove) {
+    if (!dove || this._tirando) return;
+    dove.querySelectorAll(".vestito[data-n]").forEach((busta) => {
+      this._riempiBusta(busta);
+      const pezzo = this._pezzoDi(busta.dataset.n);
+      const cfg = (pezzo && pezzo.cfg) || {};
+      if (!Array.isArray(cfg.cards)) return;
+      const g = busta.querySelector(".griglia-mia");
+      if (!g) return;
+      const quante = Math.max(1, Math.min(12, Math.round(
+        Number(cfg.columns) > 0 ? Number(cfg.columns) : 3)));
+      g.querySelectorAll(":scope > .cella-mia").forEach((cella) => {
+        const suo = (cfg.cards || [])[Number(cella.dataset.k)] || {};
+        const mis = this._misuraDi(suo, quante);
+        this._stiliMisura(cella, mis.largo, mis.alto, 8);
+        this._riempiBusta(cella);
+      });
+    });
+  }
+
+  // e' una griglia con roba dentro?
+  _eGriglia(cfg) {
+    return String((cfg || {}).type || "") === "grid"
+      && Array.isArray(cfg.cards) && cfg.cards.length > 0;
+  }
+
+  // COSA VA DAVVERO DENTRO AL POP-UP, pezzo per pezzo.
+  // Una GRIGLIA non la faccio disegnare a lei: le tolgo il guscio e metto
+  // le sue caselle direttamente nella griglia del pop-up, una per una.
+  // Sembra identico - stessa quantita' per riga - ma cosi' ognuna puo'
+  // avere la SUA misura, cosa che dentro alla griglia di Home Assistant e'
+  // impossibile (lei le fa tutte uguali e la misura dei figli la ignora).
+  // La chiave "3.2" vuol dire: terza scheda, la sua terza casella.
+  // Una scheda, un pezzo. Avevo provato ad APRIRE le griglie - togliere il
+  // guscio e mettere le loro caselle una per una nella griglia del pop-up,
+  // per dare a ognuna la sua misura - ma cosi' la disposizione cambia: le
+  // dodici colonne non si dividono per cinque, e le cinque prese in fila
+  // diventavano sei per riga. La griglia la disegna Home Assistant, come
+  // ha sempre fatto, e le sue caselle restano come lui le ha messe.
+  _pezziFinestra() {
+    return this._schedeFinestra().map((cfg, i) => ({
+      cfg: cfg || {}, chiave: String(i), base: 12,
+    }));
+  }
+
+  // la configurazione di un pezzo, data la sua chiave
+  _pezzoDi(chiave) {
+    const p = String(chiave === undefined || chiave === null ? "" : chiave);
+    const pezzi = this._pezziFinestra();
+    for (let i = 0; i < pezzi.length; i += 1) {
+      if (pezzi[i].chiave === p) return pezzi[i];
+    }
+    return null;
+  }
+
+  // QUANTO E' GRANDE UNA SCHEDA, in percentuale di riga e in punti.
+  // "base" e' quante ne stanno in fila quando nessuno dice niente: dodici
+  // per il pop-up (una scheda si prende tutta la riga), le colonne della
+  // griglia quando la scheda sta dentro a una.
+  // Le misure vecchie di Home Assistant continuano a valere: 4 colonne su
+  // 12 sono un terzo di riga, 3 righe sono 184 punti.
+  _misuraDi(cfg, base) {
+    const c = cfg || {};
+    const b = Number(base) >= 1 ? Number(base) : 12;
+    const mio = c.casa_misura || {};
+    let largo = Number(mio.largo);
+    let alto = Number(mio.alto);
+    if (!(largo > 0)) {
+      const g = c.grid_options || {};
+      const col = g.columns === "full" ? b : Number(g.columns);
+      largo = (isFinite(col) && col >= 1)
+        ? (Math.min(col, b) / b) * 100
+        : (b === 12 ? 100 : 100 / b);
+    }
+    if (!(alto > 0)) {
+      const r = Number((c.grid_options || {}).rows);
+      if ((c.grid_options || {}).rows !== "auto" && isFinite(r) && r >= 1) {
+        alto = r * 56 + (r - 1) * 8;
+      }
+    }
+    return {
+      largo: Math.max(4, Math.min(100, largo)),
+      alto: alto > 0 ? Math.round(alto) : 0,
+    };
+  }
+
+  // e qui la misura diventa stile. Lo stacco fra le schede lo tolgo dalla
+  // larghezza: se no due da meta' riga non ci stanno in fila e vanno a
+  // capo (meta' piu' meta' piu' lo stacco fa piu' di una riga).
+  _stiliMisura(el, largo, alto, stacco) {
+    if (!el) return;
+    const q = Math.max(4, Math.min(100, Number(largo) || 100));
+    const g = Number(stacco) || 10;
+    const tolgo = Math.round(g * (1 - q / 100) * 100) / 100;
+    const quanto = "calc(" + (Math.round(q * 100) / 100) + "% - " + tolgo + "px)";
+    el.style.flex = "0 0 " + quanto;
+    el.style.maxWidth = quanto;
+    const a = Number(alto) || 0;
+    el.style.height = a > 0 ? a + "px" : "";
+    // un pezzo in fila non si stringe sotto al suo contenuto se non
+    // glielo si dice: senza questo l'altezza veniva ignorata
+    el.style.minHeight = a > 0 ? "0" : "";
+    el.style.overflow = a > 0 ? "hidden" : "";
+  }
+
+  // la misura della scheda numero i del pop-up
+  _misuraPezzo(i) {
+    const pezzo = this._pezzoDi(i);
+    const m = this._misuraDi((pezzo && pezzo.cfg) || {}, 12);
+    if (m.largo === 100 && !m.alto) {
+      // le impostazioni delle versioni vecchie, per chi le aveva gia'
+      const suoi = Array.isArray((this._config || {}).finestra_schede_stile)
+        ? this._config.finestra_schede_stile : [];
+      const v = suoi[Number(i)] || {};
+      const l = Number(v.largo);
+      if (isFinite(l) && l >= 1 && l < 12) m.largo = (l / 12) * 100;
+      const a = Number(v.alto);
+      if (a > 0) m.alto = Math.round(a);
+    }
+    return m;
+  }
+
+  // QUANTO E' LARGA LA FINESTRA. La decide lui, dalle impostazioni: di
+  // suo sono 560 punti, uguali per tutti i pop-up. Prima la allargavo da
+  // sola quando le schede stavano affiancate, e quel pop-up veniva fuori
+  // diverso da tutti gli altri senza che nessuno l'avesse chiesto.
+  _misureFinestra(dove) {
+    if (!dove) return;
+    const suo = Number((this._config || {}).finestra_largo);
+    const larga = (isFinite(suo) && suo >= 320) ? Math.min(1600, suo) : 560;
+    dove.style.setProperty("--fin-max", Math.round(larga) + "px");
+  }
+
   // che colore ha la scheda numero i: prima il suo, poi quello generale
   _vestiScheda(busta, i) {
     const c = this._config;
+    // la tinta si puo' rimettere sempre, la MISURA no: mentre tira e'
+    // sua e nessuno gliela deve cambiare
+    const tira = !!this._tirando;
     const suoi = Array.isArray(c.finestra_schede_stile) ? c.finestra_schede_stile : [];
     const mio = suoi[i] || {};
+    // La misura viene PRIMA del colore: una scheda senza tinta esce di qui
+    // subito, e se la mettessi dopo resterebbe della misura sbagliata.
+    if (!tira) {
+      const m = this._misuraPezzo(i);
+      this._stiliMisura(busta, m.largo, m.alto, 10);
+      this._riempiBusta(busta);
+    }
+    // L'ALTEZZA A RIGHE E' UN MINIMO, NON UNA GABBIA. Prima le davo la
+    // misura esatta e tagliavo quello che avanzava (come fa la plancia):
+    // risultato, mettendo poche righe la scheda spariva mezza. Qui dentro
+    // e' meglio che cresca: le righe la fanno alta almeno tanto, e se il
+    // contenuto ne vuole di piu' se le prende invece di essere nascosto.
     const tinta = Array.isArray(mio.sfondo) ? daRgb(mio.sfondo)
       : (Array.isArray(c.finestra_schede_sfondo) ? daRgb(c.finestra_schede_sfondo) : null);
     const via = mio.trasparenza !== undefined && mio.trasparenza !== null
@@ -5227,7 +6268,12 @@ class CasaTile extends HTMLElement {
       : (c.finestra_schede_trasparenza === undefined
         ? null : Number(c.finestra_schede_trasparenza));
     if (!tinta && (via === null || via === 0)) {
-      busta.removeAttribute("style");
+      // Qui c'era "removeAttribute(style)": buttava via TUTTO, compresa la
+      // misura appena scritta due righe sopra, e le schede senza tinta
+      // restavano tutte della stessa larghezza. Tolgo solo i colori.
+      ["--ha-card-background", "--card-background-color",
+        "--ha-card-border-color", "--ha-card-box-shadow", "--card-bg"]
+        .forEach((k) => busta.style.removeProperty(k));
       busta.toggleAttribute("vestita", false);
       return;
     }
@@ -5235,6 +6281,9 @@ class CasaTile extends HTMLElement {
     const base = tinta || "#141d2b";
     busta.style.setProperty("--ha-card-background", conAlfa(base, opaco));
     busta.style.setProperty("--card-background-color", conAlfa(base, opaco));
+    // le caselle nostre disegnano il fondo con "--card-bg": se ne hanno uno
+    // loro vince quello (se lo scrivono addosso), se no prendono questo
+    busta.style.setProperty("--card-bg", conAlfa(base, opaco));
     busta.style.setProperty("--ha-card-border-color",
       conAlfa(base, Math.min(1, opaco + 0.18)));
     busta.style.setProperty("--ha-card-box-shadow", "none");
@@ -5244,10 +6293,18 @@ class CasaTile extends HTMLElement {
   async _montaSchede(schede) {
     try {
       const helpers = await window.loadCardHelpers();
+      this._misureFinestra(this._fCorpo);
+      if (this._finestra) this._misureFinestra(this._finestra);
       this._schede = [];
-      schede.forEach((cfg, i) => {
+      // le griglie si aprono: le loro caselle diventano pezzi a se', cosi'
+      // ognuna puo' avere la sua misura (vedi _pezziFinestra)
+      this._pezziFinestra().forEach((pezzo) => {
+        const cfg = pezzo.cfg;
+        const i = pezzo.chiave;
         try {
-          const el = helpers.createCardElement(cfg);
+          const el = this._eGriglia(cfg)
+            ? this._costruisciGriglia(cfg, helpers, this._schede)
+            : helpers.createCardElement(cfg);
           el.hass = this._hass;
           // ogni scheda dentro il pop-up si veste per conto suo
           const busta = document.createElement("div");
@@ -5270,11 +6327,61 @@ class CasaTile extends HTMLElement {
   }
 
   _chiudiFinestra() {
-    this._velo.toggleAttribute("aperto", false);
     if (this._esc) { document.removeEventListener("keydown", this._esc); this._esc = null; }
+    const modo = this.getAttribute("apertura") || "";
+    let dura = 0;
+    if (modo && modo !== "niente") {
+      const n = Number((this._config || {}).finestra_apertura_durata);
+      dura = Math.round((isFinite(n) && n >= 60 ? n : 220) * 0.66);
+    }
+    clearTimeout(this._chiusuraDopo);
+    if (!dura) {
+      this.removeAttribute("chiude");
+      this._velo.toggleAttribute("aperto", false);
+      return;
+    }
+    // il tempo di far vedere la chiusura, poi si spegne davvero
+    this.setAttribute("chiude", "");
+    this._chiusuraDopo = setTimeout(() => {
+      this.removeAttribute("chiude");
+      this._velo.toggleAttribute("aperto", false);
+    }, dura + 20);
+  }
+
+  // il modo e la velocita' scelti, dati al foglio di stile
+  _vestiApertura() {
+    const c = this._config || {};
+    const modo = ["sfuma", "sboccia", "basso", "niente"]
+      .indexOf(c.finestra_apertura) >= 0 ? c.finestra_apertura : "sfuma";
+    this.setAttribute("apertura", modo);
+    const n = Number(c.finestra_apertura_durata);
+    this.style.setProperty("--fin-dur",
+      Math.round(isFinite(n) && n >= 60 ? Math.min(2000, n) : 220) + "ms");
+  }
+
+  // DOVE NASCE LA FINESTRA: il centro della casella che ha toccato, contato
+  // dentro alla finestra. Cosi' crescendo sembra che venga da li'.
+  _puntoDiNascita() {
+    try {
+      const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
+      const fin = this._finestra;
+      if (!card || !fin) return;
+      const r = card.getBoundingClientRect();
+      const f = fin.getBoundingClientRect();
+      if (!r.width || !f.width) return;
+      const x = Math.round(r.left + r.width / 2 - f.left);
+      const y = Math.round(r.top + r.height / 2 - f.top);
+      this.style.setProperty("--nasce", x + "px " + y + "px");
+    } catch (e) { /* pazienza: nasce dal centro */ }
   }
 
   _aggiornaFinestra() {
+    this._misureFinestra(this._fCorpo);
+    if (this._finestra) this._misureFinestra(this._finestra);
+    if (this._fCorpo) {
+      this._fCorpo.querySelectorAll(".vestito").forEach((b) =>
+        this._vestiScheda(b, Number(b.dataset.n) || 0));
+    }
     if (this._schede) this._schede.forEach((el) => { el.hass = this._hass; });
   }
 
@@ -5646,6 +6753,12 @@ class CasaTile extends HTMLElement {
   }
 
   disconnectedCallback() {
+    // l'ascolto del rivestimento sta sulla finestra: me lo riprendo, se no
+    // se ne accumula uno a ogni casella che passa di qui
+    if (this._ascoltoVesti) { this._ascoltoVesti(); this._ascoltoVesti = null; }
+    if (this._ascoltoProve) { this._ascoltoProve(); this._ascoltoProve = null; }
+    clearTimeout(this._ancoraLettore);
+    this._ancoraLettore = 0;
     clearTimeout(this._riMisuro);
     this._riMisuro = 0;
     clearTimeout(this._disegnoDopo);
@@ -5709,6 +6822,8 @@ class CasaTile extends HTMLElement {
     if (this._altaPrima !== h || this._largaPrima !== q.width) {
       this._altaPrima = h;
       this._largaPrima = q.width;
+      this._giriLettore = 0;
+      this._scalaLettore();
       const mio = this.getBoundingClientRect();
       this._ricordaMisura(mio.width, mio.height);
       this._vestiAnteprima();
@@ -5717,6 +6832,71 @@ class CasaTile extends HTMLElement {
       if (this.hasAttribute("liberi")) this._mettiAPosto();
     }
     this._decidiCompatta();
+  }
+
+  // IL LETTORE SI FA DELLA MISURA CHE GLI DAI.
+  // Niente misura di riferimento inventata: guardo quanto posto c'e' nella
+  // casella e quanto ne vuole il contenuto, e aggiusto la scala finche' i
+  // due numeri combaciano. Casella piu' alta, lettore piu' grande; casella
+  // bassa, lettore piu' piccolo ma tutto dentro invece che tagliato a
+  // meta'. Con l'altezza automatica il posto e' esattamente quello che
+  // serve, quindi non c'e' niente da aggiustare e non tocco niente.
+  _scalaLettore() {
+    const c = this._config || {};
+    const dominio = c.entity ? c.entity.split(".")[0] : "";
+    const modo = c.disposizione || (dominio === "media_player" ? "vinile" : "");
+    // "vinile" e "ytmusic" sono lo stesso lettore con due vestiti diversi
+    if (modo !== "vinile" && modo !== "ytmusic") {
+      if (this._lettoreScala) {
+        this._lettoreScala = 0;
+        this.style.removeProperty("--lettore");
+      }
+      return;
+    }
+    const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
+    if (!card) return;
+    const posto = card.clientHeight;
+    // Dove comincia il primo pezzo e dove finisce l'ultimo. I pezzi
+    // staccati dal flusso - la copertina di sfondo, il cielo, il velo -
+    // non contano: stanno dietro e non chiedono posto.
+    let su = Infinity;
+    let giu = -Infinity;
+    Array.prototype.forEach.call(card.children, (f) => {
+      if (f.hidden) return;
+      let st = null;
+      try { st = getComputedStyle(f); } catch (e) { return; }
+      if (!st || st.display === "none") return;
+      if (st.position === "absolute" || st.position === "fixed") return;
+      const r = f.getBoundingClientRect();
+      if (!(r.height > 0)) return;
+      if (r.top < su) su = r.top;
+      if (r.bottom > giu) giu = r.bottom;
+    });
+    if (!isFinite(su) || !isFinite(giu)) return;
+    const vuole = (giu - su) + 28;
+    if (!(posto > 40) || !(vuole > 40)) return;
+    const ora = this._lettoreScala || 1;
+    const quanto = posto / vuole;
+    // ci sta gia' come si deve: non c'e' niente da fare
+    if (quanto > 0.97 && quanto < 1.03) { this._giriLettore = 0; return; }
+    // con calma: un pezzo per volta, se no si mette a rimbalzare fra
+    // troppo grande e troppo piccolo
+    let s = ora + (ora * quanto - ora) * 0.6;
+    s = Math.max(0.45, Math.min(1.8, Math.round(s * 20) / 20));
+    if (s === ora) { this._giriLettore = 0; return; }
+    this._lettoreScala = s;
+    this.style.setProperty("--lettore", String(s));
+    // Cambiando la scala cambia quanto posto vuole il contenuto, ma la
+    // casella resta grande uguale: nessuno mi richiamerebbe. Mi do' io un
+    // altro giro, e non piu' di dieci: se dopo dieci non ci siamo, meglio
+    // fermarsi che ballare per sempre.
+    this._giriLettore = (this._giriLettore || 0) + 1;
+    if (this._giriLettore > 10) return;
+    clearTimeout(this._ancoraLettore);
+    this._ancoraLettore = setTimeout(() => {
+      this._ancoraLettore = 0;
+      if (this.isConnected) this._scalaLettore();
+    }, 60);
   }
 
   // la stessa decisione ma con l'altezza gia' saputa: il disegno passa di
@@ -5805,6 +6985,10 @@ class CasaTile extends HTMLElement {
   }
 
   connectedCallback() {
+    // Appena sono nella pagina rimetto la colonna dell'anteprima dove
+    // stava: e' il momento buono, prima ero staccato e non avevo nessuna
+    // colonna sotto di me.
+    try { this._tornaDovEravamo(); } catch (e) { /* pazienza */ }
     // cambiato posto: le risposte che mi ero segnato non valgono piu'
     this._postoSalvato = null;
     this._inSportello = undefined;
@@ -5815,6 +6999,8 @@ class CasaTile extends HTMLElement {
     }
     this._sonoAnteprima = undefined;
     this._anteprimaVestita = null;
+    this._ascoltaRivestiti();
+    this._ascoltaProve();
     this._largaPrima = null;
     this._annidata = undefined;
     this._altaPrima = null;
@@ -7448,7 +8634,14 @@ class CasaTile extends HTMLElement {
         || !this._coord || !this._coord.length) return;
     const q = this._andamento.getBoundingClientRect();
     const x = e.clientX - q.left;
-    if (x < 0 || x > q.width || !q.width) { this._nascondiMirino(); return; }
+    // e ANCHE il su e giu': il grafico e' largo quanto la casella, quindi
+    // guardando solo di lato "dentro al grafico" voleva dire dappertutto -
+    // bastava passare su una misura e usciva il cartellino del grafico.
+    // Sei punti di tolleranza sopra: la striscia e' alta trentotto e
+    // mirarla al pixel non e' un piacere.
+    const y = e.clientY - q.top;
+    if (x < 0 || x > q.width || !q.width
+      || y < -6 || y > q.height + 2) { this._nascondiMirino(); return; }
     const quota = (x / q.width) * 100;
     let vicino = 0;
     for (let i = 1; i < this._coord.length; i += 1) {
@@ -7652,6 +8845,9 @@ class CasaTile extends HTMLElement {
       .includes(dominio);
     const mostra = !!c.mostra_cursore && buono && !!st;
     this._cursore.hidden = !mostra;
+    // il numerino in fondo alla barra: spesso e' un doppione della
+    // percentuale grande in mezzo alla casella
+    this.toggleAttribute("senzaquanto", !!c.nascondi_quanto);
     if (!mostra) return;
 
     // i valori impostabili hanno i loro limiti e la loro unita'
@@ -8697,6 +9893,9 @@ const SEZIONI = [
         ] } } },
         { name: "grande", selector: { boolean: {} } },
       ] },
+      { titolo: "Colore della scritta",
+        colori: ["colore_testo", "colore_valore"], schema: [
+      ] },
       { titolo: "Effetti", schema: [
         { name: "effetto", selector: { select: { mode: "dropdown", options: [
           { value: "alone", label: "Alone - morbido" },
@@ -8728,9 +9927,6 @@ const SEZIONI = [
         { name: "intensita", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
         { name: "velocita", selector: { number: { min: 25, max: 300, step: 5, mode: "slider" } } },
       ] },
-      { titolo: "Colore della scritta",
-        colori: ["colore_testo", "colore_valore"], schema: [
-      ] },
     ],
   },
   {
@@ -8759,6 +9955,11 @@ const SEZIONI = [
         { name: "sfondo_velo",
           selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
       ] },
+      { titolo: "La copertina del brano come sfondo", schema: [
+        { name: "sfondo_copertina", selector: { boolean: {} } },
+        { name: "sfondo_sfocatura",
+          selector: { number: { min: 0, max: 24, step: 1, mode: "slider" } } },
+      ] },
       { titolo: "Il cielo del meteo", schema: [
         { name: "sfondo_meteo", selector: { boolean: {} } },
         { name: "meteo_forza",
@@ -8772,6 +9973,7 @@ const SEZIONI = [
     gruppi: [
       { titolo: "Barra dentro la casella", schema: [
         { name: "mostra_cursore", selector: { boolean: {} } },
+        { name: "nascondi_quanto", selector: { boolean: {} } },
         {
           type: "grid", name: "", schema: [
             { name: "cursore_min", selector: { number: { mode: "box" } } },
@@ -8809,20 +10011,13 @@ const SEZIONI = [
   {
     chiave: "musica", titolo: "Musica", segno: "🎵",
     gruppi: [
-      { titolo: "Comandi", schema: [
+      { titolo: "Comandi del lettore", schema: [
         { name: "comandi_media", selector: { boolean: {} } },
         { name: "tempo_media", selector: { boolean: {} } },
         { name: "gira_copertina", selector: { boolean: {} } },
         { name: "yt_attrezzi", selector: { boolean: {} } },
         { name: "coda", selector: { boolean: {} } },
         { name: "yt_cuore", selector: { boolean: {} } },
-      ] },
-      { titolo: "La copertina come sfondo", schema: [
-        { name: "sfondo_copertina", selector: { boolean: {} } },
-        { name: "sfondo_sfocatura",
-          selector: { number: { min: 0, max: 24, step: 1, mode: "slider" } } },
-      ] },
-      { titolo: "La tua ytmusic-card dentro alla casella", schema: [
       ] },
       { titolo: "Casse e sorgenti", schema: [
         { name: "lettori", selector: { entity: { domain: "media_player", multiple: true } } },
@@ -8864,7 +10059,31 @@ const SEZIONI = [
         { name: "servizio_dati", selector: { text: { multiline: true } } },
         { name: "indirizzo_web", selector: { text: {} } },
         { name: "popup", selector: { text: {} } },
+      ] },
+    ],
+  },
+  {
+    // TUTTO IL POP-UP IN UN POSTO SOLO. Prima meta' stava in "Tocco" e
+    // l'elenco delle schede pure: per cambiare due cose dello stesso
+    // pop-up bisognava girare fra i gruppi.
+    chiave: "popup", titolo: "Pop-up", segno: "🪟",
+    gruppi: [
+      { schema: [
         { name: "finestra_titolo", selector: { text: {} } },
+      ] },
+      { titolo: "Come si apre", schema: [
+        { name: "finestra_apertura", selector: { select: { mode: "dropdown", options: [
+          { value: "sfuma", label: "Sale e sfuma - discreta" },
+          { value: "sboccia", label: "Sboccia dalla casella che hai toccato" },
+          { value: "basso", label: "Entra dal basso, come un cassetto" },
+          { value: "niente", label: "Nessuna animazione" },
+        ] } } },
+        { name: "finestra_apertura_durata",
+          selector: { number: { min: 80, max: 2000, step: 20, mode: "slider" } } },
+      ] },
+      { titolo: "Quanto e largo il pop-up", schema: [
+        { name: "finestra_largo",
+          selector: { number: { min: 400, max: 1400, step: 20, mode: "slider" } } },
       ] },
       { titolo: "Come e vestito il pop-up",
         colori: ["finestra_sfondo"], schema: [
@@ -8878,6 +10097,12 @@ const SEZIONI = [
       ] },
     ],
   },
+  {
+    // "Dove va ogni pezzo" e' un lavoro a se': si prende la casella e si
+    // trascinano i pezzi. Appeso in fondo ai colori non lo trovava nessuno.
+    chiave: "pezzi", titolo: "Pezzi", segno: "✋",
+    gruppi: [],
+  },
 ];
 
 // campi che compaiono solo con una certa azione al tocco
@@ -8890,6 +10115,8 @@ const DIPENDE = {
   camera_secondi: (c) => !!c.camera_diretta,
   sfondo_adatta: (c) => !!c.sfondo_immagine || !!c.camera_diretta,
   sfondo_sfocatura: (c) => !!c.sfondo_copertina,
+  finestra_apertura_durata: (c) => (c.finestra_apertura || "sfuma") !== "niente",
+  nascondi_quanto: (c) => !!c.mostra_cursore,
   cursore_min: (c) => !!c.mostra_cursore,
   cursore_max: (c) => !!c.mostra_cursore,
   colore_striscia: (c) => !!c.cursore_colore,
@@ -8909,6 +10136,8 @@ const DIPENDE = {
 const SOLO_AZIONE = {
   servizio: "servizio", servizio_dati: "servizio",
   indirizzo_web: "link", popup: "popup", finestra_titolo: "finestra",
+  finestra_apertura: "finestra", finestra_apertura_durata: "finestra",
+  finestra_largo: "finestra",
   finestra_sfondo: "finestra", finestra_trasparenza: "finestra",
   finestra_immagine: "finestra", finestra_schede_sfondo: "finestra",
   finestra_schede_trasparenza: "finestra",
@@ -8989,6 +10218,7 @@ const ETICHETTE = {
   info_entita: "Misure mostrate in basso (aggiungine altre da qui)",
   info_nomi_auto: "Scrivi un nome anche sulle misure che non hai chiamato tu",
   mostra_cursore: "Barra dentro la casella (luci, ventole, musica, valori da impostare)",
+  nascondi_quanto: "Nascondi il numerino in fondo alla barra",
   cursore_colore: "Striscia del colore dentro la casella",
   colore_striscia: "Quale striscia mostrare",
   cursore_min: "La barra parte da (lascia vuoto = minimo dell'entita)",
@@ -9023,6 +10253,9 @@ const ETICHETTE = {
   servizio: "Servizio da chiamare (es. number.set_value)",
   servizio_dati: "Dati del servizio, in YAML (es. value: 95)",
   finestra_titolo: "Titolo del pop-up",
+  finestra_apertura: "Come si apre la finestra",
+  finestra_apertura_durata: "Quanto dura l'apertura (millesimi di secondo)",
+  finestra_largo: "Larghezza del pop-up in punti (vuoto = 560, come tutti gli altri)",
   finestra_sfondo: "Tinta della finestra del pop-up (le schede dentro hanno la loro, qui sotto)",
   finestra_trasparenza: "Trasparenza del pop-up (%)",
   finestra_immagine: "Foto di sfondo del pop-up - indirizzo, es. /local/foto.jpg",
@@ -9197,13 +10430,34 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .trovato input { width: 18px; height: 18px; accent-color: var(--primary-color, #03a9f4);
   flex: 0 0 18px; }
 /* il quadratino giallo con la freccina: si tiene premuto e il pezzo cresce */
+/* IL QUADRATINO DELLA GRANDEZZA DELLA CASELLA. Stesso giallo di quello
+   dei pezzi, ma un filo piu' grosso: quello cambia un pezzo, questo
+   cambia tutta la casella. */
+.pista-grandezza {
+  position: absolute; z-index: 6; width: 22px; height: 22px;
+  border-radius: 7px; background: #ffc400; cursor: nwse-resize;
+  touch-action: none;
+  box-shadow: 0 2px 7px rgba(0,0,0,.55), 0 0 0 2px rgba(0,0,0,.35);
+  display: grid; place-items: center; transition: transform .12s ease;
+}
+.pista-grandezza::after { content: ""; width: 9px; height: 9px;
+  margin: -2px -2px 0 0;
+  border-right: 2.5px solid #241a02; border-bottom: 2.5px solid #241a02; }
+.pista-grandezza:hover { transform: scale(1.15); }
+.pista-grandezza.inmano { transform: scale(1.3); }
+.pista-grandezza[hidden] { display: none !important; }
+.pista-grande-targa {
+  position: absolute; z-index: 7; pointer-events: none;
+  background: #0b1220; color: #ffc400; font-size: 11px; font-weight: 700;
+  padding: 2px 6px; border-radius: 6px; border: 1px solid #ffc400;
+}
 .pista-maniglia {
-  position: absolute; width: 28px; height: 28px; padding: 0; border: none;
+  position: absolute; width: 34px; height: 34px; padding: 0; border: none;
   background: none; display: grid; place-items: center;
-  cursor: nwse-resize; touch-action: none; z-index: 9;
+  cursor: nwse-resize !important; touch-action: none; z-index: 9;
 }
 .pista-maniglia .q {
-  width: 15px; height: 15px; border-radius: 4px;
+  width: 17px; height: 17px; border-radius: 5px;
   background: #f0b429; border: 1px solid rgba(0,0,0,.45);
   box-shadow: 0 1px 4px rgba(0,0,0,.55);
   display: grid; place-items: center; pointer-events: none;
@@ -9217,8 +10471,35 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .pista { position: relative; padding: 26px 14px 16px; border-radius: 12px; touch-action: none;
   background: var(--secondary-background-color, rgba(255,255,255,.04));
   display: flex; justify-content: center; }
-.pista casa-tile { display: block; cursor: grab; }
+.pista casa-tile { display: block; cursor: grab; flex: none; }
+/* mentre si tira la grandezza la casellina non deve animare niente: ogni
+   transizione la fa arrivare in ritardo sul dito */
+.pista casa-tile { transition: none; }
 .pista-tasti { display: flex; justify-content: flex-end; margin-top: 8px; }
+.pista-numeri { display: flex; align-items: center; gap: 8px; margin-top: 10px;
+  font-size: 12.5px; color: var(--secondary-text-color, #9fb0c6); flex-wrap: wrap; }
+.pista-numeri input {
+  width: 74px; font: inherit; font-size: 13px; padding: 5px 8px;
+  border-radius: 9px; text-align: right;
+  border: 1px solid var(--divider-color, rgba(255,255,255,.16));
+  background: var(--card-background-color, rgba(255,255,255,.04));
+  color: var(--primary-text-color, #eaf1fb);
+}
+.pista-numeri input:focus { outline: none; border-color: #ffc400; }
+.pista-numeri .per { opacity: .6; }
+.codice-posti { margin-top: 10px; }
+.prendi-da { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 10px; font-size: 12.5px;
+  color: var(--secondary-text-color, #9fb0c6); }
+.prendi-da[hidden] { display: none !important; }
+.prendi-da select { font: inherit; padding: 5px 8px; border-radius: 9px;
+  max-width: 200px; cursor: pointer;
+  border: 1px solid var(--divider-color, rgba(255,255,255,.16));
+  background: var(--card-background-color, rgba(255,255,255,.04));
+  color: var(--primary-text-color, #eaf1fb); }
+.pista-numeri[hidden] { display: none !important; }
+.pista-numeri .chi { font-weight: 600;
+  color: var(--primary-text-color, #eaf1fb); }
 .pista-chi { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   font-size: 12px; color: var(--secondary-text-color, #8ea0b8); margin: 2px 0 8px; }
 .pista-chi .chi-nome { flex: 1 1 auto; }
@@ -9385,6 +10666,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 class CasaTileEditor extends HTMLElement {
   setConfig(config) {
     this._config = { ...config };
+    this._ascoltaMisure();
     // dalla v2.3.8 le entita' che decidono l'accensione sono un elenco: se
     // trovo la vecchia forma a testo la converto, se no il campo a scelta
     // multipla non riesce a disegnarsi e sparisce dalle impostazioni
@@ -9676,13 +10958,16 @@ class CasaTileEditor extends HTMLElement {
           if (sez.chiave === "icona") pannello.appendChild(this._scelte);
           if (sez.chiave === "aspetto" && gruppo.titolo === "Colore della scritta") {
             pannello.appendChild(this._tinte);
-            pannello.appendChild(this._postiBox);
           }
           if (sez.chiave === "sfondo" && gruppo.titolo === "Foto di sfondo") {
             pannello.appendChild(this._foto);
           }
-          if (sez.chiave === "tocco") pannello.appendChild(this._blocco);
+          if (sez.chiave === "popup" && gruppo.titolo === "Come si apre") {
+            pannello.appendChild(this._provaApertura());
+          }
+          if (sez.chiave === "popup") pannello.appendChild(this._blocco);
         });
+        if (sez.chiave === "pezzi") pannello.appendChild(this._postiBox);
         this._gruppi.push(suoi);
 
         this._pannelli.push(pannello);
@@ -9749,9 +11034,14 @@ class CasaTileEditor extends HTMLElement {
   // riquadro si accorcia, la pagina salta in cima e lui perde di vista
   // proprio l'impostazione che stava provando. Qui mi segno dov'era.
   _conservaPosto(azione) {
+    // se sono gia' dentro a un altro "tieni il segno", quello di fuori ha
+    // gia' preso la posizione buona: qui dentro rifarlo vorrebbe dire
+    // segnarsi una posizione a meta' del lavoro
+    if (this._dentroConserva) { azione(); return; }
+    this._dentroConserva = true;
     const box = this._scorrevole();
     const dove = box ? box.scrollTop : 0;
-    azione();
+    try { azione(); } finally { this._dentroConserva = false; }
     if (!box) return;
     // Rimetto il segno piu' volte: la finestra di Home Assistant si ridisegna
     // a pezzi (l'anteprima della card arriva dopo, e cambia altezza), quindi
@@ -10244,6 +11534,9 @@ class CasaTileEditor extends HTMLElement {
       carta.setAttribute("trascinabile", "");
       pista.appendChild(carta);
       box.appendChild(pista);
+      this._grandezzaPista(box, pista, carta);
+      box.appendChild(this._numeriGrandezza(box));
+      box.appendChild(this._numeriPezzo(box));
       const sotto = document.createElement("div");
       sotto.className = "pista-tasti";
       const rimetti = document.createElement("button");
@@ -10300,6 +11593,8 @@ class CasaTileEditor extends HTMLElement {
       sotto.appendChild(rimetti);
       sotto.appendChild(annulla);
       box.appendChild(sotto);
+      box.appendChild(this._prendiDa(box));
+      box.appendChild(this._codicePosti(box));
       const nota = document.createElement("div");
       nota.className = "pista-nota";
       nota.textContent = "pronto: tocca un pezzo qui sopra";
@@ -10314,6 +11609,832 @@ class CasaTileEditor extends HTMLElement {
       this._pistaTrascina(carta);
     }
     this._aggiornaPista();
+  }
+
+  // LE DUE CASELLINE DELLA GRANDEZZA. Chi non vuole trascinare scrive il
+  // numero e basta: fanno la stessa identica cosa del quadratino giallo.
+  _numeriGrandezza(box) {
+    const riga = document.createElement("div");
+    riga.className = "pista-numeri";
+    const eti = document.createElement("span");
+    eti.textContent = "Grandezza";
+    const largo = document.createElement("input");
+    largo.type = "number";
+    largo.min = "40"; largo.max = "2400"; largo.step = "1";
+    largo.title = "Larghezza in punti";
+    const per = document.createElement("span");
+    per.className = "per";
+    per.textContent = "\u00d7";
+    const alto = document.createElement("input");
+    alto.type = "number";
+    alto.min = "40"; alto.max = "2400"; alto.step = "1";
+    alto.title = "Altezza in punti";
+    const punti = document.createElement("span");
+    punti.className = "per";
+    punti.textContent = "punti";
+    riga.append(eti, largo, per, alto, punti);
+
+    const manda = () => {
+      const w = Math.max(40, Math.min(2400, Math.round(Number(largo.value) || 0)));
+      const h = Math.max(40, Math.min(2400, Math.round(Number(alto.value) || 0)));
+      if (!w || !h) return;
+      const w0 = box._largoVero || w;
+      const h0 = box._altoVero || h;
+      if (w === Math.round(w0) && h === Math.round(h0)) return;
+      box._tirata = { w, h };
+      this._salvaGrandezza(w0, h0, w, h, true);
+      this._formaPista();
+      // la misura puo' essere finita su uno scatto della plancia: le
+      // caselline devono dire quella vera, non quella chiesta
+      largo.value = String(Math.round(box._largoVero || w));
+      alto.value = String(Math.round(box._altoVero || h));
+    };
+    [largo, alto].forEach((c) => {
+      c.addEventListener("change", manda);
+      c.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); manda(); }
+      });
+    });
+    box._numeri = { largo, alto };
+    return riga;
+  }
+
+  // LE CASELLINE DEL PEZZO SCELTO: grandezza e posizione, da scrivere a
+  // mano. Compaiono solo quando un pezzo e' scelto - se no sarebbe una
+  // riga di campi che non comandano niente.
+  _numeriPezzo(box) {
+    const riga = document.createElement("div");
+    riga.className = "pista-numeri";
+    riga.hidden = true;
+    const chi = document.createElement("span");
+    chi.className = "chi";
+    chi.textContent = "Pezzo";
+    const e1 = document.createElement("span");
+    e1.textContent = "grande";
+    const gr = document.createElement("input");
+    gr.type = "number";
+    gr.min = "40"; gr.max = "300"; gr.step = "5";
+    gr.title = "Grandezza del pezzo in percentuale";
+    const p1 = document.createElement("span");
+    p1.className = "per";
+    p1.textContent = "%";
+    const e2 = document.createElement("span");
+    e2.textContent = "da sinistra";
+    const px = document.createElement("input");
+    px.type = "number";
+    px.min = "0"; px.max = "100"; px.step = "0.5";
+    px.title = "Quanto e' distante dal bordo sinistro, in percentuale";
+    const e3 = document.createElement("span");
+    e3.textContent = "dall'alto";
+    const py = document.createElement("input");
+    py.type = "number";
+    py.min = "0"; py.max = "100"; py.step = "0.5";
+    py.title = "Quanto e' distante dal bordo di sopra, in percentuale";
+    const p2 = document.createElement("span");
+    p2.className = "per";
+    p2.textContent = "%";
+    riga.append(chi, e1, gr, p1, e2, px, e3, py, p2);
+
+    const manda = () => {
+      const quale = box._carta && box._carta._pezzoScelto;
+      if (!quale) return;
+      const posti = { ...((this._cfgPista() || {}).posti || {}) };
+      const v = { ...(posti[quale] || {}) };
+      const k = Number(gr.value) / 100;
+      if (isFinite(k) && k >= 0.4 && k <= 3) {
+        if (Math.abs(k - 1) < 0.005) delete v.s;
+        else v.s = Math.round(k * 100) / 100;
+      }
+      const x = Number(px.value);
+      const y = Number(py.value);
+      if (isFinite(x)) v.x = Math.max(0, Math.min(100, Math.round(x * 10) / 10));
+      if (isFinite(y)) v.y = Math.max(0, Math.min(100, Math.round(y * 10) / 10));
+      // "dx" e' quanto dista da DESTRA: si ricava dagli altri due - sulla
+      // larghezza INGRANDITA, che e' quella che si vede - e senza rifarlo
+      // il pezzo attaccato a destra tornerebbe dov'era
+      if (isFinite(v.w) && isFinite(v.x)) {
+        const k2 = Number(v.s) > 0 ? Number(v.s) : 1;
+        v.dx = Math.round((100 - v.x - v.w * k2) * 10) / 10;
+      }
+      posti[quale] = v;
+      this._scriviPosti(posti);
+      this._aggiornaPista();
+      this._dico("pezzo " + quale + ": " + Math.round((v.s || 1) * 100)
+        + "% a " + v.x + "% " + v.y + "%");
+    };
+    [gr, px, py].forEach((c) => {
+      c.addEventListener("change", manda);
+      c.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); manda(); }
+      });
+    });
+    box._numeriPezzo = { riga, chi, gr, px, py };
+    return riga;
+  }
+
+  // IL QUADRATINO DELLA GRANDEZZA. Sta sull'angolo in basso a destra della
+  // casellina del riquadro: si tiene premuto e si trascina, come si fa con
+  // l'icona o con le scritte. Cambia la misura di quello che stai
+  // sistemando: la scheda del pop-up che hai scelto, oppure - se non ne hai
+  // scelta nessuna - la casella stessa sulla plancia.
+  _grandezzaPista(box, pista, carta) {
+    const q = document.createElement("div");
+    q.className = "pista-grandezza";
+    q.title = "Tieni premuto e trascina per cambiare la grandezza della casella";
+    const targa = document.createElement("div");
+    targa.className = "pista-grande-targa";
+    targa.hidden = true;
+    pista.append(q, targa);
+    box._grandezza = q;
+
+    // il quadratino sta sull'angolo della casellina, e la casellina si
+    // muove ogni volta che il riquadro cambia forma
+    q._sistema = () => {
+      if (!carta.isConnected) { q.hidden = true; return; }
+      const r = carta.getBoundingClientRect();
+      const rp = pista.getBoundingClientRect();
+      if (r.width < 20) { q.hidden = true; return; }
+      q.hidden = false;
+      q.style.left = (r.right - rp.left - 11 + pista.scrollLeft) + "px";
+      q.style.top = (r.bottom - rp.top - 11 + pista.scrollTop) + "px";
+      targa.style.left = (r.right - rp.left - 24 + pista.scrollLeft) + "px";
+      targa.style.top = (r.bottom - rp.top - 34 + pista.scrollTop) + "px";
+    };
+    q._sistema();
+    // e si risistema da solo: cambiando linguetta il riquadro sparisce e
+    // ricompare, e mentre era chiuso di misure non ce n'erano - il
+    // quadratino restava nascosto o fuori posto
+    if (window.ResizeObserver) {
+      try {
+        const occhio = new ResizeObserver(() => q._sistema());
+        occhio.observe(pista);
+        occhio.observe(carta);
+        box._occhioGrandezza = occhio;
+      } catch (e) { /* pazienza */ }
+    }
+
+    // Quanto si sposta il bordo per ogni punto di larghezza in piu' non lo
+    // do' per scontato: lo misuro mentre trascina (vedi "disegna"). Qui
+    // metto solo la misura chiesta, rimpicciolita se non ci sta.
+    const applica = (w, h) => {
+      const posto = Math.max(190, (box.clientWidth || 420) - 28);
+      let lw = w;
+      let lh = h;
+      if (w > posto && !box._grande) { lh = h * posto / w; lw = posto; }
+      carta.style.width = Math.round(lw) + "px";
+      carta.style.height = Math.round(lh) + "px";
+      box._largoVero = w;
+      box._altoVero = h;
+      q._sistema();
+    };
+
+    let preso = null;
+    let inCorso = 0;
+    const disegna = () => {
+      inCorso = 0;
+      if (!preso) return;
+      const r = carta.getBoundingClientRect();
+      // se il riquadro non e' a video (altra linguetta, pannello chiuso) le
+      // misure sono tutte zero: inseguire un angolo che non c'e' vuol dire
+      // mandare la grandezza alle stelle
+      if (!(r.width > 10) || !(r.height > 10)) return;
+      // LA MISURA LA LEGGO SUL POSTO: quant'e' la distanza fra l'angolo di
+      // sopra a sinistra della casellina e il dito. Niente indovinelli su
+      // quanto si sposta il bordo: se la casellina sta in mezzo al riquadro
+      // il conto si aggiusta da solo in due o tre fotogrammi.
+      let vogLargo = (preso.px - preso.offX) - r.left;
+      let vogAlto = (preso.py - preso.offY) - r.top;
+      // LA CALAMITA. La casella si muove libera come vuole il dito, ma
+      // quando passa vicino a una misura che la plancia sa dare davvero ci
+      // si appoggia da sola. Fra uno scatto e l'altro ci sono trentadue
+      // punti: la calamita ne prende dieci, quindi per ventidue punti su
+      // trentadue il movimento e' libero e non si sente nessun gradino - e
+      // il dito ci finisce sopra da solo, cosi' mollando non salta niente.
+      if (preso.sezione > 0) {
+        const passo = preso.sezione / 12;
+        preso.col = Math.max(1, Math.min(12,
+          Math.round(vogLargo * 12 / preso.sezione)));
+        preso.righe = Math.max(1, Math.min(20, Math.round((vogAlto + 8) / 64)));
+        const suScatto = preso.sezione * preso.col / 12;
+        if (Math.abs(vogLargo - suScatto) < Math.min(10, passo * 0.35)) {
+          vogLargo = Math.round(suScatto);
+        }
+        const altoScatto = preso.righe * 56 + (preso.righe - 1) * 8;
+        if (Math.abs(vogAlto - altoScatto) < 12) vogAlto = altoScatto;
+      }
+      // e non oltre il bordo del riquadro: li' la figura verrebbe
+      // rimpicciolita e l'angolo scapperebbe via dal dito
+      const posto = Math.max(190, (box.clientWidth || 420) - 28);
+      const alMuro = !box._grande && vogLargo >= posto;
+      // Non piu' di 120 punti di cambiamento per fotogramma. Quando la
+      // casellina si stringe molto il contenuto si rimescola di colpo e per
+      // un fotogramma le misure che leggo sono senza senso: uno scarto piu'
+      // grosso di cosi' e' un errore di lettura, non una richiesta.
+      const frena = (voglio, ora) => {
+        const d = voglio - ora;
+        if (d > 120) return ora + 120;
+        if (d < -120) return ora - 120;
+        return voglio;
+      };
+      preso.w = Math.max(60, Math.min(2400,
+        frena(alMuro ? posto : vogLargo, preso.w)));
+      preso.h = Math.max(40, Math.min(2400, frena(vogAlto, preso.h)));
+      preso.nw = Math.round(preso.w);
+      preso.nh = Math.round(preso.h);
+      box._tirata = { w: preso.nw, h: preso.nh };
+      applica(preso.nw, preso.nh);
+      targa.textContent = preso.nw + " \u00d7 " + preso.nh
+        + (preso.sezione > 0
+          ? "  (" + preso.col + " \u00d7 " + preso.righe + ")" : "");
+      if (box._nota) {
+        box._nota._occupata = true;
+        box._nota.textContent = "riquadro " + preso.nw + "x" + preso.nh
+          + (preso.sezione > 0
+            ? " - sulla plancia sono " + preso.col
+              + (preso.col === 1 ? " colonna per " : " colonne per ") + preso.righe
+              + (preso.righe === 1 ? " riga" : " righe")
+            : "")
+          + (alMuro
+            ? " - piu' larga non ci sta qui: premi \"Grandezza vera\" "
+              + "oppure scrivi il numero qui sotto"
+            : " - la stai tirando tu");
+      }
+    };
+    const giu = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const r = carta.getBoundingClientRect();
+      const w0 = box._largoVero || r.width;
+      const h0 = box._altoVero || r.height;
+      preso = {
+        x: e.clientX, y: e.clientY, px: e.clientX, py: e.clientY,
+        // il dito non e' esattamente sull'angolo: sta in mezzo al
+        // quadratino, un dito piu' in dentro. Me lo segno una volta e lo
+        // tolgo sempre, se no la casella parte con uno scatto.
+        offX: e.clientX - r.right, offY: e.clientY - r.bottom,
+        w: w0, h: h0, w0, h0, nw: 0, nh: 0,
+        // QUANTO E' LARGA LA SEZIONE dove sta la casella sulla plancia: mi
+        // serve per sapere quali misure la plancia sa dare davvero, e
+        // agganciarcisi mentre tira invece che dopo. Dentro a un pop-up no:
+        // li' la misura e' libera, e la sezione resta a zero.
+        sezione: 0, col: 0, righe: 0,
+      };
+      const perLaPlancia = !(this._sceltaPercorso && this._sceltaPercorso.length);
+      if (perLaPlancia) {
+        const g0 = (this._config || {}).grid_options || {};
+        let col = Number(g0.columns);
+        if (!(col >= 1)) {
+          try {
+            const suo = carta.getGridOptions ? carta.getGridOptions() : null;
+            col = Number(suo && suo.columns);
+          } catch (e4) { /* pazienza */ }
+        }
+        if (!(col >= 1)) col = 4;
+        preso.sezione = Math.max(120, w0 * 12 / col);
+      }
+      // E IL RIQUADRO NON SI ACCORCIA FINCHE' TENGO PREMUTO. Accorciando la
+      // casella la colonna delle impostazioni ha meno roba da mostrare, il
+      // browser fa scendere il contenuto per riempire il vuoto e la casella
+      // scivola sotto il dito fermo: il conto legge un accorciamento che non
+      // ho fatto io e in mezzo secondo la casella collassa.
+      pista.style.minHeight = Math.round(pista.getBoundingClientRect().height) + "px";
+      q.classList.add("inmano");
+      targa.hidden = false;
+      pista.style.userSelect = "none";
+      try { q.setPointerCapture(e.pointerId); } catch (x) { /* pazienza */ }
+      window.addEventListener("pointermove", muovi, true);
+      window.addEventListener("pointerup", su, true);
+      window.addEventListener("pointercancel", su, true);
+    };
+    const muovi = (e) => {
+      if (!preso) return;
+      e.preventDefault();
+      e.stopPropagation();
+      // a ogni pixel mi segno solo dov'e' il dito: il disegno si fa una
+      // volta per fotogramma, se no si arranca
+      preso.px = e.clientX;
+      preso.py = e.clientY;
+      if (!inCorso) inCorso = requestAnimationFrame(disegna);
+    };
+    const su = (e) => {
+      window.removeEventListener("pointermove", muovi, true);
+      window.removeEventListener("pointerup", su, true);
+      window.removeEventListener("pointercancel", su, true);
+      if (inCorso) cancelAnimationFrame(inCorso);
+      inCorso = 0;
+      if (preso && e) { preso.px = e.clientX; preso.py = e.clientY; }
+      disegna();
+      q.classList.remove("inmano");
+      targa.hidden = true;
+      pista.style.userSelect = "";
+      pista.style.minHeight = "";
+      if (box._nota) box._nota._occupata = false;
+      if (!preso) return;
+      const fatto = preso;
+      preso = null;
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      if (!fatto.nw) return;
+      this._salvaGrandezza(fatto.w0, fatto.h0, fatto.nw, fatto.nh);
+    };
+    q.addEventListener("pointerdown", giu);
+    q.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
+  }
+
+  // e qui la grandezza tirata va a finire dove serve
+  _salvaGrandezza(wPrima, hPrima, w, h, scritta) {
+    const p = this._sceltaPercorso;
+    if (p && p.length && p.length <= 2) {
+      // una scheda del pop-up: la larghezza li' e' una percentuale di riga,
+      // e quanto ne cambia si sa dal rapporto fra prima e adesso
+      const chiave = p.join(".");
+      const scheda = this._schedaA(p) || {};
+      let quante = 12;
+      if (p.length === 2) {
+        const madre = this._schedaA([p[0]]) || {};
+        quante = Math.max(1, Math.min(12, Math.round(
+          Number(madre.columns) > 0 ? Number(madre.columns) : 3)));
+      }
+      const ora = this._misuraLarga(scheda, quante);
+      // Quant'e' larga la riga dove sta? Lo ricavo: e' larga "ora per cento
+      // della riga, meno la sua parte di stacco". Girando il conto viene
+      // fuori la riga, e da li' la percentuale nuova - esatta, non stimata.
+      const g = p.length === 2 ? 8 : 10;
+      const riga = (Math.max(20, wPrima) + g) / Math.max(0.01, ora / 100) - g;
+      let nuova = Math.max(8, Math.min(100, ((w + g) / (riga + g)) * 100));
+      // e se passa vicino a una misura comoda ci si appoggia, come fa il
+      // quadratino dell'anteprima - ma solo trascinando: a chi scrive 240
+      // va dato 240, non "quasi meta' riga"
+      if (!scritta) {
+        [100, 75, 200 / 3, 50, 100 / 3, 25, 20].forEach((c) => {
+          if (Math.abs(nuova - c) < 2.2) nuova = c;
+        });
+      }
+      this._scriviMisura(chiave, Math.round(nuova * 10) / 10, Math.round(h), quante);
+      // la misura buona adesso e' questa: se ne tira un'altra, si riparte
+      // da qui e non da quella di quando l'aveva scelta
+      this._misuraScelta = { w: Math.round(w), h: Math.round(h) };
+      return;
+    }
+    // la casella stessa sulla plancia: li' comanda la misura di Home
+    // Assistant, dodici colonne di larghezza e righe da 56 punti
+    const g0 = this._config.grid_options || {};
+    let col = Number(g0.columns);
+    if (!(col >= 1)) {
+      try {
+        const box = this._postiBox;
+        const suo = box && box._carta && box._carta.getGridOptions
+          ? box._carta.getGridOptions() : null;
+        col = Number(suo && suo.columns);
+      } catch (e) { /* pazienza */ }
+    }
+    if (!(col >= 1)) col = 4;
+    // Quant'e' larga la sezione dove sta? Lo ricavo: e' larga com'e' lei
+    // moltiplicata per dodici e divisa per le sue colonne.
+    const sezione = Math.max(120, wPrima * 12 / col);
+    let nuoveCol = Math.max(1, Math.min(12, Math.round(w * 12 / sezione)));
+    let righe = Math.max(1, Math.min(20, Math.round((h + 8) / 64)));
+    // SCRIVERE UN NUMERO VUOL DIRE VOLERSI MUOVERE. La larghezza va per
+    // dodicesimi: da 362 punti - che sono gia' 12 colonne su 12 - qualunque
+    // numero si scriva l'arrotondamento riporta a 12, e sembra che il campo
+    // non funzioni. Se il numero scritto e' piu' piccolo, si scende almeno
+    // di una colonna; se e' piu' grande, si sale almeno di una.
+    let alMassimo = false;
+    let alMinimo = false;
+    if (scritta) {
+      const colOra = Math.max(1, Math.min(12, Math.round(wPrima * 12 / sezione)));
+      if (nuoveCol === colOra) {
+        if (w < wPrima - 2) {
+          if (colOra > 1) nuoveCol = colOra - 1; else alMinimo = true;
+        } else if (w > wPrima + 2) {
+          if (colOra < 12) nuoveCol = colOra + 1; else alMassimo = true;
+        }
+      }
+      const righeOra = Math.max(1, Math.min(20, Math.round((hPrima + 8) / 64)));
+      if (righe === righeOra) {
+        if (h < hPrima - 2 && righeOra > 1) righe = righeOra - 1;
+        else if (h > hPrima + 2 && righeOra < 20) righe = righeOra + 1;
+      }
+    }
+    const g = { ...g0, columns: nuoveCol, rows: righe };
+    this._config = { ...this._config, grid_options: g };
+    // E QUESTA E' LA MISURA CHE AVRA' DAVVERO, non quella chiesta: la
+    // plancia va a scatti - dodicesimi di larghezza e righe da 56 punti -
+    // e mostrare i punti chiesti voleva dire far vedere una figura che poi
+    // sulla plancia veniva su diversa.
+    w = Math.round(sezione * nuoveCol / 12);
+    h = righe * 56 + (righe - 1) * 8;
+    const box0 = this._postiBox;
+    if (box0) box0._tirata = { w, h };
+    // e me la segno come misura vera: l'anteprima di fianco si veste con
+    // quella, e senza aggiornarla restava della grandezza di prima
+    const c = this._config || {};
+    if (c.entity || c.name) {
+      const base = "casa-tile:misura3:" + (c.entity || "") + "|" + (c.name || "");
+      try {
+        localStorage.setItem(base, Math.round(w) + "x" + Math.round(h));
+      } catch (e) { /* pazienza */ }
+    }
+    this._conservaPosto(() => this._emetti());
+    if (scritta) {
+      this._dico(alMassimo
+        ? "e' gia' larga tutta la sezione: 12 colonne su 12, piu' di cosi' non puo'"
+        : alMinimo
+        ? "e' gia' stretta al minimo: 1 colonna su 12"
+        : "sulla plancia sono " + nuoveCol
+          + (nuoveCol === 1 ? " colonna per " : " colonne per ") + righe
+          + (righe === 1 ? " riga" : " righe") + " - " + Math.round(w)
+          + "x" + Math.round(h) + " punti");
+    }
+    // e glielo dico: l'anteprima e' un'altra casella, appesa da un'altra
+    // parte della pagina, e da sola non si accorge di niente
+    this.dispatchEvent(new CustomEvent("casa-rivestiti", {
+      detail: { config: c }, bubbles: true, composed: true,
+    }));
+  }
+
+  // quanto e' larga adesso, in percentuale di riga
+  _misuraLarga(cfg, base) {
+    const c = cfg || {};
+    const b = Number(base) >= 1 ? Number(base) : 12;
+    const mio = c.casa_misura || {};
+    if (Number(mio.largo) > 0) return Number(mio.largo);
+    const g = c.grid_options || {};
+    const col = g.columns === "full" ? b : Number(g.columns);
+    if (isFinite(col) && col >= 1) return (Math.min(col, b) / b) * 100;
+    return b === 12 ? 100 : 100 / b;
+  }
+
+  // GUARDA COME SI APRE, senza salvare. Apre la finestra dell'anteprima
+  // qui e ora, con l'animazione e la velocita' che ha davanti adesso.
+  _provaApertura() {
+    if (this._provaBox) return this._provaBox;
+    const riga = document.createElement("div");
+    riga.className = "prendi-da";
+    const tasto = document.createElement("button");
+    tasto.type = "button";
+    tasto.className = "tastoPiatto";
+    tasto.textContent = "Guarda come si apre";
+    const dice = document.createElement("span");
+    dice.textContent = "si apre qui di fianco - chiudila con la X o con Esc";
+    tasto.addEventListener("click", () => {
+      const c = this._config || {};
+      if ((c.azione || "toggle") !== "finestra") {
+        this._dico("questa casella al tocco non apre un pop-up");
+        return;
+      }
+      window.dispatchEvent(new CustomEvent("casa-prova-apertura", {
+        detail: { config: c },
+      }));
+    });
+    riga.append(tasto, dice);
+    this._provaBox = riga;
+    return riga;
+  }
+
+  // PRENDI LA DISPOSIZIONE DA UN'ALTRA CASELLA. Niente copia e incolla: si
+  // sceglie da quale e si preme. Arrivano le posizioni dei pezzi, le misure
+  // con cui erano state composte e la grandezza; l'entita', il valore, il
+  // nome e il servizio restano quelli di questa casella.
+  _prendiDa(box) {
+    const riga = document.createElement("div");
+    riga.className = "prendi-da";
+    riga.hidden = true;
+    const eti = document.createElement("span");
+    eti.textContent = "Prendi la disposizione da";
+    const scelta = document.createElement("select");
+    const tasto = document.createElement("button");
+    tasto.type = "button";
+    tasto.className = "tastoPiatto";
+    tasto.textContent = "Prendi";
+    riga.append(eti, scelta, tasto);
+
+    // tutte le caselle nostre del pop-up che una disposizione ce l'hanno,
+    // piu' la casella grande
+    const elenco = () => {
+      const fuori = [];
+      const mia = (this._sceltaPercorso || []).join(".");
+      const c0 = this._config || {};
+      if (c0.posti && Object.keys(c0.posti).length && mia !== "") {
+        fuori.push({ id: "", nome: "questa casella (quella grande)" });
+      }
+      const gira = (lista, base) => {
+        (lista || []).forEach((c, i) => {
+          if (!c) return;
+          const qui = base.concat([i]);
+          const id = qui.join(".");
+          if (String(c.type || "") === "custom:casa-tile"
+            && c.posti && Object.keys(c.posti).length && id !== mia) {
+            fuori.push({ id, nome: c.name || c.entity || ("scheda " + (i + 1)) });
+          }
+          if (Array.isArray(c.cards)) gira(c.cards, qui);
+        });
+      };
+      gira(this._schede(), []);
+      return fuori;
+    };
+
+    const rinfresca = () => {
+      const voci = elenco();
+      riga.hidden = voci.length === 0;
+      const prima = scelta.value;
+      scelta.innerHTML = "";
+      voci.forEach((v) => {
+        const o = document.createElement("option");
+        o.value = v.id;
+        o.textContent = v.nome;
+        scelta.appendChild(o);
+      });
+      if (voci.some((v) => v.id === prima)) scelta.value = prima;
+    };
+
+    tasto.addEventListener("click", () => {
+      const da = scelta.value;
+      const sorgente = da === ""
+        ? this._config
+        : this._schedaA(da.split(".").map((n) => Number(n)));
+      if (!sorgente || !sorgente.posti) {
+        this._dico("quella casella non ha una disposizione");
+        return;
+      }
+      const roba = {};
+      ["casa_misura", "posti_largo", "posti_alto", "posti"].forEach((k) => {
+        if (sorgente[k] !== undefined) roba[k] = sorgente[k];
+      });
+      const p = this._sceltaPercorso;
+      if (!p || !p.length) {
+        this._config = { ...this._config, ...roba };
+        this._emetti();
+      } else {
+        const vecchia = this._schedaA(p);
+        if (!vecchia) return;
+        this._salvaSchede(this._conScheda(p, { ...vecchia, ...roba }), false);
+      }
+      this._aggiornaPista();
+      this._dico("disposizione presa da \"" + (scelta.selectedOptions[0]
+        ? scelta.selectedOptions[0].textContent : da) + "\"");
+    });
+
+    box._prendiDa = { riga, rinfresca };
+    rinfresca();
+    return riga;
+  }
+
+  // IL CODICE DELLA DISPOSIZIONE, in YAML. Dove sta ogni pezzo, tutto
+  // insieme: da guardare, da correggere al decimale, e soprattutto da
+  // COPIARE per portare la stessa disposizione su un'altra card.
+  _codicePosti(box) {
+    const fuori = document.createElement("div");
+    fuori.className = "codice-scheda codice-posti";
+    const apri = document.createElement("button");
+    apri.className = "bt chiaro";
+    apri.type = "button";
+    apri.textContent = "Codice di questa casella (YAML)";
+    const dentro = document.createElement("div");
+    dentro.hidden = true;
+    const esito = document.createElement("div");
+    esito.className = "esito";
+
+    // quello che si sta sistemando: la casella, o la scheda scelta
+    // Tutti i pezzi, non solo quelli gia' spostati: chi ha una posizione
+    // salvata con quella, gli altri con quella che hanno adesso. Se no non
+    // li puoi correggere da qui - "manca il valore".
+    // TUTTA la configurazione della casella che sta sistemando: la grande,
+    // oppure la singola scheda del pop-up che ha scelto - anche se vive
+    // dentro a una griglia. Le posizioni dei pezzi le completo con quelle
+    // che i pezzi hanno adesso, se no chi non e' mai stato spostato non
+    // compare e non lo puoi correggere da qui.
+    const roba = () => {
+      const c = this._cfgPista() || {};
+      const d = { ...c };
+      let ora = null;
+      try {
+        ora = box._carta && box._carta.posizioniAdesso
+          ? box._carta.posizioniAdesso() : null;
+      } catch (e) { ora = null; }
+      const salvati = (c.posti && Object.keys(c.posti).length) ? c.posti : null;
+      if (salvati || (ora && Object.keys(ora).length)) {
+        d.posti = { ...(ora || {}), ...(salvati || {}) };
+      }
+      const lw = Number(c.posti_largo) > 0 ? c.posti_largo : box._largoVero;
+      const lh = Number(c.posti_alto) > 0 ? c.posti_alto : box._altoVero;
+      if (Number(lw) > 40) d.posti_largo = Math.round(lw);
+      if (Number(lh) > 40) d.posti_alto = Math.round(lh);
+      return d;
+    };
+
+    // UNA RIGA PER PEZZO. L'editor di Home Assistant riscriverebbe il
+    // codice a modo suo - sei righe per ogni pezzo - e con sei pezzi
+    // diventano quaranta righe di numeri incolonnati. Qui il pezzo sta su
+    // una riga sola e i numeri sono al decimo, che e' la precisione con cui
+    // si lavora (basta con i 69.80000000000001).
+    // Tutto in YAML normale, tranne le posizioni dei pezzi: quelle una
+    // riga per pezzo, che con sei righe a testa diventavano quaranta righe
+    // di numeri incolonnati.
+    const inRiga = (d) => {
+      const num = (v) => String(Math.round(Number(v) * 10) / 10);
+      const senzaPosti = { ...d };
+      delete senzaPosti.posti;
+      const fuori = [];
+      const resto = aYaml(senzaPosti, 0);
+      if (resto && resto.trim()) fuori.push(resto.replace(/\n+$/, ""));
+      const pz = d.posti || {};
+      const nomi = Object.keys(pz);
+      if (nomi.length) {
+        fuori.push("posti:");
+        nomi.forEach((k) => {
+          const v = pz[k] || {};
+          const parti = [];
+          ["x", "y", "w", "h", "dx", "s"].forEach((n) => {
+            if (v[n] !== undefined && v[n] !== null && isFinite(v[n])) {
+              parti.push(n + ": " + num(v[n]));
+            }
+          });
+          const nome = /^[A-Za-z0-9_]+$/.test(k) ? k : '"' + k + '"';
+          fuori.push("  " + nome + ": {" + parti.join(", ") + "}");
+        });
+      }
+      return fuori.join("\n") + "\n";
+    };
+
+    let leggi = null;
+    let edHa = null;
+    const conCasella = () => {
+      const area = document.createElement("textarea");
+      area.rows = 10;
+      area.spellcheck = false;
+      area.value = inRiga(roba());
+      dentro.appendChild(area);
+      leggi = () => daYaml(area.value);
+      edHa = area;
+    };
+
+    const applica = document.createElement("button");
+    applica.className = "bt";
+    applica.type = "button";
+    applica.textContent = "Applica il codice";
+    applica.hidden = true;
+    applica.addEventListener("click", () => {
+      try {
+        const d = leggi ? leggi() : null;
+        if (!d || typeof d !== "object") throw new Error("codice vuoto");
+        if (d.posti && typeof d.posti !== "object") {
+          throw new Error('"posti" deve essere un elenco di pezzi');
+        }
+        // CON "type:" si riscrive la casella intera; SENZA si cambiano solo
+        // le righe incollate e tutto il resto resta com'e'. E' cosi' che si
+        // porta una disposizione da una casella all'altra senza portarsi
+        // dietro il valore, l'entita' e il nome.
+        const intera = !!d.type;
+        const metti = (vecchia) => {
+          const c2 = intera ? { ...d } : { ...(vecchia || {}), ...d };
+          const puliti = this._postiPuliti(d.posti || null);
+          // le due ancore devono dire la stessa cosa: rifaccio "dx" dagli
+          // altri numeri, sulla larghezza ingrandita che e' quella che si vede
+          if (puliti) {
+            Object.keys(puliti).forEach((k) => {
+              const v = puliti[k] || {};
+              const w = Number(v.w);
+              const x = Number(v.x);
+              const k2 = Number(v.s) > 0 ? Number(v.s) : 1;
+              if (isFinite(w) && isFinite(x)) {
+                v.dx = Math.round((100 - x - w * k2) * 10) / 10;
+              }
+            });
+          }
+          if (puliti) c2.posti = puliti; else delete c2.posti;
+          if (Number(d.posti_largo) > 40) c2.posti_largo = Math.round(d.posti_largo);
+          else delete c2.posti_largo;
+          if (Number(d.posti_alto) > 40) c2.posti_alto = Math.round(d.posti_alto);
+          else delete c2.posti_alto;
+          return c2;
+        };
+        const p = this._sceltaPercorso;
+        // com'era prima: se dopo non e' cambiato niente glielo dico, se no
+        // "non e' successo niente" e "non funziona" si assomigliano troppo
+        let prima = "";
+        try { prima = JSON.stringify(this._cfgPista() || {}); } catch (e) { prima = ""; }
+        if (!p || !p.length) {
+          this._config = metti(this._config);
+          this._emetti();
+          this._costruisciBlocco(true);
+          this._aggiornaSchemi();
+        } else {
+          const vecchia = this._schedaA(p);
+          if (!vecchia) throw new Error("la scheda scelta non c'e' piu'");
+          this._salvaSchede(this._conScheda(p, metti(vecchia)), false);
+        }
+        let dopo = "";
+        try { dopo = JSON.stringify(this._cfgPista() || {}); } catch (e) { dopo = "x"; }
+        const uguale = prima && dopo && prima === dopo;
+        esito.textContent = uguale
+          ? "era gia' cosi': non e' cambiato niente" : "";
+        this._aggiornaPista();
+        this._dico(uguale
+          ? "era gia' cosi': non e' cambiato niente"
+          : (intera ? "casella riscritta dal codice"
+            : "cambiate solo le righe che hai incollato"));
+      } catch (e) {
+        esito.textContent = "Codice non valido: " + e.message;
+      }
+    });
+
+    // SOLO LA DISPOSIZIONE E LA MISURA: quello che serve per replicare una
+    // casella su un'altra senza portarsi dietro entita', valore e nome.
+    const copia = document.createElement("button");
+    copia.className = "bt chiaro";
+    copia.type = "button";
+    copia.textContent = "Copia la disposizione";
+    copia.title = "Mette negli appunti solo la disposizione e la grandezza: "
+      + "incollale nel codice di un'altra casella e premi Applica";
+    copia.hidden = true;
+    copia.addEventListener("click", async () => {
+      const tutto = roba();
+      const solo = {};
+      ["casa_misura", "grid_options", "posti_largo", "posti_alto", "posti"]
+        .forEach((k) => { if (tutto[k] !== undefined) solo[k] = tutto[k]; });
+      // nel cassetto mio: e' quello che conta, e non dipende dal browser
+      APPUNTI_POSTI = {
+        roba: solo,
+        da: (this._cfgPista() || {}).name || "un'altra casella",
+      };
+      // e nei suoi appunti veri, se il browser li da' (fuori da https no)
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(inRiga(solo));
+        }
+      } catch (e) { /* pazienza, il cassetto basta */ }
+      vediIncolla();
+      esito.textContent = "disposizione messa da parte: vai sull'altra "
+        + "casella e premi \"Incolla la disposizione\"";
+    });
+
+    // e il tasto per rimetterla dove serve
+    const incolla = document.createElement("button");
+    incolla.className = "bt";
+    incolla.type = "button";
+    incolla.hidden = true;
+    incolla.addEventListener("click", () => {
+      if (!APPUNTI_POSTI || !APPUNTI_POSTI.roba) return;
+      const d = APPUNTI_POSTI.roba;
+      const p = this._sceltaPercorso;
+      if (!p || !p.length) {
+        this._config = { ...this._config, ...d };
+        this._emetti();
+      } else {
+        const vecchia = this._schedaA(p);
+        if (!vecchia) return;
+        this._salvaSchede(this._conScheda(p, { ...vecchia, ...d }), false);
+      }
+      this._aggiornaPista();
+      esito.textContent = "";
+      this._dico("disposizione presa da \"" + APPUNTI_POSTI.da + "\"");
+    });
+    const vediIncolla = () => {
+      const ce = !!(APPUNTI_POSTI && APPUNTI_POSTI.roba);
+      incolla.hidden = dentro.hidden || !ce;
+      if (ce) {
+        incolla.textContent = "Incolla la disposizione di \""
+          + APPUNTI_POSTI.da + "\"";
+      }
+    };
+
+    let costruito = false;
+    apri.addEventListener("click", async () => {
+      if (!costruito) {
+        costruito = true;
+        conCasella();
+      } else if (edHa) {
+        // riaprendolo, i numeri devono essere quelli di adesso: nel
+        // frattempo puo' aver spostato mezza casella con il dito
+        try { edHa.value = inRiga(roba()); } catch (e) { /* pazienza */ }
+      }
+      const chiuso = dentro.hidden;
+      dentro.hidden = !chiuso;
+      applica.hidden = !chiuso;
+      copia.hidden = !chiuso;
+      vediIncolla();
+      esito.textContent = chiuso
+        ? "Con la riga \"type:\" riscrivi tutta la casella; senza, cambi "
+          + "solo le righe che incolli."
+        : "";
+    });
+
+    fuori.append(apri, dentro, applica, copia, incolla, esito);
+    // se il riquadro cambia padrone - un'altra card, un'altra scheda del
+    // pop-up - il codice si riscrive da solo. Ma non mentre ci sta
+    // scrivendo dentro: sarebbe peggio del male.
+    box._codicePosti = {
+      apri,
+      dentro,
+      rinfresca: () => {
+        if (dentro.hidden || !edHa) return;
+        try {
+          if (edHa.ownerDocument.activeElement === edHa) return;
+          edHa.value = inRiga(roba());
+        } catch (e) { /* pazienza */ }
+      },
+    };
+    return fuori;
   }
 
   _aggiornaPista() {
@@ -10332,9 +12453,19 @@ class CasaTileEditor extends HTMLElement {
         box._carta._scelto = vera._scelto;
         box._carta._suonavano = vera._suonavano;
       }
+      // e anche lo STORICO, che il riquadro non chiede mai per non
+      // appesantire: senza, il grafico non lo disegna e tu componi sopra
+      // una casella che non ha quello che ha la card vera
+      if (vera && vera._storia && vera._storia.length) {
+        box._carta._storia = vera._storia;
+      }
       box._carta.hass = this._hass;
     } catch (e) { /* una configurazione a meta' non deve rompere niente */ }
     this._diciChi();
+    if (box._codicePosti && box._codicePosti.rinfresca) {
+      box._codicePosti.rinfresca();
+    }
+    if (box._prendiDa && box._prendiDa.rinfresca) box._prendiDa.rinfresca();
     this._formaPista();
     if (!box._guarda && window.ResizeObserver) {
       const vera0 = this._cartaVera();
@@ -10379,9 +12510,21 @@ class CasaTileEditor extends HTMLElement {
     //    FUORI dalla modifica: e' quella vera, quella che vedra' lui.
     // 0) se sta sistemando una scheda del pop-up: la misura che ha li'
     let daRicordo = false;
-    const scelta = this._sceltaPercorso && this._sceltaPercorso.length
+    // 00) la misura che ha appena dato lui tirando il quadratino giallo:
+    //     comanda su tutto, se no il riquadro tornerebbe indietro
+    let daLui = false;
+    if (box._tirata && box._tirata.w > 40 && box._tirata.h > 20) {
+      largo = box._tirata.w;
+      alto = box._tirata.h;
+      daRicordo = true;
+      daLui = true;
+    }
+    const scelta = (!largo && this._sceltaPercorso && this._sceltaPercorso.length)
       ? this._misuraScelta : null;
-    if (scelta && scelta.w > 90 && scelta.h > 40) {
+    // Anche se e' piccola: una casella dentro a una griglia e' larga
+    // novanta punti scarsi, e scartandola finivo per mostrare (e per
+    // misurare) tutt'altra card.
+    if (!largo && scelta && scelta.w > 40 && scelta.h > 24) {
       largo = scelta.w;
       alto = scelta.h;
       daRicordo = true;
@@ -10442,25 +12585,54 @@ class CasaTileEditor extends HTMLElement {
     box._altoVero = alto;
     box._largoVero = largo;
     const posto = Math.max(190, (box.clientWidth || 420) - 28);
-    let stretta = false;
-    let quanto = 100;
-    if (largo > posto && !box._grande) {
-      quanto = Math.round(posto / largo * 100);
-      alto = alto * posto / largo;
-      largo = posto;
-      stretta = true;
-    }
+    // NON LE CAMBIO LA MISURA: la guardo da piu' lontano. Rimpicciolirla
+    // per davvero voleva dire impaginarla in un altro modo - i tasti del
+    // lettore andavano a capo diversi, la scala cambiava - e il riquadro
+    // faceva vedere una casella che non era quella.
+    const fetta = (largo > posto && !box._grande) ? posto / largo : 1;
+    const stretta = fetta < 1;
+    const quanto = Math.round(fetta * 100);
     const pista = box.querySelector(".pista");
     if (pista) pista.classList.toggle("larga", !!box._grande && largo > posto);
     box._carta.style.width = Math.round(largo) + "px";
     box._carta.style.height = Math.round(alto) + "px";
+    if (stretta) {
+      box._carta.style.transformOrigin = "top left";
+      box._carta.style.transform = "scale(" + (Math.round(fetta * 1000) / 1000) + ")";
+      // rimpicciolendola resta il buco dello spazio che non occupa piu':
+      // questi due se lo riprendono
+      box._carta.style.marginRight = "-" + Math.round(largo * (1 - fetta)) + "px";
+      box._carta.style.marginBottom = "-" + Math.round(alto * (1 - fetta)) + "px";
+    } else if (box._carta.style.transform) {
+      box._carta.style.transform = "";
+      box._carta.style.marginRight = "";
+      box._carta.style.marginBottom = "";
+    }
+    // e la prende ESATTA: la casella ha un'altezza minima sua (116 punti)
+    // e il riquadro veniva fuori piu' alto della card vera - erano le due
+    // figure che non combaciavano
+    box._carta.toggleAttribute("misura-fissa", true);
+    if (box._grandezza) box._grandezza._sistema();
+    // le due caselline dicono sempre dove si e' arrivati - ma non mentre
+    // ci sta scrivendo dentro
+    if (box._numeri) {
+      const dentro = box._numeri.largo.ownerDocument.activeElement;
+      if (dentro !== box._numeri.largo) {
+        box._numeri.largo.value = String(Math.round(box._largoVero || 0));
+      }
+      if (dentro !== box._numeri.alto) {
+        box._numeri.alto.value = String(Math.round(box._altoVero || 0));
+      }
+    }
     // scritto nero su bianco da dove ho preso la misura: se il riquadro non
     // combacia con la plancia, si vede subito da qui il perche'
     if (box._nota && !box._nota._occupata) {
       box._nota.textContent = "riquadro " + Math.round(largo) + "x"
-        + Math.round(alto) + (stretta ? " (rimpicciolita al " + quanto
-          + "%: premi \"Grandezza vera\" per vederla com'e' davvero)" : "")
-        + " - " + (daRicordo
+        + Math.round(alto) + (stretta ? " (guardata al " + quanto
+          + "%: premi \"Grandezza vera\" per vederla a grandezza naturale)" : "")
+        + " - " + (daLui
+          ? "la misura che hai dato tu"
+          : daRicordo
           ? (this._ricordoDalPopup
             ? "misura vera della casella dentro al pop-up"
             : "misura vera della card sulla plancia")
@@ -10704,8 +12876,29 @@ class CasaTileEditor extends HTMLElement {
     return this._config;
   }
 
+  // Le voci spurie lasciate dal baco dei due nomi confusi: "pezzi" che si
+  // chiamano come un'entita'. Un nome di pezzo non ha mai il punto dentro.
+  _postiPuliti(posti) {
+    if (!posti) return posti;
+    const buoni = {};
+    let sporchi = 0;
+    Object.keys(posti).forEach((k) => {
+      const n = String(k);
+      // i pezzi che indicano una cosa precisa - un sensore, un tasto, un
+      // attrezzo - hanno i due punti davanti: "misura:sensor.batteria",
+      // "tasto:play". Quelli vanno tenuti, punto o non punto.
+      // Le voci spurie invece erano nomi di entita' NUDI, senza niente
+      // davanti: quelli si buttano.
+      if (n.indexOf(".") >= 0 && n.indexOf(":") < 0) { sporchi += 1; return; }
+      buoni[k] = posti[k];
+    });
+    if (sporchi) this._dico("tolti " + sporchi + " pezzi che non esistevano");
+    return Object.keys(buoni).length ? buoni : null;
+  }
+
   // e dove vanno scritte le posizioni quando lui trascina
   _scriviPosti(posti) {
+    posti = this._postiPuliti(posti);
     // Con i pezzi liberi sono tutti staccati dal flusso: la casella non ha
     // piu' niente da misurare e con "Altezza automatica" si accartoccia.
     // Allora mi segno l'altezza che aveva mentre lui componeva, e la casella
@@ -10754,6 +12947,7 @@ class CasaTileEditor extends HTMLElement {
     torna.addEventListener("click", () => {
       this._sceltaPercorso = null;
       this._misuraScelta = null;
+      if (box) box._tirata = null;
       this._giaSbrogliato = false;
       this._planciaCercata = null;
       this._planciaSalvata = null;
@@ -10782,6 +12976,9 @@ class CasaTileEditor extends HTMLElement {
       ["cursore", ".cursore:not([hidden])"],
       ["comandi", ".comandi:not([hidden])"],
       ["icona", "svg.icona,img.ritratto,.iconaHa,.iconaFoto"],
+      // il timbro per ultimo: sta dietro a tutto, e chi gli sta sopra deve
+      // avere la precedenza sotto il dito
+      ["sfondo", "svg.iconafondo:not([hidden])"],
     ];
     // Chi sta sotto al dito? Lo cerco confrontando le posizioni invece di
     // chiedere al browser "cosa c'e' qui": quella strada non risponde se il
@@ -10868,9 +13065,31 @@ class CasaTileEditor extends HTMLElement {
         attrezzi: [".ytattrezzi"], cuore: [".ytcuore"],
         tempo: [".tempo"], extra: [".extra"], lettori: [".lettori"],
         colori: [".colori"],
+        // l'icona grande e sbiadita dietro alle scritte
+        sfondo: ["svg.iconafondo"],
       };
+      // su un <svg> ".hidden" non segue l'attributo: qui va chiesto
+      // l'attributo, se no un timbro spento sembra acceso
       return (mappa[chi] || []).map((sel) => radice.querySelector(sel))
-        .filter((el) => el && !el.hidden && el.getBoundingClientRect().width);
+        .filter((el) => el && !el.hasAttribute("hidden")
+          && el.getBoundingClientRect().width);
+    };
+
+    // RIAGGANCIA A SINISTRA senza spostarlo: lo lascio dov'e' ma tenuto
+    // per l'angolo in alto a sinistra, che e' dove sta la posizione che gli
+    // do io. Da quel momento cresce verso destra e sta sotto il dito.
+    const perLaSinistra = (chi) => {
+      const rc = carta.riquadroCasella();
+      if (!rc) return;
+      pezziDi(chi).forEach((x2) => {
+        try {
+          const rr = x2.getBoundingClientRect();
+          x2.style.transformOrigin = "top left";
+          x2.style.right = "auto";
+          x2.style.left = (Math.round((rr.left - rc.left) / rc.width * 1000) / 10) + "%";
+          x2.style.top = (Math.round((rr.top - rc.top) / rc.height * 1000) / 10) + "%";
+        } catch (e) { /* pazienza */ }
+      });
     };
 
     const scalaDi = (chi) => {
@@ -10880,9 +13099,11 @@ class CasaTileEditor extends HTMLElement {
     };
 
     const aggiornaManiglia = () => {
-      const chi = carta._scelto;
+      const chi = carta._pezzoScelto;
       const pezzi = chi ? pezziDi(chi) : [];
       const pista = carta.parentElement;
+      const numeri = this._postiBox && this._postiBox._numeriPezzo;
+      if (numeri) numeri.riga.hidden = !chi || !pezzi.length;
       if (!chi || !pezzi.length || !pista) {
         maniglia.hidden = true;
         if (carta.shadowRoot) {
@@ -10906,33 +13127,64 @@ class CasaTileEditor extends HTMLElement {
       // il quadratino sta in mezzo all'angolo, ma la parte che risponde al
       // dito e' piu' larga di lui: sulle caselle fitte finiva sopra ai tasti
       // e bastava sbagliare di due pixel per prendere il pezzo di sotto
-      maniglia.style.left = (r.right - rp.left - 14 + pista.scrollLeft) + "px";
-      maniglia.style.top = (r.bottom - rp.top - 14 + pista.scrollTop) + "px";
+      // SEMPRE IN BASSO A DESTRA, e appoggiato FUORI dal pezzo: stando
+      // sopra lo copriva, e sbagliando di un pelo il tocco finiva sul pezzo
+      // - che risponde con la manina e si mette a spostarsi invece di
+      // crescere. Che poi quell'angolo si muova davvero anche per i pezzi
+      // agganciati a destra ci pensa "perLaSinistra", appena lo prendi.
+      maniglia.style.left = (r.right - rp.left - 12 + pista.scrollLeft) + "px";
+      maniglia.style.top = (r.bottom - rp.top - 12 + pista.scrollTop) + "px";
+      // e le caselline dicono dov'e' e quanto e' grande - ma non mentre ci
+      // sta scrivendo dentro
+      if (numeri) {
+        const dove = ((this._cfgPista() || {}).posti || {})[chi] || {};
+        const dentro = numeri.gr.ownerDocument.activeElement;
+        numeri.chi.textContent = "Pezzo: " + chi;
+        const metti = (campo, valore) => {
+          if (dentro === campo) return;
+          campo.value = String(Math.round(valore * 10) / 10);
+        };
+        metti(numeri.gr, (misuro ? misuro.k : (dove.s > 0 ? dove.s : 1)) * 100);
+        metti(numeri.px, isFinite(dove.x) ? dove.x : 0);
+        metti(numeri.py, isFinite(dove.y) ? dove.y : 0);
+      }
     };
     carta._aggiornaManiglia = aggiornaManiglia;
 
-    // il pezzo si vede crescere mentre tieni premuto, senza rifare la casella
+    // Il pezzo si vede crescere mentre tieni premuto, senza rifare la
+    // casella. Il punto fermo e' SEMPRE l'angolo in alto a sinistra: ce
+    // l'ha messo "perLaSinistra" appena hai preso il quadratino, e
+    // rimettercelo dall'altra parte a ogni fotogramma - com'era prima -
+    // voleva dire tenere l'angolo di destra inchiodato mentre il dito
+    // andava per conto suo.
     const provaScala = (chi, k) => {
-      const posti = (this._cfgPista() || {}).posti || {};
-      const dove = posti[chi] || {};
-      const w = isFinite(dove.w) ? dove.w : 0;
-      const aDestra = isFinite(dove.dx) && (dove.x + w / 2) > 50;
       pezziDi(chi).forEach((el) => {
-        el.style.transformOrigin = aDestra ? "top right" : "top left";
+        el.style.transformOrigin = "top left";
         el.style.transform = k === 1 ? "" : "scale(" + k + ")";
       });
     };
 
     let misuro = null;
     const avviaMisura = (e) => {
-      const chi = carta._scelto;
+      const chi = carta._pezzoScelto;
       const pezzi = chi ? pezziDi(chi) : [];
       if (!pezzi.length) return false;
       e.preventDefault();
       e.stopPropagation();
       const r = pezzi[0].getBoundingClientRect();
+      // Da che angolo cresce il pezzo? Dallo stesso da cui e' attaccato:
+      // in alto a sinistra, o in alto a destra se sta a destra della
+      // casella. E' la stessa scelta che fa "provaScala".
+      // da qui in poi cresce verso destra: cosi' il quadratino, che sta
+      // in basso a destra, e' su un angolo che si muove davvero
+      perLaSinistra(chi);
+      const r2 = pezzi[0].getBoundingClientRect();
       misuro = { chi: chi, x: e.clientX, y: e.clientY,
-                 w: r.width, h: r.height, s: scalaDi(chi), k: scalaDi(chi) };
+                 w: r.width, h: r.height, s: scalaDi(chi), k: scalaDi(chi),
+                 // dov'e' l'angolo adesso e da dove cresce: da qui in poi
+                 // l'angolo deve stare sotto il dito
+                 destra0: r2.right, fondo0: r2.bottom,
+                 sinistra0: r2.left, cima0: r2.top, aDestra: false };
       maniglia.classList.add("inmano");
       try { maniglia.setPointerCapture(e.pointerId); } catch (e2) { /* pazienza */ }
       return true;
@@ -10944,20 +13196,33 @@ class CasaTileEditor extends HTMLElement {
     const sulQuadratino = (x, y) => {
       if (maniglia.hidden || !maniglia.isConnected) return false;
       const r = maniglia.getBoundingClientRect();
-      return r.width > 0 && x >= r.left - 3 && x <= r.right + 3
-        && y >= r.top - 3 && y <= r.bottom + 3;
+      // la zona che risponde e' piu' larga del quadratino: cosi' si prende
+      // anche senza mirare
+      return r.width > 0 && x >= r.left - 9 && x <= r.right + 9
+        && y >= r.top - 9 && y <= r.bottom + 9;
     };
     maniglia.addEventListener("pointerdown", avviaMisura);
     const misuraMuovi = (e) => {
       if (!misuro) return;
       e.preventDefault();
       e.stopPropagation();
-      // tiri in diagonale: quanto cresce di lato piu' quanto cresce in alto,
-      // diviso quanto e' grande adesso. Viene naturale come prendere
-      // l'angolo di una finestra.
-      const cresce = ((e.clientX - misuro.x) + (e.clientY - misuro.y))
-        / Math.max(24, misuro.w + misuro.h);
-      const k = Math.max(0.4, Math.min(3, misuro.s * (1 + cresce)));
+      // L'ANGOLO STA SOTTO IL DITO. Il pezzo cresce da un angolo fermo,
+      // quindi la grandezza che porta l'angolo di sotto dove sta il dito
+      // si sa esattamente: e' la distanza fra i due, divisa per quanto e'
+      // grande il pezzo a grandezza uno.
+      const largo1 = Math.max(6, misuro.w / Math.max(0.05, misuro.s));
+      const alto1 = Math.max(6, misuro.h / Math.max(0.05, misuro.s));
+      const voglioY = misuro.fondo0 + (e.clientY - misuro.y);
+      const ky = (voglioY - misuro.cima0) / alto1;
+      // il pezzo agganciato a destra cresce verso sinistra: l'angolo che si
+      // muove e' quello di sotto a SINISTRA, ed e' quello che insegue il dito
+      const voglioX = misuro.aDestra
+        ? misuro.sinistra0 + (e.clientX - misuro.x)
+        : misuro.destra0 + (e.clientX - misuro.x);
+      const kx = misuro.aDestra
+        ? (misuro.destra0 - voglioX) / largo1
+        : (voglioX - misuro.sinistra0) / largo1;
+      const k = Math.max(0.4, Math.min(3, (kx + ky) / 2));
       misuro.k = Math.round(k * 100) / 100;
       provaScala(misuro.chi, misuro.k);
       aggiornaManiglia();
@@ -10967,10 +13232,24 @@ class CasaTileEditor extends HTMLElement {
       if (!misuro) return;
       maniglia.classList.remove("inmano");
       const posti = { ...((this._cfgPista() || {}).posti || {}) };
-      const vecchio = posti[misuro.chi] || {};
+      const vecchio = { ...(posti[misuro.chi] || {}) };
       const k = misuro.k;
       if (k === 1) delete vecchio.s; else vecchio.s = k;
-      posti[misuro.chi] = { ...vecchio };
+      // E I DUE AGGANCI DEVONO COMBACIARE. Il pezzo adesso e' grande
+      // un'altra cosa: mi riprendo la sua figura e riscrivo sia la
+      // distanza da sinistra sia quella da destra su quella. Cosi'
+      // comunque la casella decida di tenerlo - a sinistra o a destra -
+      // resta dove l'hai visto.
+      const rc2 = carta.riquadroCasella();
+      const pz2 = pezziDi(misuro.chi)[0];
+      if (rc2 && pz2) {
+        const rr = pz2.getBoundingClientRect();
+        vecchio.x = Math.round((rr.left - rc2.left) / rc2.width * 1000) / 10;
+        vecchio.y = Math.round((rr.top - rc2.top) / rc2.height * 1000) / 10;
+        vecchio.dx = Math.round((rc2.width - (rr.right - rc2.left))
+          / rc2.width * 1000) / 10;
+      }
+      posti[misuro.chi] = vecchio;
       carta._appenaSpostato = true;
       this._scriviPosti(posti);
       this._dico("grandezza salvata: " + Math.round(k * 100) + "%");
@@ -11001,11 +13280,11 @@ class CasaTileEditor extends HTMLElement {
       const q = chiSono(e.clientX, e.clientY);
       this._dico(q ? "preso: " + q.chi : "sotto al dito non c'e' nessun pezzo");
       if (!q) {
-        carta._scelto = null;
+        carta._pezzoScelto = null;
         aggiornaManiglia();
         return;
       }
-      carta._scelto = q.chi;
+      carta._pezzoScelto = q.chi;
       setTimeout(aggiornaManiglia, 0);
       e.preventDefault();
       e.stopPropagation();
@@ -11075,11 +13354,19 @@ class CasaTileEditor extends HTMLElement {
       }
       const rc = carta.riquadroCasella();
       if (!rc) return;
+      // Lo rimetto dov'e' ma tenuto per l'angolo in alto a sinistra, che e'
+      // dove sta la posizione che gli do io: se restasse tenuto per la
+      // destra, la sua figura starebbe "quanto e' cresciuto" piu' in la'
+      // della posizione che gli do - sul suo attrezzo al 157% erano
+      // diciotto punti.
+      perLaSinistra(q.chi);
       const re = q.el.getBoundingClientRect();
       preso = {
         chi: q.chi, el: q.el, rc: rc,
         dx: e.clientX - re.left, dy: e.clientY - re.top,
         largo: re.width, alto: re.height,
+        // quanto e' ingrandito adesso: da togliere dalle misure che salvo
+        k: carta.quantoIngrandito ? carta.quantoIngrandito(q.el) : 1,
       };
       q.el.classList.add("inmano");
       try { carta.setPointerCapture(e.pointerId); } catch (e2) { /* pazienza */ }
@@ -11089,10 +13376,14 @@ class CasaTileEditor extends HTMLElement {
       if (!preso) return;
       e.preventDefault();
       e.stopPropagation();
-      const x = (e.clientX - preso.dx - preso.rc.left) / preso.rc.width * 100;
-      const y = (e.clientY - preso.dy - preso.rc.top) / preso.rc.height * 100;
-      const maxX = 100 - (preso.largo / preso.rc.width * 100);
-      const maxY = 100 - (preso.alto / preso.rc.height * 100);
+      // LA MISURA DELLA CASELLA ME LA RIPRENDO ADESSO, non quella di
+      // quando ho premuto: fra i due momenti la casella puo' essersi
+      // mossa o cambiata di misura, e allora la percentuale esce storta.
+      const rc = carta.riquadroCasella() || preso.rc;
+      const x = (e.clientX - preso.dx - rc.left) / rc.width * 100;
+      const y = (e.clientY - preso.dy - rc.top) / rc.height * 100;
+      const maxX = 100 - (preso.largo / rc.width * 100);
+      const maxY = 100 - (preso.alto / rc.height * 100);
       const px = Math.round(Math.max(0, Math.min(maxX, x)) * 10) / 10;
       const py = Math.round(Math.max(0, Math.min(maxY, y)) * 10) / 10;
       preso.finito = { x: px, y: py };
@@ -11118,6 +13409,7 @@ class CasaTileEditor extends HTMLElement {
 
     const lascia = () => {
       if (!preso) return;
+      preso.rcFine = carta.riquadroCasella() || preso.rc;
       preso.el.classList.remove("inmano");
       this._dico(preso.finito
         ? "salvato " + preso.chi + " a " + preso.finito.x + "% " + preso.finito.y + "%"
@@ -11133,10 +13425,16 @@ class CasaTileEditor extends HTMLElement {
           ...vecchio,
           x: preso.finito.x,
           y: preso.finito.y,
-          w: Math.round(preso.largo / preso.rc.width * 1000) / 10,
-          h: Math.round(preso.alto / preso.rc.height * 1000) / 10,
-          dx: Math.round((preso.rc.width - preso.largo)
-            / preso.rc.width * 1000) / 10 - preso.finito.x,
+          // la misura SENZA l'ingrandimento: quello glielo rimette la
+          // casella quando disegna, e contarlo due volte faceva crescere
+          // il pezzo a ogni tocco
+          w: Math.round(preso.largo / preso.k / preso.rcFine.width * 1000) / 10,
+          h: Math.round(preso.alto / preso.k / preso.rcFine.height * 1000) / 10,
+          // La distanza dal bordo destro invece si conta sulla figura
+          // INGRANDITA, che e' quella che si vede: e' quella che serve per
+          // riagganciarlo a destra senza spostarlo.
+          dx: Math.round((preso.rcFine.width - preso.largo)
+            / preso.rcFine.width * 1000) / 10 - preso.finito.x,
         };
         this._scriviPosti(posti);
       }
@@ -11173,11 +13471,16 @@ class CasaTileEditor extends HTMLElement {
       if (!p && !eLaMia) return;
       // toccando la casella grande in cima si torna a sistemare lei
       this._sceltaPercorso = p && !eLaMia ? p : null;
+      // cambiata la scheda, la misura tirata prima non c'entra piu' niente
+      const b0 = this._postiBox;
+      if (b0) b0._tirata = null;
       // la misura buona e' quella che ha adesso dentro al pop-up: la prendo
       // dall'elemento che ha toccato (offsetWidth, non il rettangolo sullo
       // schermo, che potrebbe essere rimpicciolito dall'anteprima)
       const chi = e.detail && e.detail.elemento;
-      this._misuraScelta = (this._sceltaPercorso && chi && chi.offsetWidth > 60)
+      // anche una casella stretta di griglia: la sua misura e' quella
+      // buona, e scartandola finivo per prendere quella di un'altra card
+      this._misuraScelta = (this._sceltaPercorso && chi && chi.offsetWidth > 24)
         ? { w: chi.offsetWidth, h: chi.offsetHeight } : null;
       this._giaSbrogliato = false;
       this._planciaCercata = null;
@@ -11211,12 +13514,119 @@ class CasaTileEditor extends HTMLElement {
   connectedCallback() {
     const box = this._postiBox;
     if (box && box._carta && !this._ascolti) this._pistaTrascina(box._carta);
+    this._ascoltaMisure();
+  }
+
+  // QUANDO LUI TIRA L'ANGOLO DI UNA SCHEDA nell'anteprima del pop-up.
+  // L'anteprima e' una casella a se', appesa da un'altra parte della
+  // pagina: mi parla per mezzo di un avviso sulla finestra, come fa gia'
+  // per dire quale scheda si sta sistemando.
+  _ascoltaMisure() {
+    if (this._ascoltoMisure) return;
+    const preso = (e) => {
+      const d = (e && e.detail) || {};
+      if (!this.isConnected || !d.chiave) return;
+      const mia = this._config || {};
+      const suo = d.config || {};
+      // solo se e' l'anteprima della MIA casella: nella stessa pagina ce
+      // ne possono essere altre aperte
+      if (String(suo.entity || "") !== String(mia.entity || "")
+        || String(suo.name || "") !== String(mia.name || "")) return;
+      if (d.a !== undefined && d.a !== null) this._spostaScheda(d.chiave, d.a);
+      else this._scriviMisura(String(d.chiave), d.largo, d.alto, d.quante);
+    };
+    window.addEventListener("casa-misura-scheda", preso, true);
+    window.addEventListener("casa-sposta-scheda", preso, true);
+    this._ascoltoMisure = () => {
+      window.removeEventListener("casa-misura-scheda", preso, true);
+      window.removeEventListener("casa-sposta-scheda", preso, true);
+    };
+  }
+
+  // e qui la misura viene scritta dove la scrive Home Assistant.
+  // La chiave "2" e' la terza scheda, "2.1" la seconda casella della terza
+  // scheda quando quella e' una griglia.
+  _scriviMisura(chiave, largo, alto, quante) {
+    const l = (this._schede() || []).slice();
+    const parti = String(chiave).split(".");
+    const i = Number(parti[0]);
+    if (!isFinite(i) || !l[i]) return;
+
+    // La misura "normale", quella che non serve scrivere: tutta la riga
+    // fuori, una colonna sola dentro a una griglia. Se ci si torna, il
+    // valore va cancellato invece che scritto uguale al normale.
+    const metti = (carta, normale) => {
+      const c2 = { ...(carta || {}) };
+      const m = { ...(c2.casa_misura || {}) };
+      if (largo > 0 && Math.abs(largo - normale) > 0.8) {
+        m.largo = Math.round(largo * 10) / 10;
+      } else delete m.largo;
+      if (alto !== null && alto !== undefined) {
+        if (alto > 0) m.alto = Math.round(alto);
+        else delete m.alto;
+      }
+      // adesso comanda questa: la misura a colonne di Home Assistant
+      // resterebbe li' a dire un'altra cosa
+      delete c2.grid_options;
+      if (Object.keys(m).length) c2.casa_misura = m;
+      else delete c2.casa_misura;
+      return c2;
+    };
+
+    if (parti.length === 1) {
+      l[i] = metti(l[i], 100);
+    } else {
+      const k = Number(parti[1]);
+      const madre = { ...l[i] };
+      const figli = (madre.cards || []).slice();
+      if (!figli[k]) return;
+      const q = Number(quante) >= 1 ? Number(quante)
+        : Math.max(1, Math.min(12, Math.round(
+          Number(madre.columns) > 0 ? Number(madre.columns) : 3)));
+      figli[k] = metti(figli[k], 100 / q);
+      madre.cards = figli;
+      l[i] = madre;
+    }
+    this._config = { ...this._config, finestra_cards: l };
+    this._conservaPosto(() => this._emetti());
+  }
+
+  // E QUANDO LUI SPOSTA UNA SCHEDA tenendola premuta: la tira via da dov'e'
+  // e la rimette al posto nuovo. Dentro a una griglia si muove fra le
+  // caselle della griglia, fuori fra le schede del pop-up.
+  _spostaScheda(da, a) {
+    const l = (this._schede() || []).slice();
+    const p1 = String(da).split(".");
+    const p2 = String(a).split(".");
+    if (p1.length !== p2.length) return;
+    const i = Number(p1[0]);
+    if (p1.length === 1) {
+      const j = Number(p2[0]);
+      if (!isFinite(i) || !isFinite(j) || !l[i] || i === j) return;
+      const fuori = l.splice(i, 1)[0];
+      l.splice(Math.max(0, Math.min(l.length, j)), 0, fuori);
+    } else {
+      if (Number(p2[0]) !== i || !l[i]) return;
+      const madre = { ...l[i] };
+      const figli = (madre.cards || []).slice();
+      const k1 = Number(p1[1]);
+      const k2 = Number(p2[1]);
+      if (!isFinite(k1) || !isFinite(k2) || !figli[k1] || k1 === k2) return;
+      const fuori = figli.splice(k1, 1)[0];
+      figli.splice(Math.max(0, Math.min(figli.length, k2)), 0, fuori);
+      madre.cards = figli;
+      l[i] = madre;
+    }
+    this._config = { ...this._config, finestra_cards: l };
+    this._emetti();
+    this._costruisciBlocco(true);
   }
 
   // La finestra delle impostazioni si chiude: mi riprendo tutto quello che
   // avevo lasciato in giro, se no si accumula apertura dopo apertura.
   disconnectedCallback() {
     if (this._ascolti) { this._ascolti(); this._ascolti = null; }
+    if (this._ascoltoMisure) { this._ascoltoMisure(); this._ascoltoMisure = null; }
     clearTimeout(this._propagaDopo);
     this._propagaDopo = 0;
     const box = this._postiBox;
@@ -11517,7 +13927,25 @@ class CasaTileEditor extends HTMLElement {
         if (g.scatola) g.scatola.hidden = quanti === 0;
       });
       // certe schede hanno anche i riquadri fatti a mano, quindi restano
-      const conBlocchi = ["icona", "sfondo", "tocco", "aspetto"].includes(sez.chiave);
+      const conBlocchi = ["icona", "sfondo", "tocco", "aspetto",
+        "popup"].includes(sez.chiave);
+      // "Pezzi" c'e' sempre, tranne dentro all'editor di una scheda del
+      // pop-up: li' i pezzi non si spostano e resterebbe una linguetta vuota
+      if (sez.chiave === "pezzi") {
+        const serve = !this._perIlPopup();
+        const b1 = this._tasti[i];
+        if (b1) b1.style.display = serve ? "" : "none";
+        if (!serve) this._pannelli[i].setAttribute("nascosto", "");
+        else if (primaValida === -1) primaValida = i;
+        return;
+      }
+      // il Pop-up si vede solo se al tocco apre davvero un pop-up
+      if (sez.chiave === "popup" && (this._config.azione || "toggle") !== "finestra") {
+        const b2 = this._tasti[i];
+        if (b2) b2.style.display = "none";
+        this._pannelli[i].setAttribute("nascosto", "");
+        return;
+      }
       if (sez.chiave === "grafico" || sez.chiave === "persone") {
         // queste due valgono solo dove hanno senso: se non hanno campi,
         // la scheda sparisce del tutto
@@ -11615,7 +14043,7 @@ class CasaTileEditor extends HTMLElement {
     // anteprima - e continuava a lavorare anche stando su un'altra
     // linguetta. Uscendo da "Tocco" lo chiudo.
     let tocco = -1;
-    SEZIONI.forEach((s, k) => { if (s.chiave === "tocco") tocco = k; });
+    SEZIONI.forEach((s, k) => { if (s.chiave === "popup") tocco = k; });
     if (tocco >= 0 && i !== tocco
       && (this._apertaIdx !== null && this._apertaIdx !== undefined)) {
       this._apertaIdx = null;
@@ -11868,6 +14296,10 @@ class CasaTileEditor extends HTMLElement {
     return proprie.length === 0;
   }
 
+  // IL LAYOUT, QUELLO DI HOME ASSISTANT. Uso il suo stesso comando: la
+  // griglia da trascinare con i due cursori. Se per qualche motivo non e'
+  // ancora stato caricato dal frontend, metto due tendine che fanno la
+  // stessa cosa, cosi' la misura si puo' cambiare lo stesso.
   _riempiEditorScheda(box, card, aggiorna, indice) {
     box.innerHTML = "";
     const attesa = document.createElement("div");
@@ -11878,6 +14310,21 @@ class CasaTileEditor extends HTMLElement {
     // l'anteprima della scheda si vede gia' nel riquadro a destra,
     // dentro "Contenuto del pop-up": qui sarebbe solo un doppione
     const dentro = document.createElement("div");
+    // IL LAYOUT VA SOPRA, NON SOTTO. Sotto finiva in fondo all'editor della
+    // scheda, che ha le sue linguette (Base, Comandi, Grafico, Tocco...):
+    // qualunque linguetta guardassi, il Layout compariva li' in fondo e
+    // sembrava far parte di quella. Sopra invece sta insieme alle altre
+    // cose che riguardano la scheda INTERA - il suo sfondo, la sua misura -
+    // e si vede subito, senza scorrere tutte le sue impostazioni.
+    // Se la scheda e' una GRIGLIA il suo Layout qui non lo metto: nel
+    // pop-up la griglia viene aperta e le sue caselle vanno per conto loro
+    // (vedi _pezziFinestra), quindi una misura della griglia non vorrebbe
+    // dire niente. Il Layout compare invece dentro all'editor di ogni
+    // casella, dove uno se lo aspetta - ci pensa _seguiFigli.
+    // Una casella NOSTRA ha la sua linguetta "Layout" nelle sue
+    // impostazioni, qui sotto: un secondo riquadro sciolto sarebbe un
+    // doppione. Per tutte le altre schede - che le impostazioni le fa
+    // Home Assistant - il riquadro serve, ed e' qui.
     box.append(attesa, dentro);
 
     const pronta = this._schedaNuda(card)
@@ -11898,6 +14345,11 @@ class CasaTileEditor extends HTMLElement {
         ed.lovelace = this._lov();
         dentro.appendChild(ed);
         ed.value = card;
+        // me lo segno: quando cambio la misura di una casella dentro alla
+        // griglia devo dirglielo, se no lui tiene in mano la griglia
+        // VECCHIA e alla prima occasione la rimanda indietro cancellando
+        // quello che ho appena scritto (era il rimbalzo)
+        box._edHA = ed;
         ed.addEventListener("config-changed", (e) => {
           e.stopPropagation();
           if (e.detail && e.detail.config) aggiorna(e.detail.config);
@@ -11918,6 +14370,17 @@ class CasaTileEditor extends HTMLElement {
         this._scordaCodice = setTimeout(() => { this._apriCodicePer = null; }, 2500);
       }
       box.appendChild(this._codiceScheda(card, aggiorna, subito));
+    }).catch(() => {
+      // SE L'EDITOR DELLA SCHEDA NON SI CARICA (una card di HACS che non
+      // risponde, una configurazione a meta', un errore suo) il Layout deve
+      // esserci lo stesso: prima moriva tutta la catena e restavi senza
+      // Layout e senza il riquadro del codice, senza capire perche'.
+      if (!box.isConnected) return;
+      attesa.textContent = "Le impostazioni di questa scheda non si sono "
+        + "caricate. Il codice lo trovi qui sotto.";
+      if (!box.querySelector(".codice-scheda")) {
+        box.appendChild(this._codiceScheda(card, aggiorna, false));
+      }
     });
   }
 
@@ -12171,14 +14634,55 @@ class CasaTileEditor extends HTMLElement {
     });
   }
 
-  // il vestito della singola scheda: tinta e trasparenza sue, non di tutte
-  // ha un fondo suo da vestire, questa scheda?
-  _vestibile(tipo) {
-    const t = String(tipo || "");
-    if (t === "custom:casa-tile") return false;
-    return ["grid", "vertical-stack", "horizontal-stack", "conditional",
-      "entity-filter", "custom:stack-in-card", "custom:vertical-stack-in-card",
-      "custom:layout-card", "custom:swipe-card"].indexOf(t) === -1;
+  // UNA CASELLA NOSTRA IL FONDO SE LO DISEGNA DA SOLA, e se lo scrive
+  // addosso: quello che le passo dalla busta non lo guarda nemmeno. Quindi
+  // per lei (e per le caselle nostre dentro a una griglia o a una pila) il
+  // colore va scritto nelle SUE impostazioni. Torna indietro null se li'
+  // dentro di caselle nostre non ce n'e' nessuna: allora vale la busta.
+  _tingiDentro(cfg, dati) {
+    if (!cfg || typeof cfg !== "object") return null;
+    if (String(cfg.type || "") === "custom:casa-tile") {
+      const c2 = { ...cfg };
+      if ("sfondo" in dati) {
+        if (dati.sfondo) c2.sfondo_colore = dati.sfondo;
+        else delete c2.sfondo_colore;
+      }
+      if ("trasparenza" in dati) {
+        if (dati.trasparenza) c2.trasparenza = dati.trasparenza;
+        else delete c2.trasparenza;
+      }
+      return c2;
+    }
+    let cambiato = false;
+    const c2 = { ...cfg };
+    if (Array.isArray(cfg.cards)) {
+      const l = cfg.cards.map((x) => {
+        const y = this._tingiDentro(x, dati);
+        if (y) cambiato = true;
+        return y || x;
+      });
+      if (cambiato) c2.cards = l;
+    }
+    if (cfg.card) {
+      const y = this._tingiDentro(cfg.card, dati);
+      if (y) { c2.card = y; cambiato = true; }
+    }
+    return cambiato ? c2 : null;
+  }
+
+  // e che colore ha adesso: la prima casella nostra che trovo li' dentro
+  _tintaDentro(cfg) {
+    if (!cfg || typeof cfg !== "object") return null;
+    if (String(cfg.type || "") === "custom:casa-tile") {
+      return { sfondo: cfg.sfondo_colore, trasparenza: cfg.trasparenza };
+    }
+    const figli = (Array.isArray(cfg.cards) ? cfg.cards : [])
+      .concat(cfg.card ? [cfg.card] : []);
+    for (let i = 0; i < figli.length; i += 1) {
+      const t = this._tintaDentro(figli[i]);
+      if (t) return t;
+    }
+    return null;
   }
 
   _vestitoScheda(i) {
@@ -12186,8 +14690,21 @@ class CasaTileEditor extends HTMLElement {
     riga.className = "vestito-riga";
     const suoi = Array.isArray(this._config.finestra_schede_stile)
       ? this._config.finestra_schede_stile.slice() : [];
-    const mio = suoi[i] || {};
+    const carta = (this._schede() || [])[i] || {};
+    const daSola = this._tintaDentro(carta);
+    const mio = daSola || suoi[i] || {};
     const salva = (dati) => {
+      // se li' dentro ci sono caselle nostre, il colore si scrive nelle
+      // loro impostazioni: e' l'unico che guardano
+      if (daSola) {
+        const nuova = this._tingiDentro((this._schede() || [])[i] || {}, dati);
+        if (nuova) {
+          const l = (this._schede() || []).slice();
+          l[i] = nuova;
+          this._conservaPosto(() => this._salvaSchede(l, false));
+          return;
+        }
+      }
       const l = (Array.isArray(this._config.finestra_schede_stile)
         ? this._config.finestra_schede_stile.slice() : []);
       while (l.length <= i) l.push({});
@@ -12218,6 +14735,16 @@ class CasaTileEditor extends HTMLElement {
     barra.addEventListener("change", () => salva({ trasparenza: Number(barra.value) }));
 
     const via = this._bottone("✕", "Togli il vestito a questa scheda", () => {
+      if (daSola) {
+        const nuova = this._tingiDentro((this._schede() || [])[i] || {},
+          { sfondo: null, trasparenza: null });
+        if (nuova) {
+          const l0 = (this._schede() || []).slice();
+          l0[i] = nuova;
+          this._salvaSchede(l0, true);
+          return;
+        }
+      }
       const l = (Array.isArray(this._config.finestra_schede_stile)
         ? this._config.finestra_schede_stile.slice() : []);
       if (l[i]) l[i] = {};
@@ -12248,6 +14775,10 @@ class CasaTileEditor extends HTMLElement {
     // Il vestito delle schede NON sta nella firma: muovendo il cursore la
     // lista si rifaceva da capo e la pagina risaliva in cima, proprio
     // mentre lo stavi trascinando.
+    // la casella dell'anteprima deve sapere quale scheda ha in mano, per
+    // tenerla ferma mentre ne cambia la misura
+    SCHEDA_APERTA.indice = (this._apertaIdx === null
+      || this._apertaIdx === undefined) ? null : this._apertaIdx;
     const firma = JSON.stringify(lista.map((c) => (c || {}).type))
       + "|" + this._apertaIdx + "|" + (this._pickerAperto ? 1 : 0);
     if (!forza && this._firmaBlocco === firma) return;
@@ -12300,13 +14831,12 @@ class CasaTileEditor extends HTMLElement {
       this._riordinaCol(presa, riga, i);
       riga.append(presa, num, tipo, spinta);
       this._blocco.appendChild(riga);
-      // Il vestito vale solo per le schede che hanno un fondo loro. Una
-      // casa-tile se lo disegna da sola dalle SUE impostazioni, e le schede
-      // che ne contengono altre (griglia, pile, condizionale) un fondo non
-      // ce l'hanno proprio: li' il cursore non comandava niente.
-      if (this._vestibile(card.type)) {
-        this._blocco.appendChild(this._vestitoScheda(i));
-      }
+      // Lo sfondo si puo' dare a QUALUNQUE scheda. Prima lo saltavo per le
+      // caselle nostre e per quelle che ne contengono altre (griglia, pile):
+      // ma il colore lo do alla busta, e da li' scende dentro - la griglia
+      // tinge le caselle che ha dentro, e la casella nostra lo usa solo se
+      // non ne ha gia' uno suo.
+      this._blocco.appendChild(this._vestitoScheda(i));
 
       if (this._apertaIdx === i) {
         const box = document.createElement("div");
@@ -12324,17 +14854,32 @@ class CasaTileEditor extends HTMLElement {
       }
     });
 
+    // IN FONDO ALL'ELENCO: o il tasto "+ Aggiungi scheda", o la tendina da
+    // cui scegliere. Sta in un pezzo suo, e premendo si rifa' SOLO quello:
+    // tutto il resto - comprese le schede che ha aperto - non si tocca e
+    // non si muove di un pelo.
+    const coda = document.createElement("div");
+    coda.className = "coda-blocco";
+    this._codaBlocco = coda;
+    this._blocco.appendChild(coda);
+    this._riempiCoda();
+  }
+
+  _riempiCoda() {
+    const coda = this._codaBlocco;
+    if (!coda) return;
+    coda.innerHTML = "";
     if (this._pickerAperto) {
-      this._blocco.appendChild(this._costruisciTendina());
+      coda.appendChild(this._costruisciTendina());
       const annulla = document.createElement("button");
       annulla.className = "bt chiaro";
       annulla.type = "button";
       annulla.textContent = "Annulla";
       annulla.addEventListener("click", () => {
         this._pickerAperto = false;
-        this._costruisciBlocco(true);
+        this._riempiCoda();
       });
-      this._blocco.appendChild(annulla);
+      coda.appendChild(annulla);
     } else {
       const aggiungi = document.createElement("button");
       aggiungi.className = "bt";
@@ -12342,9 +14887,9 @@ class CasaTileEditor extends HTMLElement {
       aggiungi.textContent = "+ Aggiungi scheda";
       aggiungi.addEventListener("click", () => {
         this._pickerAperto = true;
-        this._costruisciBlocco(true);
+        this._riempiCoda();
       });
-      this._blocco.appendChild(aggiungi);
+      coda.appendChild(aggiungi);
     }
   }
 }
