@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // Dove va ogni pezzo: prendere, spostare, ridimensionare, misurare.
 
+import { T } from './lingua.js';
 import { nomeAttrezzo } from './aiuti.js';
 import { nomeTasto, segno } from './segni.js';
 
@@ -529,7 +530,7 @@ export const ConPezzi = (Base) => class extends Base {
     if (!cella || cella._maniglia) return;
     const m = document.createElement("div");
     m.className = "maniglia";
-    m.title = "Tieni premuto e trascina per cambiare la misura di questa scheda";
+    m.title = T("Tieni premuto e trascina per cambiare la misura di questa scheda");
     const targa = document.createElement("div");
     targa.className = "misurino";
     cella._maniglia = m;

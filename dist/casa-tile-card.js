@@ -1,4 +1,175 @@
 // -*- coding: utf-8 -*-
+// I conti sui colori: gradi, lampade, sfumature, meteo.
+
+const COLORI = {
+  ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
+  rosa: "#ff9ec7", viola: "#9b6bff", blu: "#5ec8ff", azzurro: "#7aa7ff",
+  verde: "#3fd98a", acqua: "#4fe0c8", lime: "#cddc39", grigio: "#8ab4f8",
+};
+
+function coloreDaGradi(k) {
+  const t = Math.max(1000, Math.min(12000, Number(k) || 4000)) / 100;
+  const dentro = (x) => Math.max(0, Math.min(255, Math.round(x)));
+  let r; let g; let b;
+  if (t <= 66) {
+    r = 255;
+    g = 99.47 * Math.log(t) - 161.12;
+    b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04;
+  } else {
+    r = 329.7 * Math.pow(t - 60, -0.1332);
+    g = 288.12 * Math.pow(t - 60, -0.0755);
+    b = 255;
+  }
+  return [dentro(r), dentro(g), dentro(b)];
+}
+
+// dal freddo al caldo: azzurro, verde, ambra, arancio, rosso
+const SCALA_TERMICA = [
+  [-5, [79, 139, 255]], [8, [79, 184, 255]], [15, [79, 224, 200]],
+  [19, [63, 217, 138]], [23, [255, 207, 92]], [27, [255, 154, 60]],
+  [32, [255, 95, 95]],
+];
+
+function coloreTemperatura(t) {
+  const n = Number(t);
+  if (isNaN(n)) return null;
+  let a = SCALA_TERMICA[0];
+  let b = SCALA_TERMICA[SCALA_TERMICA.length - 1];
+  if (n <= a[0]) return daRgb(a[1]);
+  if (n >= b[0]) return daRgb(b[1]);
+  for (let i = 0; i < SCALA_TERMICA.length - 1; i += 1) {
+    if (n >= SCALA_TERMICA[i][0] && n <= SCALA_TERMICA[i + 1][0]) {
+      a = SCALA_TERMICA[i];
+      b = SCALA_TERMICA[i + 1];
+      break;
+    }
+  }
+  const q = (n - a[0]) / (b[0] - a[0]);
+  return daRgb([0, 1, 2].map((k) => Math.round(a[1][k] + (b[1][k] - a[1][k]) * q)));
+}
+
+// Come fa Mushroom: il colore della lampada va corretto, se no i bianchi
+// e i colori slavati non si vedono sul fondo scuro.
+function coloreLampada(rgb) {
+  const r = rgb[0] / 255;
+  const g = rgb[1] / 255;
+  const b = rgb[2] / 255;
+  const max = Math.max(r, g, b);
+  const delta = max - Math.min(r, g, b);
+  let h = 0;
+  if (delta) {
+    if (max === r) h = (g - b) / delta;
+    else if (max === g) h = 2 + (b - r) / delta;
+    else h = 4 + (r - g) / delta;
+  }
+  h = 60 * (h < 0 ? h + 6 : h);
+  let sat = max ? delta / max : 0;
+  let val = max * 255;
+  if (sat < 0.4) {
+    if (sat < 0.1) val = 225;      // quasi bianca: la faccio brillare
+    else sat = 0.4;                // slavata: le do' un po' di tinta
+  }
+  const canale = (n) => {
+    const k = (n + h / 60) % 6;
+    return Math.round(val - val * sat * Math.max(Math.min(k, 4 - k, 1), 0));
+  };
+  return [canale(5), canale(3), canale(1)];
+}
+
+function daRgb(rgb) {
+  if (!Array.isArray(rgb) || rgb.length < 3) return null;
+  return "#" + rgb.slice(0, 3)
+    .map((x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// lo stesso colore, ma piu' scuro (quanto: 1 = uguale, 0 = nero)
+function scurisci(colore, quanto) {
+  const h = String(colore || "").replace("#", "");
+  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
+  if (pieno.length !== 6) return colore;
+  const n = parseInt(pieno, 16);
+  const r = Math.round(((n >> 16) & 255) * quanto);
+  const g = Math.round(((n >> 8) & 255) * quanto);
+  const b = Math.round((n & 255) * quanto);
+  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+function conAlfa(colore, a) {
+  const h = String(colore || "").replace("#", "");
+  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
+  if (pieno.length !== 6) return colore;
+  const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
+  return "#" + pieno + alfa;
+}
+
+const METEO = {
+  "clear-night": ["\uD83C\uDF19", "Sereno"],
+  cloudy: ["\u2601\uFE0F", "Nuvoloso"],
+  fog: ["\uD83C\uDF2B\uFE0F", "Nebbia"],
+  hail: ["\uD83C\uDF28\uFE0F", "Grandine"],
+  lightning: ["\u26C8\uFE0F", "Temporale"],
+  "lightning-rainy": ["\u26C8\uFE0F", "Temporale"],
+  partlycloudy: ["\u26C5", "Parz. nuvoloso"],
+  pouring: ["\uD83C\uDF27\uFE0F", "Pioggia forte"],
+  rainy: ["\uD83C\uDF27\uFE0F", "Pioggia"],
+  snowy: ["\u2744\uFE0F", "Neve"],
+  "snowy-rainy": ["\uD83C\uDF28\uFE0F", "Nevischio"],
+  sunny: ["\u2600\uFE0F", "Sereno"],
+  windy: ["\uD83D\uDCA8", "Vento"],
+  "windy-variant": ["\uD83D\uDCA8", "Vento"],
+  exceptional: ["\u26A0\uFE0F", "Attenzione"],
+};
+
+const CIELI = {
+  sunny: [
+    "radial-gradient(115% 80% at 84% -14%, rgba(255,216,140,.95), rgba(255,216,140,0) 58%),"
+    + "linear-gradient(168deg, #1668b8 0%, #3f97dd 42%, #8cc6ee 74%, #f2b877 100%)", "sole"],
+  "clear-night": [
+    "radial-gradient(90% 70% at 74% 10%, rgba(190,206,255,.30), rgba(190,206,255,0) 62%),"
+    + "linear-gradient(168deg, #060b1e 0%, #101c48 55%, #22366e 100%)", "stelle"],
+  partlycloudy: [
+    "radial-gradient(110% 80% at 78% -10%, rgba(255,226,170,.55), rgba(255,226,170,0) 55%),"
+    + "linear-gradient(168deg, #1f5a94 0%, #5b8fc4 55%, #a8c4dc 100%)", "sole_nuvole"],
+  cloudy: [
+    "radial-gradient(110% 75% at 30% -12%, rgba(226,236,246,.35), rgba(226,236,246,0) 60%),"
+    + "linear-gradient(168deg, #33445a 0%, #566a80 60%, #7b8b9d 100%)", "nuvole"],
+  rainy: [
+    "radial-gradient(100% 70% at 22% -12%, rgba(150,180,205,.45), rgba(150,180,205,0) 60%),"
+    + "linear-gradient(168deg, #17222f 0%, #2b3c4e 55%, #3c5468 100%)", "pioggia"],
+  pouring: [
+    "radial-gradient(100% 70% at 22% -12%, rgba(140,170,200,.4), rgba(140,170,200,0) 58%),"
+    + "linear-gradient(168deg, #101923 0%, #22303f 55%, #33475b 100%)", "pioggia"],
+  lightning: [
+    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
+    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
+  "lightning-rainy": [
+    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
+    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
+  snowy: [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.5), rgba(255,255,255,0) 60%),"
+    + "linear-gradient(168deg, #46596e 0%, #778fa6 55%, #b3c6d6 100%)", "neve"],
+  "snowy-rainy": [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
+    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
+  hail: [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
+    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
+  fog: [
+    "radial-gradient(120% 90% at 50% 40%, rgba(235,240,245,.35), rgba(235,240,245,0) 65%),"
+    + "linear-gradient(168deg, #46505c 0%, #6d7883 55%, #98a2ab 100%)", "nebbia"],
+  windy: [
+    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
+    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
+  "windy-variant": [
+    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
+    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
+  exceptional: [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,190,150,.45), rgba(255,190,150,0) 58%),"
+    + "linear-gradient(168deg, #4d2424 0%, #7c4034 55%, #a76a4f 100%)", ""],
+};
+
+// -*- coding: utf-8 -*-
 // La lingua della casella.
 //
 // Schema: l'ITALIANO fa da chiave. Il codice resta scritto in italiano,
@@ -38,7 +209,7 @@ function T(testo) {
 }
 
 // Le voci delle tendine passano dritte a ha-form dentro allo schema: le
-// traduco qui, quando lo schema esce, invece di duplicare la tabella delle
+// traduco qui, quando lo schema esce, invece di tenere la tabella delle
 // sezioni in due lingue. La firma dello schema guarda i nomi, non le
 // scritte, quindi tradurle non fa ricostruire niente.
 function traduciSchema(elenco) {
@@ -246,177 +417,83 @@ const EN = {
   "Sboccia dalla casella che hai toccato": "Blooms from the tile you tapped",
   "Entra dal basso, come un cassetto": "Slides up from the bottom, like a drawer",
   "Nessuna animazione": "No animation",
-};
-
-// -*- coding: utf-8 -*-
-// I conti sui colori: gradi, lampade, sfumature, meteo.
-
-const COLORI = {
-  ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
-  rosa: "#ff9ec7", viola: "#9b6bff", blu: "#5ec8ff", azzurro: "#7aa7ff",
-  verde: "#3fd98a", acqua: "#4fe0c8", lime: "#cddc39", grigio: "#8ab4f8",
-};
-
-function coloreDaGradi(k) {
-  const t = Math.max(1000, Math.min(12000, Number(k) || 4000)) / 100;
-  const dentro = (x) => Math.max(0, Math.min(255, Math.round(x)));
-  let r; let g; let b;
-  if (t <= 66) {
-    r = 255;
-    g = 99.47 * Math.log(t) - 161.12;
-    b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04;
-  } else {
-    r = 329.7 * Math.pow(t - 60, -0.1332);
-    g = 288.12 * Math.pow(t - 60, -0.0755);
-    b = 255;
-  }
-  return [dentro(r), dentro(g), dentro(b)];
-}
-
-// dal freddo al caldo: azzurro, verde, ambra, arancio, rosso
-const SCALA_TERMICA = [
-  [-5, [79, 139, 255]], [8, [79, 184, 255]], [15, [79, 224, 200]],
-  [19, [63, 217, 138]], [23, [255, 207, 92]], [27, [255, 154, 60]],
-  [32, [255, 95, 95]],
-];
-
-function coloreTemperatura(t) {
-  const n = Number(t);
-  if (isNaN(n)) return null;
-  let a = SCALA_TERMICA[0];
-  let b = SCALA_TERMICA[SCALA_TERMICA.length - 1];
-  if (n <= a[0]) return daRgb(a[1]);
-  if (n >= b[0]) return daRgb(b[1]);
-  for (let i = 0; i < SCALA_TERMICA.length - 1; i += 1) {
-    if (n >= SCALA_TERMICA[i][0] && n <= SCALA_TERMICA[i + 1][0]) {
-      a = SCALA_TERMICA[i];
-      b = SCALA_TERMICA[i + 1];
-      break;
-    }
-  }
-  const q = (n - a[0]) / (b[0] - a[0]);
-  return daRgb([0, 1, 2].map((k) => Math.round(a[1][k] + (b[1][k] - a[1][k]) * q)));
-}
-
-// Come fa Mushroom: il colore della lampada va corretto, se no i bianchi
-// e i colori slavati non si vedono sul fondo scuro.
-function coloreLampada(rgb) {
-  const r = rgb[0] / 255;
-  const g = rgb[1] / 255;
-  const b = rgb[2] / 255;
-  const max = Math.max(r, g, b);
-  const delta = max - Math.min(r, g, b);
-  let h = 0;
-  if (delta) {
-    if (max === r) h = (g - b) / delta;
-    else if (max === g) h = 2 + (b - r) / delta;
-    else h = 4 + (r - g) / delta;
-  }
-  h = 60 * (h < 0 ? h + 6 : h);
-  let sat = max ? delta / max : 0;
-  let val = max * 255;
-  if (sat < 0.4) {
-    if (sat < 0.1) val = 225;      // quasi bianca: la faccio brillare
-    else sat = 0.4;                // slavata: le do' un po' di tinta
-  }
-  const canale = (n) => {
-    const k = (n + h / 60) % 6;
-    return Math.round(val - val * sat * Math.max(Math.min(k, 4 - k, 1), 0));
-  };
-  return [canale(5), canale(3), canale(1)];
-}
-
-function daRgb(rgb) {
-  if (!Array.isArray(rgb) || rgb.length < 3) return null;
-  return "#" + rgb.slice(0, 3)
-    .map((x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0"))
-    .join("");
-}
-
-// lo stesso colore, ma piu' scuro (quanto: 1 = uguale, 0 = nero)
-function scurisci(colore, quanto) {
-  const h = String(colore || "").replace("#", "");
-  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
-  if (pieno.length !== 6) return colore;
-  const n = parseInt(pieno, 16);
-  const r = Math.round(((n >> 16) & 255) * quanto);
-  const g = Math.round(((n >> 8) & 255) * quanto);
-  const b = Math.round((n & 255) * quanto);
-  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
-}
-
-function conAlfa(colore, a) {
-  const h = String(colore || "").replace("#", "");
-  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
-  if (pieno.length !== 6) return colore;
-  const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
-  return "#" + pieno + alfa;
-}
-
-const METEO = {
-  "clear-night": ["\uD83C\uDF19", "Sereno"],
-  cloudy: ["\u2601\uFE0F", "Nuvoloso"],
-  fog: ["\uD83C\uDF2B\uFE0F", "Nebbia"],
-  hail: ["\uD83C\uDF28\uFE0F", "Grandine"],
-  lightning: ["\u26C8\uFE0F", "Temporale"],
-  "lightning-rainy": ["\u26C8\uFE0F", "Temporale"],
-  partlycloudy: ["\u26C5", "Parz. nuvoloso"],
-  pouring: ["\uD83C\uDF27\uFE0F", "Pioggia forte"],
-  rainy: ["\uD83C\uDF27\uFE0F", "Pioggia"],
-  snowy: ["\u2744\uFE0F", "Neve"],
-  "snowy-rainy": ["\uD83C\uDF28\uFE0F", "Nevischio"],
-  sunny: ["\u2600\uFE0F", "Sereno"],
-  windy: ["\uD83D\uDCA8", "Vento"],
-  "windy-variant": ["\uD83D\uDCA8", "Vento"],
-  exceptional: ["\u26A0\uFE0F", "Attenzione"],
-};
-
-const CIELI = {
-  sunny: [
-    "radial-gradient(115% 80% at 84% -14%, rgba(255,216,140,.95), rgba(255,216,140,0) 58%),"
-    + "linear-gradient(168deg, #1668b8 0%, #3f97dd 42%, #8cc6ee 74%, #f2b877 100%)", "sole"],
-  "clear-night": [
-    "radial-gradient(90% 70% at 74% 10%, rgba(190,206,255,.30), rgba(190,206,255,0) 62%),"
-    + "linear-gradient(168deg, #060b1e 0%, #101c48 55%, #22366e 100%)", "stelle"],
-  partlycloudy: [
-    "radial-gradient(110% 80% at 78% -10%, rgba(255,226,170,.55), rgba(255,226,170,0) 55%),"
-    + "linear-gradient(168deg, #1f5a94 0%, #5b8fc4 55%, #a8c4dc 100%)", "sole_nuvole"],
-  cloudy: [
-    "radial-gradient(110% 75% at 30% -12%, rgba(226,236,246,.35), rgba(226,236,246,0) 60%),"
-    + "linear-gradient(168deg, #33445a 0%, #566a80 60%, #7b8b9d 100%)", "nuvole"],
-  rainy: [
-    "radial-gradient(100% 70% at 22% -12%, rgba(150,180,205,.45), rgba(150,180,205,0) 60%),"
-    + "linear-gradient(168deg, #17222f 0%, #2b3c4e 55%, #3c5468 100%)", "pioggia"],
-  pouring: [
-    "radial-gradient(100% 70% at 22% -12%, rgba(140,170,200,.4), rgba(140,170,200,0) 58%),"
-    + "linear-gradient(168deg, #101923 0%, #22303f 55%, #33475b 100%)", "pioggia"],
-  lightning: [
-    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
-    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
-  "lightning-rainy": [
-    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
-    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
-  snowy: [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.5), rgba(255,255,255,0) 60%),"
-    + "linear-gradient(168deg, #46596e 0%, #778fa6 55%, #b3c6d6 100%)", "neve"],
-  "snowy-rainy": [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
-    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
-  hail: [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
-    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
-  fog: [
-    "radial-gradient(120% 90% at 50% 40%, rgba(235,240,245,.35), rgba(235,240,245,0) 65%),"
-    + "linear-gradient(168deg, #46505c 0%, #6d7883 55%, #98a2ab 100%)", "nebbia"],
-  windy: [
-    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
-    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
-  "windy-variant": [
-    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
-    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
-  exceptional: [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,190,150,.45), rgba(255,190,150,0) 58%),"
-    + "linear-gradient(168deg, #4d2424 0%, #7c4034 55%, #a76a4f 100%)", ""],
+  " - tocca per aprire Google Maps": " - tap to open Google Maps",
+  " - tocca per i dettagli": " - tap for the details",
+  "Stai sistemando: questa casella. Per una scheda del pop-up, toccala nell'anteprima qui di fianco.": "You are arranging: this tile. For a card in the pop-up, tap it in the preview beside.",
+  "Il nome compare accanto al numero. Lascia vuoto per non scrivere niente.": "The name shows next to the number. Leave it empty to show nothing.",
+  "Le impostazioni di questa scheda non si sono caricate. Il codice lo trovi qui sotto.": "The settings for this card did not load. You will find the code below.",
+  "Mette negli appunti solo la disposizione e la grandezza: incollale nel codice di un'altra casella e premi Applica": "Copies only the layout and the size: paste them into the code of another tile and press Apply",
+  "disposizione messa da parte: vai sull'altra casella e premi \"Incolla la disposizione\"": "layout copied: go to the other tile and press \"Paste the layout\"",
+  "Versione della card: se non e' quella che ti aspetti, il browser sta ancora usando una copia vecchia (ricarica con Ctrl+F5)": "Card version: if it is not the one you expect, the browser is still using an old copy (reload with Ctrl+F5)",
+  "Ancora nessuna scheda: il pop-up mostrera l'elenco dell'entita. Premi qui sotto per sceglierne una.": "No cards yet: the pop-up will show the entity list. Press below to pick one.",
+  "Sto caricando ": "Uploading ",
+  "Codice non valido: ": "Invalid code: ",
+  "Pezzo: ": "Piece: ",
+  "Incolla la disposizione di \"": "Paste the layout of \"",
+  "+ Aggiungi scheda": "+ Add a card",
+  "Aggiungi": "Add",
+  "Altezza in punti": "Height in pixels",
+  "Ancora nessuna scheda: il pop-up mostrera l'elenco dell'entita. Premi qui sotto per aggiungerne una.": "No cards yet: the pop-up will show the entity list. Press below to add one.",
+  "Annulla": "Cancel",
+  "Applica il codice": "Apply the code",
+  "Carico le impostazioni della scheda...": "Loading the card settings...",
+  "Cerca un'impostazione: meteo, colore, km...": "Search a setting: weather, colour, km...",
+  "Codice della scheda (YAML)": "Card code (YAML)",
+  "Codice di questa casella (YAML)": "Code of this tile (YAML)",
+  "Codice non valido:": "Invalid code:",
+  "Colore di questa misura": "Colour of this reading",
+  "Come la lampada (colore vero della luce)": "Like the lamp (the light real colour)",
+  "Come si chiamano le misure": "What the readings are called",
+  "Copia la disposizione": "Copy the layout",
+  "Grandezza": "Size",
+  "Grandezza del pezzo in percentuale": "Piece size, as a percentage",
+  "Grandezza vera": "Actual size",
+  "Guarda come si apre": "See how it opens",
+  "Il nome compare accanto al numero. Lascia vuoto per usare quello di Home Assistant.": "The name shows next to the number. Leave empty to use the Home Assistant one.",
+  "Incolla la disposizione di “": "Paste the layout of “",
+  "La sceglie la card guardando l'entita": "The card picks it by looking at the entity",
+  "Larghezza in punti": "Width in pixels",
+  "Le impostazioni di questa scheda non si sono aperte. Usa il codice qui sotto.": "This card settings did not open. Use the code below.",
+  "Mette negli appunti solo la disposizione e la grandezza: il valore e l'entita restano quelli della casella dove la incolli": "Copies only the layout and the size: the value and the entity stay those of the tile you paste it into",
+  "Nessuna impostazione con «": "No setting with «",
+  "Non ho trovato sensori collegati. Puoi comunque aggiungerne a mano qui sopra.": "I found no related sensors. You can still add some by hand above.",
+  "Non riesco a creare il contenuto della finestra.": "I cannot build the contents of the window.",
+  "Non sono riuscito a caricarla (": "I could not upload it (",
+  "Pezzo": "Piece",
+  "Pezzo:": "Piece:",
+  "Prendi la disposizione da": "Take the layout from",
+  "Quanto e trasparente": "How transparent it is",
+  "Quanto e' distante dal bordo di sopra, in percentuale": "Distance from the top edge, as a percentage",
+  "Quanto e' distante dal bordo sinistro, in percentuale": "Distance from the left edge, as a percentage",
+  "Rimetti come prima": "Put it back",
+  "Rimetti tutto a posto": "Reset everything",
+  "Scegli il colore": "Pick the colour",
+  "Scegli prima un'entita nella scheda Base.": "Pick an entity in the Basics tab first.",
+  "Segue la temperatura (freddo azzurro, caldo rosso)": "Follows the temperature (cold blue, warm red)",
+  "Sfondo di questa scheda": "Background of this card",
+  "Spunta quelli che vuoi vedere in basso nella casella.": "Tick the ones you want to see at the bottom of the tile.",
+  "Stai sistemando:": "You are arranging:",
+  "Stai sistemando: questa casella.": "You are arranging: this tile.",
+  "Sto caricando": "Uploading",
+  "Svuota la coda": "Clear the queue",
+  "Tieni premuto e trascina per cambiare la grandezza della casella": "Press and drag to change the size of the tile",
+  "Tieni premuto e trascina per cambiare la misura di questa scheda": "Press and drag to change the size of this card",
+  "Tieni premuto e trascina per ingrandire o rimpicciolire": "Press and drag to make it bigger or smaller",
+  "Tieni premuto e trascina per riordinare": "Press and drag to reorder",
+  "Tocca per le previsioni": "Tap for the forecast",
+  "Tocca per scegliere un'altra foto": "Tap to pick another photo",
+  "Togli il colore": "Remove the colour",
+  "Togli l'immagine": "Remove the image",
+  "Togli la foto": "Remove the photo",
+  "Torna al colore della casella": "Back to the tile colour",
+  "Torna alla casella": "Back to the tile",
+  "Un colore qualsiasi": "Any colour",
+  "Versione della card: se non e' quella che ti aspetti, la pagina sta ancora usando una copia vecchia (ricarica con Ctrl+Shift+R)": "Card version: if it is not the one you expect, the page is still using an old copy (reload with Ctrl+Shift+R)",
+  "da sinistra": "from the left",
+  "disposizione messa da parte: vai sull'altra casella e premi Incolla": "layout copied: go to the other tile and press Paste",
+  "oppure l'indirizzo: /local/mia.gif": "or the address: /local/mine.gif",
+  "pronto: tocca un pezzo qui sopra": "ready: tap a piece above",
+  "si apre qui di fianco - chiudila con la X o con Esc": "it opens right here - close it with the X or with Esc",
 };
 
 // -*- coding: utf-8 -*-
@@ -625,6 +702,743 @@ function valoreScritto(st) {
   }
   return (Math.round(n * 10) / 10).toLocaleString("it-IT") + (u ? " " + u : "");
 }
+
+// -*- coding: utf-8 -*-
+// Le impostazioni: sezioni, nomi in italiano, chi le vede.
+
+
+const SEZIONI = [
+  {
+    chiave: "base", titolo: "Base", segno: "⚙", aperta: true,
+    gruppi: [
+      { schema: [
+        { name: "entity", selector: { entity: {} } },
+        { name: "name", selector: { text: {} } },
+      ] },
+      { titolo: "Cosa c'e scritto", schema: [
+        { name: "sottotitolo", selector: { text: {} } },
+        { name: "sottotitolo_entita", selector: { entity: {} } },
+        { name: "nascondi_valore", selector: { boolean: {} } },
+        { name: "mostra_da_quanto", selector: { boolean: {} } },
+        { name: "info_entita", selector: { entity: { multiple: true } } },
+        { name: "info_nomi_auto", selector: { boolean: {} } },
+      ] },
+      { titolo: "Quando la casella e accesa", schema: [
+        { name: "acceso_sempre", selector: { boolean: {} } },
+        { name: "acceso_entita", selector: { entity: { multiple: true } } },
+        { name: "acceso_se", selector: { text: {} } },
+        { name: "soglia", selector: { number: { mode: "box", min: 0, step: 1 } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "icona", titolo: "Icona", segno: "✦",
+    gruppi: [
+      { schema: [
+        {
+          type: "grid", name: "", schema: [
+            { name: "mostra_icona", selector: { boolean: {} } },
+            { name: "usa_foto", selector: { boolean: {} } },
+            { name: "icona_sfondo", selector: { boolean: {} } },
+            { name: "icona_sfondo_forza",
+              selector: { number: { min: 4, max: 60, step: 2, mode: "slider" } } },
+          ],
+        },
+        { name: "icona_entita", selector: { boolean: {} } },
+        { name: "icona_ha", selector: { icon: {} } },
+      ] },
+      { titolo: "Batteria: carica e scarica", schema: [
+        { name: "carica_entita", selector: { entity: { multiple: true } } },
+        { name: "scarica_entita", selector: { entity: { multiple: true } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "aspetto", titolo: "Aspetto", segno: "🎨",
+    gruppi: [
+      { titolo: "Come e fatta", schema: [
+        { name: "disposizione", selector: { select: { mode: "dropdown", options: [
+          { value: "classica", label: "Classica - icona in basso, valore a destra" },
+          { value: "persona", label: "Persona - foto a sinistra, stato e via accanto" },
+          { value: "vinile", label: "Musica - copertina tonda grande e onda del tempo" },
+          { value: "ytmusic", label: "Musica - come la tua ytmusic-card" },
+        ] } } },
+        { name: "grande", selector: { boolean: {} } },
+      ] },
+      { titolo: "Colore della scritta",
+        colori: ["colore_testo", "colore_valore"], schema: [
+      ] },
+      { titolo: "Effetti", schema: [
+        { name: "effetto", selector: { select: { mode: "dropdown", options: [
+          { value: "alone", label: "Alone - morbido" },
+          { value: "pulsa", label: "Alone - che respira" },
+          { value: "bagliore", label: "Alone - diffuso e grande" },
+          { value: "doppio", label: "Alone - doppio bordo" },
+          { value: "neon", label: "Luce - neon dentro e fuori" },
+          { value: "bordo", label: "Luce - che gira sul bordo" },
+          { value: "scia", label: "Luce - riflesso che scorre" },
+          { value: "spia", label: "Luce - spia lampeggiante" },
+          { value: "lampeggio", label: "Luce - lampeggio (per gli avvisi)" },
+          { value: "vetro", label: "Superficie - vetro smerigliato" },
+          { value: "sfondo", label: "Superficie - sfondo tinto" },
+          { value: "sfondo_mosso", label: "Superficie - sfondo che si muove" },
+          { value: "incavo", label: "Superficie - incavo" },
+          { value: "onda", label: "Movimento - onda che sale" },
+          { value: "battito", label: "Movimento - battito" },
+          { value: "fluttua", label: "Movimento - icona che fluttua" },
+          { value: "icona_pulsa", label: "Movimento - icona che pulsa" },
+          { value: "ingrandisce", label: "Al passaggio - si ingrandisce" },
+          { value: "inclina", label: "Al passaggio - si inclina" },
+          { value: "nessuno", label: "Nessun effetto" },
+        ] } } },
+        { name: "anima", selector: { select: { mode: "dropdown", options: [
+          { value: "attiva", label: "Si muove solo quando e attiva" },
+          { value: "sempre", label: "Si muove sempre" },
+          { value: "mai", label: "Non si muove mai" },
+        ] } } },
+        { name: "intensita", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
+        { name: "velocita", selector: { number: { min: 25, max: 300, step: 5, mode: "slider" } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "sfondo", titolo: "Sfondo", segno: "🖼",
+    gruppi: [
+      { titolo: "Tinta della casella", colori: ["sfondo_colore"], schema: [
+        {
+          type: "grid", name: "", schema: [
+            { name: "trasparenza",
+              selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
+          ],
+        },
+      ] },
+      { titolo: "La telecamera in diretta", schema: [
+        { name: "camera_diretta", selector: { boolean: {} } },
+        { name: "camera_secondi",
+          selector: { number: { min: 1, max: 60, step: 1, mode: "slider" } } },
+      ] },
+      { titolo: "Foto di sfondo", schema: [
+        { name: "sfondo_immagine", selector: { text: {} } },
+        { name: "sfondo_adatta", selector: { select: { mode: "dropdown", options: [
+          { value: "riempi", label: "Riempie la casella (taglia i bordi)" },
+          { value: "intera", label: "Tutta intera dentro la casella" },
+          { value: "vera", label: "Grandezza vera della foto" },
+        ] } } },
+        { name: "sfondo_velo",
+          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+      ] },
+      { titolo: "La copertina del brano come sfondo", schema: [
+        { name: "sfondo_copertina", selector: { boolean: {} } },
+        { name: "sfondo_sfocatura",
+          selector: { number: { min: 0, max: 24, step: 1, mode: "slider" } } },
+      ] },
+      { titolo: "Il cielo del meteo", schema: [
+        { name: "sfondo_meteo", selector: { boolean: {} } },
+        { name: "meteo_forza",
+          selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
+        { name: "meteo_entita", selector: { entity: { domain: "weather" } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "comandi", titolo: "Comandi", segno: "🎚",
+    gruppi: [
+      { titolo: "Barra dentro la casella", schema: [
+        { name: "mostra_cursore", selector: { boolean: {} } },
+        { name: "nascondi_quanto", selector: { boolean: {} } },
+        {
+          type: "grid", name: "", schema: [
+            { name: "cursore_min", selector: { number: { mode: "box" } } },
+            { name: "cursore_max", selector: { number: { mode: "box" } } },
+          ],
+        },
+      ] },
+      { titolo: "Tasti rapidi", schema: [
+        { name: "comandi_rapidi", selector: { boolean: {} } },
+      ] },
+      { titolo: "Striscia del colore (luci)", schema: [
+        { name: "cursore_colore", selector: { boolean: {} } },
+        { name: "colore_striscia", selector: { select: { mode: "dropdown", options: [
+          { value: "tinta", label: "Solo la tinta (arcobaleno)" },
+          { value: "bianco", label: "Solo il bianco caldo/freddo" },
+          { value: "tutte", label: "Tutte e due le strisce" },
+        ] } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "grafico", titolo: "Grafico", segno: "📈",
+    gruppi: [
+      { colori: ["grafico_colore"], schema: [
+        { name: "grafico", selector: { boolean: {} } },
+        { name: "grafico_ore",
+          selector: { number: { min: 1, max: 168, step: 1, mode: "box" } } },
+        { name: "grafico_stile", selector: { select: { mode: "dropdown", options: [
+          { value: "area", label: "Area piena" },
+          { value: "linea", label: "Solo la linea" },
+        ] } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "musica", titolo: "Musica", segno: "🎵",
+    gruppi: [
+      { titolo: "Comandi del lettore", schema: [
+        { name: "comandi_media", selector: { boolean: {} } },
+        { name: "tempo_media", selector: { boolean: {} } },
+        { name: "gira_copertina", selector: { boolean: {} } },
+        { name: "yt_attrezzi", selector: { boolean: {} } },
+        { name: "coda", selector: { boolean: {} } },
+        { name: "yt_cuore", selector: { boolean: {} } },
+      ] },
+      { titolo: "Casse e sorgenti", schema: [
+        { name: "lettori", selector: { entity: { domain: "media_player", multiple: true } } },
+        { name: "segui_attivo", selector: { boolean: {} } },
+        { name: "multiroom", selector: { boolean: {} } },
+        { name: "sorgente", selector: { boolean: {} } },
+      ] },
+      { titolo: "Il riquadro delle casse", colori: ["pannello_sfondo"], schema: [
+        { name: "pannello_trasparenza",
+          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+        { name: "riquadri_trasparenza",
+          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+      ] },
+    ],
+  },
+  {
+    chiave: "persone", titolo: "Persone", segno: "🧭",
+    gruppi: [
+      { titolo: "Dove si trova", schema: [
+        { name: "mostra_distanza", selector: { boolean: {} } },
+        { name: "distanza_entita", selector: { entity: {} } },
+      ] },
+    ],
+  },
+  {
+    chiave: "tocco", titolo: "Tocco", segno: "👆",
+    gruppi: [
+      { schema: [
+        { name: "azione", selector: { select: { mode: "dropdown", options: [
+          { value: "toggle", label: "Accendi / spegni" },
+          { value: "servizio", label: "Esegui un servizio (es. imposta un valore)" },
+          { value: "more-info", label: "Apri i dettagli" },
+          { value: "finestra", label: "Apri un pop-up mio" },
+          { value: "mappa", label: "Apri Google Maps sulla posizione" },
+          { value: "link", label: "Apri un indirizzo web" },
+          { value: "popup", label: "Apri un pop-up bubble-card (#nome)" },
+        ] } } },
+        { name: "servizio", selector: { text: {} } },
+        { name: "servizio_dati", selector: { text: { multiline: true } } },
+        { name: "indirizzo_web", selector: { text: {} } },
+        { name: "popup", selector: { text: {} } },
+      ] },
+    ],
+  },
+  {
+    // TUTTO IL POP-UP IN UN POSTO SOLO. Prima meta' stava in "Tocco" e
+    // l'elenco delle schede pure: per cambiare due cose dello stesso
+    // pop-up bisognava girare fra i gruppi.
+    chiave: "popup", titolo: "Pop-up", segno: "🪟",
+    gruppi: [
+      { schema: [
+        { name: "finestra_titolo", selector: { text: {} } },
+      ] },
+      { titolo: "Come si apre", schema: [
+        { name: "finestra_apertura", selector: { select: { mode: "dropdown", options: [
+          { value: "sfuma", label: "Sale e sfuma - discreta" },
+          { value: "sboccia", label: "Sboccia dalla casella che hai toccato" },
+          { value: "basso", label: "Entra dal basso, come un cassetto" },
+          { value: "niente", label: "Nessuna animazione" },
+        ] } } },
+        { name: "finestra_apertura_durata",
+          selector: { number: { min: 80, max: 2000, step: 20, mode: "slider" } } },
+      ] },
+      { titolo: "Quanto e largo il pop-up", schema: [
+        { name: "finestra_largo",
+          selector: { number: { min: 400, max: 1400, step: 20, mode: "slider" } } },
+      ] },
+      { titolo: "Come e vestito il pop-up",
+        colori: ["finestra_sfondo"], schema: [
+        {
+          type: "grid", name: "", schema: [
+            { name: "finestra_trasparenza",
+              selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
+          ],
+        },
+        { name: "finestra_immagine", selector: { text: {} } },
+      ] },
+    ],
+  },
+  {
+    // "Dove va ogni pezzo" e' un lavoro a se': si prende la casella e si
+    // trascinano i pezzi. Appeso in fondo ai colori non lo trovava nessuno.
+    chiave: "pezzi", titolo: "Pezzi", segno: "✋",
+    gruppi: [],
+  },
+];
+
+// campi che compaiono solo con una certa azione al tocco
+// Le impostazioni che dipendono da un'altra: finche' l'interruttore
+// principale e' spento non servono a niente e stanno solo in mezzo. Se pero'
+// un valore c'e' gia' scritto, la voce si vede lo stesso - se no diventerebbe
+// roba impostata che non si puo' piu' togliere.
+const DIPENDE = {
+  icona_sfondo_forza: (c) => !!c.icona_sfondo,
+  camera_secondi: (c) => !!c.camera_diretta,
+  sfondo_adatta: (c) => !!c.sfondo_immagine || !!c.camera_diretta,
+  sfondo_sfocatura: (c) => !!c.sfondo_copertina,
+  finestra_apertura_durata: (c) => (c.finestra_apertura || "sfuma") !== "niente",
+  nascondi_quanto: (c) => !!c.mostra_cursore,
+  cursore_min: (c) => !!c.mostra_cursore,
+  cursore_max: (c) => !!c.mostra_cursore,
+  colore_striscia: (c) => !!c.cursore_colore,
+  grafico_ore: (c) => !!c.grafico,
+  grafico_colore: (c) => !!c.grafico,
+  coda: (c) => c.disposizione === "ytmusic",
+  yt_attrezzi: (c) => c.disposizione === "ytmusic",
+  yt_cuore: (c) => c.disposizione === "ytmusic",
+  grafico_stile: (c) => !!c.grafico,
+  distanza_entita: (c) => !!c.mostra_distanza,
+  info_nomi_auto: (c) => (c.info_entita || []).length > 0,
+  segui_attivo: (c) => (c.lettori || []).length > 0 || c.multiroom !== false,
+  soglia: (c) => c.acceso_se === "sopra" || c.acceso_se === "sotto"
+    || (Array.isArray(c.acceso_entita) ? c.acceso_entita.length : !!c.acceso_entita),
+};
+
+const SOLO_AZIONE = {
+  servizio: "servizio", servizio_dati: "servizio",
+  indirizzo_web: "link", popup: "popup", finestra_titolo: "finestra",
+  finestra_apertura: "finestra", finestra_apertura_durata: "finestra",
+  finestra_largo: "finestra",
+  finestra_sfondo: "finestra", finestra_trasparenza: "finestra",
+  finestra_immagine: "finestra", finestra_schede_sfondo: "finestra",
+  finestra_schede_trasparenza: "finestra",
+};
+
+// quali impostazioni hanno senso per quale tipo di entita'
+const SOLO_PER = {
+  disposizione: ["person", "device_tracker", "media_player"],
+  usa_foto: ["person", "device_tracker", "media_player", "camera"],
+  mostra_distanza: ["person", "device_tracker"],
+  distanza_entita: ["person", "device_tracker"],
+  mostra_cursore: ["light", "fan", "media_player", "number", "input_number", "cover"],
+  cursore_colore: ["light"],
+  sfondo_copertina: ["media_player"],
+  sfondo_sfocatura: ["media_player"],
+  cursore_min: ["number", "input_number"],
+  cursore_max: ["number", "input_number"],
+  colore_striscia: ["light"],
+  comandi_media: ["media_player"],
+  tempo_media: ["media_player"],
+  lettori: ["media_player"],
+  camera_diretta: ["camera", "image"],
+  camera_secondi: ["camera", "image"],
+  pannello_sfondo: ["media_player"],
+  pannello_trasparenza: ["media_player"],
+  riquadri_trasparenza: ["media_player"],
+  comandi_rapidi: ["cover", "lock", "vacuum"],
+  grafico: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  grafico_colore: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  grafico_ore: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  grafico_stile: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  gira_copertina: ["media_player"],
+  coda: ["media_player"], yt_attrezzi: ["media_player"],
+  yt_cuore: ["media_player"],
+  segui_attivo: ["media_player"],
+  multiroom: ["media_player"],
+  sorgente: ["media_player"],
+  soglia: ["sensor", "number", "input_number", "counter"],
+  acceso_sempre: ["sensor", "binary_sensor", "weather", "number", "input_number",
+                  "counter", "media_player"],
+};
+
+const ETICHETTE = {
+  entity: "Entita (lasciala vuota se la casella serve solo ad aprire il pop-up)",
+  name: "Nome mostrato", sottotitolo: "Sottotitolo scritto da te (facoltativo)",
+  sottotitolo_entita: "Sottotitolo preso da un'altra entita (es. l'indirizzo)",
+  meteo_entita: "Meteo nell'angolo (scegli l'entita del meteo)",
+  indirizzo_web: "Indirizzo web da aprire (per l'azione \"Apri un indirizzo web\")",
+  icona: "Icona animata", colore: "Colore quando e accesa",
+  icona_sfondo: "L'icona in grande dietro alle scritte",
+  icona_sfondo_forza: "Quanto si vede l'icona dietro (%)",
+  carica_entita: "Quali entita vogliono dire che STA CARICANDO (di solito non serve: basta chiamare carica una misura)",
+  scarica_entita: "Quali entita vogliono dire che STA DANDO CORRENTE (di solito non serve: basta chiamare scarica una misura)",
+  disposizione: "Come e disposta la casella",
+  azione: "Cosa fa quando la tocchi", anima: "Quando si muove l'icona",
+  effetto: "Effetto della casella", intensita: "Intensita del colore (%)",
+  anima: "Quando si muove (icona ed effetti)",
+  coda: "Elenco In coda (serve Music Assistant)",
+  yt_attrezzi: "Tastini cerca / sfoglia / coda / schermo intero",
+  yt_cuore: "Cuoricino dei preferiti",
+  grafico_colore: "Colore del grafico (vuoto = come la casella)",
+  colore_testo: "Colore del nome e del sottotitolo (vuoto = quello del tema)",
+  colore_valore: "Colore del valore, quello grande (vuoto = come il nome)",
+  colore_rgb: "Colore personalizzato (vale solo scegliendo \"personalizzato\" qui sopra)",
+  sfondo_colore: "Sfondo della casella (tinta)",
+  trasparenza: "Trasparenza della casella (%)",
+  sfondo_meteo: "Usa il meteo come sfondo di tutta la casella",
+  meteo_forza: "Quanto si vede la scena meteo (%) - 0 lascia solo il colore",
+  camera_diretta: "Riempi la casella con l'immagine della telecamera, viva",
+  camera_secondi: "Ogni quanti secondi si rifa l'immagine",
+  sfondo_immagine: "Foto di sfondo - indirizzo, es. /local/foto.jpg",
+  sfondo_adatta: "Come si adatta la foto",
+  sfondo_copertina: "Copertina del disco come sfondo",
+  sfondo_sfocatura: "Quanto sfocarla (0 = nitida)",
+  sfondo_velo: "Velo scuro sulla foto o sulla copertina (%) - serve a leggere il testo",
+  velocita: "Velocita dell'effetto (%) - 100 e normale",
+  popup: "Pop-up bubble-card da aprire (es. #luci)",
+  info_entita: "Misure mostrate in basso (aggiungine altre da qui)",
+  info_nomi_auto: "Scrivi un nome anche sulle misure che non hai chiamato tu",
+  mostra_cursore: "Barra dentro la casella (luci, ventole, musica, valori da impostare)",
+  nascondi_quanto: "Nascondi il numerino in fondo alla barra",
+  cursore_colore: "Striscia del colore dentro la casella",
+  colore_striscia: "Quale striscia mostrare",
+  cursore_min: "La barra parte da (lascia vuoto = minimo dell'entita)",
+  cursore_max: "La barra arriva a (es. 800, invece dei 1200 dell'entita)",
+  comandi_media: "Comandi della musica dentro la casella",
+  tempo_media: "Tempo del brano e barra di avanzamento",
+  lettori: "Casse tra cui scegliere (i tastini in alto nella casella)",
+  pannello_sfondo: "Sfondo del riquadro casse e sorgenti (vuoto = scuro di serie; "
+    + "le scritte seguono il colore della scritta)",
+  pannello_trasparenza: "Trasparenza del riquadro casse e sorgenti (%)",
+  riquadri_trasparenza: "Trasparenza dei riquadri ricerca, sfoglia e coda (%)",
+  comandi_rapidi: "Tasti rapidi (tapparelle, serrature, aspirapolvere)",
+  grafico: "Mostra il grafico dell'andamento dentro la casella",
+  grafico_ore: "Quante ore di storia (di serie 24)",
+  grafico_stile: "Come si disegna",
+  gira_copertina: "Fai girare la copertina tonda come un disco",
+  segui_attivo: "Passa da sola alla cassa che sta suonando",
+  multiroom: "Tasto Casse: unisci gli altoparlanti e regola i volumi",
+  sorgente: "Tasto Sorgente: scegli l'ingresso del lettore",
+  grande: "Casella grande",
+  mostra_icona: "Mostra l'icona (toglila per lasciare solo le scritte)",
+  icona_entita: "Usa l'icona che l'entita ha gia in Home Assistant, se ce l'ha",
+  usa_foto: "Usa la foto dell'entita, se ce l'ha (persone, copertine)",
+  acceso_sempre: "Sempre a colori (anche da spenta)",
+  acceso_entita: "Si accende in base ad altre entita: basta che una sia attiva (es. i watt che escono invece della carica)",
+  icona_ha: "Icona di Home Assistant (cercala qui; vince su quella sotto)",
+  mostra_da_quanto: "Scrivi da quanto tempo e in questo stato",
+  mostra_distanza: "Quanti chilometri da casa, in linea d'aria (persone)",
+  distanza_entita: "Sensore del percorso (Waze, Google): se c'e, usa i km su strada",
+  nascondi_valore: "Nascondi il valore", soglia: "Soglia di accensione (W)",
+  acceso_se: "Si accende solo quando l'entita' vale esattamente (es. 95)",
+  servizio: "Servizio da chiamare (es. number.set_value)",
+  servizio_dati: "Dati del servizio, in YAML (es. value: 95)",
+  finestra_titolo: "Titolo del pop-up",
+  icona_immagine: "Immagine al posto dell'icona",
+  icona_immagine_accesa: "Immagine di quando e acceso (anche una gif)",
+  finestra_apertura: "Come si apre la finestra",
+  finestra_apertura_durata: "Quanto dura l'apertura (millesimi di secondo)",
+  finestra_largo: "Larghezza del pop-up in punti (vuoto = 560, come tutti gli altri)",
+  finestra_sfondo: "Tinta della finestra del pop-up (le schede dentro hanno la loro, qui sotto)",
+  finestra_trasparenza: "Trasparenza del pop-up (%)",
+  finestra_immagine: "Foto di sfondo del pop-up - indirizzo, es. /local/foto.jpg",
+  // finestra_schede_sfondo / finestra_schede_trasparenza: non si scelgono
+  // piu' da qui (ogni scheda ha la sua riga), ma se c'erano gia' valgono
+  // ancora come valore di partenza
+};
+
+const SCHEDE_PRONTE = [
+  ["entities", "Elenco con i comandi"],
+  ["tile", "Riquadri"],
+  ["glance", "Colpo d'occhio"],
+  ["light", "Luce (rotella luminosita)"],
+  ["thermostat", "Termostato"],
+  ["media-control", "Lettore musicale"],
+  ["picture-entity", "Telecamera / immagine"],
+  ["map", "Mappa"],
+  ["gauge", "Indicatore a lancetta"],
+  ["history-graph", "Grafico storico"],
+];
+
+const SCHEDE_ALTRE = [
+  ["button", "Pulsante"],
+  ["sensor", "Sensore con grafico"],
+  ["statistics-graph", "Grafico statistiche"],
+  ["humidifier", "Umidificatore"],
+  ["picture-glance", "Immagine con icone"],
+  ["weather-forecast", "Meteo"],
+  ["calendar", "Calendario"],
+  ["todo-list", "Lista cose da fare"],
+  ["markdown", "Testo libero"],
+  ["alarm-panel", "Antifurto"],
+  ["logbook", "Registro"],
+  ["area", "Area"],
+  ["grid", "Griglia di schede"],
+  ["vertical-stack", "Pila verticale"],
+  ["horizontal-stack", "Pila orizzontale"],
+  ["iframe", "Pagina web"],
+  ["picture", "Solo un'immagine"],
+  ["conditional", "Condizionale (si vede solo se...)"],
+  ["entity-filter", "Elenco filtrato"],
+  ["statistic", "Statistica (un numero solo)"],
+];
+
+// La voce per chi vuole scrivere il codice a mano: e' la stessa cosa che
+// Home Assistant chiama "Manuale". Serve per le schede che non stanno
+// nell'elenco - le sue schede della comunita' ci sono gia' tutte, ma di
+// schede di Home Assistant ce ne sono anche di rare, e senza questa voce
+// non c'era modo di metterle.
+const SCHEDA_MANO = "__amano__";
+
+// il nome per esteso di una scheda (quello che si vede nell'elenco di HA)
+const NOMI_HA = {
+  entities: "Entita", glance: "Colpo d'occhio", tile: "Casella", button: "Pulsante",
+  gauge: "Indicatore", "history-graph": "Grafico storico", map: "Mappa",
+  "statistics-graph": "Grafico statistiche", sensor: "Sensore con grafico",
+  thermostat: "Termostato", light: "Luce", markdown: "Testo", picture: "Immagine",
+  "picture-entity": "Immagine con entita", "media-control": "Lettore multimediale",
+  "weather-forecast": "Meteo", grid: "Griglia", "vertical-stack": "Pila verticale",
+  "horizontal-stack": "Pila orizzontale", area: "Stanza", logbook: "Registro",
+  calendar: "Calendario", energy: "Energia", iframe: "Pagina web", todo: "Cose da fare",
+  humidifier: "Umidificatore", alarm: "Allarme", "alarm-panel": "Allarme",
+  distribution: "Distribuzione", heading: "Titolo",
+};
+
+function nomeScheda(tipo) {
+  const pulito = String(tipo || "").replace("custom:", "");
+  if (NOMI_HA[pulito]) return NOMI_HA[pulito];
+  const elenco = window.customCards || [];
+  for (let i = 0; i < elenco.length; i += 1) {
+    const c = elenco[i];
+    if (c && (c.type === pulito || c.type === tipo)) return c.name || pulito;
+  }
+  return pulito.replace(/-/g, " ").replace(/card/gi, "").trim() || pulito;
+}
+
+const STILE_SELETTORE = `
+.scelta-riga { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.tendina { flex: 1; padding: 10px 12px; border-radius: 10px; font: inherit; font-size: 14px;
+  border: 1px solid var(--divider-color, #555);
+  background: var(--card-background-color, #1c1c1c); color: var(--primary-text-color, #fff); }
+.tendina optgroup { color: var(--secondary-text-color, #aaa); }
+.tendina option { color: var(--primary-text-color, #fff);
+  background: var(--card-background-color, #1c1c1c); }
+`;
+
+// -*- coding: utf-8 -*-
+// Il cerchio dei colori e le righe che li scelgono.
+
+
+const ConColori = (Base) => class extends Base {
+  // dai un nome tuo a ogni misura: "Scarica", "Uscita casa"... senza questo
+  // due sensori di watt sono due caselline uguali con dentro numeri diversi
+  // I selettori di colore di Home Assistant sono pesantissimi: aprirli
+  // fermava tutta la pagina. Qui basta il colore del sistema, che si apre
+  // di colpo, piu' una X per toglierlo.
+  // quali ruote di colore hanno senso adesso: le stesse regole dei campi
+  // normali (tipo di entita', azione, e l'interruttore da cui dipendono)
+  _coloriDi(gruppo) {
+    const dom = (this._config.entity || "").split(".")[0];
+    const azione = this._config.azione || "toggle";
+    return (gruppo.colori || []).filter((nome) => {
+      if (SOLO_AZIONE[nome] && SOLO_AZIONE[nome] !== azione) return false;
+      const amm = SOLO_PER[nome];
+      if (amm && (!dom || !amm.includes(dom))) return false;
+      if (DIPENDE[nome] && !DIPENDE[nome](this._config)) {
+        const ora = this._config[nome];
+        const scritto = ora !== undefined && ora !== null && ora !== ""
+          && !(Array.isArray(ora) && !ora.length);
+        if (!scritto) return false;
+      }
+      return true;
+    });
+  }
+
+  _costruisciColori() {
+    (this._gruppi || []).forEach((suoi) => {
+      suoi.forEach((g) => {
+        if (!g.colori) return;
+        const campi = this._coloriDi(g.gruppo);
+        // la firma NON guarda i colori scelti: se no la ruota si richiude
+        // in faccia ogni volta che ne tocchi uno
+        const firma = campi.join(",");
+        if (g.colori._firma === firma) {
+          g.colori.hidden = g.form.hidden && !campi.length;
+          g.colori.childNodes.forEach((n2) => { if (n2._aggiorna) n2._aggiorna(); });
+          return;
+        }
+        g.colori._firma = firma;
+        g.colori.innerHTML = "";
+        campi.forEach((campo) => g.colori.appendChild(this._rigaColore(campo)));
+      });
+    });
+  }
+
+  // La ruota dei colori: la uso sia per le tinte della casella sia per le
+  // schede del pop-up. Restituisce la pastiglia da toccare, il cassetto che
+  // si apre, e un modo per rimetterla in pari.
+  _sceltaColore(iniziale, quandoCambia) {
+    const bolla = document.createElement("button");
+    bolla.type = "button";
+    bolla.className = "bolla";
+    bolla.title = T("Scegli il colore");
+
+    const cassetto = document.createElement("div");
+    cassetto.className = "ruota-cassetto";
+    cassetto.hidden = true;
+    const ruota = document.createElement("div");
+    ruota.className = "ruota";
+    const mira = document.createElement("i");
+    mira.className = "mira";
+    ruota.appendChild(mira);
+    const luce = document.createElement("input");
+    luce.type = "range";
+    luce.className = "luce";
+    luce.min = "0"; luce.max = "100"; luce.step = "1";
+
+    let H = 210; let S2 = 60;
+    const metti = (rgb) => {
+      if (Array.isArray(rgb)) {
+        const [h2, s3, l2] = rgbAHsl(rgb[0], rgb[1], rgb[2]);
+        H = h2; S2 = s3; luce.value = String(Math.round(l2));
+        bolla.style.background = daRgb(rgb);
+      } else {
+        luce.value = "50";
+        bolla.style.background = "transparent";
+      }
+    };
+    metti(iniziale);
+
+    const mettiMira = () => {
+      const r = (S2 / 100) * 46;
+      const a2 = H * Math.PI / 180;
+      mira.style.left = (50 + Math.cos(a2) * r) + "%";
+      mira.style.top = (50 + Math.sin(a2) * r) + "%";
+      mira.style.background = hslATesto(H, S2, Number(luce.value));
+    };
+    const mostra = () => {
+      bolla.style.background = hslATesto(H, S2, Number(luce.value));
+      mettiMira();
+    };
+    const manda = () => quandoCambia(hslARgb(H, S2, Number(luce.value)));
+
+    const prendi = (e) => {
+      const q = ruota.getBoundingClientRect();
+      if (!q.width || !q.height) return;
+      const dx = (e.clientX - q.left) / q.width * 2 - 1;
+      const dy = (e.clientY - q.top) / q.height * 2 - 1;
+      const r = Math.min(1, Math.sqrt(dx * dx + dy * dy));
+      const h2 = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+      if (!isFinite(h2) || !isFinite(r)) return;
+      H = h2;
+      S2 = Math.round(r * 100);
+      mostra();
+    };
+    ruota.addEventListener("pointerdown", (e) => {
+      ruota.setPointerCapture(e.pointerId);
+      ruota._giu = true;
+      prendi(e);
+    });
+    ruota.addEventListener("pointermove", (e) => { if (ruota._giu) prendi(e); });
+    ["pointerup", "pointercancel"].forEach((ev) =>
+      ruota.addEventListener(ev, () => { ruota._giu = false; manda(); }));
+    luce.addEventListener("input", mostra);
+    luce.addEventListener("change", manda);
+    const apriChiudi = () => {
+      cassetto.hidden = !cassetto.hidden;
+      if (!cassetto.hidden) mettiMira();
+    };
+    bolla.addEventListener("click", apriChiudi);
+
+    cassetto.append(ruota, luce);
+    return {
+      bolla: bolla, cassetto: cassetto, aggiorna: metti,
+      apriChiudi: apriChiudi, aperto: () => !cassetto.hidden,
+    };
+  }
+
+  _rigaColore(campo) {
+    const riga = document.createElement("div");
+    riga.className = "riga-colore";
+    const eti = document.createElement("span");
+    eti.className = "eti";
+    eti.textContent = T(ETICHETTE[campo]) || campo;
+
+    const via = document.createElement("button");
+    via.type = "button";
+    via.className = "togli";
+    via.textContent = "✕";
+    via.title = T("Togli il colore");
+    via.hidden = !Array.isArray(this._config[campo]);
+    via.addEventListener("click", () => {
+      const c2 = { ...this._config };
+      delete c2[campo];
+      this._config = c2;
+      this._emetti();
+      this._costruisciColori();
+    });
+
+    const scelta = this._sceltaColore(this._config[campo], (rgb) => {
+      this._config = { ...this._config, [campo]: rgb };
+      via.hidden = false;
+      this._emetti();
+    });
+
+    riga.append(eti, scelta.bolla, via);
+    const fuori = document.createElement("div");
+    fuori.className = "colore-riga-fuori";
+    fuori.append(riga, scelta.cassetto);
+    fuori._aggiorna = () => {
+      const ora = this._config[campo];
+      scelta.aggiorna(ora);
+      via.hidden = !Array.isArray(ora);
+    };
+    return fuori;
+  }
+
+  // UNA CASELLA NOSTRA IL FONDO SE LO DISEGNA DA SOLA, e se lo scrive
+  // addosso: quello che le passo dalla busta non lo guarda nemmeno. Quindi
+  // per lei (e per le caselle nostre dentro a una griglia o a una pila) il
+  // colore va scritto nelle SUE impostazioni. Torna indietro null se li'
+  // dentro di caselle nostre non ce n'e' nessuna: allora vale la busta.
+  _tingiDentro(cfg, dati) {
+    if (!cfg || typeof cfg !== "object") return null;
+    if (String(cfg.type || "") === "custom:casa-tile") {
+      const c2 = { ...cfg };
+      if ("sfondo" in dati) {
+        if (dati.sfondo) c2.sfondo_colore = dati.sfondo;
+        else delete c2.sfondo_colore;
+      }
+      if ("trasparenza" in dati) {
+        if (dati.trasparenza) c2.trasparenza = dati.trasparenza;
+        else delete c2.trasparenza;
+      }
+      return c2;
+    }
+    let cambiato = false;
+    const c2 = { ...cfg };
+    if (Array.isArray(cfg.cards)) {
+      const l = cfg.cards.map((x) => {
+        const y = this._tingiDentro(x, dati);
+        if (y) cambiato = true;
+        return y || x;
+      });
+      if (cambiato) c2.cards = l;
+    }
+    if (cfg.card) {
+      const y = this._tingiDentro(cfg.card, dati);
+      if (y) { c2.card = y; cambiato = true; }
+    }
+    return cambiato ? c2 : null;
+  }
+
+  // e che colore ha adesso: la prima casella nostra che trovo li' dentro
+  _tintaDentro(cfg) {
+    if (!cfg || typeof cfg !== "object") return null;
+    if (String(cfg.type || "") === "custom:casa-tile") {
+      return { sfondo: cfg.sfondo_colore, trasparenza: cfg.trasparenza };
+    }
+    const figli = (Array.isArray(cfg.cards) ? cfg.cards : [])
+      .concat(cfg.card ? [cfg.card] : []);
+    for (let i = 0; i < figli.length; i += 1) {
+      const t = this._tintaDentro(figli[i]);
+      if (t) return t;
+    }
+    return null;
+  }
+
+};
 
 // -*- coding: utf-8 -*-
 // Aiuti di servizio: tempi, misure, parole, memorie condivise.
@@ -2078,855 +2892,692 @@ const ICONA_METEO = {
 };
 
 // -*- coding: utf-8 -*-
-// Le impostazioni: sezioni, nomi in italiano, chi le vede.
+// Il selettore delle icone, i nomi suggeriti e le immagini.
 
 
-const SEZIONI = [
-  {
-    chiave: "base", titolo: "Base", segno: "⚙", aperta: true,
-    gruppi: [
-      { schema: [
-        { name: "entity", selector: { entity: {} } },
-        { name: "name", selector: { text: {} } },
-      ] },
-      { titolo: "Cosa c'e scritto", schema: [
-        { name: "sottotitolo", selector: { text: {} } },
-        { name: "sottotitolo_entita", selector: { entity: {} } },
-        { name: "nascondi_valore", selector: { boolean: {} } },
-        { name: "mostra_da_quanto", selector: { boolean: {} } },
-        { name: "info_entita", selector: { entity: { multiple: true } } },
-        { name: "info_nomi_auto", selector: { boolean: {} } },
-      ] },
-      { titolo: "Quando la casella e accesa", schema: [
-        { name: "acceso_sempre", selector: { boolean: {} } },
-        { name: "acceso_entita", selector: { entity: { multiple: true } } },
-        { name: "acceso_se", selector: { text: {} } },
-        { name: "soglia", selector: { number: { mode: "box", min: 0, step: 1 } } },
-      ] },
-    ],
-  },
-  {
-    chiave: "icona", titolo: "Icona", segno: "✦",
-    gruppi: [
-      { schema: [
-        {
-          type: "grid", name: "", schema: [
-            { name: "mostra_icona", selector: { boolean: {} } },
-            { name: "usa_foto", selector: { boolean: {} } },
-            { name: "icona_sfondo", selector: { boolean: {} } },
-            { name: "icona_sfondo_forza",
-              selector: { number: { min: 4, max: 60, step: 2, mode: "slider" } } },
-          ],
-        },
-        { name: "icona_entita", selector: { boolean: {} } },
-        { name: "icona_ha", selector: { icon: {} } },
-      ] },
-      { titolo: "Batteria: carica e scarica", schema: [
-        { name: "carica_entita", selector: { entity: { multiple: true } } },
-        { name: "scarica_entita", selector: { entity: { multiple: true } } },
-      ] },
-    ],
-  },
-  {
-    chiave: "aspetto", titolo: "Aspetto", segno: "🎨",
-    gruppi: [
-      { titolo: "Come e fatta", schema: [
-        { name: "disposizione", selector: { select: { mode: "dropdown", options: [
-          { value: "classica", label: "Classica - icona in basso, valore a destra" },
-          { value: "persona", label: "Persona - foto a sinistra, stato e via accanto" },
-          { value: "vinile", label: "Musica - copertina tonda grande e onda del tempo" },
-          { value: "ytmusic", label: "Musica - come la tua ytmusic-card" },
-        ] } } },
-        { name: "grande", selector: { boolean: {} } },
-      ] },
-      { titolo: "Colore della scritta",
-        colori: ["colore_testo", "colore_valore"], schema: [
-      ] },
-      { titolo: "Effetti", schema: [
-        { name: "effetto", selector: { select: { mode: "dropdown", options: [
-          { value: "alone", label: "Alone - morbido" },
-          { value: "pulsa", label: "Alone - che respira" },
-          { value: "bagliore", label: "Alone - diffuso e grande" },
-          { value: "doppio", label: "Alone - doppio bordo" },
-          { value: "neon", label: "Luce - neon dentro e fuori" },
-          { value: "bordo", label: "Luce - che gira sul bordo" },
-          { value: "scia", label: "Luce - riflesso che scorre" },
-          { value: "spia", label: "Luce - spia lampeggiante" },
-          { value: "lampeggio", label: "Luce - lampeggio (per gli avvisi)" },
-          { value: "vetro", label: "Superficie - vetro smerigliato" },
-          { value: "sfondo", label: "Superficie - sfondo tinto" },
-          { value: "sfondo_mosso", label: "Superficie - sfondo che si muove" },
-          { value: "incavo", label: "Superficie - incavo" },
-          { value: "onda", label: "Movimento - onda che sale" },
-          { value: "battito", label: "Movimento - battito" },
-          { value: "fluttua", label: "Movimento - icona che fluttua" },
-          { value: "icona_pulsa", label: "Movimento - icona che pulsa" },
-          { value: "ingrandisce", label: "Al passaggio - si ingrandisce" },
-          { value: "inclina", label: "Al passaggio - si inclina" },
-          { value: "nessuno", label: "Nessun effetto" },
-        ] } } },
-        { name: "anima", selector: { select: { mode: "dropdown", options: [
-          { value: "attiva", label: "Si muove solo quando e attiva" },
-          { value: "sempre", label: "Si muove sempre" },
-          { value: "mai", label: "Non si muove mai" },
-        ] } } },
-        { name: "intensita", selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
-        { name: "velocita", selector: { number: { min: 25, max: 300, step: 5, mode: "slider" } } },
-      ] },
-    ],
-  },
-  {
-    chiave: "sfondo", titolo: "Sfondo", segno: "🖼",
-    gruppi: [
-      { titolo: "Tinta della casella", colori: ["sfondo_colore"], schema: [
-        {
-          type: "grid", name: "", schema: [
-            { name: "trasparenza",
-              selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
-          ],
-        },
-      ] },
-      { titolo: "La telecamera in diretta", schema: [
-        { name: "camera_diretta", selector: { boolean: {} } },
-        { name: "camera_secondi",
-          selector: { number: { min: 1, max: 60, step: 1, mode: "slider" } } },
-      ] },
-      { titolo: "Foto di sfondo", schema: [
-        { name: "sfondo_immagine", selector: { text: {} } },
-        { name: "sfondo_adatta", selector: { select: { mode: "dropdown", options: [
-          { value: "riempi", label: "Riempie la casella (taglia i bordi)" },
-          { value: "intera", label: "Tutta intera dentro la casella" },
-          { value: "vera", label: "Grandezza vera della foto" },
-        ] } } },
-        { name: "sfondo_velo",
-          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
-      ] },
-      { titolo: "La copertina del brano come sfondo", schema: [
-        { name: "sfondo_copertina", selector: { boolean: {} } },
-        { name: "sfondo_sfocatura",
-          selector: { number: { min: 0, max: 24, step: 1, mode: "slider" } } },
-      ] },
-      { titolo: "Il cielo del meteo", schema: [
-        { name: "sfondo_meteo", selector: { boolean: {} } },
-        { name: "meteo_forza",
-          selector: { number: { min: 0, max: 100, step: 5, mode: "slider" } } },
-        { name: "meteo_entita", selector: { entity: { domain: "weather" } } },
-      ] },
-    ],
-  },
-  {
-    chiave: "comandi", titolo: "Comandi", segno: "🎚",
-    gruppi: [
-      { titolo: "Barra dentro la casella", schema: [
-        { name: "mostra_cursore", selector: { boolean: {} } },
-        { name: "nascondi_quanto", selector: { boolean: {} } },
-        {
-          type: "grid", name: "", schema: [
-            { name: "cursore_min", selector: { number: { mode: "box" } } },
-            { name: "cursore_max", selector: { number: { mode: "box" } } },
-          ],
-        },
-      ] },
-      { titolo: "Tasti rapidi", schema: [
-        { name: "comandi_rapidi", selector: { boolean: {} } },
-      ] },
-      { titolo: "Striscia del colore (luci)", schema: [
-        { name: "cursore_colore", selector: { boolean: {} } },
-        { name: "colore_striscia", selector: { select: { mode: "dropdown", options: [
-          { value: "tinta", label: "Solo la tinta (arcobaleno)" },
-          { value: "bianco", label: "Solo il bianco caldo/freddo" },
-          { value: "tutte", label: "Tutte e due le strisce" },
-        ] } } },
-      ] },
-    ],
-  },
-  {
-    chiave: "grafico", titolo: "Grafico", segno: "📈",
-    gruppi: [
-      { colori: ["grafico_colore"], schema: [
-        { name: "grafico", selector: { boolean: {} } },
-        { name: "grafico_ore",
-          selector: { number: { min: 1, max: 168, step: 1, mode: "box" } } },
-        { name: "grafico_stile", selector: { select: { mode: "dropdown", options: [
-          { value: "area", label: "Area piena" },
-          { value: "linea", label: "Solo la linea" },
-        ] } } },
-      ] },
-    ],
-  },
-  {
-    chiave: "musica", titolo: "Musica", segno: "🎵",
-    gruppi: [
-      { titolo: "Comandi del lettore", schema: [
-        { name: "comandi_media", selector: { boolean: {} } },
-        { name: "tempo_media", selector: { boolean: {} } },
-        { name: "gira_copertina", selector: { boolean: {} } },
-        { name: "yt_attrezzi", selector: { boolean: {} } },
-        { name: "coda", selector: { boolean: {} } },
-        { name: "yt_cuore", selector: { boolean: {} } },
-      ] },
-      { titolo: "Casse e sorgenti", schema: [
-        { name: "lettori", selector: { entity: { domain: "media_player", multiple: true } } },
-        { name: "segui_attivo", selector: { boolean: {} } },
-        { name: "multiroom", selector: { boolean: {} } },
-        { name: "sorgente", selector: { boolean: {} } },
-      ] },
-      { titolo: "Il riquadro delle casse", colori: ["pannello_sfondo"], schema: [
-        { name: "pannello_trasparenza",
-          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
-        { name: "riquadri_trasparenza",
-          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
-      ] },
-    ],
-  },
-  {
-    chiave: "persone", titolo: "Persone", segno: "🧭",
-    gruppi: [
-      { titolo: "Dove si trova", schema: [
-        { name: "mostra_distanza", selector: { boolean: {} } },
-        { name: "distanza_entita", selector: { entity: {} } },
-      ] },
-    ],
-  },
-  {
-    chiave: "tocco", titolo: "Tocco", segno: "👆",
-    gruppi: [
-      { schema: [
-        { name: "azione", selector: { select: { mode: "dropdown", options: [
-          { value: "toggle", label: "Accendi / spegni" },
-          { value: "servizio", label: "Esegui un servizio (es. imposta un valore)" },
-          { value: "more-info", label: "Apri i dettagli" },
-          { value: "finestra", label: "Apri un pop-up mio" },
-          { value: "mappa", label: "Apri Google Maps sulla posizione" },
-          { value: "link", label: "Apri un indirizzo web" },
-          { value: "popup", label: "Apri un pop-up bubble-card (#nome)" },
-        ] } } },
-        { name: "servizio", selector: { text: {} } },
-        { name: "servizio_dati", selector: { text: { multiline: true } } },
-        { name: "indirizzo_web", selector: { text: {} } },
-        { name: "popup", selector: { text: {} } },
-      ] },
-    ],
-  },
-  {
-    // TUTTO IL POP-UP IN UN POSTO SOLO. Prima meta' stava in "Tocco" e
-    // l'elenco delle schede pure: per cambiare due cose dello stesso
-    // pop-up bisognava girare fra i gruppi.
-    chiave: "popup", titolo: "Pop-up", segno: "🪟",
-    gruppi: [
-      { schema: [
-        { name: "finestra_titolo", selector: { text: {} } },
-      ] },
-      { titolo: "Come si apre", schema: [
-        { name: "finestra_apertura", selector: { select: { mode: "dropdown", options: [
-          { value: "sfuma", label: "Sale e sfuma - discreta" },
-          { value: "sboccia", label: "Sboccia dalla casella che hai toccato" },
-          { value: "basso", label: "Entra dal basso, come un cassetto" },
-          { value: "niente", label: "Nessuna animazione" },
-        ] } } },
-        { name: "finestra_apertura_durata",
-          selector: { number: { min: 80, max: 2000, step: 20, mode: "slider" } } },
-      ] },
-      { titolo: "Quanto e largo il pop-up", schema: [
-        { name: "finestra_largo",
-          selector: { number: { min: 400, max: 1400, step: 20, mode: "slider" } } },
-      ] },
-      { titolo: "Come e vestito il pop-up",
-        colori: ["finestra_sfondo"], schema: [
-        {
-          type: "grid", name: "", schema: [
-            { name: "finestra_trasparenza",
-              selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
-          ],
-        },
-        { name: "finestra_immagine", selector: { text: {} } },
-      ] },
-    ],
-  },
-  {
-    // "Dove va ogni pezzo" e' un lavoro a se': si prende la casella e si
-    // trascinano i pezzi. Appeso in fondo ai colori non lo trovava nessuno.
-    chiave: "pezzi", titolo: "Pezzi", segno: "✋",
-    gruppi: [],
-  },
-];
+const ConIcone = (Base) => class extends Base {
+  // icona e colore si scelgono guardandoli
+  _costruisciScelte() {
+    const box = this._scelte;
+    const tin = this._tinte;
+    if (!box) return;
+    if (!box._fatto) {
+      box._fatto = true;
+      box.innerHTML = "<h4>Icona</h4>"
+        + "<p class='aiuto notaMeteo' hidden>Per il meteo non serve sceglierla: "
+        + "l'icona la decide il tempo che fa (sole, nuvole, pioggia, neve, "
+        + "temporale, nebbia, vento) e cambia da sola.</p>"
+        + "<input class='cercaIcona' type='search' placeholder='Cerca l&apos;icona: luce, presa, porta, auto...'>"
+        + "<div class='iconePicker'></div>";
 
-// campi che compaiono solo con una certa azione al tocco
-// Le impostazioni che dipendono da un'altra: finche' l'interruttore
-// principale e' spento non servono a niente e stanno solo in mezzo. Se pero'
-// un valore c'e' gia' scritto, la voce si vede lo stesso - se no diventerebbe
-// roba impostata che non si puo' piu' togliere.
-const DIPENDE = {
-  icona_sfondo_forza: (c) => !!c.icona_sfondo,
-  camera_secondi: (c) => !!c.camera_diretta,
-  sfondo_adatta: (c) => !!c.sfondo_immagine || !!c.camera_diretta,
-  sfondo_sfocatura: (c) => !!c.sfondo_copertina,
-  finestra_apertura_durata: (c) => (c.finestra_apertura || "sfuma") !== "niente",
-  nascondi_quanto: (c) => !!c.mostra_cursore,
-  cursore_min: (c) => !!c.mostra_cursore,
-  cursore_max: (c) => !!c.mostra_cursore,
-  colore_striscia: (c) => !!c.cursore_colore,
-  grafico_ore: (c) => !!c.grafico,
-  grafico_colore: (c) => !!c.grafico,
-  coda: (c) => c.disposizione === "ytmusic",
-  yt_attrezzi: (c) => c.disposizione === "ytmusic",
-  yt_cuore: (c) => c.disposizione === "ytmusic",
-  grafico_stile: (c) => !!c.grafico,
-  distanza_entita: (c) => !!c.mostra_distanza,
-  info_nomi_auto: (c) => (c.info_entita || []).length > 0,
-  segui_attivo: (c) => (c.lettori || []).length > 0 || c.multiroom !== false,
-  soglia: (c) => c.acceso_se === "sopra" || c.acceso_se === "sotto"
-    || (Array.isArray(c.acceso_entita) ? c.acceso_entita.length : !!c.acceso_entita),
-};
+      const griglia = box.querySelector(".iconePicker");
+      // del meteo ne basta una: tanto poi la sceglie il tempo che fa
+      const METEOICONE = ["luna", "nuvola", "sole_nuvole", "pioggia", "neve",
+                          "temporale", "nebbia", "vento"];
+      const elenco = ["auto"]
+        .concat(NOMI_ICONE.filter((x) => METEOICONE.indexOf(x) < 0))
+        .concat(NOMI_MDI);
+      elenco.forEach((nome, k) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "sceltaIcona";
+        b.dataset.nome = nome;
+        if (nome === "auto") {
+          b.classList.add("sceltaAuto");
+          b.innerHTML = '<span class="segnoAuto">\u2726</span>'
+            + '<span class="nome">Automatica</span>';
+          b.title = T("La sceglie la card guardando l'entita");
+          b.addEventListener("click", () => {
+            this._config = { ...this._config, icona: "auto" };
+            this._emetti();
+            this._costruisciScelte();
+          });
+          griglia.appendChild(b);
+          return;
+        }
+        // gli id dentro l'SVG vanno resi unici, altrimenti si pestano i piedi
+        const tintaEditor = (COLORI[(this._config || {}).colore] || COLORI.ambra);
+        const dentro = String(ICONE[nome] || disegnoMdi(nome, tintaEditor) || "")
+          .replace(/id="([a-z0-9]+)"/g, 'id="$1_p' + k + '"')
+          .replace(/url\(#([a-z0-9]+)\)/g, "url(#$1_p" + k + ")");
+        b.innerHTML = '<svg viewBox="0 0 64 64" fill="none">' + dentro
+          + '</svg><span class="nome"></span>';
+        b.querySelector(".nome").textContent = nome;
+        b.addEventListener("click", () => {
+          this._config = { ...this._config, icona: nome };
+          this._emetti();
+          this._costruisciScelte();
+        });
+        griglia.appendChild(b);
+      });
 
-const SOLO_AZIONE = {
-  servizio: "servizio", servizio_dati: "servizio",
-  indirizzo_web: "link", popup: "popup", finestra_titolo: "finestra",
-  finestra_apertura: "finestra", finestra_apertura_durata: "finestra",
-  finestra_largo: "finestra",
-  finestra_sfondo: "finestra", finestra_trasparenza: "finestra",
-  finestra_immagine: "finestra", finestra_schede_sfondo: "finestra",
-  finestra_schede_trasparenza: "finestra",
-};
+      tin.innerHTML = "<h4>Colore quando e accesa</h4>"
+        + "<p class='aiuto'>Tocca la ruota per scegliere il colore che vuoi: "
+        + "e' quello dell'alone, del bordo e di tutti gli effetti.</p>"
+        + "<div class='coloriPicker'></div>";
+      const fila = tin.querySelector(".coloriPicker");
+      // niente piu' pallini fissi: bastano la ruota e "come la lampada"
+      [].forEach((nome) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "sceltaColore";
+        b.dataset.nome = nome;
+        b.title = nome;
+        b.style.background = COLORI[nome];
+        b.addEventListener("click", () => {
+          this._config = { ...this._config, colore: nome };
+          delete this._config.colore_rgb;
+          this._emetti();
+          this._costruisciScelte();
+        });
+        fila.appendChild(b);
+      });
+      const lampada = document.createElement("button");
+      lampada.type = "button";
+      lampada.className = "sceltaColore coloreLampada";
+      lampada.dataset.nome = "luce";
+      lampada.title = T("Come la lampada (colore vero della luce)");
+      lampada.innerHTML = '<span class="segno">\u25C9</span>';
+      lampada.addEventListener("click", () => {
+        this._config = { ...this._config, colore: "luce" };
+        delete this._config.colore_rgb;
+        this._emetti();
+        this._costruisciScelte();
+      });
+      fila.appendChild(lampada);
+      tin._lampada = lampada;
 
-// quali impostazioni hanno senso per quale tipo di entita'
-const SOLO_PER = {
-  disposizione: ["person", "device_tracker", "media_player"],
-  usa_foto: ["person", "device_tracker", "media_player", "camera"],
-  mostra_distanza: ["person", "device_tracker"],
-  distanza_entita: ["person", "device_tracker"],
-  mostra_cursore: ["light", "fan", "media_player", "number", "input_number", "cover"],
-  cursore_colore: ["light"],
-  sfondo_copertina: ["media_player"],
-  sfondo_sfocatura: ["media_player"],
-  cursore_min: ["number", "input_number"],
-  cursore_max: ["number", "input_number"],
-  colore_striscia: ["light"],
-  comandi_media: ["media_player"],
-  tempo_media: ["media_player"],
-  lettori: ["media_player"],
-  camera_diretta: ["camera", "image"],
-  camera_secondi: ["camera", "image"],
-  pannello_sfondo: ["media_player"],
-  pannello_trasparenza: ["media_player"],
-  riquadri_trasparenza: ["media_player"],
-  comandi_rapidi: ["cover", "lock", "vacuum"],
-  grafico: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_colore: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_ore: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_stile: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  gira_copertina: ["media_player"],
-  coda: ["media_player"], yt_attrezzi: ["media_player"],
-  yt_cuore: ["media_player"],
-  segui_attivo: ["media_player"],
-  multiroom: ["media_player"],
-  sorgente: ["media_player"],
-  soglia: ["sensor", "number", "input_number", "counter"],
-  acceso_sempre: ["sensor", "binary_sensor", "weather", "number", "input_number",
-                  "counter", "media_player"],
-};
+      const termo = document.createElement("button");
+      termo.type = "button";
+      termo.className = "sceltaColore coloreTermo";
+      termo.dataset.nome = "termometro";
+      termo.title = T("Segue la temperatura (freddo azzurro, caldo rosso)");
+      termo.addEventListener("click", () => {
+        this._config = { ...this._config, colore: "termometro" };
+        delete this._config.colore_rgb;
+        this._emetti();
+        this._costruisciScelte();
+      });
+      fila.appendChild(termo);
+      tin._termo = termo;
 
-const ETICHETTE = {
-  entity: "Entita (lasciala vuota se la casella serve solo ad aprire il pop-up)",
-  name: "Nome mostrato", sottotitolo: "Sottotitolo scritto da te (facoltativo)",
-  sottotitolo_entita: "Sottotitolo preso da un'altra entita (es. l'indirizzo)",
-  meteo_entita: "Meteo nell'angolo (scegli l'entita del meteo)",
-  indirizzo_web: "Indirizzo web da aprire (per l'azione \"Apri un indirizzo web\")",
-  icona: "Icona animata", colore: "Colore quando e accesa",
-  icona_sfondo: "L'icona in grande dietro alle scritte",
-  icona_sfondo_forza: "Quanto si vede l'icona dietro (%)",
-  carica_entita: "Quali entita vogliono dire che STA CARICANDO (di solito non serve: basta chiamare carica una misura)",
-  scarica_entita: "Quali entita vogliono dire che STA DANDO CORRENTE (di solito non serve: basta chiamare scarica una misura)",
-  disposizione: "Come e disposta la casella",
-  azione: "Cosa fa quando la tocchi", anima: "Quando si muove l'icona",
-  effetto: "Effetto della casella", intensita: "Intensita del colore (%)",
-  anima: "Quando si muove (icona ed effetti)",
-  coda: "Elenco In coda (serve Music Assistant)",
-  yt_attrezzi: "Tastini cerca / sfoglia / coda / schermo intero",
-  yt_cuore: "Cuoricino dei preferiti",
-  grafico_colore: "Colore del grafico (vuoto = come la casella)",
-  colore_testo: "Colore del nome e del sottotitolo (vuoto = quello del tema)",
-  colore_valore: "Colore del valore, quello grande (vuoto = come il nome)",
-  colore_rgb: "Colore personalizzato (vale solo scegliendo \"personalizzato\" qui sopra)",
-  sfondo_colore: "Sfondo della casella (tinta)",
-  trasparenza: "Trasparenza della casella (%)",
-  sfondo_meteo: "Usa il meteo come sfondo di tutta la casella",
-  meteo_forza: "Quanto si vede la scena meteo (%) - 0 lascia solo il colore",
-  camera_diretta: "Riempi la casella con l'immagine della telecamera, viva",
-  camera_secondi: "Ogni quanti secondi si rifa l'immagine",
-  sfondo_immagine: "Foto di sfondo - indirizzo, es. /local/foto.jpg",
-  sfondo_adatta: "Come si adatta la foto",
-  sfondo_copertina: "Copertina del disco come sfondo",
-  sfondo_sfocatura: "Quanto sfocarla (0 = nitida)",
-  sfondo_velo: "Velo scuro sulla foto o sulla copertina (%) - serve a leggere il testo",
-  velocita: "Velocita dell'effetto (%) - 100 e normale",
-  popup: "Pop-up bubble-card da aprire (es. #luci)",
-  info_entita: "Misure mostrate in basso (aggiungine altre da qui)",
-  info_nomi_auto: "Scrivi un nome anche sulle misure che non hai chiamato tu",
-  mostra_cursore: "Barra dentro la casella (luci, ventole, musica, valori da impostare)",
-  nascondi_quanto: "Nascondi il numerino in fondo alla barra",
-  cursore_colore: "Striscia del colore dentro la casella",
-  colore_striscia: "Quale striscia mostrare",
-  cursore_min: "La barra parte da (lascia vuoto = minimo dell'entita)",
-  cursore_max: "La barra arriva a (es. 800, invece dei 1200 dell'entita)",
-  comandi_media: "Comandi della musica dentro la casella",
-  tempo_media: "Tempo del brano e barra di avanzamento",
-  lettori: "Casse tra cui scegliere (i tastini in alto nella casella)",
-  pannello_sfondo: "Sfondo del riquadro casse e sorgenti (vuoto = scuro di serie; "
-    + "le scritte seguono il colore della scritta)",
-  pannello_trasparenza: "Trasparenza del riquadro casse e sorgenti (%)",
-  riquadri_trasparenza: "Trasparenza dei riquadri ricerca, sfoglia e coda (%)",
-  comandi_rapidi: "Tasti rapidi (tapparelle, serrature, aspirapolvere)",
-  grafico: "Mostra il grafico dell'andamento dentro la casella",
-  grafico_ore: "Quante ore di storia (di serie 24)",
-  grafico_stile: "Come si disegna",
-  gira_copertina: "Fai girare la copertina tonda come un disco",
-  segui_attivo: "Passa da sola alla cassa che sta suonando",
-  multiroom: "Tasto Casse: unisci gli altoparlanti e regola i volumi",
-  sorgente: "Tasto Sorgente: scegli l'ingresso del lettore",
-  grande: "Casella grande",
-  mostra_icona: "Mostra l'icona (toglila per lasciare solo le scritte)",
-  icona_entita: "Usa l'icona che l'entita ha gia in Home Assistant, se ce l'ha",
-  usa_foto: "Usa la foto dell'entita, se ce l'ha (persone, copertine)",
-  acceso_sempre: "Sempre a colori (anche da spenta)",
-  acceso_entita: "Si accende in base ad altre entita: basta che una sia attiva (es. i watt che escono invece della carica)",
-  icona_ha: "Icona di Home Assistant (cercala qui; vince su quella sotto)",
-  mostra_da_quanto: "Scrivi da quanto tempo e in questo stato",
-  mostra_distanza: "Quanti chilometri da casa, in linea d'aria (persone)",
-  distanza_entita: "Sensore del percorso (Waze, Google): se c'e, usa i km su strada",
-  nascondi_valore: "Nascondi il valore", soglia: "Soglia di accensione (W)",
-  acceso_se: "Si accende solo quando l'entita' vale esattamente (es. 95)",
-  servizio: "Servizio da chiamare (es. number.set_value)",
-  servizio_dati: "Dati del servizio, in YAML (es. value: 95)",
-  finestra_titolo: "Titolo del pop-up",
-  icona_immagine: "Immagine al posto dell'icona",
-  icona_immagine_accesa: "Immagine di quando e acceso (anche una gif)",
-  finestra_apertura: "Come si apre la finestra",
-  finestra_apertura_durata: "Quanto dura l'apertura (millesimi di secondo)",
-  finestra_largo: "Larghezza del pop-up in punti (vuoto = 560, come tutti gli altri)",
-  finestra_sfondo: "Tinta della finestra del pop-up (le schede dentro hanno la loro, qui sotto)",
-  finestra_trasparenza: "Trasparenza del pop-up (%)",
-  finestra_immagine: "Foto di sfondo del pop-up - indirizzo, es. /local/foto.jpg",
-  // finestra_schede_sfondo / finestra_schede_trasparenza: non si scelgono
-  // piu' da qui (ogni scheda ha la sua riga), ma se c'erano gia' valgono
-  // ancora come valore di partenza
-};
+      const libero = document.createElement("button");
+      libero.type = "button";
+      libero.className = "sceltaColore coloreLibero";
+      libero.dataset.nome = "personalizzato";
+      libero.title = T("Un colore qualsiasi");
+      // niente finestra dei colori del computer: la ruota, che si apre subito
+      const scelta = this._sceltaColore(this._config.colore_rgb, (rgb) => {
+        this._config = { ...this._config, colore: "personalizzato", colore_rgb: rgb };
+        this._emetti();
+      });
+      libero.addEventListener("click", scelta.apriChiudi);
+      fila.appendChild(libero);
+      fila.after(scelta.cassetto);
+      tin._libero = libero;
+      tin._scelta = scelta;
 
-const SCHEDE_PRONTE = [
-  ["entities", "Elenco con i comandi"],
-  ["tile", "Riquadri"],
-  ["glance", "Colpo d'occhio"],
-  ["light", "Luce (rotella luminosita)"],
-  ["thermostat", "Termostato"],
-  ["media-control", "Lettore musicale"],
-  ["picture-entity", "Telecamera / immagine"],
-  ["map", "Mappa"],
-  ["gauge", "Indicatore a lancetta"],
-  ["history-graph", "Grafico storico"],
-];
+      // un'icona tutta sua, presa dal telefono o dal PC - e la sua gemella
+      // per quando e' acceso
+      box._suaIcona = this._rigaImmagine(box, "icona_immagine",
+        "Usa un'immagine mia (telefono o PC)", "");
+      box._suaAccesa = this._rigaImmagine(box, "icona_immagine_accesa",
+        "Immagine di quando e' acceso (anche una gif)",
+        "si vede solo mentre lavora: alla base torna quella di sopra");
 
-const SCHEDE_ALTRE = [
-  ["button", "Pulsante"],
-  ["sensor", "Sensore con grafico"],
-  ["statistics-graph", "Grafico statistiche"],
-  ["humidifier", "Umidificatore"],
-  ["picture-glance", "Immagine con icone"],
-  ["weather-forecast", "Meteo"],
-  ["calendar", "Calendario"],
-  ["todo-list", "Lista cose da fare"],
-  ["markdown", "Testo libero"],
-  ["alarm-panel", "Antifurto"],
-  ["logbook", "Registro"],
-  ["area", "Area"],
-  ["grid", "Griglia di schede"],
-  ["vertical-stack", "Pila verticale"],
-  ["horizontal-stack", "Pila orizzontale"],
-  ["iframe", "Pagina web"],
-  ["picture", "Solo un'immagine"],
-  ["conditional", "Condizionale (si vede solo se...)"],
-  ["entity-filter", "Elenco filtrato"],
-  ["statistic", "Statistica (un numero solo)"],
-];
+      const cerca = box.querySelector(".cercaIcona");
+      cerca.addEventListener("input", () => {
+        const q = cerca.value.trim().toLowerCase();
+        box.querySelectorAll(".sceltaIcona").forEach((b) => {
+          const nome = b.dataset.nome || "";
+          const parole = (SINONIMI[nome] || MDI_PAROLE[nome] || "") + " " + nome;
+          b.hidden = !!q && nome !== "auto"
+            && parole.toLowerCase().replace(/_/g, " ").indexOf(q) < 0;
+        });
+      });
+    }
 
-// La voce per chi vuole scrivere il codice a mano: e' la stessa cosa che
-// Home Assistant chiama "Manuale". Serve per le schede che non stanno
-// nell'elenco - le sue schede della comunita' ci sono gia' tutte, ma di
-// schede di Home Assistant ce ne sono anche di rare, e senza questa voce
-// non c'era modo di metterle.
-const SCHEDA_MANO = "__amano__";
-
-// il nome per esteso di una scheda (quello che si vede nell'elenco di HA)
-const NOMI_HA = {
-  entities: "Entita", glance: "Colpo d'occhio", tile: "Casella", button: "Pulsante",
-  gauge: "Indicatore", "history-graph": "Grafico storico", map: "Mappa",
-  "statistics-graph": "Grafico statistiche", sensor: "Sensore con grafico",
-  thermostat: "Termostato", light: "Luce", markdown: "Testo", picture: "Immagine",
-  "picture-entity": "Immagine con entita", "media-control": "Lettore multimediale",
-  "weather-forecast": "Meteo", grid: "Griglia", "vertical-stack": "Pila verticale",
-  "horizontal-stack": "Pila orizzontale", area: "Stanza", logbook: "Registro",
-  calendar: "Calendario", energy: "Energia", iframe: "Pagina web", todo: "Cose da fare",
-  humidifier: "Umidificatore", alarm: "Allarme", "alarm-panel": "Allarme",
-  distribution: "Distribuzione", heading: "Titolo",
-};
-
-function nomeScheda(tipo) {
-  const pulito = String(tipo || "").replace("custom:", "");
-  if (NOMI_HA[pulito]) return NOMI_HA[pulito];
-  const elenco = window.customCards || [];
-  for (let i = 0; i < elenco.length; i += 1) {
-    const c = elenco[i];
-    if (c && (c.type === pulito || c.type === tipo)) return c.name || pulito;
+    const c = this._config || {};
+    // sul meteo l'icona e' automatica: la griglia delle icone non serve
+    const suoDominio = String(c.entity || "").split(".")[0];
+    const nota = box.querySelector(".notaMeteo");
+    const griglia = box.querySelector(".iconePicker");
+    if (nota && griglia) {
+      nota.hidden = suoDominio !== "weather";
+      griglia.hidden = suoDominio === "weather";
+    }
+    if (tin && tin._termo) {
+      const dom = String(c.entity || "").split(".")[0];
+      const st2 = this._hass ? this._hass.states[c.entity] : null;
+      const daTemperatura = dom === "climate" || dom === "weather"
+        || (!!st2 && st2.attributes.device_class === "temperature");
+      tin._termo.hidden = !daTemperatura;
+    }
+    if (tin && tin._lampada) {
+      const dom = String(c.entity || "").split(".")[0];
+      const st = this._hass ? this._hass.states[c.entity] : null;
+      const modi = st ? (st.attributes.supported_color_modes || []) : [];
+      const aColori = dom === "light" && modi.some((m) =>
+        ["rgb", "rgbw", "rgbww", "hs", "xy", "color_temp"].includes(m));
+      tin._lampada.hidden = !aColori;
+      const rgb = st && st.attributes.rgb_color;
+      tin._lampada.style.background = Array.isArray(rgb)
+        ? daRgb(coloreLampada(rgb))
+        : "linear-gradient(135deg, #ff5f5f, #ffc046, #5ec8ff)";
+    }
+    [box._suaIcona, box._suaAccesa].forEach((r) => {
+      if (!r) return;
+      const mia = c[r.chiave];
+      r.ant.hidden = !mia;
+      r.via.hidden = !mia;
+      if (mia && r.ant.getAttribute("src") !== mia) r.ant.src = mia;
+      // mentre ci sta scrivendo dentro non gliela cambio sotto le mani
+      if (document.activeElement !== r.campo) r.campo.value = mia || "";
+      if (r.nota && !r.fisso) r.nota.textContent = "";
+    });
+    // la seconda ha senso solo se c'e' la prima: se no non si torna indietro
+    if (box._suaAccesa) {
+      box._suaAccesa.riga.hidden = !c.icona_immagine && !c.icona_immagine_accesa;
+    }
+    const sceltaIcona = c.icona || "auto";
+    box.querySelectorAll(".sceltaIcona").forEach((b) =>
+      b.toggleAttribute("scelta", b.dataset.nome === sceltaIcona));
+    // sul tasto "Automatica" mostro quale verrebbe scelta adesso
+    const tastoAuto = box.querySelector(".sceltaAuto .segnoAuto");
+    if (tastoAuto && c.entity && this._hass) {
+      const quale = iconaAutomatica(c.entity, this._hass.states[c.entity]);
+      const tintaAuto = COLORI[c.colore] || COLORI.ambra;
+      tastoAuto.innerHTML = '<svg viewBox="0 0 64 64" fill="none">'
+        + String(ICONE[quale] || disegnoMdi(quale, tintaAuto) || ICONE.luce)
+          .replace(/id="([a-z0-9]+)"/g, 'id="$1_auto"')
+          .replace(/url\(#([a-z0-9]+)\)/g, "url(#$1_auto)")
+        + "</svg>";
+    }
+    if (tin) {
+      tin.querySelectorAll(".sceltaColore").forEach((b) =>
+        b.toggleAttribute("scelta", b.dataset.nome === (c.colore || "ambra")));
+    }
+    if (Array.isArray(c.colore_rgb) && tin && tin._libero) {
+      const tinta = daRgb(c.colore_rgb);
+      if (tinta) {
+        tin._libero.style.background = tinta;
+        if (tin._scelta && tin._scelta.aggiorna) tin._scelta.aggiorna(c.colore_rgb);
+      }
+    } else if (tin && tin._libero) {
+      tin._libero.style.background =
+        "conic-gradient(#ff5f5f, #ffc046, #3fd98a, #4fe0c8, #5ec8ff, #9b6bff, #ff5f5f)";
+    }
   }
-  return pulito.replace(/-/g, " ").replace(/card/gi, "").trim() || pulito;
-}
 
-const STILE_SELETTORE = `
-.scelta-riga { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
-.tendina { flex: 1; padding: 10px 12px; border-radius: 10px; font: inherit; font-size: 14px;
-  border: 1px solid var(--divider-color, #555);
-  background: var(--card-background-color, #1c1c1c); color: var(--primary-text-color, #fff); }
-.tendina optgroup { color: var(--secondary-text-color, #aaa); }
-.tendina option { color: var(--primary-text-color, #fff);
-  background: var(--card-background-color, #1c1c1c); }
-`;
+  _trovaSensori() {
+    const c = this._config;
+    if (!this._hass || !c.entity) return [];
+    const st = this._hass.states[c.entity];
+    if (!st) return [];
+    const registro = this._hass.entities || {};
+    const dispositivi = new Set();
+    (st.attributes.device_trackers || []).concat([c.entity]).forEach((eid) => {
+      const voce = registro[eid];
+      if (voce && voce.device_id) dispositivi.add(voce.device_id);
+    });
 
-// -*- coding: utf-8 -*-
-// Il foglio di stile del riquadro delle impostazioni.
+    let trovati = [];
+    if (dispositivi.size) {
+      trovati = Object.keys(registro).filter((eid) => {
+        const voce = registro[eid];
+        return voce && dispositivi.has(voce.device_id)
+          && (eid.startsWith("sensor.") || eid.startsWith("binary_sensor."));
+      });
+    }
+    if (!trovati.length) {
+      const radice = c.entity.split(".")[1];
+      trovati = Object.keys(this._hass.states).filter(
+        (eid) => eid.startsWith("sensor." + radice + "_")
+          || eid.startsWith("binary_sensor." + radice + "_"));
+    }
+    return trovati.filter((eid) => {
+      const x = this._hass.states[eid];
+      return x && x.state !== "unavailable" && x.state !== "unknown";
+    }).sort();
+  }
 
-const STILE_EDITOR = `
-.targhetta { margin-left: auto; align-self: center; font-size: 10.5px;
-  color: var(--secondary-text-color, #8ea0b8); opacity: .7;
-  font-variant-numeric: tabular-nums; letter-spacing: .02em; }
-.cercaOpz {
-  width: 100%; box-sizing: border-box; margin: 0 0 8px; padding: 9px 12px;
-  border-radius: 12px; font: inherit; font-size: 13px;
-  border: 1px solid var(--divider-color, #2a3a4f);
-  background: var(--secondary-background-color, #16202c);
-  color: var(--primary-text-color, #eaf1fb);
-}
-.trovate { display: grid; gap: 4px; margin-bottom: 10px; }
-.trovate[hidden] { display: none !important; }
-.trovata {
-  appearance: none; text-align: left; cursor: pointer; font: inherit;
-  border: 1px solid var(--divider-color, #2a3a4f); border-radius: 10px;
-  background: var(--secondary-background-color, #16202c); padding: 7px 10px;
-  color: var(--primary-text-color, #eaf1fb); display: grid; gap: 1px;
-}
-.trovata b { font-size: 12.5px; font-weight: 600; }
-.trovata span { font-size: 11px; color: var(--secondary-text-color, #8ea0b8); }
-.trovata.niente { cursor: default; color: var(--secondary-text-color, #8ea0b8);
-  font-size: 12px; }
-ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
-  outline-offset: 4px; border-radius: 10px; }
-.gruppoBox { margin-top: 12px; }
-.gruppoBox[hidden] { display: none !important; }
-.gruppoBox > .titoloGruppo { margin: 0 0 6px; }
-.titoloGruppo { margin: 16px 0 2px; font-size: 12px; font-weight: 700;
-  letter-spacing: .05em; text-transform: uppercase;
-  color: var(--secondary-text-color, #8ea0b8); }
-.titoloGruppo[hidden] { display: none !important; }
-.pannello > ha-form[hidden] { display: none !important; }
-.pannello > .titoloGruppo:first-child { margin-top: 4px; }
-.schede { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-bottom: 12px;
-  border-bottom: 1px solid var(--divider-color, #444); }
-.scheda { appearance: none; background: none; border: none; cursor: pointer; font: inherit;
-  font-size: 13.5px; font-weight: 600; padding: 11px 13px; white-space: nowrap;
-  color: var(--secondary-text-color, #9aa5b1); border-bottom: 2px solid transparent;
-  display: flex; align-items: center; gap: 6px; }
-.scheda:hover { color: var(--primary-text-color, #fff); }
-.scheda[scelta] { color: var(--primary-color, #03a9f4);
-  border-bottom-color: var(--primary-color, #03a9f4); }
-.scheda .segno { font-size: 15px; line-height: 1; }
-.pannello[nascosto] { display: none; }
-.blocco { margin-top: 16px; padding: 14px; border-radius: 12px;
-  border: 1px solid var(--divider-color, #444); }
-.blocco h4 { margin: 0 0 4px; font-size: 15px; }
-.blocco p.aiuto { margin: 0 0 12px; font-size: 13px; color: var(--secondary-text-color); }
-.riga-scheda { display: flex; align-items: center; gap: 6px; padding: 8px 10px;
-  border: 1px solid var(--divider-color, #444); border-radius: 10px; margin-bottom: 8px; }
-.riga-scheda.aperta { border-color: var(--primary-color); }
-.riga-scheda .num { opacity: .6; font-size: 12px; min-width: 18px; }
-.riga-scheda .tipo { display: flex; flex-direction: column; min-width: 0;
-  overflow: hidden; }
-.riga-scheda .tipo .chiaro { font-weight: 600; font-size: 14px; overflow: hidden;
-  text-overflow: ellipsis; white-space: nowrap; }
-.riga-scheda .tipo .piccolo { font-size: 11px; opacity: .55; overflow: hidden;
-  text-overflow: ellipsis; white-space: nowrap; }
-.riga-scheda .spinta { margin-left: auto; display: flex; gap: 2px; }
-/* la manina per riordinare: si tiene premuta e si trascina */
-.riga-scheda .presa { cursor: grab; touch-action: none; user-select: none;
-  opacity: .45; font-size: 15px; line-height: 1; padding: 2px 4px;
-  margin-left: -4px; flex: none; }
-.riga-scheda .presa:hover { opacity: .95; }
-.riga-scheda.inmano { position: relative; z-index: 3; cursor: grabbing;
-  box-shadow: 0 6px 18px rgba(0,0,0,.55); opacity: .95; }
-.riga-scheda.segnaSopra { box-shadow: inset 0 2px 0 var(--primary-color, #f0b429); }
-.riga-scheda.segnaSotto { box-shadow: inset 0 -2px 0 var(--primary-color, #f0b429); }
-.editor-scheda { margin: 0 0 14px; padding: 12px; border-radius: 10px;
-  border: 1px dashed var(--divider-color, #444); }
-.vuoto { font-size: 13px; color: var(--secondary-text-color); margin-bottom: 10px; }
-.codice-scheda { margin-top: 12px; border-top: 1px solid var(--divider-color, #444);
-  padding-top: 10px; }
-.codice-scheda ha-yaml-editor { display: block; margin: 8px 0; }
-.codice-scheda textarea { width: 100%; box-sizing: border-box; margin: 8px 0;
-  font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 1.45;
-  border-radius: 8px; padding: 8px; resize: vertical;
-  border: 1px solid var(--divider-color, #444);
-  background: var(--card-background-color, #16202c); color: var(--primary-text-color, #eaf1fb); }
-.codice-scheda .esito { font-size: 12px; color: #ff8a8a; }
-.trovati { display: flex; flex-direction: column; gap: 2px; max-height: 260px; overflow: auto; }
-.trovato { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 8px;
-  cursor: pointer; }
-.trovato:hover { background: rgba(127,127,127,.12); }
-.trovato input { width: 18px; height: 18px; accent-color: var(--primary-color, #03a9f4);
-  flex: 0 0 18px; }
-/* il quadratino giallo con la freccina: si tiene premuto e il pezzo cresce */
-/* IL QUADRATINO DELLA GRANDEZZA DELLA CASELLA. Stesso giallo di quello
-   dei pezzi, ma un filo piu' grosso: quello cambia un pezzo, questo
-   cambia tutta la casella. */
-.pista-grandezza {
-  position: absolute; z-index: 6; width: 22px; height: 22px;
-  border-radius: 7px; background: #ffc400; cursor: nwse-resize;
-  touch-action: none;
-  box-shadow: 0 2px 7px rgba(0,0,0,.55), 0 0 0 2px rgba(0,0,0,.35);
-  display: grid; place-items: center; transition: transform .12s ease;
-}
-.pista-grandezza::after { content: ""; width: 9px; height: 9px;
-  margin: -2px -2px 0 0;
-  border-right: 2.5px solid #241a02; border-bottom: 2.5px solid #241a02; }
-.pista-grandezza:hover { transform: scale(1.15); }
-.pista-grandezza.inmano { transform: scale(1.3); }
-.pista-grandezza[hidden] { display: none !important; }
-.pista-grande-targa {
-  position: absolute; z-index: 7; pointer-events: none;
-  background: #0b1220; color: #ffc400; font-size: 11px; font-weight: 700;
-  padding: 2px 6px; border-radius: 6px; border: 1px solid #ffc400;
-}
-.pista-maniglia {
-  position: absolute; width: 34px; height: 34px; padding: 0; border: none;
-  background: none; display: grid; place-items: center;
-  cursor: nwse-resize !important; touch-action: none; z-index: 9;
-}
-.pista-maniglia .q {
-  width: 17px; height: 17px; border-radius: 5px;
-  background: #f0b429; border: 1px solid rgba(0,0,0,.45);
-  box-shadow: 0 1px 4px rgba(0,0,0,.55);
-  display: grid; place-items: center; pointer-events: none;
-  transition: transform .12s ease;
-}
-.pista-maniglia svg { width: 11px; height: 11px; fill: #241a02; }
-.pista-maniglia:hover .q { transform: scale(1.15); }
-.pista-maniglia.inmano .q { transform: scale(1.3); }
-.pista-maniglia[hidden] { display: none !important; }
-.pista.larga { overflow: auto; }
-.pista { position: relative; padding: 26px 14px 16px; border-radius: 12px; touch-action: none;
-  background: var(--secondary-background-color, rgba(255,255,255,.04));
-  display: flex; justify-content: center; }
-.pista casa-tile { display: block; cursor: grab; flex: none; }
-/* mentre si tira la grandezza la casellina non deve animare niente: ogni
-   transizione la fa arrivare in ritardo sul dito */
-.pista casa-tile { transition: none; }
-.pista-tasti { display: flex; justify-content: flex-end; margin-top: 8px; }
-.pista-numeri { display: flex; align-items: center; gap: 8px; margin-top: 10px;
-  font-size: 12.5px; color: var(--secondary-text-color, #9fb0c6); flex-wrap: wrap; }
-.pista-numeri input {
-  width: 74px; font: inherit; font-size: 13px; padding: 5px 8px;
-  border-radius: 9px; text-align: right;
-  border: 1px solid var(--divider-color, rgba(255,255,255,.16));
-  background: var(--card-background-color, rgba(255,255,255,.04));
-  color: var(--primary-text-color, #eaf1fb);
-}
-.pista-numeri input:focus { outline: none; border-color: #ffc400; }
-.pista-numeri .per { opacity: .6; }
-.codice-posti { margin-top: 10px; }
-.prendi-da { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  margin-top: 10px; font-size: 12.5px;
-  color: var(--secondary-text-color, #9fb0c6); }
-.prendi-da[hidden] { display: none !important; }
-.prendi-da select { font: inherit; padding: 5px 8px; border-radius: 9px;
-  max-width: 200px; cursor: pointer;
-  border: 1px solid var(--divider-color, rgba(255,255,255,.16));
-  background: var(--card-background-color, rgba(255,255,255,.04));
-  color: var(--primary-text-color, #eaf1fb); }
-.pista-numeri[hidden] { display: none !important; }
-.pista-numeri .chi { font-weight: 600;
-  color: var(--primary-text-color, #eaf1fb); }
-.pista-chi { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  font-size: 12px; color: var(--secondary-text-color, #8ea0b8); margin: 2px 0 8px; }
-.pista-chi .chi-nome { flex: 1 1 auto; }
-.pista-nota { margin-top: 6px; font-size: 12px; font-family: monospace;
-  color: var(--secondary-text-color, #9fb0c6); }
-.tastoPiatto { border: 1px solid var(--divider-color, rgba(255,255,255,.14));
-  background: none; color: var(--primary-text-color, #eaf1fb); cursor: pointer;
-  font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 9px; }
-.tastoPiatto:hover { background: rgba(255,255,255,.08); }
-.colori-blocco { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 10px; }
-.colori-blocco[hidden] { display: none; }
-.riga-colore { display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px; border-radius: 10px;
-  background: var(--secondary-background-color, rgba(255,255,255,.04)); }
-.riga-colore .eti { flex: 1; min-width: 0; font-size: 13px;
-  color: var(--primary-text-color, #eaf1fb); }
-.riga-colore .bolla { flex: none; width: 34px; height: 34px; border-radius: 50%;
-  cursor: pointer; padding: 0;
-  border: 2px solid var(--divider-color, rgba(255,255,255,.18));
-  background-image: linear-gradient(45deg, rgba(255,255,255,.12) 25%, transparent 25%,
-    transparent 75%, rgba(255,255,255,.12) 75%), linear-gradient(45deg,
-    rgba(255,255,255,.12) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.12) 75%);
-  background-size: 10px 10px; background-position: 0 0, 5px 5px; }
-/* la ruota dei colori: e' tutta CSS, si apre di colpo */
-.ruota-cassetto { display: flex; flex-direction: column; align-items: center; gap: 10px;
-  padding: 12px 10px 14px; margin: -4px 0 10px; border-radius: 0 0 12px 12px;
-  background: var(--secondary-background-color, rgba(255,255,255,.04)); }
-.ruota-cassetto[hidden] { display: none; }
-.ruota { position: relative; width: 168px; height: 168px; border-radius: 50%;
-  cursor: crosshair; touch-action: none;
-  background:
-    radial-gradient(circle closest-side, #fff, rgba(255,255,255,0) 78%),
-    conic-gradient(from 90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 4px 14px rgba(0,0,0,.35); }
-.ruota .mira { position: absolute; width: 16px; height: 16px; border-radius: 50%;
-  transform: translate(-50%, -50%); pointer-events: none;
-  border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.5); }
-.ruota-cassetto .luce { width: 168px; cursor: pointer; -webkit-appearance: none;
-  appearance: none; height: 12px; border-radius: 99px; outline: none;
-  background: linear-gradient(90deg, #000, #808080, #fff);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
-.ruota-cassetto .luce::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
-  height: 18px; border-radius: 50%; background: #fff; border: 2px solid #4b5c74;
-  box-shadow: 0 1px 4px rgba(0,0,0,.5); cursor: pointer; }
-.ruota-cassetto .luce::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%;
-  background: #fff; border: 2px solid #4b5c74; cursor: pointer; }
-.riga-colore .togli { flex: none; width: 28px; height: 28px; border-radius: 50%;
-  border: none; cursor: pointer; font-size: 13px; line-height: 1;
-  background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb); }
-.riga-colore .togli[hidden] { display: none; }
-.riga-colore .togli:hover { background: rgba(255,255,255,.16); }
-.vestito-riga { display: flex; align-items: center; gap: 8px; margin: 0 0 8px;
-  padding: 6px 10px; border-radius: 10px;
-  background: var(--secondary-background-color, rgba(255,255,255,.04)); }
-.vestito-riga .eti { flex: 1; min-width: 0; font-size: 12px;
-  color: var(--secondary-text-color, #9fb0c6);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vestito-riga input[type=color] { flex: none; width: 34px; height: 26px; padding: 0;
-  border: 1px solid var(--divider-color, rgba(255,255,255,.14));
-  border-radius: 7px; background: none; cursor: pointer; }
-.vestito-riga input[type=range] { flex: none; width: 96px; cursor: pointer; }
-.vestito-riga .quanto { flex: none; width: 38px; text-align: right; font-size: 11.5px;
-  color: var(--secondary-text-color, #9fb0c6); font-variant-numeric: tabular-nums; }
-.nomiMisure { display: flex; flex-direction: column; gap: 6px; }
-.nomeMisura { display: flex; align-items: center; gap: 8px; }
-.nomeMisura .chi { flex: 1; min-width: 0; font-size: 12.5px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  color: var(--secondary-text-color, #9fb0c6); }
-.nomeMisura .bolla { flex: none; width: 28px; height: 28px; border-radius: 50%;
-  cursor: pointer; padding: 0;
-  border: 2px solid var(--divider-color, rgba(255,255,255,.18)); }
-.nomeMisura .togli { flex: none; width: 24px; height: 24px; border-radius: 50%;
-  border: none; cursor: pointer; font-size: 12px; line-height: 1;
-  background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb); }
-.nomeMisura .togli[hidden] { display: none; }
-.nomiMisure .ruota-cassetto { margin: 0 0 8px; border-radius: 12px; }
-.nomeMisura input { flex: none; width: 110px; font: inherit; font-size: 13px;
-  padding: 6px 8px; border-radius: 8px; box-sizing: border-box;
-  color: var(--primary-text-color, #eaf1fb);
-  background: var(--secondary-background-color, rgba(255,255,255,.06));
-  border: 1px solid var(--divider-color, rgba(255,255,255,.12)); }
-.nomeMisura input:focus { outline: 2px solid var(--primary-color, #03a9f4);
-  outline-offset: 1px; }
-.trovato .nome { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis;
-  white-space: nowrap; }
-.trovato .val { margin-left: auto; font-size: 12.5px; color: var(--secondary-text-color);
-  white-space: nowrap; }
-.foto-riga { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.foto-anteprima { width: 64px; height: 44px; border-radius: 8px; object-fit: cover;
-  border: 1px solid var(--divider-color, #555); }
-.indirizzoFoto { flex: 1 1 160px; min-width: 0; box-sizing: border-box;
-  padding: 8px 11px; border-radius: 10px; font: inherit; font-size: 13px;
-  border: 1px solid var(--divider-color, #444);
-  background: var(--card-background-color, #16202c);
-  color: var(--primary-text-color, #eaf1fb); }
-.suaIcona + .suaIcona { margin-top: 10px; }
-/* la riga di chi comanda quando e' questa casella: l'interruttore non fa
-   niente apposta, quindi non deve nemmeno sembrare che lo faccia */
-.voce[fisso] .sw { opacity: .55; cursor: default; }
-.foto-nota { font-size: 12.5px; color: var(--secondary-text-color); margin-top: 8px; }
-.foto-nota.errore { color: #ff8a80; }
-.bt { appearance: none; border: none; cursor: pointer; font: inherit; font-weight: 600;
-  font-size: 14px; padding: 10px 16px; border-radius: 10px;
-  background: var(--primary-color, #03a9f4); color: var(--text-primary-color, #fff); }
-.bt:hover { filter: brightness(1.1); }
-.bt.chiaro { background: transparent; color: var(--primary-color, #03a9f4);
-  border: 1px solid var(--divider-color, #555); }
-.bt-icona { appearance: none; border: none; cursor: pointer; font-size: 15px;
-  width: 32px; height: 32px; border-radius: 8px; line-height: 1;
-  background: transparent; color: var(--secondary-text-color, #aaa); }
-.bt-icona:hover { background: rgba(127,127,127,.18); color: var(--primary-text-color, #fff); }
-.scelte h4 { margin: 16px 0 8px; font-size: 14px; }
-.scelte .aiuto { margin: 0 0 8px; font-size: 12.5px; color: var(--secondary-text-color); }
-.cercaIcona { width: 100%; box-sizing: border-box; margin: 0 0 8px; padding: 9px 12px;
-  border-radius: 10px; font: inherit; font-size: 14px;
-  border: 1px solid var(--divider-color, #444);
-  background: var(--card-background-color, #16202c); color: var(--primary-text-color, #eaf1fb); }
-.iconePicker { display: grid; gap: 5px; max-height: 300px; overflow-y: auto;
-  padding-right: 4px; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
-.sceltaIcona { appearance: none; cursor: pointer; font: inherit; font-size: 9.5px;
-  border: 1px solid var(--divider-color, #444); background: transparent;
-  border-radius: 10px; padding: 6px 2px; display: flex; flex-direction: column;
-  align-items: center; gap: 2px; color: var(--secondary-text-color, #9aa5b1);
-  line-height: 1.1; }
-.sceltaIcona svg { width: 27px; height: 27px; }
-.sceltaAuto { border-style: dashed; }
-.sceltaAuto .segnoAuto { font-size: 20px; line-height: 27px; height: 27px;
-  display: block; }
-.sceltaAuto .segnoAuto svg { width: 27px; height: 27px; }
-.sceltaIcona .nome { overflow: hidden; text-overflow: ellipsis; max-width: 100%;
-  white-space: nowrap; }
-.sceltaIcona[hidden] { display: none !important; }
-.sceltaIcona[scelta] { border-color: var(--primary-color, #03a9f4);
-  background: rgba(3,169,244,.14); color: var(--primary-text-color, #fff); }
-.coloriPicker { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.sceltaColore { appearance: none; padding: 0; cursor: pointer; width: 32px; height: 32px;
-  border-radius: 50%; border: 2px solid transparent; position: relative; }
-.sceltaColore[scelta] { border-color: #fff;
-  box-shadow: 0 0 0 3px var(--primary-color, #03a9f4); }
-.coloreLampada { color: #fff; font-size: 15px; display: grid; place-items: center;
-  text-shadow: 0 1px 3px rgba(0,0,0,.6); }
-.coloreLampada[hidden] { display: none !important; }
-.coloreTermo { background: linear-gradient(135deg, #4f8bff, #3fd98a, #ffcf5c, #ff5f5f); }
-.coloreTermo[hidden] { display: none !important; }
-.coloreLibero { overflow: hidden;
-  background: conic-gradient(#ff5f5f, #ffc046, #3fd98a, #4fe0c8, #5ec8ff, #9b6bff, #ff5f5f); }
-.scelte .ruota-cassetto { margin: 10px 0 2px; border-radius: 12px; }
+  _costruisciNomi(forza) {
+    const box = this._nomiMisure;
+    if (!box) return;
+    const scelte = this._config.info_entita || [];
+    // se l'elenco e' lo stesso non tocco niente: rifare il riquadro fa
+    // saltare la pagina in cima e perdere il campo dove sta scrivendo
+    const firma = scelte.join(",");
+    if (!forza && box._firma === firma) return;
+    box._firma = firma;
+    box.innerHTML = "";
+    // niente misure, niente riquadro: se no resta una cornice vuota in mezzo
+    box.hidden = !scelte.length || !this._hass;
+    if (box.hidden) return;
+    const titolo = document.createElement("h4");
+    titolo.textContent = T("Come si chiamano le misure");
+    box.appendChild(titolo);
+    const nota = document.createElement("p");
+    nota.className = "aiuto";
+    nota.textContent = T("Il nome compare accanto al numero. Lascia vuoto per "
+      + "non scrivere niente.");
+    box.appendChild(nota);
 
-/* ============== le impostazioni su schermo piccolo ============== */
-@media (max-width: 620px) {
-  .scheda { flex: 1 1 auto; justify-content: center; padding: 10px 10px; font-size: 13px; }
-  .blocco { padding: 12px 10px; }
-  .riga-scheda { flex-wrap: wrap; padding: 8px; }
-  .riga-scheda .tipo { flex: 1 1 auto; min-width: 0; }
-  .editor-scheda { padding: 10px 8px; }
-  .codice-scheda textarea { font-size: 13px; }
-  .foto-riga { gap: 6px; }
-}
+    const elenco = document.createElement("div");
+    elenco.className = "nomiMisure";
+    scelte.forEach((eid) => {
+      const st = this._hass.states[eid];
+      const riga = document.createElement("div");
+      riga.className = "nomeMisura";
+      const chi = document.createElement("span");
+      chi.className = "chi";
+      chi.textContent = String((st && st.attributes.friendly_name) || eid);
+      chi.title = eid;
+      const campo = document.createElement("input");
+      campo.type = "text";
+      campo.maxLength = 14;
+      campo.placeholder = st ? this._nomeSuggerito(st, eid) : "nome";
+      campo.value = (this._config.info_nomi || {})[eid] || "";
+      const salva = () => {
+        const nomi = { ...(this._config.info_nomi || {}) };
+        const val = campo.value.trim();
+        if (val) nomi[eid] = val;
+        else delete nomi[eid];
+        this._config = { ...this._config, info_nomi: nomi };
+        this._emetti();
+      };
+      campo.addEventListener("change", salva);
+      campo.addEventListener("blur", salva);
 
-/* ============== col dito ci vuole piu' spazio ============== */
-@media (pointer: coarse) {
-  .scheda { padding: 12px 12px; }
-  .bt { min-height: 44px; padding: 12px 18px; }
-  .bt-icona { width: 40px; height: 40px; font-size: 17px; }
-  .tendina { min-height: 44px; font-size: 15px; }
-  .trovato { padding: 11px 8px; }
-  .trovato input { width: 22px; height: 22px; flex: 0 0 22px; }
-  .riga-scheda { padding: 10px; }
-  .codice-scheda textarea { min-height: 220px; }
-}
-`;
+      // e il colore suo, staccato da quello degli effetti
+      const suoColore = (this._config.info_colori || {})[eid];
+      const via = document.createElement("button");
+      via.type = "button";
+      via.className = "togli";
+      via.textContent = "✕";
+      via.title = T("Torna al colore della casella");
+      via.hidden = !Array.isArray(suoColore);
+      const scelta = this._sceltaColore(suoColore, (rgb) => {
+        const tinte = { ...(this._config.info_colori || {}) };
+        tinte[eid] = rgb;
+        this._config = { ...this._config, info_colori: tinte };
+        via.hidden = false;
+        this._emetti();
+      });
+      scelta.bolla.title = T("Colore di questa misura");
+      via.addEventListener("click", () => {
+        const tinte = { ...(this._config.info_colori || {}) };
+        delete tinte[eid];
+        this._config = { ...this._config, info_colori: tinte };
+        this._emetti();
+        this._costruisciNomi(true);
+      });
 
-// -*- coding: utf-8 -*-
-// Che versione e': la scrivo in un posto solo.
+      riga.append(chi, campo, scelta.bolla, via);
+      elenco.appendChild(riga);
+      elenco.appendChild(scelta.cassetto);
+    });
+    box.appendChild(elenco);
+  }
 
-const VERSIONE = "2.14.2";
+  // il nome che ci metterebbe la card da sola: lo uso come suggerimento
+  _nomeSuggerito(st, eid) {
+    const mio = this._hass.states[this._config.entity];
+    const nome = String((st.attributes && st.attributes.friendly_name) || eid.split(".")[1]);
+    // tolgo la parte in comune col nome dell'apparecchio: "Hub 1200 Battery
+    // Discharge Power" accanto a "Hub 1200 ..." diventa "Battery Discharge Power"
+    const suo = String((mio && mio.attributes.friendly_name) || "").split(" ");
+    const pezzi = nome.split(" ");
+    let i = 0;
+    while (i < pezzi.length - 1 && i < suo.length
+           && pezzi[i].toLowerCase() === suo[i].toLowerCase()) i += 1;
+    // taglio a parole intere: "Discharge Powe" non e' un suggerimento
+    const resto = pezzi.slice(i);
+    let fuori = resto[0] || "";
+    for (let k = 1; k < resto.length; k += 1) {
+      if ((fuori + " " + resto[k]).length > 14) break;
+      fuori += " " + resto[k];
+    }
+    return fuori.slice(0, 14);
+  }
+
+  _costruisciTrovati() {
+    const box = this._sensori;
+    const trovati = this._trovaSensori();
+    const scelti0 = this._config.info_entita || [];
+    // Stessi sensori: non rifaccio il riquadro, aggiorno solo i numeri e le
+    // spunte. Le spunte NON stanno nella firma apposta: mettendocele, ogni
+    // volta che ne spuntavi una l'elenco si rifaceva da capo e la pagina
+    // saltava in cima - proprio mentre stavi spuntando la voce dopo.
+    const firma = (this._config.entity || "") + "|" + trovati.join(",");
+    if (box._firma === firma) {
+      box.querySelectorAll(".trovato").forEach((riga) => {
+        const eid = riga.dataset.eid;
+        const spunta = riga.querySelector("input");
+        if (spunta) spunta.checked = scelti0.includes(eid);
+        const st2 = this._hass ? this._hass.states[eid] : null;
+        if (!st2) return;
+        const u2 = st2.attributes.unit_of_measurement;
+        const val = riga.querySelector(".val");
+        const testo = String(st2.state).slice(0, 18) + (u2 ? " " + u2 : "");
+        if (val && val.textContent !== testo) val.textContent = testo;
+      });
+      return;
+    }
+    box._firma = firma;
+    box.innerHTML = "<h4>Sensori collegati a questa entita</h4>";
+    if (!this._config.entity) {
+      const vuoto = document.createElement("div");
+      vuoto.className = "vuoto";
+      vuoto.textContent = T("Scegli prima un'entita nella scheda Base.");
+      box.appendChild(vuoto);
+      return;
+    }
+    if (!trovati.length) {
+      const vuoto = document.createElement("div");
+      vuoto.className = "vuoto";
+      vuoto.textContent = T("Non ho trovato sensori collegati. Puoi comunque "
+        + "aggiungerne a mano qui sopra.");
+      box.appendChild(vuoto);
+      return;
+    }
+    const nota = document.createElement("p");
+    nota.className = "aiuto";
+    nota.textContent = T("Spunta quelli che vuoi vedere in basso nella casella.");
+    box.appendChild(nota);
+
+    const elenco = document.createElement("div");
+    elenco.className = "trovati";
+    const scelti = this._config.info_entita || [];
+    trovati.forEach((eid) => {
+      const st = this._hass.states[eid];
+      const riga = document.createElement("label");
+      riga.className = "trovato";
+      riga.dataset.eid = eid;
+      const spunta = document.createElement("input");
+      spunta.type = "checkbox";
+      spunta.checked = scelti.includes(eid);
+      spunta.addEventListener("change", () => {
+        const ora = (this._config.info_entita || []).slice();
+        const dove = ora.indexOf(eid);
+        if (spunta.checked && dove === -1) ora.push(eid);
+        if (!spunta.checked && dove !== -1) ora.splice(dove, 1);
+        this._config = { ...this._config, info_entita: ora };
+        this._emetti();
+        this._forms.forEach((f) => { f.data = this._config; });
+        this._costruisciNomi();
+      });
+      const nome = document.createElement("span");
+      nome.className = "nome";
+      nome.textContent = String(st.attributes.friendly_name || eid.split(".")[1])
+        .replace(/_/g, " ");
+      const val = document.createElement("span");
+      val.className = "val";
+      const u = st.attributes.unit_of_measurement;
+      val.textContent = String(st.state).slice(0, 18) + (u ? " " + u : "");
+      riga.append(spunta, nome, val);
+      elenco.appendChild(riga);
+    });
+    box.appendChild(elenco);
+  }
+
+  // cerca fra tutte le impostazioni e dice dove stanno
+  _cercaOpzioni() {
+    const q = (this._cerca.value || "").trim().toLowerCase();
+    this._trovate.innerHTML = "";
+    this._trovate.hidden = q.length < 2;
+    if (q.length < 2) return;
+    const senzaAccenti = (t) => String(t).toLowerCase()
+      .replace(/[\u00e0\u00e1]/g, "a").replace(/[\u00e8\u00e9]/g, "e")
+      .replace(/[\u00ec\u00ed]/g, "i").replace(/[\u00f2\u00f3]/g, "o")
+      .replace(/[\u00f9\u00fa]/g, "u");
+    const parola = senzaAccenti(q);
+    let quante = 0;
+    SEZIONI.forEach((sez, i) => {
+      const tasto = this._tasti[i];
+      if (tasto && tasto.style.display === "none") return;
+      (this._gruppi[i] || []).forEach((g) => {
+        if (g.form.hidden) return;
+        const dentro = [];
+        const guarda = (elenco) => elenco.forEach((voce) => {
+          if (voce.schema) { guarda(voce.schema); return; }
+          if (!voce.name) return;
+          const eti = T(ETICHETTE[voce.name]) || voce.name;
+          if (senzaAccenti(eti + " " + voce.name).includes(parola)) dentro.push(eti);
+        });
+        guarda(g.form.schema || []);
+        dentro.forEach((eti) => {
+          quante += 1;
+          const riga = document.createElement("button");
+          riga.type = "button";
+          riga.className = "trovata";
+          riga.innerHTML = "<b></b><span></span>";
+          riga.querySelector("b").textContent = eti;
+          riga.querySelector("span").textContent = sez.titolo
+            + (g.gruppo.titolo ? " \u203a " + g.gruppo.titolo : "");
+          riga.addEventListener("click", () => {
+            this._scegliScheda(i);
+            this._cerca.value = "";
+            this._trovate.hidden = true;
+            this._trovate.innerHTML = "";
+            const dove = g.titolo || g.form;
+            if (dove && dove.scrollIntoView) {
+              dove.scrollIntoView({ block: "center", behavior: "smooth" });
+            }
+            g.form.setAttribute("acceso", "");
+            setTimeout(() => g.form.removeAttribute("acceso"), 1400);
+          });
+          this._trovate.appendChild(riga);
+        });
+      });
+    });
+    if (!quante) {
+      const vuoto = document.createElement("div");
+      vuoto.className = "trovata niente";
+      vuoto.textContent = T("Nessuna impostazione con \u00ab") + q + "\u00bb";
+      this._trovate.appendChild(vuoto);
+    }
+  }
+
+  // le icone del catalogo riempiono il loro quadratino: si misurano quando
+  // la scheda e' aperta davvero (da nascosta misurerebbero zero)
+  _adattaCatalogo() {
+    const griglia = this._scelte && this._scelte.querySelector(".iconePicker");
+    if (!griglia || griglia.hidden || !griglia.isConnected) return;
+    if (!griglia.getBoundingClientRect().height) return;
+    griglia.querySelectorAll(".sceltaIcona").forEach((b) => {
+      const dis = b.querySelector("svg");
+      if (dis && b.dataset.nome) riempiRiquadro(dis, b.dataset.nome);
+    });
+  }
+
+  _costruisciFoto() {
+    const box = this._foto;
+    const firma = String(this._config.sfondo_immagine || "");
+    if (box._firma === firma) return;
+    box._firma = firma;
+    box.innerHTML = "<h4>Foto di sfondo</h4>";
+    const riga = document.createElement("div");
+    riga.className = "foto-riga";
+
+    if (this._config.sfondo_immagine) {
+      const img = document.createElement("img");
+      img.className = "foto-anteprima";
+      img.src = this._config.sfondo_immagine;
+      img.alt = "";
+      img.title = T("Tocca per scegliere un'altra foto");
+      img.style.cursor = "pointer";
+      img.addEventListener("click", () => this.querySelector("input[type=file]").click());
+      riga.appendChild(img);
+    }
+
+    const scegli = document.createElement("button");
+    scegli.className = "bt";
+    scegli.type = "button";
+    scegli.textContent = this._config.sfondo_immagine
+      ? "Scegli un'altra foto"
+      : "Scegli una foto dal telefono o dal PC";
+
+    const file = document.createElement("input");
+    file.type = "file";
+    file.accept = "image/*";
+    file.style.display = "none";
+    scegli.addEventListener("click", () => file.click());
+    file.addEventListener("change", () => {
+      if (file.files && file.files[0]) this._caricaFoto(file.files[0]);
+    });
+
+    riga.append(scegli, file);
+
+    if (this._config.sfondo_immagine) {
+      const via = document.createElement("button");
+      via.className = "bt chiaro";
+      via.type = "button";
+      via.textContent = T("Togli la foto");
+      via.addEventListener("click", () => {
+        const c = { ...this._config };
+        delete c.sfondo_immagine;
+        this._config = c;
+        this._emetti();
+        this._render();
+      });
+      riga.appendChild(via);
+    }
+    box.appendChild(riga);
+
+    const tinte = document.createElement("div");
+    tinte.className = "foto-riga";
+    // i tastini per togliere non servono piu': ogni riga del colore ha la sua X
+    if (tinte.children.length) box.appendChild(tinte);
+    // in fondo alla scheda Sfondo, che e' dove uno li va a cercare
+
+    this._notaFoto = document.createElement("div");
+    this._notaFoto.className = "foto-nota";
+    this._notaFoto.textContent = this._config.sfondo_immagine
+      ? this._config.sfondo_immagine
+      : "Premi il pulsante: si apre la galleria del telefono o le cartelle del PC. "
+        + "In alternativa scrivi l'indirizzo nel campo qui sopra (es. /local/foto.jpg).";
+    box.appendChild(this._notaFoto);
+  }
+
+  // UNA RIGA "IMMAGINE": anteprima, il pulsante per pescarla dal telefono o
+  // dal PC, il campo per scrivere l'indirizzo se sta gia' in config/www, e
+  // il pulsante per toglierla. Ne servono due uguali (quella normale e
+  // quella di quando e' acceso), quindi la faccio una volta sola.
+  _rigaImmagine(box, chiave, titolo, sottotitolo) {
+    const riga = document.createElement("div");
+    riga.className = "foto-riga suaIcona";
+    const scegli = document.createElement("button");
+    scegli.className = "bt chiaro";
+    scegli.type = "button";
+    scegli.textContent = titolo;
+    const file = document.createElement("input");
+    file.type = "file";
+    file.accept = "image/*";
+    file.style.display = "none";
+    scegli.addEventListener("click", () => file.click());
+    file.addEventListener("change", () => {
+      if (file.files && file.files[0]) this._caricaIcona(file.files[0], chiave);
+    });
+    // se l'immagine e' gia' sul box non ha senso ricaricarla: basta l'indirizzo
+    const indirizzo = document.createElement("input");
+    indirizzo.type = "text";
+    indirizzo.className = "indirizzoFoto";
+    indirizzo.placeholder = T("oppure l'indirizzo: /local/mia.gif");
+    indirizzo.addEventListener("change", () => {
+      const v = indirizzo.value.trim();
+      const c2 = { ...this._config };
+      if (v) c2[chiave] = v; else delete c2[chiave];
+      this._config = c2;
+      this._emetti();
+      this._costruisciScelte();
+    });
+    const via = document.createElement("button");
+    via.className = "bt chiaro";
+    via.type = "button";
+    via.textContent = T("Togli l'immagine");
+    via.addEventListener("click", () => {
+      const c2 = { ...this._config };
+      delete c2[chiave];
+      this._config = c2;
+      this._emetti();
+      this._costruisciScelte();
+    });
+    const ant = document.createElement("img");
+    ant.className = "foto-anteprima";
+    const nota = document.createElement("div");
+    nota.className = "foto-nota";
+    if (sottotitolo) nota.textContent = sottotitolo;
+    riga.append(ant, scegli, file, indirizzo, via, nota);
+    box.appendChild(riga);
+    return { riga: riga, ant: ant, via: via, nota: nota, campo: indirizzo,
+             chiave: chiave, fisso: sottotitolo || "" };
+  }
+
+  async _caricaIcona(file, chiave) {
+    const dove = chiave || "icona_immagine";
+    const riga = this._scelte
+      ? (dove === "icona_immagine_accesa" ? this._scelte._suaAccesa
+        : this._scelte._suaIcona) : null;
+    const nota = riga ? riga.nota : null;
+    if (nota) {
+      nota.className = "foto-nota";
+      nota.textContent = T("Sto caricando ") + file.name + "...";
+    }
+    try {
+      const dati = new FormData();
+      dati.append("file", file);
+      const risposta = await fetch("/api/image/upload", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + this._hass.auth.data.access_token },
+        body: dati,
+      });
+      if (!risposta.ok) throw new Error("HTTP " + risposta.status);
+      const info = await risposta.json();
+      this._config = {
+        ...this._config,
+        [dove]: "/api/image/serve/" + info.id + "/original",
+      };
+      if (nota) nota.textContent = "";
+      this._emetti();
+      this._costruisciScelte();
+    } catch (err) {
+      if (nota) {
+        nota.className = "foto-nota errore";
+        nota.textContent = T("Non sono riuscito a caricarla (") + err.message
+          + "). Mettila in config/www/ e scrivi /local/nomefile.png nel codice.";
+      }
+    }
+  }
+
+  async _caricaFoto(file) {
+    this._notaFoto.className = "foto-nota";
+    this._notaFoto.textContent = "Sto caricando " + file.name + "...";
+    try {
+      const dati = new FormData();
+      dati.append("file", file);
+      const risposta = await fetch("/api/image/upload", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + this._hass.auth.data.access_token },
+        body: dati,
+      });
+      if (!risposta.ok) throw new Error("HTTP " + risposta.status);
+      const info = await risposta.json();
+      this._config = {
+        ...this._config,
+        sfondo_immagine: "/api/image/serve/" + info.id + "/original",
+      };
+      this._emetti();
+      this._render();
+    } catch (err) {
+      this._notaFoto.className = "foto-nota errore";
+      this._notaFoto.textContent =
+        T("Non sono riuscito a caricarla (") + err.message + "). "
+        + "Mettila in config/www/ e scrivi /local/nomefoto.jpg nel campo qui sopra.";
+    }
+  }
+
+};
 
 // -*- coding: utf-8 -*-
 // Leggere e scrivere lo YAML della singola casella.
@@ -3138,7 +3789,7 @@ function daYaml(testo) {
 // disegni dei comandi della musica (i caratteri speciali su Android non ci sono)
 
 // -*- coding: utf-8 -*-
-// Il riquadro delle impostazioni.
+// Dove va ogni pezzo: la pista, le maniglie, i numeri, lo YAML.
 
 
 // LA DISPOSIZIONE MESSA DA PARTE. Gli appunti del browser sulla sua
@@ -3147,831 +3798,7 @@ function daYaml(testo) {
 // finche' resta aperta la pagina e non dipende da nessuno.
 let APPUNTI_POSTI = null;
 
-class CasaTileEditor extends HTMLElement {
-  setConfig(config) {
-    this._config = { ...config };
-    this._ascoltaMisure();
-    // dalla v2.3.8 le entita' che decidono l'accensione sono un elenco: se
-    // trovo la vecchia forma a testo la converto, se no il campo a scelta
-    // multipla non riesce a disegnarsi e sparisce dalle impostazioni
-    if (typeof this._config.acceso_entita === "string") {
-      this._config.acceso_entita = this._config.acceso_entita
-        ? [this._config.acceso_entita] : [];
-    }
-    if (String(config.entity || "").indexOf("media_player.") === 0) {
-      if (this._config.multiroom === undefined) this._config.multiroom = true;
-      if (this._config.sorgente === undefined) this._config.sorgente = true;
-    }
-    // La disposizione con la sua card incastrata dentro non c'e' piu':
-    // chi ce l'aveva passa a quella nostra, con i tastini gia' accesi, se no
-    // la casella si ritroverebbe spoglia senza aver chiesto niente.
-    if (this._config.disposizione === "ytcard") {
-      this._config.disposizione = "ytmusic";
-      if (this._config.yt_attrezzi === undefined) this._config.yt_attrezzi = true;
-      if (this._config.coda === undefined) this._config.coda = true;
-      if (this._config.yt_cuore === undefined) this._config.yt_cuore = true;
-    }
-    // Gli interruttori della SUA card partono tutti accesi (la card fa
-    // cosi': quello che non e' scritto e' acceso). Ma un interruttore senza
-    // valore Home Assistant lo disegna SPENTO, e allora si vedevano tutti
-    // grigi mentre nell'anteprima la roba c'era. Glieli scrivo, cosi' lo
-    // sportello dice la verita' su quello che sta guardando.
-    this._planciaCercata = null;
-    this._planciaSalvata = null;
-    this._render();
-  }
-  set hass(hass) { scegliLingua(hass); this._hass = hass; this._propaga(); }
-  set lovelace(lv) { this._lovelace = lv; this._propaga(); }
-
-  _lov() { return this._lovelace || { config: { views: [] }, editMode: true }; }
-
-  // Ripassare i valori ai moduli e agli editor di Home Assistant li fa
-  // ridisegnare tutti. Con una casa che manda aggiornamenti in continuazione
-  // (e nella scheda "Tocco" ci sono gli editor delle schede del pop-up, che
-  // si portano dietro la loro anteprima) e' il conto piu' salato di tutti:
-  // lo faccio al massimo una volta al secondo, e l'ultimo giro lo recupero.
-  _propaga() {
-    const ora = Date.now();
-    const passato = ora - (this._quandoPropago || 0);
-    // chi non ha ancora ricevuto niente non puo' aspettare: i selettori di
-    // Home Assistant senza "hass" si rompono
-    const digiuni = (this._forms || []).some((f) => !f._ebbeHass);
-    if (!digiuni && passato < 1000) {
-      if (!this._propagaDopo) {
-        this._propagaDopo = setTimeout(() => {
-          this._propagaDopo = 0;
-          this._propagaDavvero();
-        }, 1000 - passato);
-      }
-      return;
-    }
-    this._propagaDavvero();
-  }
-
-  _propagaDavvero() {
-    const ora = Date.now();
-    this._quandoPropago = ora;
-    // Ai moduli e agli editor i valori servono per riempire gli elenchi
-    // delle entita', non per stare aggiornati al secondo: glieli do la prima
-    // volta e poi solo ogni dieci secondi. Gli editor delle schede del pop-up
-    // (scheda "Tocco") si portano dietro un'anteprima viva, e ridisegnarla a
-    // ogni stato che cambia in casa era tutto il rallentamento.
-    const daDare = (el) => {
-      if (!el._ebbeHass) return true;
-      return ora - (el._quandoHass || 0) > 10000;
-    };
-    // se i valori non sono ancora arrivati non c'e' niente da dare
-    if (!this._hass) return;
-    const dai = (el) => {
-      el._ebbeHass = true;
-      el._quandoHass = ora;
-      el.hass = this._hass;
-    };
-    (this._forms || []).forEach((f) => {
-      // il modulo che sta usando adesso non si tocca: ogni assegnazione lo
-      // fa ridisegnare, e col selettore del colore aperto e' un disastro
-      if (f === this._formInUso) return;
-      if (daDare(f)) dai(f);
-    });
-    const lov = this._lov();
-    this.querySelectorAll("hui-card-picker, hui-card-element-editor").forEach((el) => {
-      if (daDare(el)) dai(el);
-      // il "lovelace" cambia quasi mai: riassegnarlo fa rifare l'editor
-      if (el._lovDato !== lov) { el._lovDato = lov; el.lovelace = lov; }
-    });
-    if (this._edScheda && this._edScheda.isConnected && daDare(this._edScheda)) {
-      dai(this._edScheda);
-    }
-  }
-
-  _schede() {
-    const c = this._config;
-    if (Array.isArray(c.finestra_cards)) return c.finestra_cards;
-    if (c.finestra_card) return [c.finestra_card];
-    // configurazioni delle versioni precedenti: le converto in schede vere
-    if (c.finestra_scheda || c.finestra_grafico) {
-      const entita = (c.finestra_entita && c.finestra_entita.length)
-        ? c.finestra_entita : (c.entity ? [c.entity] : []);
-      let tipo = c.finestra_scheda || "entities";
-      if (tipo === "altra") tipo = (c.finestra_scheda_altra || "entities").trim();
-      const MULTI = ["entities", "glance", "history-graph", "statistics-graph",
-                     "logbook", "map", "distribution"];
-      const fuori = [];
-      if (c.finestra_grafico) {
-        fuori.push({ type: "history-graph", hours_to_show: 24, entities: entita });
-      }
-      if (MULTI.includes(tipo)) fuori.push({ type: tipo, entities: entita });
-      else entita.forEach((e) => fuori.push({ type: tipo, entity: e }));
-      return fuori;
-    }
-    return [];
-  }
-
-  _salvaSchede(lista, ricostruisci) {
-    const c = { ...this._config, finestra_cards: lista };
-    delete c.finestra_card;
-    delete c.finestra_scheda;
-    delete c.finestra_scheda_altra;
-    delete c.finestra_grafico;
-    delete c.finestra_entita;
-    this._config = c;
-    this._emetti();
-    if (ricostruisci) this._costruisciBlocco(true);
-  }
-
-  _emetti() {
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: this._config }, bubbles: true, composed: true,
-    }));
-  }
-
-  _render() {
-    if (!this._costruito) {
-      const stile = document.createElement("style");
-      stile.textContent = STILE_EDITOR + STILE_SELETTORE;
-      this.appendChild(stile);
-
-      this._foto = document.createElement("div");
-      this._foto.className = "blocco";
-      this._blocco = document.createElement("div");
-      this._blocco.className = "blocco";
-      this._sensori = document.createElement("div");
-      this._sensori.className = "blocco";
-      this._nomiMisure = document.createElement("div");
-      this._nomiMisure.className = "blocco";
-      this._postiBox = document.createElement("div");
-      this._postiBox.className = "blocco";
-      this._scelte = document.createElement("div");
-      this._scelte.className = "scelte";
-      this._tinte = document.createElement("div");
-      this._tinte.className = "scelte";
-
-      // la ricerca: con quasi sessanta impostazioni, trovarle e' il problema
-      this._cerca = document.createElement("input");
-      this._cerca.className = "cercaOpz";
-      this._cerca.type = "search";
-      this._cerca.placeholder = "Cerca un'impostazione: meteo, colore, km...";
-      this._trovate = document.createElement("div");
-      this._trovate.className = "trovate";
-      this._trovate.hidden = true;
-      this._cerca.addEventListener("input", () => this._cercaOpzioni());
-      this.appendChild(this._cerca);
-      this.appendChild(this._trovate);
-
-      this._barra = document.createElement("div");
-      this._barra.className = "schede";
-      const targa = document.createElement("span");
-      targa.className = "targhetta";
-      targa.textContent = "v" + VERSIONE;
-      targa.title = "Versione della card: se non e' quella che ti aspetti, "
-        + "il browser sta ancora usando una copia vecchia (ricarica con Ctrl+F5)";
-      this._targa = targa;
-      this.appendChild(this._barra);
-
-      this._forms = [];
-      this._tasti = [];
-      this._gruppi = [];
-      this._pannelli = [];
-      SEZIONI.forEach((sez, i) => {
-        const bottone = document.createElement("button");
-        bottone.className = "scheda";
-        bottone.type = "button";
-        bottone.innerHTML = "<span class='segno'></span><span class='testo'></span>";
-        bottone.querySelector(".segno").textContent = sez.segno || "";
-        bottone.querySelector(".testo").textContent = T(sez.titolo);
-        if (i === 0) bottone.setAttribute("scelta", "");
-        bottone.addEventListener("click", () => this._scegliScheda(i));
-        this._barra.appendChild(bottone);
-        this._tasti.push(bottone);
-
-        const pannello = document.createElement("div");
-        pannello.className = "pannello";
-        if (i !== 0) pannello.setAttribute("nascosto", "");
-
-        // ogni scheda e' fatta di gruppi: titoletto + campi
-        const suoi = [];
-        sez.gruppi.forEach((gruppo) => {
-          // ogni gruppo dentro al suo riquadro, come quelli fatti a mano:
-          // con quaranta impostazioni di fila non si capiva piu' dove
-          // finiva una cosa e cominciava l'altra
-          const scatola = document.createElement("div");
-          scatola.className = "blocco gruppoBox";
-          pannello.appendChild(scatola);
-          let titolo = null;
-          if (gruppo.titolo) {
-            titolo = document.createElement("h4");
-            titolo.className = "titoloGruppo";
-            titolo.textContent = T(gruppo.titolo);
-            scatola.appendChild(titolo);
-          }
-          const form = document.createElement("ha-form");
-          // i valori GLIELI DO SUBITO: senza, i selettori di Home Assistant
-          // provano a leggere l'elenco delle entita' da un "hass" che non
-          // c'e' ancora e si schiantano in continuazione (era il fiume di
-          // errori "ha-selector-entity ... reading entities" nel registro)
-          form.hass = this._hass;
-          form._ebbeHass = !!this._hass;
-          form._quandoHass = Date.now();
-          form.schema = this._schemaDi(gruppo);
-          form._firma = this._firmaSchema(form.schema);
-          form.computeLabel = (x) => T(ETICHETTE[x.name]) || x.name;
-          form.addEventListener("value-changed", (e) => {
-            e.stopPropagation();
-            this._formInUso = form;
-            clearTimeout(this._scordaForm);
-            this._scordaForm = setTimeout(() => { this._formInUso = null; }, 800);
-            const prima = this._config.azione;
-            // ATTENZIONE: i moduli di Home Assistant tengono in pancia una
-            // copia di TUTTA la configurazione e quando muovi un interruttore
-            // ti ridanno quella copia con dentro il campo cambiato. Ma la
-            // copia gliela do io, e per non ridisegnare quindici moduli a
-            // ogni ritocco la rinfresco solo a chi e' cambiato un campo suo.
-            // Risultato: il modulo dei "Tasti rapidi" aveva ancora la
-            // configurazione di prima, e accendendo i tasti rimetteva com'era
-            // la barra - o viceversa. Da qui prendo SOLO i campi che sono
-            // suoi, e il resto della configurazione non lo tocca nessuno.
-            const suoi = this._nomiSchema(form.schema);
-            const dispPrima = this._config.disposizione;
-            const c2 = { ...this._config };
-            suoi.forEach((nome) => {
-              if (nome in e.detail.value) c2[nome] = e.detail.value[nome];
-              else delete c2[nome];
-            });
-            // "come la tua ytmusic-card" e' un vestito completo, non solo
-            // la disposizione: la copertina tonda davanti e quella sfocata
-            // dietro sono meta' di quello che la fa somigliare alla sua. Se
-            // le trovo spente (magari da un'altra disposizione di prima) le
-            // riaccendo appena sceglie questa. Poi puo' rispegnerle.
-            if (c2.disposizione === "ytmusic" && dispPrima !== "ytmusic") {
-              c2.mostra_icona = true;
-              c2.usa_foto = true;
-              if (c2.sfondo_copertina === undefined) c2.sfondo_copertina = true;
-              if (!(Number(c2.sfondo_sfocatura) > 0)) c2.sfondo_sfocatura = 34;
-            }
-            this._config = c2;
-            this._emetti();
-            if (prima !== this._config.azione) {
-              this._costruisciBlocco(true);
-              this._aggiornaSchemi();
-            }
-            if (["sfondo", "aspetto", "musica", "persone"].includes(sez.chiave)) {
-            this._costruisciFoto();
-          }
-            if (sez.chiave === "base") {
-              this._costruisciTrovati();
-              this._costruisciNomi();
-              this._aggiornaSchemi();
-            }
-          });
-          this._forms.push(form);
-          scatola.appendChild(form);
-          let boxColori = null;
-          if (gruppo.colori && gruppo.colori.length) {
-            boxColori = document.createElement("div");
-            boxColori.className = "colori-blocco";
-            scatola.appendChild(boxColori);
-          }
-          suoi.push({ gruppo: gruppo, form: form, titolo: titolo,
-                      colori: boxColori, scatola: scatola });
-
-          // i riquadri fatti a mano vanno sotto al gruppo che li riguarda
-          if (sez.chiave === "base" && gruppo.titolo === "Cosa c'e scritto") {
-            pannello.appendChild(this._sensori);
-            pannello.appendChild(this._nomiMisure);
-          }
-          if (sez.chiave === "icona") pannello.appendChild(this._scelte);
-          if (sez.chiave === "aspetto" && gruppo.titolo === "Colore della scritta") {
-            pannello.appendChild(this._tinte);
-          }
-          if (sez.chiave === "sfondo" && gruppo.titolo === "Foto di sfondo") {
-            pannello.appendChild(this._foto);
-          }
-          if (sez.chiave === "popup" && gruppo.titolo === "Come si apre") {
-            pannello.appendChild(this._provaApertura());
-          }
-          if (sez.chiave === "popup") pannello.appendChild(this._blocco);
-        });
-        if (sez.chiave === "pezzi") pannello.appendChild(this._postiBox);
-        this._gruppi.push(suoi);
-
-        this._pannelli.push(pannello);
-        this.appendChild(pannello);
-      });
-      this._barra.appendChild(this._targa);
-      this._costruito = true;
-    }
-    // Il selettore del colore manda una modifica a ogni movimento del dito:
-    // rifare tutto ogni volta impastava le impostazioni. Quindi rimando il
-    // giro al prossimo disegno e ne faccio uno solo.
-    // la primissima volta niente attese: deve comparire subito
-    if (this._formaOra === undefined) { this._giroCompleto(); return; }
-    // aspetto un attimo e ne faccio uno solo: il selettore del colore manda
-    // una modifica a ogni movimento del dito. Uso un timer e non il disegno
-    // del browser, che in una scheda nascosta non arriverebbe mai.
-    clearTimeout(this._attesa);
-    this._attesa = setTimeout(() => {
-      if (!this._costruito || !this.isConnected) return;
-      this._giroCompleto();
-    }, 60);
-  }
-
-  _giroCompleto() {
-    this._conservaPosto(() => {
-      // gli schemi cambiano solo se cambia il TIPO di casella, non i valori
-      // la disposizione fa parte della forma: cambiandola cambiano anche le
-      // impostazioni che hanno senso (il giradischi, per dire, in "come la
-      // tua ytmusic-card" non comanda niente e non si fa vedere)
-      // ...e ci metto anche gli interruttori da cui dipendono altre voci: se
-      // no accendi "grafico" e le sue tre impostazioni non compaiono finche'
-      // non riapri la finestra
-      const dip = Object.keys(DIPENDE)
-        .map((k) => (DIPENDE[k](this._config) ? "1" : "0")).join("");
-      const forma = (this._config.entity || "") + "|" + (this._config.azione || "")
-        + "|" + (this._config.disposizione || "")
-        + "|" + ((this._config.acceso_entita || []).length ? "1" : "0")
-        + "|" + dip;
-      if (this._formaOra !== forma) {
-        this._formaOra = forma;
-        this._aggiornaSchemi();
-      }
-      // e agli altri do i valori solo se i LORO campi sono cambiati: se no
-      // ridisegno quindici moduli a ogni movimento del dito sul colore
-      this._forms.forEach((f) => {
-        if (f === this._formInUso) return;
-        const firma = this._firmaValori(f.schema);
-        if (f._valori === firma) return;
-        f._valori = firma;
-        f.data = this._config;
-      });
-      this._costruisciColori();
-      this._costruisciPosti();
-      this._costruisciScelte();
-      this._costruisciFoto();
-      this._costruisciTrovati();
-      this._costruisciNomi();
-      this._costruisciBlocco();
-    });
-    requestAnimationFrame(() => this._adattaCatalogo());
-  }
-
-  // Home Assistant rifa' le impostazioni a ogni modifica: se in mezzo un
-  // riquadro si accorcia, la pagina salta in cima e lui perde di vista
-  // proprio l'impostazione che stava provando. Qui mi segno dov'era.
-  _conservaPosto(azione) {
-    // se sono gia' dentro a un altro "tieni il segno", quello di fuori ha
-    // gia' preso la posizione buona: qui dentro rifarlo vorrebbe dire
-    // segnarsi una posizione a meta' del lavoro
-    if (this._dentroConserva) { azione(); return; }
-    this._dentroConserva = true;
-    const box = this._scorrevole();
-    const dove = box ? box.scrollTop : 0;
-    try { azione(); } finally { this._dentroConserva = false; }
-    if (!box) return;
-    // Rimetto il segno piu' volte: la finestra di Home Assistant si ridisegna
-    // a pezzi (l'anteprima della card arriva dopo, e cambia altezza), quindi
-    // un solo ripasso non bastava e la pagina risaliva lo stesso.
-    const rimetti = () => {
-      if (box.isConnected && box.scrollTop !== dove) box.scrollTop = dove;
-    };
-    rimetti();
-    requestAnimationFrame(rimetti);
-    clearTimeout(this._rimettiPosto1);
-    clearTimeout(this._rimettiPosto2);
-    this._rimettiPosto1 = setTimeout(rimetti, 60);
-    this._rimettiPosto2 = setTimeout(rimetti, 240);
-  }
-
-  // chi e' che scorre davvero: puo' essere un pezzo della finestra di
-  // Home Assistant, anche dentro a un'ombra
-  _scorrevole() {
-    if (this._boxScorr && this._boxScorr.isConnected) return this._boxScorr;
-    const su = (x) => (x.parentNode ? x.parentNode : (x.host || null));
-    let n = su(this);
-    let passi = 0;
-    while (n && passi < 30) {
-      passi += 1;
-      if (n.nodeType === 1 && n.scrollHeight > n.clientHeight + 4) {
-        const come = getComputedStyle(n).overflowY;
-        if (come === "auto" || come === "scroll") { this._boxScorr = n; return n; }
-      }
-      n = su(n);
-    }
-    return null;
-  }
-
-  // icona e colore si scelgono guardandoli
-  _costruisciScelte() {
-    const box = this._scelte;
-    const tin = this._tinte;
-    if (!box) return;
-    if (!box._fatto) {
-      box._fatto = true;
-      box.innerHTML = "<h4>Icona</h4>"
-        + "<p class='aiuto notaMeteo' hidden>Per il meteo non serve sceglierla: "
-        + "l'icona la decide il tempo che fa (sole, nuvole, pioggia, neve, "
-        + "temporale, nebbia, vento) e cambia da sola.</p>"
-        + "<input class='cercaIcona' type='search' placeholder='Cerca l&apos;icona: luce, presa, porta, auto...'>"
-        + "<div class='iconePicker'></div>";
-
-      const griglia = box.querySelector(".iconePicker");
-      // del meteo ne basta una: tanto poi la sceglie il tempo che fa
-      const METEOICONE = ["luna", "nuvola", "sole_nuvole", "pioggia", "neve",
-                          "temporale", "nebbia", "vento"];
-      const elenco = ["auto"]
-        .concat(NOMI_ICONE.filter((x) => METEOICONE.indexOf(x) < 0))
-        .concat(NOMI_MDI);
-      elenco.forEach((nome, k) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "sceltaIcona";
-        b.dataset.nome = nome;
-        if (nome === "auto") {
-          b.classList.add("sceltaAuto");
-          b.innerHTML = '<span class="segnoAuto">\u2726</span>'
-            + '<span class="nome">Automatica</span>';
-          b.title = "La sceglie la card guardando l'entita";
-          b.addEventListener("click", () => {
-            this._config = { ...this._config, icona: "auto" };
-            this._emetti();
-            this._costruisciScelte();
-          });
-          griglia.appendChild(b);
-          return;
-        }
-        // gli id dentro l'SVG vanno resi unici, altrimenti si pestano i piedi
-        const tintaEditor = (COLORI[(this._config || {}).colore] || COLORI.ambra);
-        const dentro = String(ICONE[nome] || disegnoMdi(nome, tintaEditor) || "")
-          .replace(/id="([a-z0-9]+)"/g, 'id="$1_p' + k + '"')
-          .replace(/url\(#([a-z0-9]+)\)/g, "url(#$1_p" + k + ")");
-        b.innerHTML = '<svg viewBox="0 0 64 64" fill="none">' + dentro
-          + '</svg><span class="nome"></span>';
-        b.querySelector(".nome").textContent = nome;
-        b.addEventListener("click", () => {
-          this._config = { ...this._config, icona: nome };
-          this._emetti();
-          this._costruisciScelte();
-        });
-        griglia.appendChild(b);
-      });
-
-      tin.innerHTML = "<h4>Colore quando e accesa</h4>"
-        + "<p class='aiuto'>Tocca la ruota per scegliere il colore che vuoi: "
-        + "e' quello dell'alone, del bordo e di tutti gli effetti.</p>"
-        + "<div class='coloriPicker'></div>";
-      const fila = tin.querySelector(".coloriPicker");
-      // niente piu' pallini fissi: bastano la ruota e "come la lampada"
-      [].forEach((nome) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "sceltaColore";
-        b.dataset.nome = nome;
-        b.title = nome;
-        b.style.background = COLORI[nome];
-        b.addEventListener("click", () => {
-          this._config = { ...this._config, colore: nome };
-          delete this._config.colore_rgb;
-          this._emetti();
-          this._costruisciScelte();
-        });
-        fila.appendChild(b);
-      });
-      const lampada = document.createElement("button");
-      lampada.type = "button";
-      lampada.className = "sceltaColore coloreLampada";
-      lampada.dataset.nome = "luce";
-      lampada.title = "Come la lampada (colore vero della luce)";
-      lampada.innerHTML = '<span class="segno">\u25C9</span>';
-      lampada.addEventListener("click", () => {
-        this._config = { ...this._config, colore: "luce" };
-        delete this._config.colore_rgb;
-        this._emetti();
-        this._costruisciScelte();
-      });
-      fila.appendChild(lampada);
-      tin._lampada = lampada;
-
-      const termo = document.createElement("button");
-      termo.type = "button";
-      termo.className = "sceltaColore coloreTermo";
-      termo.dataset.nome = "termometro";
-      termo.title = "Segue la temperatura (freddo azzurro, caldo rosso)";
-      termo.addEventListener("click", () => {
-        this._config = { ...this._config, colore: "termometro" };
-        delete this._config.colore_rgb;
-        this._emetti();
-        this._costruisciScelte();
-      });
-      fila.appendChild(termo);
-      tin._termo = termo;
-
-      const libero = document.createElement("button");
-      libero.type = "button";
-      libero.className = "sceltaColore coloreLibero";
-      libero.dataset.nome = "personalizzato";
-      libero.title = "Un colore qualsiasi";
-      // niente finestra dei colori del computer: la ruota, che si apre subito
-      const scelta = this._sceltaColore(this._config.colore_rgb, (rgb) => {
-        this._config = { ...this._config, colore: "personalizzato", colore_rgb: rgb };
-        this._emetti();
-      });
-      libero.addEventListener("click", scelta.apriChiudi);
-      fila.appendChild(libero);
-      fila.after(scelta.cassetto);
-      tin._libero = libero;
-      tin._scelta = scelta;
-
-      // un'icona tutta sua, presa dal telefono o dal PC - e la sua gemella
-      // per quando e' acceso
-      box._suaIcona = this._rigaImmagine(box, "icona_immagine",
-        "Usa un'immagine mia (telefono o PC)", "");
-      box._suaAccesa = this._rigaImmagine(box, "icona_immagine_accesa",
-        "Immagine di quando e' acceso (anche una gif)",
-        "si vede solo mentre lavora: alla base torna quella di sopra");
-
-      const cerca = box.querySelector(".cercaIcona");
-      cerca.addEventListener("input", () => {
-        const q = cerca.value.trim().toLowerCase();
-        box.querySelectorAll(".sceltaIcona").forEach((b) => {
-          const nome = b.dataset.nome || "";
-          const parole = (SINONIMI[nome] || MDI_PAROLE[nome] || "") + " " + nome;
-          b.hidden = !!q && nome !== "auto"
-            && parole.toLowerCase().replace(/_/g, " ").indexOf(q) < 0;
-        });
-      });
-    }
-
-    const c = this._config || {};
-    // sul meteo l'icona e' automatica: la griglia delle icone non serve
-    const suoDominio = String(c.entity || "").split(".")[0];
-    const nota = box.querySelector(".notaMeteo");
-    const griglia = box.querySelector(".iconePicker");
-    if (nota && griglia) {
-      nota.hidden = suoDominio !== "weather";
-      griglia.hidden = suoDominio === "weather";
-    }
-    if (tin && tin._termo) {
-      const dom = String(c.entity || "").split(".")[0];
-      const st2 = this._hass ? this._hass.states[c.entity] : null;
-      const daTemperatura = dom === "climate" || dom === "weather"
-        || (!!st2 && st2.attributes.device_class === "temperature");
-      tin._termo.hidden = !daTemperatura;
-    }
-    if (tin && tin._lampada) {
-      const dom = String(c.entity || "").split(".")[0];
-      const st = this._hass ? this._hass.states[c.entity] : null;
-      const modi = st ? (st.attributes.supported_color_modes || []) : [];
-      const aColori = dom === "light" && modi.some((m) =>
-        ["rgb", "rgbw", "rgbww", "hs", "xy", "color_temp"].includes(m));
-      tin._lampada.hidden = !aColori;
-      const rgb = st && st.attributes.rgb_color;
-      tin._lampada.style.background = Array.isArray(rgb)
-        ? daRgb(coloreLampada(rgb))
-        : "linear-gradient(135deg, #ff5f5f, #ffc046, #5ec8ff)";
-    }
-    [box._suaIcona, box._suaAccesa].forEach((r) => {
-      if (!r) return;
-      const mia = c[r.chiave];
-      r.ant.hidden = !mia;
-      r.via.hidden = !mia;
-      if (mia && r.ant.getAttribute("src") !== mia) r.ant.src = mia;
-      // mentre ci sta scrivendo dentro non gliela cambio sotto le mani
-      if (document.activeElement !== r.campo) r.campo.value = mia || "";
-      if (r.nota && !r.fisso) r.nota.textContent = "";
-    });
-    // la seconda ha senso solo se c'e' la prima: se no non si torna indietro
-    if (box._suaAccesa) {
-      box._suaAccesa.riga.hidden = !c.icona_immagine && !c.icona_immagine_accesa;
-    }
-    const sceltaIcona = c.icona || "auto";
-    box.querySelectorAll(".sceltaIcona").forEach((b) =>
-      b.toggleAttribute("scelta", b.dataset.nome === sceltaIcona));
-    // sul tasto "Automatica" mostro quale verrebbe scelta adesso
-    const tastoAuto = box.querySelector(".sceltaAuto .segnoAuto");
-    if (tastoAuto && c.entity && this._hass) {
-      const quale = iconaAutomatica(c.entity, this._hass.states[c.entity]);
-      const tintaAuto = COLORI[c.colore] || COLORI.ambra;
-      tastoAuto.innerHTML = '<svg viewBox="0 0 64 64" fill="none">'
-        + String(ICONE[quale] || disegnoMdi(quale, tintaAuto) || ICONE.luce)
-          .replace(/id="([a-z0-9]+)"/g, 'id="$1_auto"')
-          .replace(/url\(#([a-z0-9]+)\)/g, "url(#$1_auto)")
-        + "</svg>";
-    }
-    if (tin) {
-      tin.querySelectorAll(".sceltaColore").forEach((b) =>
-        b.toggleAttribute("scelta", b.dataset.nome === (c.colore || "ambra")));
-    }
-    if (Array.isArray(c.colore_rgb) && tin && tin._libero) {
-      const tinta = daRgb(c.colore_rgb);
-      if (tinta) {
-        tin._libero.style.background = tinta;
-        if (tin._scelta && tin._scelta.aggiorna) tin._scelta.aggiorna(c.colore_rgb);
-      }
-    } else if (tin && tin._libero) {
-      tin._libero.style.background =
-        "conic-gradient(#ff5f5f, #ffc046, #3fd98a, #4fe0c8, #5ec8ff, #9b6bff, #ff5f5f)";
-    }
-  }
-
-  _trovaSensori() {
-    const c = this._config;
-    if (!this._hass || !c.entity) return [];
-    const st = this._hass.states[c.entity];
-    if (!st) return [];
-    const registro = this._hass.entities || {};
-    const dispositivi = new Set();
-    (st.attributes.device_trackers || []).concat([c.entity]).forEach((eid) => {
-      const voce = registro[eid];
-      if (voce && voce.device_id) dispositivi.add(voce.device_id);
-    });
-
-    let trovati = [];
-    if (dispositivi.size) {
-      trovati = Object.keys(registro).filter((eid) => {
-        const voce = registro[eid];
-        return voce && dispositivi.has(voce.device_id)
-          && (eid.startsWith("sensor.") || eid.startsWith("binary_sensor."));
-      });
-    }
-    if (!trovati.length) {
-      const radice = c.entity.split(".")[1];
-      trovati = Object.keys(this._hass.states).filter(
-        (eid) => eid.startsWith("sensor." + radice + "_")
-          || eid.startsWith("binary_sensor." + radice + "_"));
-    }
-    return trovati.filter((eid) => {
-      const x = this._hass.states[eid];
-      return x && x.state !== "unavailable" && x.state !== "unknown";
-    }).sort();
-  }
-
-  // dai un nome tuo a ogni misura: "Scarica", "Uscita casa"... senza questo
-  // due sensori di watt sono due caselline uguali con dentro numeri diversi
-  // I selettori di colore di Home Assistant sono pesantissimi: aprirli
-  // fermava tutta la pagina. Qui basta il colore del sistema, che si apre
-  // di colpo, piu' una X per toglierlo.
-  // quali ruote di colore hanno senso adesso: le stesse regole dei campi
-  // normali (tipo di entita', azione, e l'interruttore da cui dipendono)
-  _coloriDi(gruppo) {
-    const dom = (this._config.entity || "").split(".")[0];
-    const azione = this._config.azione || "toggle";
-    return (gruppo.colori || []).filter((nome) => {
-      if (SOLO_AZIONE[nome] && SOLO_AZIONE[nome] !== azione) return false;
-      const amm = SOLO_PER[nome];
-      if (amm && (!dom || !amm.includes(dom))) return false;
-      if (DIPENDE[nome] && !DIPENDE[nome](this._config)) {
-        const ora = this._config[nome];
-        const scritto = ora !== undefined && ora !== null && ora !== ""
-          && !(Array.isArray(ora) && !ora.length);
-        if (!scritto) return false;
-      }
-      return true;
-    });
-  }
-
-  _costruisciColori() {
-    (this._gruppi || []).forEach((suoi) => {
-      suoi.forEach((g) => {
-        if (!g.colori) return;
-        const campi = this._coloriDi(g.gruppo);
-        // la firma NON guarda i colori scelti: se no la ruota si richiude
-        // in faccia ogni volta che ne tocchi uno
-        const firma = campi.join(",");
-        if (g.colori._firma === firma) {
-          g.colori.hidden = g.form.hidden && !campi.length;
-          g.colori.childNodes.forEach((n2) => { if (n2._aggiorna) n2._aggiorna(); });
-          return;
-        }
-        g.colori._firma = firma;
-        g.colori.innerHTML = "";
-        campi.forEach((campo) => g.colori.appendChild(this._rigaColore(campo)));
-      });
-    });
-  }
-
-  // La ruota dei colori: la uso sia per le tinte della casella sia per le
-  // schede del pop-up. Restituisce la pastiglia da toccare, il cassetto che
-  // si apre, e un modo per rimetterla in pari.
-  _sceltaColore(iniziale, quandoCambia) {
-    const bolla = document.createElement("button");
-    bolla.type = "button";
-    bolla.className = "bolla";
-    bolla.title = "Scegli il colore";
-
-    const cassetto = document.createElement("div");
-    cassetto.className = "ruota-cassetto";
-    cassetto.hidden = true;
-    const ruota = document.createElement("div");
-    ruota.className = "ruota";
-    const mira = document.createElement("i");
-    mira.className = "mira";
-    ruota.appendChild(mira);
-    const luce = document.createElement("input");
-    luce.type = "range";
-    luce.className = "luce";
-    luce.min = "0"; luce.max = "100"; luce.step = "1";
-
-    let H = 210; let S2 = 60;
-    const metti = (rgb) => {
-      if (Array.isArray(rgb)) {
-        const [h2, s3, l2] = rgbAHsl(rgb[0], rgb[1], rgb[2]);
-        H = h2; S2 = s3; luce.value = String(Math.round(l2));
-        bolla.style.background = daRgb(rgb);
-      } else {
-        luce.value = "50";
-        bolla.style.background = "transparent";
-      }
-    };
-    metti(iniziale);
-
-    const mettiMira = () => {
-      const r = (S2 / 100) * 46;
-      const a2 = H * Math.PI / 180;
-      mira.style.left = (50 + Math.cos(a2) * r) + "%";
-      mira.style.top = (50 + Math.sin(a2) * r) + "%";
-      mira.style.background = hslATesto(H, S2, Number(luce.value));
-    };
-    const mostra = () => {
-      bolla.style.background = hslATesto(H, S2, Number(luce.value));
-      mettiMira();
-    };
-    const manda = () => quandoCambia(hslARgb(H, S2, Number(luce.value)));
-
-    const prendi = (e) => {
-      const q = ruota.getBoundingClientRect();
-      if (!q.width || !q.height) return;
-      const dx = (e.clientX - q.left) / q.width * 2 - 1;
-      const dy = (e.clientY - q.top) / q.height * 2 - 1;
-      const r = Math.min(1, Math.sqrt(dx * dx + dy * dy));
-      const h2 = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
-      if (!isFinite(h2) || !isFinite(r)) return;
-      H = h2;
-      S2 = Math.round(r * 100);
-      mostra();
-    };
-    ruota.addEventListener("pointerdown", (e) => {
-      ruota.setPointerCapture(e.pointerId);
-      ruota._giu = true;
-      prendi(e);
-    });
-    ruota.addEventListener("pointermove", (e) => { if (ruota._giu) prendi(e); });
-    ["pointerup", "pointercancel"].forEach((ev) =>
-      ruota.addEventListener(ev, () => { ruota._giu = false; manda(); }));
-    luce.addEventListener("input", mostra);
-    luce.addEventListener("change", manda);
-    const apriChiudi = () => {
-      cassetto.hidden = !cassetto.hidden;
-      if (!cassetto.hidden) mettiMira();
-    };
-    bolla.addEventListener("click", apriChiudi);
-
-    cassetto.append(ruota, luce);
-    return {
-      bolla: bolla, cassetto: cassetto, aggiorna: metti,
-      apriChiudi: apriChiudi, aperto: () => !cassetto.hidden,
-    };
-  }
-
-  _rigaColore(campo) {
-    const riga = document.createElement("div");
-    riga.className = "riga-colore";
-    const eti = document.createElement("span");
-    eti.className = "eti";
-    eti.textContent = T(ETICHETTE[campo]) || campo;
-
-    const via = document.createElement("button");
-    via.type = "button";
-    via.className = "togli";
-    via.textContent = "✕";
-    via.title = "Togli il colore";
-    via.hidden = !Array.isArray(this._config[campo]);
-    via.addEventListener("click", () => {
-      const c2 = { ...this._config };
-      delete c2[campo];
-      this._config = c2;
-      this._emetti();
-      this._costruisciColori();
-    });
-
-    const scelta = this._sceltaColore(this._config[campo], (rgb) => {
-      this._config = { ...this._config, [campo]: rgb };
-      via.hidden = false;
-      this._emetti();
-    });
-
-    riga.append(eti, scelta.bolla, via);
-    const fuori = document.createElement("div");
-    fuori.className = "colore-riga-fuori";
-    fuori.append(riga, scelta.cassetto);
-    fuori._aggiorna = () => {
-      const ora = this._config[campo];
-      scelta.aggiorna(ora);
-      via.hidden = !Array.isArray(ora);
-    };
-    return fuori;
-  }
-
-
-
+const ConPosti = (Base) => class extends Base {
   // Il riquadro dove si trascinano i pezzi: dentro c'e' una casella vera,
   // in piccolo, della stessa forma dell'anteprima.
   _costruisciPosti() {
@@ -4006,14 +3833,14 @@ class CasaTileEditor extends HTMLElement {
       const rimetti = document.createElement("button");
       rimetti.type = "button";
       rimetti.className = "tastoPiatto";
-      rimetti.textContent = "Rimetti tutto a posto";
+      rimetti.textContent = T("Rimetti tutto a posto");
       // Il tasto butta via tutta la disposizione: una manata per sbaglio
       // gli faceva perdere il lavoro senza modo di tornare indietro. Ora la
       // disposizione la metto da parte e compare il tasto per riprenderla.
       const annulla = document.createElement("button");
       annulla.type = "button";
       annulla.className = "tastoPiatto";
-      annulla.textContent = "Rimetti come prima";
+      annulla.textContent = T("Rimetti come prima");
       annulla.hidden = true;
       rimetti.addEventListener("click", () => {
         // e dimentico anche la misura piu' stretta che mi ero segnato: se
@@ -4046,7 +3873,7 @@ class CasaTileEditor extends HTMLElement {
       const vero = document.createElement("button");
       vero.type = "button";
       vero.className = "tastoPiatto";
-      vero.textContent = "Grandezza vera";
+      vero.textContent = T("Grandezza vera");
       vero.addEventListener("click", () => {
         box._grande = !box._grande;
         vero.textContent = box._grande ? "Rimpicciolisci per starci" : "Grandezza vera";
@@ -4061,7 +3888,7 @@ class CasaTileEditor extends HTMLElement {
       box.appendChild(this._codicePosti(box));
       const nota = document.createElement("div");
       nota.className = "pista-nota";
-      nota.textContent = "pronto: tocca un pezzo qui sopra";
+      nota.textContent = T("pronto: tocca un pezzo qui sopra");
       box.appendChild(nota);
       box._nota = nota;
       box._carta = carta;
@@ -4081,18 +3908,18 @@ class CasaTileEditor extends HTMLElement {
     const riga = document.createElement("div");
     riga.className = "pista-numeri";
     const eti = document.createElement("span");
-    eti.textContent = "Grandezza";
+    eti.textContent = T("Grandezza");
     const largo = document.createElement("input");
     largo.type = "number";
     largo.min = "40"; largo.max = "2400"; largo.step = "1";
-    largo.title = "Larghezza in punti";
+    largo.title = T("Larghezza in punti");
     const per = document.createElement("span");
     per.className = "per";
     per.textContent = "\u00d7";
     const alto = document.createElement("input");
     alto.type = "number";
     alto.min = "40"; alto.max = "2400"; alto.step = "1";
-    alto.title = "Altezza in punti";
+    alto.title = T("Altezza in punti");
     const punti = document.createElement("span");
     punti.className = "per";
     punti.textContent = "punti";
@@ -4132,28 +3959,28 @@ class CasaTileEditor extends HTMLElement {
     riga.hidden = true;
     const chi = document.createElement("span");
     chi.className = "chi";
-    chi.textContent = "Pezzo";
+    chi.textContent = T("Pezzo");
     const e1 = document.createElement("span");
     e1.textContent = "grande";
     const gr = document.createElement("input");
     gr.type = "number";
     gr.min = "40"; gr.max = "300"; gr.step = "5";
-    gr.title = "Grandezza del pezzo in percentuale";
+    gr.title = T("Grandezza del pezzo in percentuale");
     const p1 = document.createElement("span");
     p1.className = "per";
     p1.textContent = "%";
     const e2 = document.createElement("span");
-    e2.textContent = "da sinistra";
+    e2.textContent = T("da sinistra");
     const px = document.createElement("input");
     px.type = "number";
     px.min = "0"; px.max = "100"; px.step = "0.5";
-    px.title = "Quanto e' distante dal bordo sinistro, in percentuale";
+    px.title = T("Quanto e' distante dal bordo sinistro, in percentuale");
     const e3 = document.createElement("span");
     e3.textContent = "dall'alto";
     const py = document.createElement("input");
     py.type = "number";
     py.min = "0"; py.max = "100"; py.step = "0.5";
-    py.title = "Quanto e' distante dal bordo di sopra, in percentuale";
+    py.title = T("Quanto e' distante dal bordo di sopra, in percentuale");
     const p2 = document.createElement("span");
     p2.className = "per";
     p2.textContent = "%";
@@ -4204,7 +4031,7 @@ class CasaTileEditor extends HTMLElement {
   _grandezzaPista(box, pista, carta) {
     const q = document.createElement("div");
     q.className = "pista-grandezza";
-    q.title = "Tieni premuto e trascina per cambiare la grandezza della casella";
+    q.title = T("Tieni premuto e trascina per cambiare la grandezza della casella");
     const targa = document.createElement("div");
     targa.className = "pista-grande-targa";
     targa.hidden = true;
@@ -4537,9 +4364,9 @@ class CasaTileEditor extends HTMLElement {
     const tasto = document.createElement("button");
     tasto.type = "button";
     tasto.className = "tastoPiatto";
-    tasto.textContent = "Guarda come si apre";
+    tasto.textContent = T("Guarda come si apre");
     const dice = document.createElement("span");
-    dice.textContent = "si apre qui di fianco - chiudila con la X o con Esc";
+    dice.textContent = T("si apre qui di fianco - chiudila con la X o con Esc");
     tasto.addEventListener("click", () => {
       const c = this._config || {};
       if ((c.azione || "toggle") !== "finestra") {
@@ -4564,7 +4391,7 @@ class CasaTileEditor extends HTMLElement {
     riga.className = "prendi-da";
     riga.hidden = true;
     const eti = document.createElement("span");
-    eti.textContent = "Prendi la disposizione da";
+    eti.textContent = T("Prendi la disposizione da");
     const scelta = document.createElement("select");
     const tasto = document.createElement("button");
     tasto.type = "button";
@@ -4652,7 +4479,7 @@ class CasaTileEditor extends HTMLElement {
     const apri = document.createElement("button");
     apri.className = "bt chiaro";
     apri.type = "button";
-    apri.textContent = "Codice di questa casella (YAML)";
+    apri.textContent = T("Codice di questa casella (YAML)");
     const dentro = document.createElement("div");
     dentro.hidden = true;
     const esito = document.createElement("div");
@@ -4735,7 +4562,7 @@ class CasaTileEditor extends HTMLElement {
     const applica = document.createElement("button");
     applica.className = "bt";
     applica.type = "button";
-    applica.textContent = "Applica il codice";
+    applica.textContent = T("Applica il codice");
     applica.hidden = true;
     applica.addEventListener("click", () => {
       try {
@@ -4798,7 +4625,7 @@ class CasaTileEditor extends HTMLElement {
           : (intera ? "casella riscritta dal codice"
             : "cambiate solo le righe che hai incollato"));
       } catch (e) {
-        esito.textContent = "Codice non valido: " + e.message;
+        esito.textContent = T("Codice non valido: ") + e.message;
       }
     });
 
@@ -4807,9 +4634,9 @@ class CasaTileEditor extends HTMLElement {
     const copia = document.createElement("button");
     copia.className = "bt chiaro";
     copia.type = "button";
-    copia.textContent = "Copia la disposizione";
-    copia.title = "Mette negli appunti solo la disposizione e la grandezza: "
-      + "incollale nel codice di un'altra casella e premi Applica";
+    copia.textContent = T("Copia la disposizione");
+    copia.title = T("Mette negli appunti solo la disposizione e la grandezza: "
+      + "incollale nel codice di un'altra casella e premi Applica");
     copia.hidden = true;
     copia.addEventListener("click", async () => {
       const tutto = roba();
@@ -4828,8 +4655,8 @@ class CasaTileEditor extends HTMLElement {
         }
       } catch (e) { /* pazienza, il cassetto basta */ }
       vediIncolla();
-      esito.textContent = "disposizione messa da parte: vai sull'altra "
-        + "casella e premi \"Incolla la disposizione\"";
+      esito.textContent = T("disposizione messa da parte: vai sull'altra "
+        + "casella e premi \"Incolla la disposizione\"");
     });
 
     // e il tasto per rimetterla dove serve
@@ -4857,7 +4684,7 @@ class CasaTileEditor extends HTMLElement {
       const ce = !!(APPUNTI_POSTI && APPUNTI_POSTI.roba);
       incolla.hidden = dentro.hidden || !ce;
       if (ce) {
-        incolla.textContent = "Incolla la disposizione di \""
+        incolla.textContent = T("Incolla la disposizione di \"")
           + APPUNTI_POSTI.da + "\"";
       }
     };
@@ -4945,9 +4772,6 @@ class CasaTileEditor extends HTMLElement {
     clearTimeout(this._rimedio);
     this._rimedio = setTimeout(() => this._rimediaVecchi(box._carta), 500);
   }
-
-
-
 
   // Sto sistemando una casella che vive dentro a un pop-up? Lo capisco dal
   // fatto che sopra di me c'e' un altro editor casa-tile: quello della
@@ -5223,8 +5047,6 @@ class CasaTileEditor extends HTMLElement {
     return this._veraSalvata;
   }
 
-
-
   // il trascinamento vero e proprio
   // Passando a mano libera ogni pezzo prende la sua misura naturale, che
   // puo' essere piu' larga di quando stavano in fila (in fila si stringono
@@ -5396,8 +5218,8 @@ class CasaTileEditor extends HTMLElement {
     box._chi.innerHTML = "";
     const p = this._sceltaPercorso;
     if (!p || !p.length) {
-      box._chi.textContent = "Stai sistemando: questa casella. "
-        + "Per una scheda del pop-up, toccala nell'anteprima qui di fianco.";
+      box._chi.textContent = T("Stai sistemando: questa casella. "
+        + "Per una scheda del pop-up, toccala nell'anteprima qui di fianco.");
       return;
     }
     const c = this._schedaA(p) || {};
@@ -5407,7 +5229,7 @@ class CasaTileEditor extends HTMLElement {
     const torna = document.createElement("button");
     torna.type = "button";
     torna.className = "tastoPiatto";
-    torna.textContent = "Torna alla casella";
+    torna.textContent = T("Torna alla casella");
     torna.addEventListener("click", () => {
       this._sceltaPercorso = null;
       this._misuraScelta = null;
@@ -5498,7 +5320,7 @@ class CasaTileEditor extends HTMLElement {
     const maniglia = document.createElement("div");
     maniglia.className = "pista-maniglia";
     maniglia.hidden = true;
-    maniglia.title = "Tieni premuto e trascina per ingrandire o rimpicciolire";
+    maniglia.title = T("Tieni premuto e trascina per ingrandire o rimpicciolire");
     maniglia.innerHTML = '<i class="q"><svg viewBox="0 0 24 24" aria-hidden="true">'
       + '<path d="M21,15V21H15V19H17.6L13.5,14.9L14.9,13.5L19,17.6V15H21M9.1,'
       + '10.5L10.5,9.1L6.4,5H9V3H3V9H5V6.4L9.1,10.5Z"></path></svg></i>';
@@ -5603,7 +5425,7 @@ class CasaTileEditor extends HTMLElement {
       if (numeri) {
         const dove = ((this._cfgPista() || {}).posti || {})[chi] || {};
         const dentro = numeri.gr.ownerDocument.activeElement;
-        numeri.chi.textContent = "Pezzo: " + chi;
+        numeri.chi.textContent = T("Pezzo: ") + chi;
         const metti = (campo, valore) => {
           if (dentro === campo) return;
           campo.value = String(Math.round(valore * 10) / 10);
@@ -5973,14 +5795,6 @@ class CasaTileEditor extends HTMLElement {
     }, true);
   }
 
-  // se Home Assistant mi stacca e mi riattacca (cambio di linguetta) gli
-  // ascoltatori del trascinamento vanno rimessi
-  connectedCallback() {
-    const box = this._postiBox;
-    if (box && box._carta && !this._ascolti) this._pistaTrascina(box._carta);
-    this._ascoltaMisure();
-  }
-
   // QUANDO LUI TIRA L'ANGOLO DI UNA SCHEDA nell'anteprima del pop-up.
   // L'anteprima e' una casella a se', appesa da un'altra parte della
   // pagina: mi parla per mezzo di un avviso sulla finestra, come fa gia'
@@ -6055,6 +5869,48 @@ class CasaTileEditor extends HTMLElement {
     this._conservaPosto(() => this._emetti());
   }
 
+};
+
+// -*- coding: utf-8 -*-
+// Le schede del pop-up: sceglierle, ordinarle, vestirle.
+
+
+const ConSchede = (Base) => class extends Base {
+  _schede() {
+    const c = this._config;
+    if (Array.isArray(c.finestra_cards)) return c.finestra_cards;
+    if (c.finestra_card) return [c.finestra_card];
+    // configurazioni delle versioni precedenti: le converto in schede vere
+    if (c.finestra_scheda || c.finestra_grafico) {
+      const entita = (c.finestra_entita && c.finestra_entita.length)
+        ? c.finestra_entita : (c.entity ? [c.entity] : []);
+      let tipo = c.finestra_scheda || "entities";
+      if (tipo === "altra") tipo = (c.finestra_scheda_altra || "entities").trim();
+      const MULTI = ["entities", "glance", "history-graph", "statistics-graph",
+                     "logbook", "map", "distribution"];
+      const fuori = [];
+      if (c.finestra_grafico) {
+        fuori.push({ type: "history-graph", hours_to_show: 24, entities: entita });
+      }
+      if (MULTI.includes(tipo)) fuori.push({ type: tipo, entities: entita });
+      else entita.forEach((e) => fuori.push({ type: tipo, entity: e }));
+      return fuori;
+    }
+    return [];
+  }
+
+  _salvaSchede(lista, ricostruisci) {
+    const c = { ...this._config, finestra_cards: lista };
+    delete c.finestra_card;
+    delete c.finestra_scheda;
+    delete c.finestra_scheda_altra;
+    delete c.finestra_grafico;
+    delete c.finestra_entita;
+    this._config = c;
+    this._emetti();
+    if (ricostruisci) this._costruisciBlocco(true);
+  }
+
   // E QUANDO LUI SPOSTA UNA SCHEDA tenendola premuta: la tira via da dov'e'
   // e la rimette al posto nuovo. Dentro a una griglia si muove fra le
   // caselle della griglia, fuori fra le schede del pop-up.
@@ -6086,421 +5942,6 @@ class CasaTileEditor extends HTMLElement {
     this._costruisciBlocco(true);
   }
 
-  // La finestra delle impostazioni si chiude: mi riprendo tutto quello che
-  // avevo lasciato in giro, se no si accumula apertura dopo apertura.
-  disconnectedCallback() {
-    if (this._ascolti) { this._ascolti(); this._ascolti = null; }
-    if (this._ascoltoMisure) { this._ascoltoMisure(); this._ascoltoMisure = null; }
-    clearTimeout(this._propagaDopo);
-    this._propagaDopo = 0;
-    const box = this._postiBox;
-    if (box && box._guarda) { box._guarda.disconnect(); box._guarda = null; }
-    clearTimeout(this._ricontrolla);
-    clearTimeout(this._ricontrolla2);
-    clearTimeout(this._rimedio);
-    clearTimeout(this._scordaForm);
-    clearTimeout(this._ripassoAnt);
-    this._planciaSalvata = null;
-    this._veraSalvata = null;
-  }
-
-  _costruisciNomi(forza) {
-    const box = this._nomiMisure;
-    if (!box) return;
-    const scelte = this._config.info_entita || [];
-    // se l'elenco e' lo stesso non tocco niente: rifare il riquadro fa
-    // saltare la pagina in cima e perdere il campo dove sta scrivendo
-    const firma = scelte.join(",");
-    if (!forza && box._firma === firma) return;
-    box._firma = firma;
-    box.innerHTML = "";
-    // niente misure, niente riquadro: se no resta una cornice vuota in mezzo
-    box.hidden = !scelte.length || !this._hass;
-    if (box.hidden) return;
-    const titolo = document.createElement("h4");
-    titolo.textContent = "Come si chiamano le misure";
-    box.appendChild(titolo);
-    const nota = document.createElement("p");
-    nota.className = "aiuto";
-    nota.textContent = "Il nome compare accanto al numero. Lascia vuoto per "
-      + "non scrivere niente.";
-    box.appendChild(nota);
-
-    const elenco = document.createElement("div");
-    elenco.className = "nomiMisure";
-    scelte.forEach((eid) => {
-      const st = this._hass.states[eid];
-      const riga = document.createElement("div");
-      riga.className = "nomeMisura";
-      const chi = document.createElement("span");
-      chi.className = "chi";
-      chi.textContent = String((st && st.attributes.friendly_name) || eid);
-      chi.title = eid;
-      const campo = document.createElement("input");
-      campo.type = "text";
-      campo.maxLength = 14;
-      campo.placeholder = st ? this._nomeSuggerito(st, eid) : "nome";
-      campo.value = (this._config.info_nomi || {})[eid] || "";
-      const salva = () => {
-        const nomi = { ...(this._config.info_nomi || {}) };
-        const val = campo.value.trim();
-        if (val) nomi[eid] = val;
-        else delete nomi[eid];
-        this._config = { ...this._config, info_nomi: nomi };
-        this._emetti();
-      };
-      campo.addEventListener("change", salva);
-      campo.addEventListener("blur", salva);
-
-      // e il colore suo, staccato da quello degli effetti
-      const suoColore = (this._config.info_colori || {})[eid];
-      const via = document.createElement("button");
-      via.type = "button";
-      via.className = "togli";
-      via.textContent = "✕";
-      via.title = "Torna al colore della casella";
-      via.hidden = !Array.isArray(suoColore);
-      const scelta = this._sceltaColore(suoColore, (rgb) => {
-        const tinte = { ...(this._config.info_colori || {}) };
-        tinte[eid] = rgb;
-        this._config = { ...this._config, info_colori: tinte };
-        via.hidden = false;
-        this._emetti();
-      });
-      scelta.bolla.title = "Colore di questa misura";
-      via.addEventListener("click", () => {
-        const tinte = { ...(this._config.info_colori || {}) };
-        delete tinte[eid];
-        this._config = { ...this._config, info_colori: tinte };
-        this._emetti();
-        this._costruisciNomi(true);
-      });
-
-      riga.append(chi, campo, scelta.bolla, via);
-      elenco.appendChild(riga);
-      elenco.appendChild(scelta.cassetto);
-    });
-    box.appendChild(elenco);
-  }
-
-  // il nome che ci metterebbe la card da sola: lo uso come suggerimento
-  _nomeSuggerito(st, eid) {
-    const mio = this._hass.states[this._config.entity];
-    const nome = String((st.attributes && st.attributes.friendly_name) || eid.split(".")[1]);
-    // tolgo la parte in comune col nome dell'apparecchio: "Hub 1200 Battery
-    // Discharge Power" accanto a "Hub 1200 ..." diventa "Battery Discharge Power"
-    const suo = String((mio && mio.attributes.friendly_name) || "").split(" ");
-    const pezzi = nome.split(" ");
-    let i = 0;
-    while (i < pezzi.length - 1 && i < suo.length
-           && pezzi[i].toLowerCase() === suo[i].toLowerCase()) i += 1;
-    // taglio a parole intere: "Discharge Powe" non e' un suggerimento
-    const resto = pezzi.slice(i);
-    let fuori = resto[0] || "";
-    for (let k = 1; k < resto.length; k += 1) {
-      if ((fuori + " " + resto[k]).length > 14) break;
-      fuori += " " + resto[k];
-    }
-    return fuori.slice(0, 14);
-  }
-
-  _costruisciTrovati() {
-    const box = this._sensori;
-    const trovati = this._trovaSensori();
-    const scelti0 = this._config.info_entita || [];
-    // Stessi sensori: non rifaccio il riquadro, aggiorno solo i numeri e le
-    // spunte. Le spunte NON stanno nella firma apposta: mettendocele, ogni
-    // volta che ne spuntavi una l'elenco si rifaceva da capo e la pagina
-    // saltava in cima - proprio mentre stavi spuntando la voce dopo.
-    const firma = (this._config.entity || "") + "|" + trovati.join(",");
-    if (box._firma === firma) {
-      box.querySelectorAll(".trovato").forEach((riga) => {
-        const eid = riga.dataset.eid;
-        const spunta = riga.querySelector("input");
-        if (spunta) spunta.checked = scelti0.includes(eid);
-        const st2 = this._hass ? this._hass.states[eid] : null;
-        if (!st2) return;
-        const u2 = st2.attributes.unit_of_measurement;
-        const val = riga.querySelector(".val");
-        const testo = String(st2.state).slice(0, 18) + (u2 ? " " + u2 : "");
-        if (val && val.textContent !== testo) val.textContent = testo;
-      });
-      return;
-    }
-    box._firma = firma;
-    box.innerHTML = "<h4>Sensori collegati a questa entita</h4>";
-    if (!this._config.entity) {
-      const vuoto = document.createElement("div");
-      vuoto.className = "vuoto";
-      vuoto.textContent = "Scegli prima un'entita nella scheda Base.";
-      box.appendChild(vuoto);
-      return;
-    }
-    if (!trovati.length) {
-      const vuoto = document.createElement("div");
-      vuoto.className = "vuoto";
-      vuoto.textContent = "Non ho trovato sensori collegati. Puoi comunque "
-        + "aggiungerne a mano qui sopra.";
-      box.appendChild(vuoto);
-      return;
-    }
-    const nota = document.createElement("p");
-    nota.className = "aiuto";
-    nota.textContent = "Spunta quelli che vuoi vedere in basso nella casella.";
-    box.appendChild(nota);
-
-    const elenco = document.createElement("div");
-    elenco.className = "trovati";
-    const scelti = this._config.info_entita || [];
-    trovati.forEach((eid) => {
-      const st = this._hass.states[eid];
-      const riga = document.createElement("label");
-      riga.className = "trovato";
-      riga.dataset.eid = eid;
-      const spunta = document.createElement("input");
-      spunta.type = "checkbox";
-      spunta.checked = scelti.includes(eid);
-      spunta.addEventListener("change", () => {
-        const ora = (this._config.info_entita || []).slice();
-        const dove = ora.indexOf(eid);
-        if (spunta.checked && dove === -1) ora.push(eid);
-        if (!spunta.checked && dove !== -1) ora.splice(dove, 1);
-        this._config = { ...this._config, info_entita: ora };
-        this._emetti();
-        this._forms.forEach((f) => { f.data = this._config; });
-        this._costruisciNomi();
-      });
-      const nome = document.createElement("span");
-      nome.className = "nome";
-      nome.textContent = String(st.attributes.friendly_name || eid.split(".")[1])
-        .replace(/_/g, " ");
-      const val = document.createElement("span");
-      val.className = "val";
-      const u = st.attributes.unit_of_measurement;
-      val.textContent = String(st.state).slice(0, 18) + (u ? " " + u : "");
-      riga.append(spunta, nome, val);
-      elenco.appendChild(riga);
-    });
-    box.appendChild(elenco);
-  }
-
-  _schemaDi(gruppo) {
-    const dominio = (this._config.entity || "").split(".")[0];
-    const azione = this._config.azione || "toggle";
-    const vale = (nome) => {
-      if (SOLO_AZIONE[nome] && SOLO_AZIONE[nome] !== azione) return false;
-      // le due della batteria si vedono solo dove c'e' davvero una batteria
-      if (nome === "carica_entita" || nome === "scarica_entita") {
-        if (this._config.icona === "batteria") return true;
-        if (this._config.icona && this._config.icona !== "auto") return false;
-        const st0 = (this._hass && this._config.entity)
-          ? this._hass.states[this._config.entity] : null;
-        return iconaAutomatica(this._config.entity, st0) === "batteria";
-      }
-      // nel vestito "come la tua ytmusic-card" la copertina ondeggia e non
-      // gira: l'interruttore del giradischi non comanderebbe niente, e un
-      // interruttore che non fa niente e' peggio che non averlo
-      if (nome === "gira_copertina" && this._config.disposizione === "ytmusic") {
-        return false;
-      }
-      // le voci che dipendono da un interruttore spento non si fanno vedere,
-      // a meno che non abbiano gia' un valore scritto
-      if (DIPENDE[nome] && !DIPENDE[nome](this._config)) {
-        const ora = this._config[nome];
-        const scritto = ora !== undefined && ora !== null && ora !== ""
-          && !(Array.isArray(ora) && !ora.length);
-        if (!scritto) return false;
-      }
-      const ammessi = SOLO_PER[nome];
-      if (!ammessi) return true;
-      if (!dominio) return false;
-      return ammessi.includes(dominio);
-    };
-    const setaccia = (elenco) => elenco.map((voce) => {
-      if (voce.type === "grid" && Array.isArray(voce.schema)) {
-        const dentro = setaccia(voce.schema);
-        return dentro.length ? { ...voce, schema: dentro } : null;
-      }
-      return vale(voce.name) ? voce : null;
-    }).filter(Boolean);
-    return traduciSchema(setaccia(gruppo.schema));
-  }
-
-  // la firma serve a capire se lo schema e' cambiato davvero
-  // com'e' messo adesso un modulo: solo i campi che ha davvero dentro
-  _firmaValori(elenco) {
-    const c = this._config;
-    const dentro = [];
-    const gira = (lista) => (lista || []).forEach((v) => {
-      if (v.schema) { gira(v.schema); return; }
-      if (!v.name) return;
-      const x = c[v.name];
-      dentro.push(v.name + "=" + (x === undefined ? "" : JSON.stringify(x)));
-    });
-    gira(elenco);
-    return dentro.join("|");
-  }
-
-  // I nomi dei campi di un modulo, anche quelli dentro alle griglie
-  _nomiSchema(elenco) {
-    const nomi = [];
-    const gira = (lista) => (lista || []).forEach((v) => {
-      if (v.schema) { gira(v.schema); return; }
-      if (v.name) nomi.push(v.name);
-    });
-    gira(elenco);
-    return nomi;
-  }
-
-  _firmaSchema(elenco) {
-    return JSON.stringify(elenco.map((v) => v.name
-      || (v.schema || []).map((x) => x.name).join("+")));
-  }
-
-  _quantiCampi(elenco) {
-    return elenco.reduce((n, v) => n + (v.schema ? v.schema.length : 1), 0);
-  }
-
-  _aggiornaSchemi() {
-    if (!this._gruppi) return;
-    let primaValida = -1;
-    SEZIONI.forEach((sez, i) => {
-      const suoi = this._gruppi[i] || [];
-      let campi = 0;
-      suoi.forEach((g) => {
-        const nuovo = this._schemaDi(g.gruppo);
-        const firma = this._firmaSchema(nuovo);
-        if (g.form._firma !== firma) {
-          g.form.schema = nuovo;
-          g.form._firma = firma;
-        }
-        let quanti = this._quantiCampi(nuovo);
-        // il modulo puo' essere vuoto ma il gruppo avere i suoi colori
-        const suoiColori = this._coloriDi(g.gruppo);
-        const conColori = !!(suoiColori.length
-          && (!g.gruppo.soloAzione
-              || g.gruppo.soloAzione === (this._config.azione || "toggle")));
-        g.form.hidden = quanti === 0;
-        if (conColori) quanti += suoiColori.length;
-        campi += quanti;
-        // il titoletto sparisce insieme ai suoi campi
-        if (g.titolo) g.titolo.hidden = quanti === 0;
-        if (g.colori) g.colori.hidden = quanti === 0;
-        // il riquadro sparisce con quello che c'e' dentro, se no restano
-        // cornici vuote in mezzo alle impostazioni
-        if (g.scatola) g.scatola.hidden = quanti === 0;
-      });
-      // certe schede hanno anche i riquadri fatti a mano, quindi restano
-      const conBlocchi = ["icona", "sfondo", "tocco", "aspetto",
-        "popup"].includes(sez.chiave);
-      // "Pezzi" c'e' sempre, tranne dentro all'editor di una scheda del
-      // pop-up: li' i pezzi non si spostano e resterebbe una linguetta vuota
-      if (sez.chiave === "pezzi") {
-        const serve = !this._perIlPopup();
-        const b1 = this._tasti[i];
-        if (b1) b1.style.display = serve ? "" : "none";
-        if (!serve) this._pannelli[i].setAttribute("nascosto", "");
-        else if (primaValida === -1) primaValida = i;
-        return;
-      }
-      // il Pop-up si vede solo se al tocco apre davvero un pop-up
-      if (sez.chiave === "popup" && (this._config.azione || "toggle") !== "finestra") {
-        const b2 = this._tasti[i];
-        if (b2) b2.style.display = "none";
-        this._pannelli[i].setAttribute("nascosto", "");
-        return;
-      }
-      if (sez.chiave === "grafico" || sez.chiave === "persone") {
-        // queste due valgono solo dove hanno senso: se non hanno campi,
-        // la scheda sparisce del tutto
-        if (campi === 0) {
-          const b0 = this._tasti[i];
-          if (b0) b0.style.display = "none";
-          this._pannelli[i].setAttribute("nascosto", "");
-          return;
-        }
-      }
-      const utile = campi > 0 || conBlocchi;
-      const bottone = this._tasti[i];
-      if (bottone) bottone.style.display = utile ? "" : "none";
-      if (!utile) this._pannelli[i].setAttribute("nascosto", "");
-      else if (primaValida === -1) primaValida = i;
-    });
-    const scelta = this._tasti.findIndex(
-      (b) => b.hasAttribute("scelta") && b.style.display !== "none");
-    if (scelta === -1 && primaValida !== -1) this._scegliScheda(primaValida);
-  }
-
-  // cerca fra tutte le impostazioni e dice dove stanno
-  _cercaOpzioni() {
-    const q = (this._cerca.value || "").trim().toLowerCase();
-    this._trovate.innerHTML = "";
-    this._trovate.hidden = q.length < 2;
-    if (q.length < 2) return;
-    const senzaAccenti = (t) => String(t).toLowerCase()
-      .replace(/[\u00e0\u00e1]/g, "a").replace(/[\u00e8\u00e9]/g, "e")
-      .replace(/[\u00ec\u00ed]/g, "i").replace(/[\u00f2\u00f3]/g, "o")
-      .replace(/[\u00f9\u00fa]/g, "u");
-    const parola = senzaAccenti(q);
-    let quante = 0;
-    SEZIONI.forEach((sez, i) => {
-      const tasto = this._tasti[i];
-      if (tasto && tasto.style.display === "none") return;
-      (this._gruppi[i] || []).forEach((g) => {
-        if (g.form.hidden) return;
-        const dentro = [];
-        const guarda = (elenco) => elenco.forEach((voce) => {
-          if (voce.schema) { guarda(voce.schema); return; }
-          if (!voce.name) return;
-          const eti = T(ETICHETTE[voce.name]) || voce.name;
-          if (senzaAccenti(eti + " " + voce.name).includes(parola)) dentro.push(eti);
-        });
-        guarda(g.form.schema || []);
-        dentro.forEach((eti) => {
-          quante += 1;
-          const riga = document.createElement("button");
-          riga.type = "button";
-          riga.className = "trovata";
-          riga.innerHTML = "<b></b><span></span>";
-          riga.querySelector("b").textContent = eti;
-          riga.querySelector("span").textContent = sez.titolo
-            + (g.gruppo.titolo ? " \u203a " + g.gruppo.titolo : "");
-          riga.addEventListener("click", () => {
-            this._scegliScheda(i);
-            this._cerca.value = "";
-            this._trovate.hidden = true;
-            this._trovate.innerHTML = "";
-            const dove = g.titolo || g.form;
-            if (dove && dove.scrollIntoView) {
-              dove.scrollIntoView({ block: "center", behavior: "smooth" });
-            }
-            g.form.setAttribute("acceso", "");
-            setTimeout(() => g.form.removeAttribute("acceso"), 1400);
-          });
-          this._trovate.appendChild(riga);
-        });
-      });
-    });
-    if (!quante) {
-      const vuoto = document.createElement("div");
-      vuoto.className = "trovata niente";
-      vuoto.textContent = "Nessuna impostazione con \u00ab" + q + "\u00bb";
-      this._trovate.appendChild(vuoto);
-    }
-  }
-
-  // le icone del catalogo riempiono il loro quadratino: si misurano quando
-  // la scheda e' aperta davvero (da nascosta misurerebbero zero)
-  _adattaCatalogo() {
-    const griglia = this._scelte && this._scelte.querySelector(".iconePicker");
-    if (!griglia || griglia.hidden || !griglia.isConnected) return;
-    if (!griglia.getBoundingClientRect().height) return;
-    griglia.querySelectorAll(".sceltaIcona").forEach((b) => {
-      const dis = b.querySelector("svg");
-      if (dis && b.dataset.nome) riempiRiquadro(dis, b.dataset.nome);
-    });
-  }
-
   _scegliScheda(i) {
     // Le linguette non si buttano via, si nascondono: l'editor della scheda
     // che aveva aperto in "Tocco" restava vivo per sempre - con la sua
@@ -6523,194 +5964,6 @@ class CasaTileEditor extends HTMLElement {
       else pa.setAttribute("nascosto", "");
     });
     requestAnimationFrame(() => this._adattaCatalogo());
-  }
-
-
-
-  _costruisciFoto() {
-    const box = this._foto;
-    const firma = String(this._config.sfondo_immagine || "");
-    if (box._firma === firma) return;
-    box._firma = firma;
-    box.innerHTML = "<h4>Foto di sfondo</h4>";
-    const riga = document.createElement("div");
-    riga.className = "foto-riga";
-
-    if (this._config.sfondo_immagine) {
-      const img = document.createElement("img");
-      img.className = "foto-anteprima";
-      img.src = this._config.sfondo_immagine;
-      img.alt = "";
-      img.title = "Tocca per scegliere un'altra foto";
-      img.style.cursor = "pointer";
-      img.addEventListener("click", () => this.querySelector("input[type=file]").click());
-      riga.appendChild(img);
-    }
-
-    const scegli = document.createElement("button");
-    scegli.className = "bt";
-    scegli.type = "button";
-    scegli.textContent = this._config.sfondo_immagine
-      ? "Scegli un'altra foto"
-      : "Scegli una foto dal telefono o dal PC";
-
-    const file = document.createElement("input");
-    file.type = "file";
-    file.accept = "image/*";
-    file.style.display = "none";
-    scegli.addEventListener("click", () => file.click());
-    file.addEventListener("change", () => {
-      if (file.files && file.files[0]) this._caricaFoto(file.files[0]);
-    });
-
-    riga.append(scegli, file);
-
-    if (this._config.sfondo_immagine) {
-      const via = document.createElement("button");
-      via.className = "bt chiaro";
-      via.type = "button";
-      via.textContent = "Togli la foto";
-      via.addEventListener("click", () => {
-        const c = { ...this._config };
-        delete c.sfondo_immagine;
-        this._config = c;
-        this._emetti();
-        this._render();
-      });
-      riga.appendChild(via);
-    }
-    box.appendChild(riga);
-
-    const tinte = document.createElement("div");
-    tinte.className = "foto-riga";
-    // i tastini per togliere non servono piu': ogni riga del colore ha la sua X
-    if (tinte.children.length) box.appendChild(tinte);
-    // in fondo alla scheda Sfondo, che e' dove uno li va a cercare
-
-    this._notaFoto = document.createElement("div");
-    this._notaFoto.className = "foto-nota";
-    this._notaFoto.textContent = this._config.sfondo_immagine
-      ? this._config.sfondo_immagine
-      : "Premi il pulsante: si apre la galleria del telefono o le cartelle del PC. "
-        + "In alternativa scrivi l'indirizzo nel campo qui sopra (es. /local/foto.jpg).";
-    box.appendChild(this._notaFoto);
-  }
-
-  // UNA RIGA "IMMAGINE": anteprima, il pulsante per pescarla dal telefono o
-  // dal PC, il campo per scrivere l'indirizzo se sta gia' in config/www, e
-  // il pulsante per toglierla. Ne servono due uguali (quella normale e
-  // quella di quando e' acceso), quindi la faccio una volta sola.
-  _rigaImmagine(box, chiave, titolo, sottotitolo) {
-    const riga = document.createElement("div");
-    riga.className = "foto-riga suaIcona";
-    const scegli = document.createElement("button");
-    scegli.className = "bt chiaro";
-    scegli.type = "button";
-    scegli.textContent = titolo;
-    const file = document.createElement("input");
-    file.type = "file";
-    file.accept = "image/*";
-    file.style.display = "none";
-    scegli.addEventListener("click", () => file.click());
-    file.addEventListener("change", () => {
-      if (file.files && file.files[0]) this._caricaIcona(file.files[0], chiave);
-    });
-    // se l'immagine e' gia' sul box non ha senso ricaricarla: basta l'indirizzo
-    const indirizzo = document.createElement("input");
-    indirizzo.type = "text";
-    indirizzo.className = "indirizzoFoto";
-    indirizzo.placeholder = "oppure l'indirizzo: /local/mia.gif";
-    indirizzo.addEventListener("change", () => {
-      const v = indirizzo.value.trim();
-      const c2 = { ...this._config };
-      if (v) c2[chiave] = v; else delete c2[chiave];
-      this._config = c2;
-      this._emetti();
-      this._costruisciScelte();
-    });
-    const via = document.createElement("button");
-    via.className = "bt chiaro";
-    via.type = "button";
-    via.textContent = "Togli l'immagine";
-    via.addEventListener("click", () => {
-      const c2 = { ...this._config };
-      delete c2[chiave];
-      this._config = c2;
-      this._emetti();
-      this._costruisciScelte();
-    });
-    const ant = document.createElement("img");
-    ant.className = "foto-anteprima";
-    const nota = document.createElement("div");
-    nota.className = "foto-nota";
-    if (sottotitolo) nota.textContent = sottotitolo;
-    riga.append(ant, scegli, file, indirizzo, via, nota);
-    box.appendChild(riga);
-    return { riga: riga, ant: ant, via: via, nota: nota, campo: indirizzo,
-             chiave: chiave, fisso: sottotitolo || "" };
-  }
-
-  async _caricaIcona(file, chiave) {
-    const dove = chiave || "icona_immagine";
-    const riga = this._scelte
-      ? (dove === "icona_immagine_accesa" ? this._scelte._suaAccesa
-        : this._scelte._suaIcona) : null;
-    const nota = riga ? riga.nota : null;
-    if (nota) {
-      nota.className = "foto-nota";
-      nota.textContent = "Sto caricando " + file.name + "...";
-    }
-    try {
-      const dati = new FormData();
-      dati.append("file", file);
-      const risposta = await fetch("/api/image/upload", {
-        method: "POST",
-        headers: { Authorization: "Bearer " + this._hass.auth.data.access_token },
-        body: dati,
-      });
-      if (!risposta.ok) throw new Error("HTTP " + risposta.status);
-      const info = await risposta.json();
-      this._config = {
-        ...this._config,
-        [dove]: "/api/image/serve/" + info.id + "/original",
-      };
-      if (nota) nota.textContent = "";
-      this._emetti();
-      this._costruisciScelte();
-    } catch (err) {
-      if (nota) {
-        nota.className = "foto-nota errore";
-        nota.textContent = "Non sono riuscito a caricarla (" + err.message
-          + "). Mettila in config/www/ e scrivi /local/nomefile.png nel codice.";
-      }
-    }
-  }
-
-  async _caricaFoto(file) {
-    this._notaFoto.className = "foto-nota";
-    this._notaFoto.textContent = "Sto caricando " + file.name + "...";
-    try {
-      const dati = new FormData();
-      dati.append("file", file);
-      const risposta = await fetch("/api/image/upload", {
-        method: "POST",
-        headers: { Authorization: "Bearer " + this._hass.auth.data.access_token },
-        body: dati,
-      });
-      if (!risposta.ok) throw new Error("HTTP " + risposta.status);
-      const info = await risposta.json();
-      this._config = {
-        ...this._config,
-        sfondo_immagine: "/api/image/serve/" + info.id + "/original",
-      };
-      this._emetti();
-      this._render();
-    } catch (err) {
-      this._notaFoto.className = "foto-nota errore";
-      this._notaFoto.textContent =
-        "Non sono riuscito a caricarla (" + err.message + "). "
-        + "Mettila in config/www/ e scrivi /local/nomefoto.jpg nel campo qui sopra.";
-    }
   }
 
   _bottone(simbolo, titolo, azione) {
@@ -6825,7 +6078,7 @@ class CasaTileEditor extends HTMLElement {
     box.innerHTML = "";
     const attesa = document.createElement("div");
     attesa.className = "vuoto";
-    attesa.textContent = "Carico le impostazioni della scheda...";
+    attesa.textContent = T("Carico le impostazioni della scheda...");
     // il contenitore va attaccato SUBITO: un elemento staccato dal
     // documento non si disegna mai, e sembrerebbe un pannello vuoto
     // l'anteprima della scheda si vede gia' nel riquadro a destra,
@@ -6897,8 +6150,8 @@ class CasaTileEditor extends HTMLElement {
       // esserci lo stesso: prima moriva tutta la catena e restavi senza
       // Layout e senza il riquadro del codice, senza capire perche'.
       if (!box.isConnected) return;
-      attesa.textContent = "Le impostazioni di questa scheda non si sono "
-        + "caricate. Il codice lo trovi qui sotto.";
+      attesa.textContent = T("Le impostazioni di questa scheda non si sono "
+        + "caricate. Il codice lo trovi qui sotto.");
       if (!box.querySelector(".codice-scheda")) {
         box.appendChild(this._codiceScheda(card, aggiorna, false));
       }
@@ -6912,7 +6165,7 @@ class CasaTileEditor extends HTMLElement {
     const apri = document.createElement("button");
     apri.className = "bt chiaro";
     apri.type = "button";
-    apri.textContent = "Codice della scheda (YAML)";
+    apri.textContent = T("Codice della scheda (YAML)");
     const dentro = document.createElement("div");
     dentro.hidden = true;
     const esito = document.createElement("div");
@@ -6947,7 +6200,7 @@ class CasaTileEditor extends HTMLElement {
     const applica = document.createElement("button");
     applica.className = "bt";
     applica.type = "button";
-    applica.textContent = "Applica il codice";
+    applica.textContent = T("Applica il codice");
     applica.hidden = true;
     applica.addEventListener("click", () => {
       try {
@@ -7105,7 +6358,7 @@ class CasaTileEditor extends HTMLElement {
     const ok = document.createElement("button");
     ok.className = "bt";
     ok.type = "button";
-    ok.textContent = "Aggiungi";
+    ok.textContent = T("Aggiungi");
     ok.addEventListener("click", () => this._scegli(sel.value));
     riga.append(sel, ok);
     return riga;
@@ -7155,57 +6408,6 @@ class CasaTileEditor extends HTMLElement {
     });
   }
 
-  // UNA CASELLA NOSTRA IL FONDO SE LO DISEGNA DA SOLA, e se lo scrive
-  // addosso: quello che le passo dalla busta non lo guarda nemmeno. Quindi
-  // per lei (e per le caselle nostre dentro a una griglia o a una pila) il
-  // colore va scritto nelle SUE impostazioni. Torna indietro null se li'
-  // dentro di caselle nostre non ce n'e' nessuna: allora vale la busta.
-  _tingiDentro(cfg, dati) {
-    if (!cfg || typeof cfg !== "object") return null;
-    if (String(cfg.type || "") === "custom:casa-tile") {
-      const c2 = { ...cfg };
-      if ("sfondo" in dati) {
-        if (dati.sfondo) c2.sfondo_colore = dati.sfondo;
-        else delete c2.sfondo_colore;
-      }
-      if ("trasparenza" in dati) {
-        if (dati.trasparenza) c2.trasparenza = dati.trasparenza;
-        else delete c2.trasparenza;
-      }
-      return c2;
-    }
-    let cambiato = false;
-    const c2 = { ...cfg };
-    if (Array.isArray(cfg.cards)) {
-      const l = cfg.cards.map((x) => {
-        const y = this._tingiDentro(x, dati);
-        if (y) cambiato = true;
-        return y || x;
-      });
-      if (cambiato) c2.cards = l;
-    }
-    if (cfg.card) {
-      const y = this._tingiDentro(cfg.card, dati);
-      if (y) { c2.card = y; cambiato = true; }
-    }
-    return cambiato ? c2 : null;
-  }
-
-  // e che colore ha adesso: la prima casella nostra che trovo li' dentro
-  _tintaDentro(cfg) {
-    if (!cfg || typeof cfg !== "object") return null;
-    if (String(cfg.type || "") === "custom:casa-tile") {
-      return { sfondo: cfg.sfondo_colore, trasparenza: cfg.trasparenza };
-    }
-    const figli = (Array.isArray(cfg.cards) ? cfg.cards : [])
-      .concat(cfg.card ? [cfg.card] : []);
-    for (let i = 0; i < figli.length; i += 1) {
-      const t = this._tintaDentro(figli[i]);
-      if (t) return t;
-    }
-    return null;
-  }
-
   _vestitoScheda(i) {
     const riga = document.createElement("div");
     riga.className = "vestito-riga";
@@ -7240,14 +6442,14 @@ class CasaTileEditor extends HTMLElement {
 
     const eti = document.createElement("span");
     eti.className = "eti";
-    eti.textContent = "Sfondo di questa scheda";
+    eti.textContent = T("Sfondo di questa scheda");
 
     const scelta = this._sceltaColore(mio.sfondo, (rgb) => salva({ sfondo: rgb }));
 
     const barra = document.createElement("input");
     barra.type = "range";
     barra.min = "0"; barra.max = "100"; barra.step = "5";
-    barra.title = "Quanto e trasparente";
+    barra.title = T("Quanto e trasparente");
     barra.value = String(mio.trasparenza === undefined ? 0 : mio.trasparenza);
     const quanto = document.createElement("span");
     quanto.className = "quanto";
@@ -7313,7 +6515,7 @@ class CasaTileEditor extends HTMLElement {
     if (!lista.length) {
       const vuoto = document.createElement("div");
       vuoto.className = "vuoto";
-      vuoto.textContent = "Ancora nessuna scheda: il pop-up mostrera l'elenco dell'entita. Premi qui sotto per sceglierne una.";
+      vuoto.textContent = T("Ancora nessuna scheda: il pop-up mostrera l'elenco dell'entita. Premi qui sotto per sceglierne una.");
       this._blocco.appendChild(vuoto);
     }
 
@@ -7348,7 +6550,7 @@ class CasaTileEditor extends HTMLElement {
       const presa = document.createElement("span");
       presa.className = "presa";
       presa.textContent = "\u283f";
-      presa.title = "Tieni premuto e trascina per riordinare";
+      presa.title = T("Tieni premuto e trascina per riordinare");
       this._riordinaCol(presa, riga, i);
       riga.append(presa, num, tipo, spinta);
       this._blocco.appendChild(riga);
@@ -7395,7 +6597,7 @@ class CasaTileEditor extends HTMLElement {
       const annulla = document.createElement("button");
       annulla.className = "bt chiaro";
       annulla.type = "button";
-      annulla.textContent = "Annulla";
+      annulla.textContent = T("Annulla");
       annulla.addEventListener("click", () => {
         this._pickerAperto = false;
         this._riempiCoda();
@@ -7405,7 +6607,7 @@ class CasaTileEditor extends HTMLElement {
       const aggiungi = document.createElement("button");
       aggiungi.className = "bt";
       aggiungi.type = "button";
-      aggiungi.textContent = "+ Aggiungi scheda";
+      aggiungi.textContent = T("+ Aggiungi scheda");
       aggiungi.addEventListener("click", () => {
         this._pickerAperto = true;
         this._riempiCoda();
@@ -7413,6 +6615,981 @@ class CasaTileEditor extends HTMLElement {
       coda.appendChild(aggiungi);
     }
   }
+
+};
+
+// -*- coding: utf-8 -*-
+// Il foglio di stile del riquadro delle impostazioni.
+
+const STILE_EDITOR = `
+.targhetta { margin-left: auto; align-self: center; font-size: 10.5px;
+  color: var(--secondary-text-color, #8ea0b8); opacity: .7;
+  font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.cercaOpz {
+  width: 100%; box-sizing: border-box; margin: 0 0 8px; padding: 9px 12px;
+  border-radius: 12px; font: inherit; font-size: 13px;
+  border: 1px solid var(--divider-color, #2a3a4f);
+  background: var(--secondary-background-color, #16202c);
+  color: var(--primary-text-color, #eaf1fb);
+}
+.trovate { display: grid; gap: 4px; margin-bottom: 10px; }
+.trovate[hidden] { display: none !important; }
+.trovata {
+  appearance: none; text-align: left; cursor: pointer; font: inherit;
+  border: 1px solid var(--divider-color, #2a3a4f); border-radius: 10px;
+  background: var(--secondary-background-color, #16202c); padding: 7px 10px;
+  color: var(--primary-text-color, #eaf1fb); display: grid; gap: 1px;
+}
+.trovata b { font-size: 12.5px; font-weight: 600; }
+.trovata span { font-size: 11px; color: var(--secondary-text-color, #8ea0b8); }
+.trovata.niente { cursor: default; color: var(--secondary-text-color, #8ea0b8);
+  font-size: 12px; }
+ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
+  outline-offset: 4px; border-radius: 10px; }
+.gruppoBox { margin-top: 12px; }
+.gruppoBox[hidden] { display: none !important; }
+.gruppoBox > .titoloGruppo { margin: 0 0 6px; }
+.titoloGruppo { margin: 16px 0 2px; font-size: 12px; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--secondary-text-color, #8ea0b8); }
+.titoloGruppo[hidden] { display: none !important; }
+.pannello > ha-form[hidden] { display: none !important; }
+.pannello > .titoloGruppo:first-child { margin-top: 4px; }
+.schede { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-bottom: 12px;
+  border-bottom: 1px solid var(--divider-color, #444); }
+.scheda { appearance: none; background: none; border: none; cursor: pointer; font: inherit;
+  font-size: 13.5px; font-weight: 600; padding: 11px 13px; white-space: nowrap;
+  color: var(--secondary-text-color, #9aa5b1); border-bottom: 2px solid transparent;
+  display: flex; align-items: center; gap: 6px; }
+.scheda:hover { color: var(--primary-text-color, #fff); }
+.scheda[scelta] { color: var(--primary-color, #03a9f4);
+  border-bottom-color: var(--primary-color, #03a9f4); }
+.scheda .segno { font-size: 15px; line-height: 1; }
+.pannello[nascosto] { display: none; }
+.blocco { margin-top: 16px; padding: 14px; border-radius: 12px;
+  border: 1px solid var(--divider-color, #444); }
+.blocco h4 { margin: 0 0 4px; font-size: 15px; }
+.blocco p.aiuto { margin: 0 0 12px; font-size: 13px; color: var(--secondary-text-color); }
+.riga-scheda { display: flex; align-items: center; gap: 6px; padding: 8px 10px;
+  border: 1px solid var(--divider-color, #444); border-radius: 10px; margin-bottom: 8px; }
+.riga-scheda.aperta { border-color: var(--primary-color); }
+.riga-scheda .num { opacity: .6; font-size: 12px; min-width: 18px; }
+.riga-scheda .tipo { display: flex; flex-direction: column; min-width: 0;
+  overflow: hidden; }
+.riga-scheda .tipo .chiaro { font-weight: 600; font-size: 14px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.riga-scheda .tipo .piccolo { font-size: 11px; opacity: .55; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.riga-scheda .spinta { margin-left: auto; display: flex; gap: 2px; }
+/* la manina per riordinare: si tiene premuta e si trascina */
+.riga-scheda .presa { cursor: grab; touch-action: none; user-select: none;
+  opacity: .45; font-size: 15px; line-height: 1; padding: 2px 4px;
+  margin-left: -4px; flex: none; }
+.riga-scheda .presa:hover { opacity: .95; }
+.riga-scheda.inmano { position: relative; z-index: 3; cursor: grabbing;
+  box-shadow: 0 6px 18px rgba(0,0,0,.55); opacity: .95; }
+.riga-scheda.segnaSopra { box-shadow: inset 0 2px 0 var(--primary-color, #f0b429); }
+.riga-scheda.segnaSotto { box-shadow: inset 0 -2px 0 var(--primary-color, #f0b429); }
+.editor-scheda { margin: 0 0 14px; padding: 12px; border-radius: 10px;
+  border: 1px dashed var(--divider-color, #444); }
+.vuoto { font-size: 13px; color: var(--secondary-text-color); margin-bottom: 10px; }
+.codice-scheda { margin-top: 12px; border-top: 1px solid var(--divider-color, #444);
+  padding-top: 10px; }
+.codice-scheda ha-yaml-editor { display: block; margin: 8px 0; }
+.codice-scheda textarea { width: 100%; box-sizing: border-box; margin: 8px 0;
+  font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 1.45;
+  border-radius: 8px; padding: 8px; resize: vertical;
+  border: 1px solid var(--divider-color, #444);
+  background: var(--card-background-color, #16202c); color: var(--primary-text-color, #eaf1fb); }
+.codice-scheda .esito { font-size: 12px; color: #ff8a8a; }
+.trovati { display: flex; flex-direction: column; gap: 2px; max-height: 260px; overflow: auto; }
+.trovato { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 8px;
+  cursor: pointer; }
+.trovato:hover { background: rgba(127,127,127,.12); }
+.trovato input { width: 18px; height: 18px; accent-color: var(--primary-color, #03a9f4);
+  flex: 0 0 18px; }
+/* il quadratino giallo con la freccina: si tiene premuto e il pezzo cresce */
+/* IL QUADRATINO DELLA GRANDEZZA DELLA CASELLA. Stesso giallo di quello
+   dei pezzi, ma un filo piu' grosso: quello cambia un pezzo, questo
+   cambia tutta la casella. */
+.pista-grandezza {
+  position: absolute; z-index: 6; width: 22px; height: 22px;
+  border-radius: 7px; background: #ffc400; cursor: nwse-resize;
+  touch-action: none;
+  box-shadow: 0 2px 7px rgba(0,0,0,.55), 0 0 0 2px rgba(0,0,0,.35);
+  display: grid; place-items: center; transition: transform .12s ease;
+}
+.pista-grandezza::after { content: ""; width: 9px; height: 9px;
+  margin: -2px -2px 0 0;
+  border-right: 2.5px solid #241a02; border-bottom: 2.5px solid #241a02; }
+.pista-grandezza:hover { transform: scale(1.15); }
+.pista-grandezza.inmano { transform: scale(1.3); }
+.pista-grandezza[hidden] { display: none !important; }
+.pista-grande-targa {
+  position: absolute; z-index: 7; pointer-events: none;
+  background: #0b1220; color: #ffc400; font-size: 11px; font-weight: 700;
+  padding: 2px 6px; border-radius: 6px; border: 1px solid #ffc400;
+}
+.pista-maniglia {
+  position: absolute; width: 34px; height: 34px; padding: 0; border: none;
+  background: none; display: grid; place-items: center;
+  cursor: nwse-resize !important; touch-action: none; z-index: 9;
+}
+.pista-maniglia .q {
+  width: 17px; height: 17px; border-radius: 5px;
+  background: #f0b429; border: 1px solid rgba(0,0,0,.45);
+  box-shadow: 0 1px 4px rgba(0,0,0,.55);
+  display: grid; place-items: center; pointer-events: none;
+  transition: transform .12s ease;
+}
+.pista-maniglia svg { width: 11px; height: 11px; fill: #241a02; }
+.pista-maniglia:hover .q { transform: scale(1.15); }
+.pista-maniglia.inmano .q { transform: scale(1.3); }
+.pista-maniglia[hidden] { display: none !important; }
+.pista.larga { overflow: auto; }
+.pista { position: relative; padding: 26px 14px 16px; border-radius: 12px; touch-action: none;
+  background: var(--secondary-background-color, rgba(255,255,255,.04));
+  display: flex; justify-content: center; }
+.pista casa-tile { display: block; cursor: grab; flex: none; }
+/* mentre si tira la grandezza la casellina non deve animare niente: ogni
+   transizione la fa arrivare in ritardo sul dito */
+.pista casa-tile { transition: none; }
+.pista-tasti { display: flex; justify-content: flex-end; margin-top: 8px; }
+.pista-numeri { display: flex; align-items: center; gap: 8px; margin-top: 10px;
+  font-size: 12.5px; color: var(--secondary-text-color, #9fb0c6); flex-wrap: wrap; }
+.pista-numeri input {
+  width: 74px; font: inherit; font-size: 13px; padding: 5px 8px;
+  border-radius: 9px; text-align: right;
+  border: 1px solid var(--divider-color, rgba(255,255,255,.16));
+  background: var(--card-background-color, rgba(255,255,255,.04));
+  color: var(--primary-text-color, #eaf1fb);
+}
+.pista-numeri input:focus { outline: none; border-color: #ffc400; }
+.pista-numeri .per { opacity: .6; }
+.codice-posti { margin-top: 10px; }
+.prendi-da { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 10px; font-size: 12.5px;
+  color: var(--secondary-text-color, #9fb0c6); }
+.prendi-da[hidden] { display: none !important; }
+.prendi-da select { font: inherit; padding: 5px 8px; border-radius: 9px;
+  max-width: 200px; cursor: pointer;
+  border: 1px solid var(--divider-color, rgba(255,255,255,.16));
+  background: var(--card-background-color, rgba(255,255,255,.04));
+  color: var(--primary-text-color, #eaf1fb); }
+.pista-numeri[hidden] { display: none !important; }
+.pista-numeri .chi { font-weight: 600;
+  color: var(--primary-text-color, #eaf1fb); }
+.pista-chi { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 12px; color: var(--secondary-text-color, #8ea0b8); margin: 2px 0 8px; }
+.pista-chi .chi-nome { flex: 1 1 auto; }
+.pista-nota { margin-top: 6px; font-size: 12px; font-family: monospace;
+  color: var(--secondary-text-color, #9fb0c6); }
+.tastoPiatto { border: 1px solid var(--divider-color, rgba(255,255,255,.14));
+  background: none; color: var(--primary-text-color, #eaf1fb); cursor: pointer;
+  font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 9px; }
+.tastoPiatto:hover { background: rgba(255,255,255,.08); }
+.colori-blocco { display: flex; flex-direction: column; gap: 6px; margin: 2px 0 10px; }
+.colori-blocco[hidden] { display: none; }
+.riga-colore { display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 10px;
+  background: var(--secondary-background-color, rgba(255,255,255,.04)); }
+.riga-colore .eti { flex: 1; min-width: 0; font-size: 13px;
+  color: var(--primary-text-color, #eaf1fb); }
+.riga-colore .bolla { flex: none; width: 34px; height: 34px; border-radius: 50%;
+  cursor: pointer; padding: 0;
+  border: 2px solid var(--divider-color, rgba(255,255,255,.18));
+  background-image: linear-gradient(45deg, rgba(255,255,255,.12) 25%, transparent 25%,
+    transparent 75%, rgba(255,255,255,.12) 75%), linear-gradient(45deg,
+    rgba(255,255,255,.12) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.12) 75%);
+  background-size: 10px 10px; background-position: 0 0, 5px 5px; }
+/* la ruota dei colori: e' tutta CSS, si apre di colpo */
+.ruota-cassetto { display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 12px 10px 14px; margin: -4px 0 10px; border-radius: 0 0 12px 12px;
+  background: var(--secondary-background-color, rgba(255,255,255,.04)); }
+.ruota-cassetto[hidden] { display: none; }
+.ruota { position: relative; width: 168px; height: 168px; border-radius: 50%;
+  cursor: crosshair; touch-action: none;
+  background:
+    radial-gradient(circle closest-side, #fff, rgba(255,255,255,0) 78%),
+    conic-gradient(from 90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 4px 14px rgba(0,0,0,.35); }
+.ruota .mira { position: absolute; width: 16px; height: 16px; border-radius: 50%;
+  transform: translate(-50%, -50%); pointer-events: none;
+  border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.5); }
+.ruota-cassetto .luce { width: 168px; cursor: pointer; -webkit-appearance: none;
+  appearance: none; height: 12px; border-radius: 99px; outline: none;
+  background: linear-gradient(90deg, #000, #808080, #fff);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+.ruota-cassetto .luce::-webkit-slider-thumb { -webkit-appearance: none; width: 18px;
+  height: 18px; border-radius: 50%; background: #fff; border: 2px solid #4b5c74;
+  box-shadow: 0 1px 4px rgba(0,0,0,.5); cursor: pointer; }
+.ruota-cassetto .luce::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; border: 2px solid #4b5c74; cursor: pointer; }
+.riga-colore .togli { flex: none; width: 28px; height: 28px; border-radius: 50%;
+  border: none; cursor: pointer; font-size: 13px; line-height: 1;
+  background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb); }
+.riga-colore .togli[hidden] { display: none; }
+.riga-colore .togli:hover { background: rgba(255,255,255,.16); }
+.vestito-riga { display: flex; align-items: center; gap: 8px; margin: 0 0 8px;
+  padding: 6px 10px; border-radius: 10px;
+  background: var(--secondary-background-color, rgba(255,255,255,.04)); }
+.vestito-riga .eti { flex: 1; min-width: 0; font-size: 12px;
+  color: var(--secondary-text-color, #9fb0c6);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vestito-riga input[type=color] { flex: none; width: 34px; height: 26px; padding: 0;
+  border: 1px solid var(--divider-color, rgba(255,255,255,.14));
+  border-radius: 7px; background: none; cursor: pointer; }
+.vestito-riga input[type=range] { flex: none; width: 96px; cursor: pointer; }
+.vestito-riga .quanto { flex: none; width: 38px; text-align: right; font-size: 11.5px;
+  color: var(--secondary-text-color, #9fb0c6); font-variant-numeric: tabular-nums; }
+.nomiMisure { display: flex; flex-direction: column; gap: 6px; }
+.nomeMisura { display: flex; align-items: center; gap: 8px; }
+.nomeMisura .chi { flex: 1; min-width: 0; font-size: 12.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--secondary-text-color, #9fb0c6); }
+.nomeMisura .bolla { flex: none; width: 28px; height: 28px; border-radius: 50%;
+  cursor: pointer; padding: 0;
+  border: 2px solid var(--divider-color, rgba(255,255,255,.18)); }
+.nomeMisura .togli { flex: none; width: 24px; height: 24px; border-radius: 50%;
+  border: none; cursor: pointer; font-size: 12px; line-height: 1;
+  background: rgba(255,255,255,.08); color: var(--primary-text-color, #eaf1fb); }
+.nomeMisura .togli[hidden] { display: none; }
+.nomiMisure .ruota-cassetto { margin: 0 0 8px; border-radius: 12px; }
+.nomeMisura input { flex: none; width: 110px; font: inherit; font-size: 13px;
+  padding: 6px 8px; border-radius: 8px; box-sizing: border-box;
+  color: var(--primary-text-color, #eaf1fb);
+  background: var(--secondary-background-color, rgba(255,255,255,.06));
+  border: 1px solid var(--divider-color, rgba(255,255,255,.12)); }
+.nomeMisura input:focus { outline: 2px solid var(--primary-color, #03a9f4);
+  outline-offset: 1px; }
+.trovato .nome { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; }
+.trovato .val { margin-left: auto; font-size: 12.5px; color: var(--secondary-text-color);
+  white-space: nowrap; }
+.foto-riga { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.foto-anteprima { width: 64px; height: 44px; border-radius: 8px; object-fit: cover;
+  border: 1px solid var(--divider-color, #555); }
+.indirizzoFoto { flex: 1 1 160px; min-width: 0; box-sizing: border-box;
+  padding: 8px 11px; border-radius: 10px; font: inherit; font-size: 13px;
+  border: 1px solid var(--divider-color, #444);
+  background: var(--card-background-color, #16202c);
+  color: var(--primary-text-color, #eaf1fb); }
+.suaIcona + .suaIcona { margin-top: 10px; }
+/* la riga di chi comanda quando e' questa casella: l'interruttore non fa
+   niente apposta, quindi non deve nemmeno sembrare che lo faccia */
+.voce[fisso] .sw { opacity: .55; cursor: default; }
+.foto-nota { font-size: 12.5px; color: var(--secondary-text-color); margin-top: 8px; }
+.foto-nota.errore { color: #ff8a80; }
+.bt { appearance: none; border: none; cursor: pointer; font: inherit; font-weight: 600;
+  font-size: 14px; padding: 10px 16px; border-radius: 10px;
+  background: var(--primary-color, #03a9f4); color: var(--text-primary-color, #fff); }
+.bt:hover { filter: brightness(1.1); }
+.bt.chiaro { background: transparent; color: var(--primary-color, #03a9f4);
+  border: 1px solid var(--divider-color, #555); }
+.bt-icona { appearance: none; border: none; cursor: pointer; font-size: 15px;
+  width: 32px; height: 32px; border-radius: 8px; line-height: 1;
+  background: transparent; color: var(--secondary-text-color, #aaa); }
+.bt-icona:hover { background: rgba(127,127,127,.18); color: var(--primary-text-color, #fff); }
+.scelte h4 { margin: 16px 0 8px; font-size: 14px; }
+.scelte .aiuto { margin: 0 0 8px; font-size: 12.5px; color: var(--secondary-text-color); }
+.cercaIcona { width: 100%; box-sizing: border-box; margin: 0 0 8px; padding: 9px 12px;
+  border-radius: 10px; font: inherit; font-size: 14px;
+  border: 1px solid var(--divider-color, #444);
+  background: var(--card-background-color, #16202c); color: var(--primary-text-color, #eaf1fb); }
+.iconePicker { display: grid; gap: 5px; max-height: 300px; overflow-y: auto;
+  padding-right: 4px; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
+.sceltaIcona { appearance: none; cursor: pointer; font: inherit; font-size: 9.5px;
+  border: 1px solid var(--divider-color, #444); background: transparent;
+  border-radius: 10px; padding: 6px 2px; display: flex; flex-direction: column;
+  align-items: center; gap: 2px; color: var(--secondary-text-color, #9aa5b1);
+  line-height: 1.1; }
+.sceltaIcona svg { width: 27px; height: 27px; }
+.sceltaAuto { border-style: dashed; }
+.sceltaAuto .segnoAuto { font-size: 20px; line-height: 27px; height: 27px;
+  display: block; }
+.sceltaAuto .segnoAuto svg { width: 27px; height: 27px; }
+.sceltaIcona .nome { overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  white-space: nowrap; }
+.sceltaIcona[hidden] { display: none !important; }
+.sceltaIcona[scelta] { border-color: var(--primary-color, #03a9f4);
+  background: rgba(3,169,244,.14); color: var(--primary-text-color, #fff); }
+.coloriPicker { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sceltaColore { appearance: none; padding: 0; cursor: pointer; width: 32px; height: 32px;
+  border-radius: 50%; border: 2px solid transparent; position: relative; }
+.sceltaColore[scelta] { border-color: #fff;
+  box-shadow: 0 0 0 3px var(--primary-color, #03a9f4); }
+.coloreLampada { color: #fff; font-size: 15px; display: grid; place-items: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.coloreLampada[hidden] { display: none !important; }
+.coloreTermo { background: linear-gradient(135deg, #4f8bff, #3fd98a, #ffcf5c, #ff5f5f); }
+.coloreTermo[hidden] { display: none !important; }
+.coloreLibero { overflow: hidden;
+  background: conic-gradient(#ff5f5f, #ffc046, #3fd98a, #4fe0c8, #5ec8ff, #9b6bff, #ff5f5f); }
+.scelte .ruota-cassetto { margin: 10px 0 2px; border-radius: 12px; }
+
+/* ============== le impostazioni su schermo piccolo ============== */
+@media (max-width: 620px) {
+  .scheda { flex: 1 1 auto; justify-content: center; padding: 10px 10px; font-size: 13px; }
+  .blocco { padding: 12px 10px; }
+  .riga-scheda { flex-wrap: wrap; padding: 8px; }
+  .riga-scheda .tipo { flex: 1 1 auto; min-width: 0; }
+  .editor-scheda { padding: 10px 8px; }
+  .codice-scheda textarea { font-size: 13px; }
+  .foto-riga { gap: 6px; }
+}
+
+/* ============== col dito ci vuole piu' spazio ============== */
+@media (pointer: coarse) {
+  .scheda { padding: 12px 12px; }
+  .bt { min-height: 44px; padding: 12px 18px; }
+  .bt-icona { width: 40px; height: 40px; font-size: 17px; }
+  .tendina { min-height: 44px; font-size: 15px; }
+  .trovato { padding: 11px 8px; }
+  .trovato input { width: 22px; height: 22px; flex: 0 0 22px; }
+  .riga-scheda { padding: 10px; }
+  .codice-scheda textarea { min-height: 220px; }
+}
+`;
+
+// -*- coding: utf-8 -*-
+// Che versione e': la scrivo in un posto solo.
+
+const VERSIONE = "2.14.2";
+
+// -*- coding: utf-8 -*-
+// Il riquadro delle impostazioni.
+
+
+
+
+
+class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLElement)))) {
+  setConfig(config) {
+    // le linguette si scrivono una volta sola: la lingua deve essere gia'
+    // decisa. Home Assistant passa `hass` prima di qui, ma non costa niente
+    // assicurarsene.
+    scegliLingua(this._hass);
+    this._config = { ...config };
+    this._ascoltaMisure();
+    // dalla v2.3.8 le entita' che decidono l'accensione sono un elenco: se
+    // trovo la vecchia forma a testo la converto, se no il campo a scelta
+    // multipla non riesce a disegnarsi e sparisce dalle impostazioni
+    if (typeof this._config.acceso_entita === "string") {
+      this._config.acceso_entita = this._config.acceso_entita
+        ? [this._config.acceso_entita] : [];
+    }
+    if (String(config.entity || "").indexOf("media_player.") === 0) {
+      if (this._config.multiroom === undefined) this._config.multiroom = true;
+      if (this._config.sorgente === undefined) this._config.sorgente = true;
+    }
+    // La disposizione con la sua card incastrata dentro non c'e' piu':
+    // chi ce l'aveva passa a quella nostra, con i tastini gia' accesi, se no
+    // la casella si ritroverebbe spoglia senza aver chiesto niente.
+    if (this._config.disposizione === "ytcard") {
+      this._config.disposizione = "ytmusic";
+      if (this._config.yt_attrezzi === undefined) this._config.yt_attrezzi = true;
+      if (this._config.coda === undefined) this._config.coda = true;
+      if (this._config.yt_cuore === undefined) this._config.yt_cuore = true;
+    }
+    // Gli interruttori della SUA card partono tutti accesi (la card fa
+    // cosi': quello che non e' scritto e' acceso). Ma un interruttore senza
+    // valore Home Assistant lo disegna SPENTO, e allora si vedevano tutti
+    // grigi mentre nell'anteprima la roba c'era. Glieli scrivo, cosi' lo
+    // sportello dice la verita' su quello che sta guardando.
+    this._planciaCercata = null;
+    this._planciaSalvata = null;
+    this._render();
+  }
+  set hass(hass) { scegliLingua(hass); this._hass = hass; this._propaga(); }
+  set lovelace(lv) { this._lovelace = lv; this._propaga(); }
+
+  _lov() { return this._lovelace || { config: { views: [] }, editMode: true }; }
+
+  // Ripassare i valori ai moduli e agli editor di Home Assistant li fa
+  // ridisegnare tutti. Con una casa che manda aggiornamenti in continuazione
+  // (e nella scheda "Tocco" ci sono gli editor delle schede del pop-up, che
+  // si portano dietro la loro anteprima) e' il conto piu' salato di tutti:
+  // lo faccio al massimo una volta al secondo, e l'ultimo giro lo recupero.
+  _propaga() {
+    const ora = Date.now();
+    const passato = ora - (this._quandoPropago || 0);
+    // chi non ha ancora ricevuto niente non puo' aspettare: i selettori di
+    // Home Assistant senza "hass" si rompono
+    const digiuni = (this._forms || []).some((f) => !f._ebbeHass);
+    if (!digiuni && passato < 1000) {
+      if (!this._propagaDopo) {
+        this._propagaDopo = setTimeout(() => {
+          this._propagaDopo = 0;
+          this._propagaDavvero();
+        }, 1000 - passato);
+      }
+      return;
+    }
+    this._propagaDavvero();
+  }
+
+  _propagaDavvero() {
+    const ora = Date.now();
+    this._quandoPropago = ora;
+    // Ai moduli e agli editor i valori servono per riempire gli elenchi
+    // delle entita', non per stare aggiornati al secondo: glieli do la prima
+    // volta e poi solo ogni dieci secondi. Gli editor delle schede del pop-up
+    // (scheda "Tocco") si portano dietro un'anteprima viva, e ridisegnarla a
+    // ogni stato che cambia in casa era tutto il rallentamento.
+    const daDare = (el) => {
+      if (!el._ebbeHass) return true;
+      return ora - (el._quandoHass || 0) > 10000;
+    };
+    // se i valori non sono ancora arrivati non c'e' niente da dare
+    if (!this._hass) return;
+    const dai = (el) => {
+      el._ebbeHass = true;
+      el._quandoHass = ora;
+      el.hass = this._hass;
+    };
+    (this._forms || []).forEach((f) => {
+      // il modulo che sta usando adesso non si tocca: ogni assegnazione lo
+      // fa ridisegnare, e col selettore del colore aperto e' un disastro
+      if (f === this._formInUso) return;
+      if (daDare(f)) dai(f);
+    });
+    const lov = this._lov();
+    this.querySelectorAll("hui-card-picker, hui-card-element-editor").forEach((el) => {
+      if (daDare(el)) dai(el);
+      // il "lovelace" cambia quasi mai: riassegnarlo fa rifare l'editor
+      if (el._lovDato !== lov) { el._lovDato = lov; el.lovelace = lov; }
+    });
+    if (this._edScheda && this._edScheda.isConnected && daDare(this._edScheda)) {
+      dai(this._edScheda);
+    }
+  }
+
+
+
+  _emetti() {
+    this.dispatchEvent(new CustomEvent("config-changed", {
+      detail: { config: this._config }, bubbles: true, composed: true,
+    }));
+  }
+
+  _render() {
+    if (!this._costruito) {
+      const stile = document.createElement("style");
+      stile.textContent = STILE_EDITOR + STILE_SELETTORE;
+      this.appendChild(stile);
+
+      this._foto = document.createElement("div");
+      this._foto.className = "blocco";
+      this._blocco = document.createElement("div");
+      this._blocco.className = "blocco";
+      this._sensori = document.createElement("div");
+      this._sensori.className = "blocco";
+      this._nomiMisure = document.createElement("div");
+      this._nomiMisure.className = "blocco";
+      this._postiBox = document.createElement("div");
+      this._postiBox.className = "blocco";
+      this._scelte = document.createElement("div");
+      this._scelte.className = "scelte";
+      this._tinte = document.createElement("div");
+      this._tinte.className = "scelte";
+
+      // la ricerca: con quasi sessanta impostazioni, trovarle e' il problema
+      this._cerca = document.createElement("input");
+      this._cerca.className = "cercaOpz";
+      this._cerca.type = "search";
+      this._cerca.placeholder = T("Cerca un'impostazione: meteo, colore, km...");
+      this._trovate = document.createElement("div");
+      this._trovate.className = "trovate";
+      this._trovate.hidden = true;
+      this._cerca.addEventListener("input", () => this._cercaOpzioni());
+      this.appendChild(this._cerca);
+      this.appendChild(this._trovate);
+
+      this._barra = document.createElement("div");
+      this._barra.className = "schede";
+      const targa = document.createElement("span");
+      targa.className = "targhetta";
+      targa.textContent = "v" + VERSIONE;
+      targa.title = T("Versione della card: se non e' quella che ti aspetti, "
+        + "il browser sta ancora usando una copia vecchia (ricarica con Ctrl+F5)");
+      this._targa = targa;
+      this.appendChild(this._barra);
+
+      this._forms = [];
+      this._tasti = [];
+      this._gruppi = [];
+      this._pannelli = [];
+      SEZIONI.forEach((sez, i) => {
+        const bottone = document.createElement("button");
+        bottone.className = "scheda";
+        bottone.type = "button";
+        bottone.innerHTML = "<span class='segno'></span><span class='testo'></span>";
+        bottone.querySelector(".segno").textContent = sez.segno || "";
+        bottone.querySelector(".testo").textContent = T(sez.titolo);
+        if (i === 0) bottone.setAttribute("scelta", "");
+        bottone.addEventListener("click", () => this._scegliScheda(i));
+        this._barra.appendChild(bottone);
+        this._tasti.push(bottone);
+
+        const pannello = document.createElement("div");
+        pannello.className = "pannello";
+        if (i !== 0) pannello.setAttribute("nascosto", "");
+
+        // ogni scheda e' fatta di gruppi: titoletto + campi
+        const suoi = [];
+        sez.gruppi.forEach((gruppo) => {
+          // ogni gruppo dentro al suo riquadro, come quelli fatti a mano:
+          // con quaranta impostazioni di fila non si capiva piu' dove
+          // finiva una cosa e cominciava l'altra
+          const scatola = document.createElement("div");
+          scatola.className = "blocco gruppoBox";
+          pannello.appendChild(scatola);
+          let titolo = null;
+          if (gruppo.titolo) {
+            titolo = document.createElement("h4");
+            titolo.className = "titoloGruppo";
+            titolo.textContent = T(gruppo.titolo);
+            scatola.appendChild(titolo);
+          }
+          const form = document.createElement("ha-form");
+          // i valori GLIELI DO SUBITO: senza, i selettori di Home Assistant
+          // provano a leggere l'elenco delle entita' da un "hass" che non
+          // c'e' ancora e si schiantano in continuazione (era il fiume di
+          // errori "ha-selector-entity ... reading entities" nel registro)
+          form.hass = this._hass;
+          form._ebbeHass = !!this._hass;
+          form._quandoHass = Date.now();
+          form.schema = this._schemaDi(gruppo);
+          form._firma = this._firmaSchema(form.schema);
+          form.computeLabel = (x) => T(ETICHETTE[x.name]) || x.name;
+          form.addEventListener("value-changed", (e) => {
+            e.stopPropagation();
+            this._formInUso = form;
+            clearTimeout(this._scordaForm);
+            this._scordaForm = setTimeout(() => { this._formInUso = null; }, 800);
+            const prima = this._config.azione;
+            // ATTENZIONE: i moduli di Home Assistant tengono in pancia una
+            // copia di TUTTA la configurazione e quando muovi un interruttore
+            // ti ridanno quella copia con dentro il campo cambiato. Ma la
+            // copia gliela do io, e per non ridisegnare quindici moduli a
+            // ogni ritocco la rinfresco solo a chi e' cambiato un campo suo.
+            // Risultato: il modulo dei "Tasti rapidi" aveva ancora la
+            // configurazione di prima, e accendendo i tasti rimetteva com'era
+            // la barra - o viceversa. Da qui prendo SOLO i campi che sono
+            // suoi, e il resto della configurazione non lo tocca nessuno.
+            const suoi = this._nomiSchema(form.schema);
+            const dispPrima = this._config.disposizione;
+            const c2 = { ...this._config };
+            suoi.forEach((nome) => {
+              if (nome in e.detail.value) c2[nome] = e.detail.value[nome];
+              else delete c2[nome];
+            });
+            // "come la tua ytmusic-card" e' un vestito completo, non solo
+            // la disposizione: la copertina tonda davanti e quella sfocata
+            // dietro sono meta' di quello che la fa somigliare alla sua. Se
+            // le trovo spente (magari da un'altra disposizione di prima) le
+            // riaccendo appena sceglie questa. Poi puo' rispegnerle.
+            if (c2.disposizione === "ytmusic" && dispPrima !== "ytmusic") {
+              c2.mostra_icona = true;
+              c2.usa_foto = true;
+              if (c2.sfondo_copertina === undefined) c2.sfondo_copertina = true;
+              if (!(Number(c2.sfondo_sfocatura) > 0)) c2.sfondo_sfocatura = 34;
+            }
+            this._config = c2;
+            this._emetti();
+            if (prima !== this._config.azione) {
+              this._costruisciBlocco(true);
+              this._aggiornaSchemi();
+            }
+            if (["sfondo", "aspetto", "musica", "persone"].includes(sez.chiave)) {
+            this._costruisciFoto();
+          }
+            if (sez.chiave === "base") {
+              this._costruisciTrovati();
+              this._costruisciNomi();
+              this._aggiornaSchemi();
+            }
+          });
+          this._forms.push(form);
+          scatola.appendChild(form);
+          let boxColori = null;
+          if (gruppo.colori && gruppo.colori.length) {
+            boxColori = document.createElement("div");
+            boxColori.className = "colori-blocco";
+            scatola.appendChild(boxColori);
+          }
+          suoi.push({ gruppo: gruppo, form: form, titolo: titolo,
+                      colori: boxColori, scatola: scatola });
+
+          // i riquadri fatti a mano vanno sotto al gruppo che li riguarda
+          if (sez.chiave === "base" && gruppo.titolo === "Cosa c'e scritto") {
+            pannello.appendChild(this._sensori);
+            pannello.appendChild(this._nomiMisure);
+          }
+          if (sez.chiave === "icona") pannello.appendChild(this._scelte);
+          if (sez.chiave === "aspetto" && gruppo.titolo === "Colore della scritta") {
+            pannello.appendChild(this._tinte);
+          }
+          if (sez.chiave === "sfondo" && gruppo.titolo === "Foto di sfondo") {
+            pannello.appendChild(this._foto);
+          }
+          if (sez.chiave === "popup" && gruppo.titolo === "Come si apre") {
+            pannello.appendChild(this._provaApertura());
+          }
+          if (sez.chiave === "popup") pannello.appendChild(this._blocco);
+        });
+        if (sez.chiave === "pezzi") pannello.appendChild(this._postiBox);
+        this._gruppi.push(suoi);
+
+        this._pannelli.push(pannello);
+        this.appendChild(pannello);
+      });
+      this._barra.appendChild(this._targa);
+      this._costruito = true;
+    }
+    // Il selettore del colore manda una modifica a ogni movimento del dito:
+    // rifare tutto ogni volta impastava le impostazioni. Quindi rimando il
+    // giro al prossimo disegno e ne faccio uno solo.
+    // la primissima volta niente attese: deve comparire subito
+    if (this._formaOra === undefined) { this._giroCompleto(); return; }
+    // aspetto un attimo e ne faccio uno solo: il selettore del colore manda
+    // una modifica a ogni movimento del dito. Uso un timer e non il disegno
+    // del browser, che in una scheda nascosta non arriverebbe mai.
+    clearTimeout(this._attesa);
+    this._attesa = setTimeout(() => {
+      if (!this._costruito || !this.isConnected) return;
+      this._giroCompleto();
+    }, 60);
+  }
+
+  _giroCompleto() {
+    this._conservaPosto(() => {
+      // gli schemi cambiano solo se cambia il TIPO di casella, non i valori
+      // la disposizione fa parte della forma: cambiandola cambiano anche le
+      // impostazioni che hanno senso (il giradischi, per dire, in "come la
+      // tua ytmusic-card" non comanda niente e non si fa vedere)
+      // ...e ci metto anche gli interruttori da cui dipendono altre voci: se
+      // no accendi "grafico" e le sue tre impostazioni non compaiono finche'
+      // non riapri la finestra
+      const dip = Object.keys(DIPENDE)
+        .map((k) => (DIPENDE[k](this._config) ? "1" : "0")).join("");
+      const forma = (this._config.entity || "") + "|" + (this._config.azione || "")
+        + "|" + (this._config.disposizione || "")
+        + "|" + ((this._config.acceso_entita || []).length ? "1" : "0")
+        + "|" + dip;
+      if (this._formaOra !== forma) {
+        this._formaOra = forma;
+        this._aggiornaSchemi();
+      }
+      // e agli altri do i valori solo se i LORO campi sono cambiati: se no
+      // ridisegno quindici moduli a ogni movimento del dito sul colore
+      this._forms.forEach((f) => {
+        if (f === this._formInUso) return;
+        const firma = this._firmaValori(f.schema);
+        if (f._valori === firma) return;
+        f._valori = firma;
+        f.data = this._config;
+      });
+      this._costruisciColori();
+      this._costruisciPosti();
+      this._costruisciScelte();
+      this._costruisciFoto();
+      this._costruisciTrovati();
+      this._costruisciNomi();
+      this._costruisciBlocco();
+    });
+    requestAnimationFrame(() => this._adattaCatalogo());
+  }
+
+  // Home Assistant rifa' le impostazioni a ogni modifica: se in mezzo un
+  // riquadro si accorcia, la pagina salta in cima e lui perde di vista
+  // proprio l'impostazione che stava provando. Qui mi segno dov'era.
+  _conservaPosto(azione) {
+    // se sono gia' dentro a un altro "tieni il segno", quello di fuori ha
+    // gia' preso la posizione buona: qui dentro rifarlo vorrebbe dire
+    // segnarsi una posizione a meta' del lavoro
+    if (this._dentroConserva) { azione(); return; }
+    this._dentroConserva = true;
+    const box = this._scorrevole();
+    const dove = box ? box.scrollTop : 0;
+    try { azione(); } finally { this._dentroConserva = false; }
+    if (!box) return;
+    // Rimetto il segno piu' volte: la finestra di Home Assistant si ridisegna
+    // a pezzi (l'anteprima della card arriva dopo, e cambia altezza), quindi
+    // un solo ripasso non bastava e la pagina risaliva lo stesso.
+    const rimetti = () => {
+      if (box.isConnected && box.scrollTop !== dove) box.scrollTop = dove;
+    };
+    rimetti();
+    requestAnimationFrame(rimetti);
+    clearTimeout(this._rimettiPosto1);
+    clearTimeout(this._rimettiPosto2);
+    this._rimettiPosto1 = setTimeout(rimetti, 60);
+    this._rimettiPosto2 = setTimeout(rimetti, 240);
+  }
+
+  // chi e' che scorre davvero: puo' essere un pezzo della finestra di
+  // Home Assistant, anche dentro a un'ombra
+  _scorrevole() {
+    if (this._boxScorr && this._boxScorr.isConnected) return this._boxScorr;
+    const su = (x) => (x.parentNode ? x.parentNode : (x.host || null));
+    let n = su(this);
+    let passi = 0;
+    while (n && passi < 30) {
+      passi += 1;
+      if (n.nodeType === 1 && n.scrollHeight > n.clientHeight + 4) {
+        const come = getComputedStyle(n).overflowY;
+        if (come === "auto" || come === "scroll") { this._boxScorr = n; return n; }
+      }
+      n = su(n);
+    }
+    return null;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // se Home Assistant mi stacca e mi riattacca (cambio di linguetta) gli
+  // ascoltatori del trascinamento vanno rimessi
+  connectedCallback() {
+    const box = this._postiBox;
+    if (box && box._carta && !this._ascolti) this._pistaTrascina(box._carta);
+    this._ascoltaMisure();
+  }
+
+
+
+
+  // La finestra delle impostazioni si chiude: mi riprendo tutto quello che
+  // avevo lasciato in giro, se no si accumula apertura dopo apertura.
+  disconnectedCallback() {
+    if (this._ascolti) { this._ascolti(); this._ascolti = null; }
+    if (this._ascoltoMisure) { this._ascoltoMisure(); this._ascoltoMisure = null; }
+    clearTimeout(this._propagaDopo);
+    this._propagaDopo = 0;
+    const box = this._postiBox;
+    if (box && box._guarda) { box._guarda.disconnect(); box._guarda = null; }
+    clearTimeout(this._ricontrolla);
+    clearTimeout(this._ricontrolla2);
+    clearTimeout(this._rimedio);
+    clearTimeout(this._scordaForm);
+    clearTimeout(this._ripassoAnt);
+    this._planciaSalvata = null;
+    this._veraSalvata = null;
+  }
+
+
+
+
+  _schemaDi(gruppo) {
+    const dominio = (this._config.entity || "").split(".")[0];
+    const azione = this._config.azione || "toggle";
+    const vale = (nome) => {
+      if (SOLO_AZIONE[nome] && SOLO_AZIONE[nome] !== azione) return false;
+      // le due della batteria si vedono solo dove c'e' davvero una batteria
+      if (nome === "carica_entita" || nome === "scarica_entita") {
+        if (this._config.icona === "batteria") return true;
+        if (this._config.icona && this._config.icona !== "auto") return false;
+        const st0 = (this._hass && this._config.entity)
+          ? this._hass.states[this._config.entity] : null;
+        return iconaAutomatica(this._config.entity, st0) === "batteria";
+      }
+      // nel vestito "come la tua ytmusic-card" la copertina ondeggia e non
+      // gira: l'interruttore del giradischi non comanderebbe niente, e un
+      // interruttore che non fa niente e' peggio che non averlo
+      if (nome === "gira_copertina" && this._config.disposizione === "ytmusic") {
+        return false;
+      }
+      // le voci che dipendono da un interruttore spento non si fanno vedere,
+      // a meno che non abbiano gia' un valore scritto
+      if (DIPENDE[nome] && !DIPENDE[nome](this._config)) {
+        const ora = this._config[nome];
+        const scritto = ora !== undefined && ora !== null && ora !== ""
+          && !(Array.isArray(ora) && !ora.length);
+        if (!scritto) return false;
+      }
+      const ammessi = SOLO_PER[nome];
+      if (!ammessi) return true;
+      if (!dominio) return false;
+      return ammessi.includes(dominio);
+    };
+    const setaccia = (elenco) => elenco.map((voce) => {
+      if (voce.type === "grid" && Array.isArray(voce.schema)) {
+        const dentro = setaccia(voce.schema);
+        return dentro.length ? { ...voce, schema: dentro } : null;
+      }
+      return vale(voce.name) ? voce : null;
+    }).filter(Boolean);
+    return traduciSchema(setaccia(gruppo.schema));
+  }
+
+  // la firma serve a capire se lo schema e' cambiato davvero
+  // com'e' messo adesso un modulo: solo i campi che ha davvero dentro
+  _firmaValori(elenco) {
+    const c = this._config;
+    const dentro = [];
+    const gira = (lista) => (lista || []).forEach((v) => {
+      if (v.schema) { gira(v.schema); return; }
+      if (!v.name) return;
+      const x = c[v.name];
+      dentro.push(v.name + "=" + (x === undefined ? "" : JSON.stringify(x)));
+    });
+    gira(elenco);
+    return dentro.join("|");
+  }
+
+  // I nomi dei campi di un modulo, anche quelli dentro alle griglie
+  _nomiSchema(elenco) {
+    const nomi = [];
+    const gira = (lista) => (lista || []).forEach((v) => {
+      if (v.schema) { gira(v.schema); return; }
+      if (v.name) nomi.push(v.name);
+    });
+    gira(elenco);
+    return nomi;
+  }
+
+  _firmaSchema(elenco) {
+    return JSON.stringify(elenco.map((v) => v.name
+      || (v.schema || []).map((x) => x.name).join("+")));
+  }
+
+  _quantiCampi(elenco) {
+    return elenco.reduce((n, v) => n + (v.schema ? v.schema.length : 1), 0);
+  }
+
+  _aggiornaSchemi() {
+    if (!this._gruppi) return;
+    let primaValida = -1;
+    SEZIONI.forEach((sez, i) => {
+      const suoi = this._gruppi[i] || [];
+      let campi = 0;
+      suoi.forEach((g) => {
+        const nuovo = this._schemaDi(g.gruppo);
+        const firma = this._firmaSchema(nuovo);
+        if (g.form._firma !== firma) {
+          g.form.schema = nuovo;
+          g.form._firma = firma;
+        }
+        let quanti = this._quantiCampi(nuovo);
+        // il modulo puo' essere vuoto ma il gruppo avere i suoi colori
+        const suoiColori = this._coloriDi(g.gruppo);
+        const conColori = !!(suoiColori.length
+          && (!g.gruppo.soloAzione
+              || g.gruppo.soloAzione === (this._config.azione || "toggle")));
+        g.form.hidden = quanti === 0;
+        if (conColori) quanti += suoiColori.length;
+        campi += quanti;
+        // il titoletto sparisce insieme ai suoi campi
+        if (g.titolo) g.titolo.hidden = quanti === 0;
+        if (g.colori) g.colori.hidden = quanti === 0;
+        // il riquadro sparisce con quello che c'e' dentro, se no restano
+        // cornici vuote in mezzo alle impostazioni
+        if (g.scatola) g.scatola.hidden = quanti === 0;
+      });
+      // certe schede hanno anche i riquadri fatti a mano, quindi restano
+      const conBlocchi = ["icona", "sfondo", "tocco", "aspetto",
+        "popup"].includes(sez.chiave);
+      // "Pezzi" c'e' sempre, tranne dentro all'editor di una scheda del
+      // pop-up: li' i pezzi non si spostano e resterebbe una linguetta vuota
+      if (sez.chiave === "pezzi") {
+        const serve = !this._perIlPopup();
+        const b1 = this._tasti[i];
+        if (b1) b1.style.display = serve ? "" : "none";
+        if (!serve) this._pannelli[i].setAttribute("nascosto", "");
+        else if (primaValida === -1) primaValida = i;
+        return;
+      }
+      // il Pop-up si vede solo se al tocco apre davvero un pop-up
+      if (sez.chiave === "popup" && (this._config.azione || "toggle") !== "finestra") {
+        const b2 = this._tasti[i];
+        if (b2) b2.style.display = "none";
+        this._pannelli[i].setAttribute("nascosto", "");
+        return;
+      }
+      if (sez.chiave === "grafico" || sez.chiave === "persone") {
+        // queste due valgono solo dove hanno senso: se non hanno campi,
+        // la scheda sparisce del tutto
+        if (campi === 0) {
+          const b0 = this._tasti[i];
+          if (b0) b0.style.display = "none";
+          this._pannelli[i].setAttribute("nascosto", "");
+          return;
+        }
+      }
+      const utile = campi > 0 || conBlocchi;
+      const bottone = this._tasti[i];
+      if (bottone) bottone.style.display = utile ? "" : "none";
+      if (!utile) this._pannelli[i].setAttribute("nascosto", "");
+      else if (primaValida === -1) primaValida = i;
+    });
+    const scelta = this._tasti.findIndex(
+      (b) => b.hasAttribute("scelta") && b.style.display !== "none");
+    if (scelta === -1 && primaValida !== -1) this._scegliScheda(primaValida);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 // se il file viene caricato due volte (vecchia risorsa /local rimasta
@@ -8534,7 +8711,7 @@ const ConFinestra = (Base) => class extends Base {
         }
       });
     } catch (err) {
-      this._fCorpo.textContent = "Non riesco a creare il contenuto della finestra.";
+      this._fCorpo.textContent = T("Non riesco a creare il contenuto della finestra.");
     }
   }
 
@@ -9397,7 +9574,7 @@ const ConGrafici = (Base) => class extends Base {
       casella.tabIndex = 0;
       const mappa = m.mappa;
       casella.title = m.nome
-        + (mappa ? " - tocca per aprire Google Maps" : " - tocca per i dettagli");
+        + T(mappa ? " - tocca per aprire Google Maps" : " - tocca per i dettagli");
       casella.innerHTML =
         '<span class="simbolo"></span><span class="eti"></span><span class="num"></span>';
       casella.querySelector(".simbolo").textContent = m.simbolo;
@@ -11411,7 +11588,7 @@ const ConPezzi = (Base) => class extends Base {
     if (!cella || cella._maniglia) return;
     const m = document.createElement("div");
     m.className = "maniglia";
-    m.title = "Tieni premuto e trascina per cambiare la misura di questa scheda";
+    m.title = T("Tieni premuto e trascina per cambiare la misura di questa scheda");
     const targa = document.createElement("div");
     targa.className = "misurino";
     cella._maniglia = m;
@@ -14127,7 +14304,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
       }));
     };
     this._meteo.tabIndex = 0;
-    this._meteo.title = "Tocca per le previsioni";
+    this._meteo.title = T("Tocca per le previsioni");
     this._meteo.addEventListener("click", apriMeteo);
     this._meteo.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); apriMeteo(e); }
@@ -14916,7 +15093,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
       bStop.hidden = false;
     } else if (puo & 8192) {
       metti(bStop, "svuota");
-      bStop.title = "Svuota la coda";
+      bStop.title = T("Svuota la coda");
       bStop._servizi = ["clear_playlist"];
       bStop.hidden = false;
     } else if (puo & 256) {

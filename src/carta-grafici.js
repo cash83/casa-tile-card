@@ -754,7 +754,7 @@ export const ConGrafici = (Base) => class extends Base {
       casella.tabIndex = 0;
       const mappa = m.mappa;
       casella.title = m.nome
-        + (mappa ? " - tocca per aprire Google Maps" : " - tocca per i dettagli");
+        + T(mappa ? " - tocca per aprire Google Maps" : " - tocca per i dettagli");
       casella.innerHTML =
         '<span class="simbolo"></span><span class="eti"></span><span class="num"></span>';
       casella.querySelector(".simbolo").textContent = m.simbolo;

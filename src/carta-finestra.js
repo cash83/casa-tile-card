@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // La finestra che si apre al tocco, e le schede che ci stanno dentro.
 
+import { T } from './lingua.js';
 import { riempiRiquadro } from './aiuti.js';
 import { conAlfa, daRgb, scurisci } from './colori.js';
 import { ICONE, aspiraFuori, disegnoAspira, disegnoBatteria, disegnoMdi, indirizzoFoto } from './icone.js';
@@ -393,7 +394,7 @@ export const ConFinestra = (Base) => class extends Base {
         }
       });
     } catch (err) {
-      this._fCorpo.textContent = "Non riesco a creare il contenuto della finestra.";
+      this._fCorpo.textContent = T("Non riesco a creare il contenuto della finestra.");
     }
   }
 

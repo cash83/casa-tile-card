@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // La casella.
 
+import { T } from './lingua.js';
 import { scegliLingua } from './lingua.js';
 import { ConAnteprima } from './carta-anteprima.js';
 import { ConDisegni } from './carta-disegni.js';
@@ -341,7 +342,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       }));
     };
     this._meteo.tabIndex = 0;
-    this._meteo.title = "Tocca per le previsioni";
+    this._meteo.title = T("Tocca per le previsioni");
     this._meteo.addEventListener("click", apriMeteo);
     this._meteo.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); apriMeteo(e); }
@@ -1130,7 +1131,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       bStop.hidden = false;
     } else if (puo & 8192) {
       metti(bStop, "svuota");
-      bStop.title = "Svuota la coda";
+      bStop.title = T("Svuota la coda");
       bStop._servizi = ["clear_playlist"];
       bStop.hidden = false;
     } else if (puo & 256) {
