@@ -1,8 +1,7 @@
 // -*- coding: utf-8 -*-
 // La casella.
 
-import { T } from './lingua.js';
-import { scegliLingua } from './lingua.js';
+import { T, TH, laLingua, scegliLingua } from './lingua.js';
 import { ConAnteprima } from './carta-anteprima.js';
 import { ConDisegni } from './carta-disegni.js';
 import { ConFinestra } from './carta-finestra.js';
@@ -228,7 +227,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
 
   _costruisci() {
     const root = this.attachShadow ? (this.shadowRoot || this.attachShadow({ mode: "open" })) : this;
-    root.innerHTML = `<style>${STILE}</style>
+    root.innerHTML = `<style>${STILE}</style>` + TH(`
       <ha-card tabindex="0">
         <div class="cielo" hidden></div>
         <svg class="iconafondo" viewBox="0 0 64 64" fill="none" aria-hidden="true" hidden></svg>
@@ -326,7 +325,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
           </div>
           <div class="f-corpo"></div>
         </div>
-      </div>`;
+      </div>`);
     this._card = root.querySelector("ha-card");
     this._nome = root.querySelector(".nome");
     this._sotto = root.querySelector(".sotto");
@@ -644,6 +643,8 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this._azione(); }
     });
     this._costruito = true;
+    // in che lingua l'ho scritta: se cambia, la rifaccio
+    this._linguaScocca = laLingua();
   }
 
   _azione() {
@@ -1117,7 +1118,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
 
     const bPlay = this._comandi.querySelector(".play");
     metti(bPlay, suona ? "pausa" : "play");
-    bPlay.title = suona ? "Pausa" : "Riproduci";
+    bPlay.title = suona ? T("Pausa") : T("Riproduci");
 
     this._comandi.querySelector(".prec").hidden = !!puo && !(puo & 16);
     this._comandi.querySelector(".succ").hidden = !!puo && !(puo & 32);
@@ -1412,7 +1413,8 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       }
       return;
     }
-    if (!this._costruito) this._costruisci();
+    // la lingua puo' arrivare dopo la scocca: allora la riscrivo
+    if (!this._costruito || this._linguaScocca !== laLingua()) this._costruisci();
     // se ci sono piu' casse, la card lavora su quella scelta / che suona
     if (this._base) {
       const attiva = this._entitaAttiva();
@@ -1594,7 +1596,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     let sotto = c.sottotitolo || "";
     if (!sotto && !c.sottotitolo_entita && st && c.entity
         && c.entity.split(".")[0] === "weather" && METEO[st.state]) {
-      sotto = METEO[st.state][1];
+      sotto = T(METEO[st.state][1]);
     }
     if (!sotto && !c.sottotitolo_entita && st && c.entity
         && c.entity.split(".")[0] === "media_player") {
@@ -1664,7 +1666,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
         }
       }
       if (sotto) parti.push('<span class="via">\uD83D\uDCCD ' + sotto + "</span>");
-      this._sotto.innerHTML = parti.join("");
+      this._sotto.innerHTML = TH(parti.join(""));
       this._sotto.style.display = parti.length ? "" : "none";
     } else {
       this._sotto.textContent = sotto;

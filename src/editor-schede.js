@@ -1,7 +1,7 @@
 // -*- coding: utf-8 -*-
 // Le schede del pop-up: sceglierle, ordinarle, vestirle.
 
-import { T } from './lingua.js';
+import { T, TH } from './lingua.js';
 import { SCHEDA_APERTA } from './aiuti.js';
 import { SCHEDA_MANO, SCHEDE_ALTRE, SCHEDE_PRONTE, SEZIONI, nomeScheda } from './schema.js';
 import { segno } from './segni.js';
@@ -638,11 +638,11 @@ export const ConSchede = (Base) => class extends Base {
       + "|" + this._apertaIdx + "|" + (this._pickerAperto ? 1 : 0);
     if (!forza && this._firmaBlocco === firma) return;
     this._firmaBlocco = firma;
-    this._blocco.innerHTML =
+    this._blocco.innerHTML = TH(
       "<h4>Schede dentro il pop-up</h4>" +
       "<p class='aiuto'>Aggiungi tutte le schede che vuoi: sono le stesse di Home Assistant, " +
       "e le puoi modificare quando vuoi. Per riordinarle tieni premuto il "
-      + "puntino a sinistra e trascinale.</p>";
+      + "puntino a sinistra e trascinale.</p>");
 
     if (!lista.length) {
       const vuoto = document.createElement("div");

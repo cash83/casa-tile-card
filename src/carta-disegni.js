@@ -194,12 +194,12 @@ export const ConDisegni = (Base) => class extends Base {
         const u = st.attributes.temperature_unit || "°C";
         return Math.round(t) + " " + u;
       }
-      return (METEO[st.state] || [null, st.state])[1];
+      return T((METEO[st.state] || [null, st.state])[1]);
     }
     if (dominio === "light") {
-      if (st.state !== "on") return "Spento";
+      if (st.state !== "on") return T("Spento");
       const b = st.attributes.brightness;
-      return b ? Math.round(b / 2.55) + "%" : "Acceso";
+      return b ? Math.round(b / 2.55) + "%" : T("Acceso");
     }
     if (dominio === "climate") {
       const t = st.attributes.current_temperature;

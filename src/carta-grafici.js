@@ -1,7 +1,7 @@
 // -*- coding: utf-8 -*-
 // Cielo, meteo, grafico, misure, barra e tapparella in viaggio.
 
-import { T } from './lingua.js';
+import { T, laLocale } from './lingua.js';
 import { PANNELLI_APERTI, PAROLE, RICERCHE, VELOCITA_TAPPARELLE, fotoDi, quantoLontano } from './aiuti.js';
 import { METEO, coloreTemperatura, daRgb } from './colori.js';
 import { tagliaTapparella } from './icone.js';
@@ -166,7 +166,7 @@ export const ConGrafici = (Base) => class extends Base {
         if (!isNaN(km) && km < 0.3) return "";
         if (!isNaN(km)) {
           pezzi.push((km < 100 ? (Math.round(km * 10) / 10) : Math.round(km))
-            .toLocaleString("it-IT") + " km");
+            .toLocaleString(laLocale()) + " km");
         }
         const n2 = parseFloat(suo.state);
         const u2 = suo.attributes.unit_of_measurement || "";
@@ -176,7 +176,7 @@ export const ConGrafici = (Base) => class extends Base {
           pezzi.push(ore ? ore + " h" + (min ? " " + (min < 10 ? "0" : "") + min : "")
             : min + " min");
         } else if (!isNaN(n2)) {
-          pezzi.push((Math.round(n2 * 10) / 10).toLocaleString("it-IT")
+          pezzi.push((Math.round(n2 * 10) / 10).toLocaleString(laLocale())
             + (u2 ? " " + u2 : ""));
         } else {
           pezzi.push(suo.state);
@@ -196,8 +196,8 @@ export const ConGrafici = (Base) => class extends Base {
     if (km < 1) return Math.round(km * 1000) + " m da casa";
     // sopra i 30 km la differenza con la strada si sente: lo dico
     const numero = km < 100
-      ? (Math.round(km * 10) / 10).toLocaleString("it-IT")
-      : Math.round(km).toLocaleString("it-IT");
+      ? (Math.round(km * 10) / 10).toLocaleString(laLocale())
+      : Math.round(km).toLocaleString(laLocale());
     return numero + " km da casa" + (km > 30 ? " in linea d’aria" : "");
   }
 
@@ -475,7 +475,7 @@ export const ConGrafici = (Base) => class extends Base {
       const simbolo = document.createElement("span");
       simbolo.textContent = voce[0];
       const parola = document.createElement("span");
-      parola.textContent = voce[1];
+      parola.textContent = T(voce[1]);
       this._cond.append(simbolo, parola);
     }
   }
@@ -696,13 +696,13 @@ export const ConGrafici = (Base) => class extends Base {
       ? (this._hass.states[this._config.entity].attributes.unit_of_measurement || "")
       : "";
     const quando = punto.t
-      ? new Date(punto.t).toLocaleString("it-IT",
+      ? new Date(punto.t).toLocaleString(laLocale(),
           { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
       : "";
     this._cartellino.hidden = false;
     this._cartellino.style.left = Math.min(85, Math.max(15, xy[0])) + "%";
     this._cartellino.innerHTML = "<b>" + (Math.round(punto.v * 10) / 10)
-      .toLocaleString("it-IT") + (u ? " " + u : "") + "</b>"
+      .toLocaleString(laLocale()) + (u ? " " + u : "") + "</b>"
       + (quando ? "<span>" + quando + "</span>" : "");
   }
 

@@ -188,17 +188,43 @@ const CIELI = {
 // dritto e la traduzione non si aggancia piu', in silenzio.
 
 let LINGUA = 'it';
+// La lingua vera, per come si scrivono numeri e date: un tedesco legge le
+// scritte in inglese ma i numeri li vuole coi suoi punti.
+let LOCALE = 'it-IT';
+let LOCALE_BUONA = null;
 
 // Che lingua parla l'utente lo sa gia' Home Assistant: gliela chiedo.
 // Tutto quello che non e' italiano prende l'inglese.
 function scegliLingua(hass) {
   const l = String((hass && ((hass.locale && hass.locale.language) || hass.language)) || '')
     .toLowerCase();
+  // Se non lo so ancora NON decido: `setConfig` puo' arrivare prima di
+  // `hass`, e mettere 'en' li' vorrebbe dire scrivere le linguette in
+  // inglese a un utente italiano - si scrivono una volta sola, quindi
+  // non si rimedia piu'.
+  if (!l) return LINGUA;
+  LOCALE = l;
+  LOCALE_BUONA = null;
   LINGUA = l.indexOf('it') === 0 ? 'it' : 'en';
   return LINGUA;
 }
 
 function laLingua() { return LINGUA; }
+
+// Per toLocaleString: numeri e date nel formato di chi guarda. La sigla
+// arriva da Home Assistant e potrebbe non piacere a Intl: la provo una
+// volta sola, perche' un errore qui lascerebbe la casella bianca.
+function laLocale() {
+  if (LOCALE_BUONA === null) {
+    try {
+      (0).toLocaleString(LOCALE);
+      LOCALE_BUONA = LOCALE;
+    } catch (e) {
+      LOCALE_BUONA = LINGUA === 'it' ? 'it-IT' : 'en-GB';
+    }
+  }
+  return LOCALE_BUONA;
+}
 
 // Se la scritta non c'e' nel dizionario torna com'era: meglio una frase in
 // italiano che un buco.
@@ -226,6 +252,31 @@ function traduciSchema(elenco) {
         select: { ...voce.selector.select,
           options: opz.map((o) => (o && o.label ? { ...o, label: T(o.label) } : o)) } } };
   });
+}
+
+// Le scritte dentro a un pezzo di HTML scritto a mano (innerHTML): traduco
+// quello che sta FRA i tag e non tocco i tag. Il testo che non e' nel
+// dizionario resta com'e', come in T(). Serve una passata sola per blocco,
+// e i blocchi si costruiscono una volta sola.
+function TH(html) {
+  if (LINGUA === 'it' || !html) return html;
+  return String(html)
+    .replace(/>([^<>]+)</g, (tutto, dentro) => {
+      const pulito = dentro.trim();
+      if (!pulito) return tutto;
+      const t = EN[pulito];
+      return t === undefined ? tutto : '>' + dentro.replace(pulito, t) + '<';
+    })
+    // meta' della scocca sono `title=`: i tastini del lettore non hanno
+    // scritte, solo il fumetto che dice cosa fanno.
+    .replace(/(title|placeholder|aria-label)="([^"<>]+)"/g, (tutto, att, dentro) => {
+      const t = EN[dentro.trim()];
+      return t === undefined ? tutto : att + '="' + t + '"';
+    })
+    .replace(/(title|placeholder|aria-label)='([^'<>]+)'/g, (tutto, att, dentro) => {
+      const t = EN[dentro.trim()];
+      return t === undefined ? tutto : att + "='" + t + "'";
+    });
 }
 
 const EN = {
@@ -417,6 +468,266 @@ const EN = {
   "Sboccia dalla casella che hai toccato": "Blooms from the tile you tapped",
   "Entra dal basso, come un cassetto": "Slides up from the bottom, like a drawer",
   "Nessuna animazione": "No animation",
+  "pausa": "pause",
+  "acqua": "water",
+  "aereo": "plane",
+  "aggiornamento": "update",
+  "albero": "tree",
+  "allarme": "alarm",
+  "altoparlante": "speaker",
+  "ascensore": "lift",
+  "asciugatrice": "tumble dryer",
+  "aspirapolvere": "vacuum",
+  "assistente": "assistant",
+  "attenzione": "warning",
+  "attrezzi": "tools",
+  "autobus": "bus",
+  "automobile": "car",
+  "bagno": "bathroom",
+  "bambino": "child",
+  "batteria": "battery",
+  "battito": "heartbeat",
+  "benzina": "petrol",
+  "bici": "bike",
+  "bilancia": "scales",
+  "birra": "beer",
+  "bollitore": "kettle",
+  "bombola": "gas bottle",
+  "bussola": "compass",
+  "cacciavite": "screwdriver",
+  "caffe": "coffee",
+  "caldaia": "boiler",
+  "calendario": "calendar",
+  "campana": "bell",
+  "campanello": "doorbell",
+  "campanello_video": "video doorbell",
+  "cancello": "gate",
+  "candela": "candle",
+  "cane": "dog",
+  "carrello": "trolley",
+  "casa": "house",
+  "casa_corrente": "house power",
+  "cassetta_posta": "letterbox",
+  "chiamata": "call",
+  "chiave": "key",
+  "chiave_inglese": "spanner",
+  "ciabatta": "power strip",
+  "condizionatore": "air conditioner",
+  "contatore": "meter",
+  "contatore_luce": "electricity meter",
+  "corrente_ac": "AC power",
+  "corrente_dc": "DC power",
+  "corriere": "courier",
+  "corsa": "running",
+  "cucina": "kitchen",
+  "cuffie": "headphones",
+  "cuore": "heart",
+  "deumidificatore": "dehumidifier",
+  "divano": "sofa",
+  "erba": "grass",
+  "faretti": "spotlights",
+  "filtro_aria": "air filter",
+  "finestra_aperta": "open window",
+  "fiore": "flower",
+  "fornello": "hob",
+  "forno": "oven",
+  "frigo": "fridge",
+  "frigorifero": "fridge",
+  "fulmine": "lightning",
+  "fumo": "smoke",
+  "fuoco": "fire",
+  "gatto": "cat",
+  "gioco": "game",
+  "goccia": "drop",
+  "gruppo": "group",
+  "ingranaggio": "cog",
+  "interruttore": "switch",
+  "irrigazione": "irrigation",
+  "lampadina_accesa": "bulb on",
+  "lampione": "street lamp",
+  "lavastoviglie": "dishwasher",
+  "lavatrice": "washing machine",
+  "lavatrice_mdi": "washing machine (mdi)",
+  "lavoro": "work",
+  "led": "LED",
+  "letto": "bed",
+  "libro": "book",
+  "lucchetto": "padlock",
+  "lucchetto_aperto": "open padlock",
+  "luce": "light",
+  "luna": "moon",
+  "macchina_caffe": "coffee machine",
+  "manopola": "knob",
+  "mappa": "map",
+  "martello": "hammer",
+  "medicina": "medicine",
+  "mela": "apple",
+  "messaggio": "message",
+  "microfono": "microphone",
+  "microonde": "microwave",
+  "misura": "gauge",
+  "moto": "motorbike",
+  "movimento": "motion",
+  "musica": "music",
+  "nebbia": "fog",
+  "neve": "snow",
+  "notifica": "notification",
+  "nuvola": "cloud",
+  "nuvola_cloud": "cloud",
+  "occhio": "eye",
+  "ombrello": "umbrella",
+  "orologio": "clock",
+  "orologio_polso": "watch",
+  "pacco": "parcel",
+  "palestra": "gym",
+  "pannello_solare": "solar panel",
+  "parcheggio": "parking",
+  "pc_fisso": "desktop PC",
+  "persona": "person",
+  "pesce": "fish",
+  "pianta": "plant",
+  "pioggia": "rain",
+  "piscina": "pool",
+  "pompa": "pump",
+  "porta": "door",
+  "porta_scorrevole": "sliding door",
+  "portatile": "laptop",
+  "posizione": "location",
+  "powerstation": "power station",
+  "presa": "socket",
+  "purificatore": "air purifier",
+  "radiatore": "radiator",
+  "regolatore": "dimmer",
+  "ricarica_auto": "car charger",
+  "riciclo": "recycling",
+  "robot_aspirapolvere": "robot vacuum",
+  "robot_mdi": "robot (mdi)",
+  "scale": "stairs",
+  "scena": "scene",
+  "scopa": "broom",
+  "scrivania": "desk",
+  "scudo": "shield",
+  "scuola": "school",
+  "sensore_movimento": "motion sensor",
+  "serranda": "shutter",
+  "serratura": "lock",
+  "sirena": "siren",
+  "sole": "sun",
+  "sole_nuvole": "sun and clouds",
+  "sonno": "sleep",
+  "spazzatura": "rubbish",
+  "spina": "plug",
+  "stampante": "printer",
+  "stampante3d": "3D printer",
+  "stampante_3d": "3D printer (mdi)",
+  "stanza": "room",
+  "stella": "star",
+  "striscia_led": "LED strip",
+  "sveglia": "alarm clock",
+  "tachimetro": "speedometer",
+  "tapparella": "roller blind",
+  "telecamera": "camera",
+  "telecomando": "remote",
+  "telefono": "phone",
+  "televisore": "TV",
+  "temporale": "storm",
+  "tende": "curtains",
+  "termometro": "thermometer",
+  "termosifone": "radiator",
+  "termostato": "thermostat",
+  "tosaerba": "lawn mower",
+  "tostapane": "toaster",
+  "traliccio": "pylon",
+  "trasferisci": "transfer",
+  "treno": "train",
+  "tv_mdi": "TV (mdi)",
+  "umidificatore": "humidifier",
+  "valigia": "suitcase",
+  "ventilatore": "fan",
+  "vento": "wind",
+  "ventola": "fan",
+  "vino": "wine",
+  "wc": "toilet",
+  "wifi_mdi": "wifi (mdi)",
+  "Immagine di quando e' acceso (anche una gif)": "Image for when it is on (a GIF works too)",
+  "Pausa": "Pause",
+  "Premi il pulsante: si apre la galleria del telefono o le cartelle del PC. In alternativa scrivi l'indirizzo nel campo qui sopra (es. /local/foto.jpg).": "Press the button: your phone gallery or your PC folders open. Or type the address in the field above (e.g. /local/photo.jpg).",
+  "Riproduci": "Play",
+  "Scegli un'altra foto": "Pick another photo",
+  "Scegli una foto dal telefono o dal PC": "Pick a photo from your phone or PC",
+  "Usa un'immagine mia (telefono o PC)": "Use a picture of mine (phone or PC)",
+  "si vede solo mentre lavora: alla base torna quella di sopra": "it shows only while it is working: back on the dock the one above returns",
+  "\" non funziona con questa entita.": "\" does not work with this entity.",
+  "Album": "Albums",
+  "Apri": "Open",
+  "Apri la serratura": "Unlock",
+  "Artisti": "Artists",
+  "Brani": "Tracks",
+  "Brani, album, artisti...": "Tracks, albums, artists...",
+  "Che ne faccio": "What do I do with it",
+  "Chiudi": "Close",
+  "Chiudi a chiave": "Lock",
+  "Consigliati": "Recommended",
+  "Distanza in linea d’aria dal punto che Home Assistant considera casa: su strada e sempre di piu": "Straight-line distance from the point Home Assistant calls home: by road it is always more",
+  "Eccezionale": "Exceptional",
+  "Grandine": "Hail",
+  "La scheda \"": "The card \"",
+  "Libreria": "Library",
+  "Mostra la coda": "Show the queue",
+  "Nebbia": "Fog",
+  "Neve": "Snow",
+  "Nevischio": "Sleet",
+  "Nuvoloso": "Cloudy",
+  "Parz. nuvoloso": "Partly cloudy",
+  "Pioggia": "Rain",
+  "Pioggia forte": "Heavy rain",
+  "Play / pausa": "Play / pause",
+  "Playlist": "Playlists",
+  "Porta qui la coda che sta suonando": "Bring the playing queue here",
+  "Precedente": "Previous",
+  "Preferito": "Favourite",
+  "Radio": "Radio",
+  "Recenti": "Recent",
+  "Schermo intero": "Full screen",
+  "Sereno": "Clear",
+  "Sfoglia la musica": "Browse the music",
+  "Successivo": "Next",
+  "Temporale": "Storm",
+  "Torna alla base": "Back to the dock",
+  "Tutto": "Everything",
+  "Vento": "Windy",
+  "Ventoso": "Windy",
+  "da poco": "just now",
+  "da un giorno": "for a day",
+  "da {n} giorni": "for {n} days",
+  "da {n} h": "for {n} h",
+  "da {n} h {m}": "for {n} h {m}",
+  "da {n} min": "for {n} min",
+  "Aggiungi tutte le schede che vuoi: sono le stesse di Home Assistant, e le puoi modificare quando vuoi. Per riordinarle tieni premuto il puntino a sinistra e trascinale.": "Add as many cards as you like: they are the Home Assistant ones, and you can change them whenever you want. To reorder them hold the dot on the left and drag.",
+  "Automatica": "Automatic",
+  "Casse": "Speakers",
+  "Casse del gruppo": "Speakers in the group",
+  "Cerca": "Search",
+  "Cerca l'icona: luce, presa, porta, auto...": "Search the icon: light, plug, door, car...",
+  "Contenuto del pop-up": "Pop-up contents",
+  "Dove va ogni pezzo": "Where each piece goes",
+  "In coda": "Queue",
+  "La ricerca ha bisogno di Music Assistant: qui non lo trovo.": "Search needs Music Assistant: I cannot find it here.",
+  "La ricerca non ha risposto (": "The search did not answer (",
+  "Non c'e' niente in coda": "The queue is empty",
+  "Non ho trovato niente.": "I found nothing.",
+  "Non riesco a leggere la coda": "I cannot read the queue",
+  "Non risponde (": "No answer (",
+  "Per il meteo non serve sceglierla: l'icona la decide il tempo che fa (sole, nuvole, pioggia, neve, temporale, nebbia, vento) e cambia da sola.": "For weather you do not need to pick one: the icon follows the sky (sun, clouds, rain, snow, storm, fog, wind) and changes by itself.",
+  "Prendi il nome, il valore, l'icona o una misura e trascinali dove vuoi dentro alla casella qui sotto. Tocca un pezzo e sul suo angolo compare un quadratino giallo: tienilo premuto e trascina per ingrandirlo o rimpicciolirlo.": "Pick up the name, the value, the icon or a reading and drag them wherever you like inside the tile below. Tap a piece and a little yellow square appears on its corner: hold it and drag to make it bigger or smaller.",
+  "Qui non c'e niente.": "Nothing here.",
+  "Schede dentro il pop-up": "Cards inside the pop-up",
+  "Sensori collegati a questa entita": "Sensors related to this entity",
+  "Sorgente": "Source",
+  "Sto cercando...": "Searching...",
+  "Tocca la ruota per scegliere il colore che vuoi: e' quello dell'alone, del bordo e di tutti gli effetti.": "Tap the wheel to pick the colour you want: it is the one of the glow, the border and every effect.",
+  "Un attimo...": "One moment...",
+  "errore": "error",
   " - tocca per aprire Google Maps": " - tap to open Google Maps",
   " - tocca per i dettagli": " - tap for the details",
   "Stai sistemando: questa casella. Per una scheda del pop-up, toccala nell'anteprima qui di fianco.": "You are arranging: this tile. For a card in the pop-up, tap it in the preview beside.",
@@ -700,7 +1011,7 @@ function valoreScritto(st) {
     const bella = durataBella(n, u);
     if (bella) return bella;
   }
-  return (Math.round(n * 10) / 10).toLocaleString("it-IT") + (u ? " " + u : "");
+  return (Math.round(n * 10) / 10).toLocaleString(laLocale()) + (u ? " " + u : "");
 }
 
 // -*- coding: utf-8 -*-
@@ -1467,14 +1778,20 @@ function daQuanto(quando) {
   const t = Date.parse(quando);
   if (isNaN(t)) return "";
   const sec = Math.max(0, (Date.now() - t) / 1000);
-  if (sec < 60) return "da poco";
+  // Le frasi col numero in mezzo hanno il segnaposto {n}: in italiano
+  // T() torna la chiave com'e', quindi esce esattamente quello di prima.
+  if (sec < 60) return T("da poco");
   const min = Math.round(sec / 60);
-  if (min < 60) return "da " + min + " min";
+  if (min < 60) return T("da {n} min").replace("{n}", min);
   const ore = Math.floor(min / 60);
   const resto = min % 60;
-  if (ore < 24) return "da " + ore + " h" + (resto ? " " + resto : "");
+  if (ore < 24) {
+    return (resto ? T("da {n} h {m}").replace("{m}", resto) : T("da {n} h"))
+      .replace("{n}", ore);
+  }
   const giorni = Math.round(ore / 24);
-  return giorni === 1 ? "da un giorno" : "da " + giorni + " giorni";
+  return giorni === 1 ? T("da un giorno")
+    : T("da {n} giorni").replace("{n}", giorni);
 }
 
 // quanto e' lontano, in linea d'aria (formula dell'emisenoverso)
@@ -2903,12 +3220,16 @@ const ConIcone = (Base) => class extends Base {
     if (!box) return;
     if (!box._fatto) {
       box._fatto = true;
-      box.innerHTML = "<h4>Icona</h4>"
+      box.innerHTML = TH("<h4>Icona</h4>"
         + "<p class='aiuto notaMeteo' hidden>Per il meteo non serve sceglierla: "
         + "l'icona la decide il tempo che fa (sole, nuvole, pioggia, neve, "
         + "temporale, nebbia, vento) e cambia da sola.</p>"
         + "<input class='cercaIcona' type='search' placeholder='Cerca l&apos;icona: luce, presa, porta, auto...'>"
-        + "<div class='iconePicker'></div>";
+        + "<div class='iconePicker'></div>");
+      // il placeholder e' un attributo: TH() traduce quello che sta FRA i
+      // tag, quindi questo lo scrivo da qui.
+      box.querySelector(".cercaIcona").placeholder =
+        T("Cerca l'icona: luce, presa, porta, auto...");
 
       const griglia = box.querySelector(".iconePicker");
       // del meteo ne basta una: tanto poi la sceglie il tempo che fa
@@ -2924,8 +3245,8 @@ const ConIcone = (Base) => class extends Base {
         b.dataset.nome = nome;
         if (nome === "auto") {
           b.classList.add("sceltaAuto");
-          b.innerHTML = '<span class="segnoAuto">\u2726</span>'
-            + '<span class="nome">Automatica</span>';
+          b.innerHTML = TH('<span class="segnoAuto">\u2726</span>'
+            + '<span class="nome">Automatica</span>');
           b.title = T("La sceglie la card guardando l'entita");
           b.addEventListener("click", () => {
             this._config = { ...this._config, icona: "auto" };
@@ -2942,7 +3263,9 @@ const ConIcone = (Base) => class extends Base {
           .replace(/url\(#([a-z0-9]+)\)/g, "url(#$1_p" + k + ")");
         b.innerHTML = '<svg viewBox="0 0 64 64" fill="none">' + dentro
           + '</svg><span class="nome"></span>';
-        b.querySelector(".nome").textContent = nome;
+        // il nome scritto sotto e' tradotto, la chiave che finisce
+        // nella plancia (`dataset.nome`) resta quella italiana
+        b.querySelector(".nome").textContent = T(nome);
         b.addEventListener("click", () => {
           this._config = { ...this._config, icona: nome };
           this._emetti();
@@ -2951,10 +3274,10 @@ const ConIcone = (Base) => class extends Base {
         griglia.appendChild(b);
       });
 
-      tin.innerHTML = "<h4>Colore quando e accesa</h4>"
+      tin.innerHTML = TH("<h4>Colore quando e accesa</h4>"
         + "<p class='aiuto'>Tocca la ruota per scegliere il colore che vuoi: "
         + "e' quello dell'alone, del bordo e di tutti gli effetti.</p>"
-        + "<div class='coloriPicker'></div>";
+        + "<div class='coloriPicker'></div>");
       const fila = tin.querySelector(".coloriPicker");
       // niente piu' pallini fissi: bastano la ruota e "come la lampada"
       [].forEach((nome) => {
@@ -3020,17 +3343,18 @@ const ConIcone = (Base) => class extends Base {
       // un'icona tutta sua, presa dal telefono o dal PC - e la sua gemella
       // per quando e' acceso
       box._suaIcona = this._rigaImmagine(box, "icona_immagine",
-        "Usa un'immagine mia (telefono o PC)", "");
+        T("Usa un'immagine mia (telefono o PC)"), "");
       box._suaAccesa = this._rigaImmagine(box, "icona_immagine_accesa",
-        "Immagine di quando e' acceso (anche una gif)",
-        "si vede solo mentre lavora: alla base torna quella di sopra");
+        T("Immagine di quando e' acceso (anche una gif)"),
+        T("si vede solo mentre lavora: alla base torna quella di sopra"));
 
       const cerca = box.querySelector(".cercaIcona");
       cerca.addEventListener("input", () => {
         const q = cerca.value.trim().toLowerCase();
         box.querySelectorAll(".sceltaIcona").forEach((b) => {
           const nome = b.dataset.nome || "";
-          const parole = (SINONIMI[nome] || MDI_PAROLE[nome] || "") + " " + nome;
+          const parole = (SINONIMI[nome] || MDI_PAROLE[nome] || "")
+            + " " + nome + " " + T(nome);
           b.hidden = !!q && nome !== "auto"
             && parole.toLowerCase().replace(/_/g, " ").indexOf(q) < 0;
         });
@@ -3265,7 +3589,7 @@ const ConIcone = (Base) => class extends Base {
       return;
     }
     box._firma = firma;
-    box.innerHTML = "<h4>Sensori collegati a questa entita</h4>";
+    box.innerHTML = TH("<h4>Sensori collegati a questa entita</h4>");
     if (!this._config.entity) {
       const vuoto = document.createElement("div");
       vuoto.className = "vuoto";
@@ -3396,7 +3720,7 @@ const ConIcone = (Base) => class extends Base {
     const firma = String(this._config.sfondo_immagine || "");
     if (box._firma === firma) return;
     box._firma = firma;
-    box.innerHTML = "<h4>Foto di sfondo</h4>";
+    box.innerHTML = TH("<h4>Foto di sfondo</h4>");
     const riga = document.createElement("div");
     riga.className = "foto-riga";
 
@@ -3415,8 +3739,8 @@ const ConIcone = (Base) => class extends Base {
     scegli.className = "bt";
     scegli.type = "button";
     scegli.textContent = this._config.sfondo_immagine
-      ? "Scegli un'altra foto"
-      : "Scegli una foto dal telefono o dal PC";
+      ? T("Scegli un'altra foto")
+      : T("Scegli una foto dal telefono o dal PC");
 
     const file = document.createElement("input");
     file.type = "file";
@@ -3455,8 +3779,9 @@ const ConIcone = (Base) => class extends Base {
     this._notaFoto.className = "foto-nota";
     this._notaFoto.textContent = this._config.sfondo_immagine
       ? this._config.sfondo_immagine
-      : "Premi il pulsante: si apre la galleria del telefono o le cartelle del PC. "
-        + "In alternativa scrivi l'indirizzo nel campo qui sopra (es. /local/foto.jpg).";
+      : T("Premi il pulsante: si apre la galleria del telefono o le cartelle "
+        + "del PC. In alternativa scrivi l'indirizzo nel campo qui sopra "
+        + "(es. /local/foto.jpg).");
     box.appendChild(this._notaFoto);
   }
 
@@ -3813,11 +4138,11 @@ const ConPosti = (Base) => class extends Base {
     }
     if (!box._fatto) {
       box._fatto = true;
-      box.innerHTML = "<h4>Dove va ogni pezzo</h4>"
+      box.innerHTML = TH("<h4>Dove va ogni pezzo</h4>"
         + "<p class='aiuto'>Prendi il nome, il valore, l'icona o una misura e "
         + "trascinali dove vuoi dentro alla casella qui sotto. Tocca un pezzo "
         + "e sul suo angolo compare un quadratino giallo: tienilo premuto e "
-        + "trascina per ingrandirlo o rimpicciolirlo.</p>";
+        + "trascina per ingrandirlo o rimpicciolirlo.</p>");
       const pista = document.createElement("div");
       pista.className = "pista";
       const carta = document.createElement("casa-tile");
@@ -6506,11 +6831,11 @@ const ConSchede = (Base) => class extends Base {
       + "|" + this._apertaIdx + "|" + (this._pickerAperto ? 1 : 0);
     if (!forza && this._firmaBlocco === firma) return;
     this._firmaBlocco = firma;
-    this._blocco.innerHTML =
+    this._blocco.innerHTML = TH(
       "<h4>Schede dentro il pop-up</h4>" +
       "<p class='aiuto'>Aggiungi tutte le schede che vuoi: sono le stesse di Home Assistant, " +
       "e le puoi modificare quando vuoi. Per riordinarle tieni premuto il "
-      + "puntino a sinistra e trascinale.</p>";
+      + "puntino a sinistra e trascinale.</p>");
 
     if (!lista.length) {
       const vuoto = document.createElement("div");
@@ -6954,7 +7279,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.15.0";
+const VERSIONE = "2.15.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -7073,6 +7398,14 @@ class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLElement))
   }
 
   _render() {
+    // le linguette si scrivono una volta sola: se la lingua e' arrivata
+    // dopo, butto via quello che c'e' e riscrivo.
+    if (this._costruito && this._linguaScocca !== laLingua()) {
+      this.innerHTML = "";
+      this._costruito = false;
+      this._formaOra = undefined;
+      this._pannelli = [];
+    }
     if (!this._costruito) {
       const stile = document.createElement("style");
       stile.textContent = STILE_EDITOR + STILE_SELETTORE;
@@ -7246,6 +7579,7 @@ class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLElement))
       });
       this._barra.appendChild(this._targa);
       this._costruito = true;
+      this._linguaScocca = laLingua();
     }
     // Il selettore del colore manda una modifica a ogni movimento del dito:
     // rifare tutto ogni volta impastava le impostazioni. Quindi rimando il
@@ -8169,12 +8503,12 @@ const ConDisegni = (Base) => class extends Base {
         const u = st.attributes.temperature_unit || "°C";
         return Math.round(t) + " " + u;
       }
-      return (METEO[st.state] || [null, st.state])[1];
+      return T((METEO[st.state] || [null, st.state])[1]);
     }
     if (dominio === "light") {
-      if (st.state !== "on") return "Spento";
+      if (st.state !== "on") return T("Spento");
       const b = st.attributes.brightness;
-      return b ? Math.round(b / 2.55) + "%" : "Acceso";
+      return b ? Math.round(b / 2.55) + "%" : T("Acceso");
     }
     if (dominio === "climate") {
       const t = st.attributes.current_temperature;
@@ -8409,7 +8743,7 @@ const ConFinestra = (Base) => class extends Base {
     }
     this._firmaAnt = firma;
     this._segnoAnteprima();
-    box.innerHTML = "<div class='titoletto'>Contenuto del pop-up</div>";
+    box.innerHTML = TH("<div class='titoletto'>Contenuto del pop-up</div>");
     const dentro = document.createElement("div");
     dentro.className = "pa-dentro";
     this._misureFinestra(dentro);
@@ -8706,7 +9040,8 @@ const ConFinestra = (Base) => class extends Base {
         } catch (err) {
           const avviso = document.createElement("div");
           avviso.style.cssText = "color:#ff9a9a;font-size:13px";
-          avviso.textContent = 'La scheda "' + cfg.type + '" non funziona con questa entita.';
+          avviso.textContent = T('La scheda "') + cfg.type
+            + T('" non funziona con questa entita.');
           this._fCorpo.appendChild(avviso);
         }
       });
@@ -8986,7 +9321,7 @@ const ConGrafici = (Base) => class extends Base {
         if (!isNaN(km) && km < 0.3) return "";
         if (!isNaN(km)) {
           pezzi.push((km < 100 ? (Math.round(km * 10) / 10) : Math.round(km))
-            .toLocaleString("it-IT") + " km");
+            .toLocaleString(laLocale()) + " km");
         }
         const n2 = parseFloat(suo.state);
         const u2 = suo.attributes.unit_of_measurement || "";
@@ -8996,7 +9331,7 @@ const ConGrafici = (Base) => class extends Base {
           pezzi.push(ore ? ore + " h" + (min ? " " + (min < 10 ? "0" : "") + min : "")
             : min + " min");
         } else if (!isNaN(n2)) {
-          pezzi.push((Math.round(n2 * 10) / 10).toLocaleString("it-IT")
+          pezzi.push((Math.round(n2 * 10) / 10).toLocaleString(laLocale())
             + (u2 ? " " + u2 : ""));
         } else {
           pezzi.push(suo.state);
@@ -9016,8 +9351,8 @@ const ConGrafici = (Base) => class extends Base {
     if (km < 1) return Math.round(km * 1000) + " m da casa";
     // sopra i 30 km la differenza con la strada si sente: lo dico
     const numero = km < 100
-      ? (Math.round(km * 10) / 10).toLocaleString("it-IT")
-      : Math.round(km).toLocaleString("it-IT");
+      ? (Math.round(km * 10) / 10).toLocaleString(laLocale())
+      : Math.round(km).toLocaleString(laLocale());
     return numero + " km da casa" + (km > 30 ? " in linea d’aria" : "");
   }
 
@@ -9295,7 +9630,7 @@ const ConGrafici = (Base) => class extends Base {
       const simbolo = document.createElement("span");
       simbolo.textContent = voce[0];
       const parola = document.createElement("span");
-      parola.textContent = voce[1];
+      parola.textContent = T(voce[1]);
       this._cond.append(simbolo, parola);
     }
   }
@@ -9516,13 +9851,13 @@ const ConGrafici = (Base) => class extends Base {
       ? (this._hass.states[this._config.entity].attributes.unit_of_measurement || "")
       : "";
     const quando = punto.t
-      ? new Date(punto.t).toLocaleString("it-IT",
+      ? new Date(punto.t).toLocaleString(laLocale(),
           { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
       : "";
     this._cartellino.hidden = false;
     this._cartellino.style.left = Math.min(85, Math.max(15, xy[0])) + "%";
     this._cartellino.innerHTML = "<b>" + (Math.round(punto.v * 10) / 10)
-      .toLocaleString("it-IT") + (u ? " " + u : "") + "</b>"
+      .toLocaleString(laLocale()) + (u ? " " + u : "") + "</b>"
       + (quando ? "<span>" + quando + "</span>" : "");
   }
 
@@ -10006,7 +10341,7 @@ const ConMusica = (Base) => class extends Base {
       const b = document.createElement("button");
       b.type = "button";
       b.dataset.chiave = coppia[0];
-      b.textContent = coppia[1];
+      b.textContent = T(coppia[1]);
       b.addEventListener("click", () =>
         this._caricaFonte(coppia[0], coppia[1]));
       dove.appendChild(b);
@@ -10052,20 +10387,20 @@ const ConMusica = (Base) => class extends Base {
   _caricaSfoglia(chiave, titolo) {
     const pan = this._panSfoglia;
     const elenco = pan.querySelector(".s-elenco");
-    pan.querySelector(".s-titolo").textContent = titolo;
-    elenco.innerHTML = '<div class="s-nota">Un attimo...</div>';
+    pan.querySelector(".s-titolo").textContent = T(titolo);
+    elenco.innerHTML = TH('<div class="s-nota">Un attimo...</div>');
     const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
     const finita = (voci) => this._scriviSfoglia(voci, titolo);
     const male = (e) => {
-      elenco.innerHTML = '<div class="s-nota">Non risponde ('
-        + ((e && e.message) || "errore") + ")</div>";
+      elenco.innerHTML = '<div class="s-nota">' + T("Non risponde (")
+        + ((e && e.message) || T("errore")) + ")</div>";
     };
     this._collegamentoMA(eid).then((cfg) => {
     if (chiave === "library") {
       if (!cfg) { male(new Error("serve Music Assistant")); return; }
       finita([["playlist", "Playlist"], ["album", "Album"],
         ["artist", "Artisti"], ["track", "Brani"], ["radio", "Radio"]]
-        .map((coppia) => ({ nome: coppia[1], cartella: true,
+        .map((coppia) => ({ nome: T(coppia[1]), cartella: true,
           carica: { domain: "music_assistant", service: "get_library",
             service_data: { config_entry_id: cfg, media_type: coppia[0],
               limit: 300 } } })));
@@ -10109,12 +10444,12 @@ const ConMusica = (Base) => class extends Base {
   _scriviSfoglia(voci, titolo, indietro) {
     const pan = this._panSfoglia;
     const elenco = pan.querySelector(".s-elenco");
-    pan.querySelector(".s-titolo").textContent = titolo;
+    pan.querySelector(".s-titolo").textContent = T(titolo);
     pan.querySelector(".s-indietro").hidden = !(this._pila || []).length;
     elenco.innerHTML = "";
     if (!voci || !voci.length) {
-      elenco.innerHTML = '<div class="s-nota">Qui non c-e niente.</div>'
-        .replace("c-e", "c" + String.fromCharCode(39) + "e");
+      elenco.innerHTML = TH('<div class="s-nota">Qui non c-e niente.</div>'
+        .replace("c-e", "c" + String.fromCharCode(39) + "e"));
       return;
     }
     if (!indietro) this._ultimeVoci = { voci, titolo };
@@ -10122,11 +10457,11 @@ const ConMusica = (Base) => class extends Base {
     voci.forEach((v) => {
       const riga = document.createElement("div");
       riga.className = "voce";
-      riga.innerHTML = (v.foto ? '<img alt="">' : '<i class="vuota"></i>')
+      riga.innerHTML = TH((v.foto ? '<img alt="">' : '<i class="vuota"></i>')
         + '<span class="dati"><b></b><i></i></span>'
         + (v.cartella ? ""
           : '<button class="piu" type="button" title="Che ne faccio">'
-            + '<ha-icon icon="mdi:dots-vertical"></ha-icon></button>');
+            + '<ha-icon icon="mdi:dots-vertical"></ha-icon></button>'));
       if (v.foto) riga.querySelector("img").src = v.foto;
       riga.querySelector("b").textContent = v.nome;
       riga.querySelector(".dati i").textContent = v.chi
@@ -10156,7 +10491,7 @@ const ConMusica = (Base) => class extends Base {
     if (v.voci) { this._scriviSfoglia(v.voci, v.nome); return; }
     if (!v.carica) return;
     const elenco = this._panSfoglia.querySelector(".s-elenco");
-    elenco.innerHTML = '<div class="s-nota">Un attimo...</div>';
+    elenco.innerHTML = TH('<div class="s-nota">Un attimo...</div>');
     this._hass.callWS({ type: "call_service", domain: v.carica.domain,
       service: v.carica.service, service_data: v.carica.service_data,
       return_response: true,
@@ -10164,8 +10499,8 @@ const ConMusica = (Base) => class extends Base {
       const dentro = (r || {}).response || {};
       this._scriviSfoglia(this._vociDa(dentro.items || dentro), v.nome);
     }).catch((e) => {
-      elenco.innerHTML = '<div class="s-nota">Non risponde ('
-        + ((e && e.message) || "errore") + ")</div>";
+      elenco.innerHTML = '<div class="s-nota">' + T("Non risponde (")
+        + ((e && e.message) || T("errore")) + ")</div>";
     });
   }
 
@@ -10337,7 +10672,7 @@ const ConMusica = (Base) => class extends Base {
         const b = document.createElement("button");
         b.type = "button";
         b.dataset.tipo = tipo;
-        b.textContent = nome;
+        b.textContent = T(nome);
         b.toggleAttribute("scelto", tipo === (this._tipoCerca || ""));
         b.addEventListener("click", () => {
           this._tipoCerca = tipo;
@@ -10379,11 +10714,11 @@ const ConMusica = (Base) => class extends Base {
     const testo = (pan.querySelector(".c-testo").value || "").trim();
     if (!testo) { esiti.innerHTML = ""; return; }
     const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
-    esiti.innerHTML = '<div class="c-nota">Sto cercando...</div>';
+    esiti.innerHTML = TH('<div class="c-nota">Sto cercando...</div>');
     this._collegamentoMA(eid).then((collegamento) => {
     if (!collegamento) {
-      esiti.innerHTML = '<div class="c-nota">La ricerca ha bisogno di Music '
-        + "Assistant: qui non lo trovo.</div>";
+      esiti.innerHTML = TH('<div class="c-nota">La ricerca ha bisogno di Music '
+        + "Assistant: qui non lo trovo.</div>");
       return;
     }
     const dati = { config_entry_id: collegamento, name: testo, limit: 20 };
@@ -10410,8 +10745,8 @@ const ConMusica = (Base) => class extends Base {
         { testo, tipo: this._tipoCerca || "", trovati });
       this._scriviEsiti(trovati, eid);
     }).catch((e) => {
-      esiti.innerHTML = '<div class="c-nota">La ricerca non ha risposto ('
-        + ((e && e.message) || "errore") + ")</div>";
+      esiti.innerHTML = '<div class="c-nota">' + T("La ricerca non ha risposto (")
+        + ((e && e.message) || T("errore")) + ")</div>";
     });
     });
   }
@@ -10420,7 +10755,7 @@ const ConMusica = (Base) => class extends Base {
     const esiti = this._panCerca.querySelector(".c-esiti");
     esiti.innerHTML = "";
     if (!elenco.length) {
-      esiti.innerHTML = '<div class="c-nota">Non ho trovato niente.</div>';
+      esiti.innerHTML = TH('<div class="c-nota">Non ho trovato niente.</div>');
       return;
     }
     elenco.forEach((v) => {
@@ -10459,7 +10794,7 @@ const ConMusica = (Base) => class extends Base {
     if (!vuole || (pan && pan.hidden)) return;
     if (!box._fatto) {
       box._fatto = true;
-      box.innerHTML = '<div class="coda-testa">In coda</div><div class="coda-lista"></div>';
+      box.innerHTML = TH('<div class="coda-testa">In coda</div><div class="coda-lista"></div>');
       box._lista = box.querySelector(".coda-lista");
     }
     // la ricarico quando cambia il brano, e comunque non piu' di una volta
@@ -10570,12 +10905,12 @@ const ConMusica = (Base) => class extends Base {
     if (!box || !box._lista) return;
     const lista = box._lista;
     if (!elenco) {
-      lista.innerHTML = '<div class="coda-vuota">Non riesco a leggere la coda'
+      lista.innerHTML = '<div class="coda-vuota">' + T("Non riesco a leggere la coda")
         + (errore ? " (" + errore + ")" : "") + "</div>";
       return;
     }
     if (!elenco.length) {
-      lista.innerHTML = '<div class="coda-vuota">Non c\'e\' niente in coda</div>';
+      lista.innerHTML = TH('<div class="coda-vuota">Non c\'e\' niente in coda</div>');
       return;
     }
     const st = this._hass && this._hass.states[eid];
@@ -10761,11 +11096,11 @@ const ConMusica = (Base) => class extends Base {
         const r = document.createElement("div");
         r.className = "voce";
         r.dataset.eid = eid;
-        r.innerHTML = '<button class="sw" type="button"></button>'
+        r.innerHTML = TH('<button class="sw" type="button"></button>'
           + '<span class="chi"></span>'
           + '<input class="vol" type="range" min="0" max="100" step="1">'
           + '<button class="tras" type="button" hidden title="Porta qui la coda '
-          + 'che sta suonando">' + segno("trasferisci") + "</button>";
+          + 'che sta suonando">') + segno("trasferisci") + "</button>";
         r.querySelector(".sw").addEventListener("click", () => this._cambiaGruppo(eid, r));
         // porta la coda su un'altra cassa: e' un servizio di Music Assistant,
         // quindi si vede solo fra lettori di Music Assistant
@@ -10813,7 +11148,7 @@ const ConMusica = (Base) => class extends Base {
       via = document.createElement("button");
       via.className = "svuota-coda";
       via.type = "button";
-      via.innerHTML = segno("svuota") + "<span>Svuota la coda</span>";
+      via.innerHTML = segno("svuota") + TH("<span>Svuota la coda</span>");
       via.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!this._hass) return;
@@ -14190,7 +14525,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
 
   _costruisci() {
     const root = this.attachShadow ? (this.shadowRoot || this.attachShadow({ mode: "open" })) : this;
-    root.innerHTML = `<style>${STILE}</style>
+    root.innerHTML = `<style>${STILE}</style>` + TH(`
       <ha-card tabindex="0">
         <div class="cielo" hidden></div>
         <svg class="iconafondo" viewBox="0 0 64 64" fill="none" aria-hidden="true" hidden></svg>
@@ -14288,7 +14623,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
           </div>
           <div class="f-corpo"></div>
         </div>
-      </div>`;
+      </div>`);
     this._card = root.querySelector("ha-card");
     this._nome = root.querySelector(".nome");
     this._sotto = root.querySelector(".sotto");
@@ -14606,6 +14941,8 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this._azione(); }
     });
     this._costruito = true;
+    // in che lingua l'ho scritta: se cambia, la rifaccio
+    this._linguaScocca = laLingua();
   }
 
   _azione() {
@@ -15079,7 +15416,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
 
     const bPlay = this._comandi.querySelector(".play");
     metti(bPlay, suona ? "pausa" : "play");
-    bPlay.title = suona ? "Pausa" : "Riproduci";
+    bPlay.title = suona ? T("Pausa") : T("Riproduci");
 
     this._comandi.querySelector(".prec").hidden = !!puo && !(puo & 16);
     this._comandi.querySelector(".succ").hidden = !!puo && !(puo & 32);
@@ -15374,7 +15711,8 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
       }
       return;
     }
-    if (!this._costruito) this._costruisci();
+    // la lingua puo' arrivare dopo la scocca: allora la riscrivo
+    if (!this._costruito || this._linguaScocca !== laLingua()) this._costruisci();
     // se ci sono piu' casse, la card lavora su quella scelta / che suona
     if (this._base) {
       const attiva = this._entitaAttiva();
@@ -15556,7 +15894,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     let sotto = c.sottotitolo || "";
     if (!sotto && !c.sottotitolo_entita && st && c.entity
         && c.entity.split(".")[0] === "weather" && METEO[st.state]) {
-      sotto = METEO[st.state][1];
+      sotto = T(METEO[st.state][1]);
     }
     if (!sotto && !c.sottotitolo_entita && st && c.entity
         && c.entity.split(".")[0] === "media_player") {
@@ -15626,7 +15964,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
         }
       }
       if (sotto) parti.push('<span class="via">\uD83D\uDCCD ' + sotto + "</span>");
-      this._sotto.innerHTML = parti.join("");
+      this._sotto.innerHTML = TH(parti.join(""));
       this._sotto.style.display = parti.length ? "" : "none";
     } else {
       this._sotto.textContent = sotto;

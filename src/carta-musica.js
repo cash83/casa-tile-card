@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // Il lettore: cerca, sfoglia, coda, casse del gruppo, sorgenti.
 
+import { T, TH } from './lingua.js';
 import { RICERCHE } from './aiuti.js';
 import { segno } from './segni.js';
 
@@ -105,7 +106,7 @@ export const ConMusica = (Base) => class extends Base {
       const b = document.createElement("button");
       b.type = "button";
       b.dataset.chiave = coppia[0];
-      b.textContent = coppia[1];
+      b.textContent = T(coppia[1]);
       b.addEventListener("click", () =>
         this._caricaFonte(coppia[0], coppia[1]));
       dove.appendChild(b);
@@ -151,20 +152,20 @@ export const ConMusica = (Base) => class extends Base {
   _caricaSfoglia(chiave, titolo) {
     const pan = this._panSfoglia;
     const elenco = pan.querySelector(".s-elenco");
-    pan.querySelector(".s-titolo").textContent = titolo;
-    elenco.innerHTML = '<div class="s-nota">Un attimo...</div>';
+    pan.querySelector(".s-titolo").textContent = T(titolo);
+    elenco.innerHTML = TH('<div class="s-nota">Un attimo...</div>');
     const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
     const finita = (voci) => this._scriviSfoglia(voci, titolo);
     const male = (e) => {
-      elenco.innerHTML = '<div class="s-nota">Non risponde ('
-        + ((e && e.message) || "errore") + ")</div>";
+      elenco.innerHTML = '<div class="s-nota">' + T("Non risponde (")
+        + ((e && e.message) || T("errore")) + ")</div>";
     };
     this._collegamentoMA(eid).then((cfg) => {
     if (chiave === "library") {
       if (!cfg) { male(new Error("serve Music Assistant")); return; }
       finita([["playlist", "Playlist"], ["album", "Album"],
         ["artist", "Artisti"], ["track", "Brani"], ["radio", "Radio"]]
-        .map((coppia) => ({ nome: coppia[1], cartella: true,
+        .map((coppia) => ({ nome: T(coppia[1]), cartella: true,
           carica: { domain: "music_assistant", service: "get_library",
             service_data: { config_entry_id: cfg, media_type: coppia[0],
               limit: 300 } } })));
@@ -208,12 +209,12 @@ export const ConMusica = (Base) => class extends Base {
   _scriviSfoglia(voci, titolo, indietro) {
     const pan = this._panSfoglia;
     const elenco = pan.querySelector(".s-elenco");
-    pan.querySelector(".s-titolo").textContent = titolo;
+    pan.querySelector(".s-titolo").textContent = T(titolo);
     pan.querySelector(".s-indietro").hidden = !(this._pila || []).length;
     elenco.innerHTML = "";
     if (!voci || !voci.length) {
-      elenco.innerHTML = '<div class="s-nota">Qui non c-e niente.</div>'
-        .replace("c-e", "c" + String.fromCharCode(39) + "e");
+      elenco.innerHTML = TH('<div class="s-nota">Qui non c-e niente.</div>'
+        .replace("c-e", "c" + String.fromCharCode(39) + "e"));
       return;
     }
     if (!indietro) this._ultimeVoci = { voci, titolo };
@@ -221,11 +222,11 @@ export const ConMusica = (Base) => class extends Base {
     voci.forEach((v) => {
       const riga = document.createElement("div");
       riga.className = "voce";
-      riga.innerHTML = (v.foto ? '<img alt="">' : '<i class="vuota"></i>')
+      riga.innerHTML = TH((v.foto ? '<img alt="">' : '<i class="vuota"></i>')
         + '<span class="dati"><b></b><i></i></span>'
         + (v.cartella ? ""
           : '<button class="piu" type="button" title="Che ne faccio">'
-            + '<ha-icon icon="mdi:dots-vertical"></ha-icon></button>');
+            + '<ha-icon icon="mdi:dots-vertical"></ha-icon></button>'));
       if (v.foto) riga.querySelector("img").src = v.foto;
       riga.querySelector("b").textContent = v.nome;
       riga.querySelector(".dati i").textContent = v.chi
@@ -255,7 +256,7 @@ export const ConMusica = (Base) => class extends Base {
     if (v.voci) { this._scriviSfoglia(v.voci, v.nome); return; }
     if (!v.carica) return;
     const elenco = this._panSfoglia.querySelector(".s-elenco");
-    elenco.innerHTML = '<div class="s-nota">Un attimo...</div>';
+    elenco.innerHTML = TH('<div class="s-nota">Un attimo...</div>');
     this._hass.callWS({ type: "call_service", domain: v.carica.domain,
       service: v.carica.service, service_data: v.carica.service_data,
       return_response: true,
@@ -263,8 +264,8 @@ export const ConMusica = (Base) => class extends Base {
       const dentro = (r || {}).response || {};
       this._scriviSfoglia(this._vociDa(dentro.items || dentro), v.nome);
     }).catch((e) => {
-      elenco.innerHTML = '<div class="s-nota">Non risponde ('
-        + ((e && e.message) || "errore") + ")</div>";
+      elenco.innerHTML = '<div class="s-nota">' + T("Non risponde (")
+        + ((e && e.message) || T("errore")) + ")</div>";
     });
   }
 
@@ -436,7 +437,7 @@ export const ConMusica = (Base) => class extends Base {
         const b = document.createElement("button");
         b.type = "button";
         b.dataset.tipo = tipo;
-        b.textContent = nome;
+        b.textContent = T(nome);
         b.toggleAttribute("scelto", tipo === (this._tipoCerca || ""));
         b.addEventListener("click", () => {
           this._tipoCerca = tipo;
@@ -478,11 +479,11 @@ export const ConMusica = (Base) => class extends Base {
     const testo = (pan.querySelector(".c-testo").value || "").trim();
     if (!testo) { esiti.innerHTML = ""; return; }
     const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
-    esiti.innerHTML = '<div class="c-nota">Sto cercando...</div>';
+    esiti.innerHTML = TH('<div class="c-nota">Sto cercando...</div>');
     this._collegamentoMA(eid).then((collegamento) => {
     if (!collegamento) {
-      esiti.innerHTML = '<div class="c-nota">La ricerca ha bisogno di Music '
-        + "Assistant: qui non lo trovo.</div>";
+      esiti.innerHTML = TH('<div class="c-nota">La ricerca ha bisogno di Music '
+        + "Assistant: qui non lo trovo.</div>");
       return;
     }
     const dati = { config_entry_id: collegamento, name: testo, limit: 20 };
@@ -509,8 +510,8 @@ export const ConMusica = (Base) => class extends Base {
         { testo, tipo: this._tipoCerca || "", trovati });
       this._scriviEsiti(trovati, eid);
     }).catch((e) => {
-      esiti.innerHTML = '<div class="c-nota">La ricerca non ha risposto ('
-        + ((e && e.message) || "errore") + ")</div>";
+      esiti.innerHTML = '<div class="c-nota">' + T("La ricerca non ha risposto (")
+        + ((e && e.message) || T("errore")) + ")</div>";
     });
     });
   }
@@ -519,7 +520,7 @@ export const ConMusica = (Base) => class extends Base {
     const esiti = this._panCerca.querySelector(".c-esiti");
     esiti.innerHTML = "";
     if (!elenco.length) {
-      esiti.innerHTML = '<div class="c-nota">Non ho trovato niente.</div>';
+      esiti.innerHTML = TH('<div class="c-nota">Non ho trovato niente.</div>');
       return;
     }
     elenco.forEach((v) => {
@@ -558,7 +559,7 @@ export const ConMusica = (Base) => class extends Base {
     if (!vuole || (pan && pan.hidden)) return;
     if (!box._fatto) {
       box._fatto = true;
-      box.innerHTML = '<div class="coda-testa">In coda</div><div class="coda-lista"></div>';
+      box.innerHTML = TH('<div class="coda-testa">In coda</div><div class="coda-lista"></div>');
       box._lista = box.querySelector(".coda-lista");
     }
     // la ricarico quando cambia il brano, e comunque non piu' di una volta
@@ -669,12 +670,12 @@ export const ConMusica = (Base) => class extends Base {
     if (!box || !box._lista) return;
     const lista = box._lista;
     if (!elenco) {
-      lista.innerHTML = '<div class="coda-vuota">Non riesco a leggere la coda'
+      lista.innerHTML = '<div class="coda-vuota">' + T("Non riesco a leggere la coda")
         + (errore ? " (" + errore + ")" : "") + "</div>";
       return;
     }
     if (!elenco.length) {
-      lista.innerHTML = '<div class="coda-vuota">Non c\'e\' niente in coda</div>';
+      lista.innerHTML = TH('<div class="coda-vuota">Non c\'e\' niente in coda</div>');
       return;
     }
     const st = this._hass && this._hass.states[eid];
@@ -860,11 +861,11 @@ export const ConMusica = (Base) => class extends Base {
         const r = document.createElement("div");
         r.className = "voce";
         r.dataset.eid = eid;
-        r.innerHTML = '<button class="sw" type="button"></button>'
+        r.innerHTML = TH('<button class="sw" type="button"></button>'
           + '<span class="chi"></span>'
           + '<input class="vol" type="range" min="0" max="100" step="1">'
           + '<button class="tras" type="button" hidden title="Porta qui la coda '
-          + 'che sta suonando">' + segno("trasferisci") + "</button>";
+          + 'che sta suonando">') + segno("trasferisci") + "</button>";
         r.querySelector(".sw").addEventListener("click", () => this._cambiaGruppo(eid, r));
         // porta la coda su un'altra cassa: e' un servizio di Music Assistant,
         // quindi si vede solo fra lettori di Music Assistant
@@ -912,7 +913,7 @@ export const ConMusica = (Base) => class extends Base {
       via = document.createElement("button");
       via.className = "svuota-coda";
       via.type = "button";
-      via.innerHTML = segno("svuota") + "<span>Svuota la coda</span>";
+      via.innerHTML = segno("svuota") + TH("<span>Svuota la coda</span>");
       via.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!this._hass) return;

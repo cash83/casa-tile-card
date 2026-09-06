@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // I simboli dei tasti, e come si mettono dentro a un bottone.
 
+import { laLocale } from './lingua.js';
 import { daRgb } from './colori.js';
 
 export const SEGNI = {
@@ -203,5 +204,5 @@ export function valoreScritto(st) {
     const bella = durataBella(n, u);
     if (bella) return bella;
   }
-  return (Math.round(n * 10) / 10).toLocaleString("it-IT") + (u ? " " + u : "");
+  return (Math.round(n * 10) / 10).toLocaleString(laLocale()) + (u ? " " + u : "");
 }

@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // Aiuti di servizio: tempi, misure, parole, memorie condivise.
 
+import { T } from './lingua.js';
 import { segno } from './segni.js';
 
 // come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
@@ -26,14 +27,20 @@ export function daQuanto(quando) {
   const t = Date.parse(quando);
   if (isNaN(t)) return "";
   const sec = Math.max(0, (Date.now() - t) / 1000);
-  if (sec < 60) return "da poco";
+  // Le frasi col numero in mezzo hanno il segnaposto {n}: in italiano
+  // T() torna la chiave com'e', quindi esce esattamente quello di prima.
+  if (sec < 60) return T("da poco");
   const min = Math.round(sec / 60);
-  if (min < 60) return "da " + min + " min";
+  if (min < 60) return T("da {n} min").replace("{n}", min);
   const ore = Math.floor(min / 60);
   const resto = min % 60;
-  if (ore < 24) return "da " + ore + " h" + (resto ? " " + resto : "");
+  if (ore < 24) {
+    return (resto ? T("da {n} h {m}").replace("{m}", resto) : T("da {n} h"))
+      .replace("{n}", ore);
+  }
   const giorni = Math.round(ore / 24);
-  return giorni === 1 ? "da un giorno" : "da " + giorni + " giorni";
+  return giorni === 1 ? T("da un giorno")
+    : T("da {n} giorni").replace("{n}", giorni);
 }
 
 // quanto e' lontano, in linea d'aria (formula dell'emisenoverso)

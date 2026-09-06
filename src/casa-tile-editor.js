@@ -6,7 +6,7 @@ import { ConIcone } from './editor-icone.js';
 import { ConPosti } from './editor-posti.js';
 import { ConSchede } from './editor-schede.js';
 import { iconaAutomatica } from './icone.js';
-import { T, scegliLingua, traduciSchema } from './lingua.js';
+import { T, laLingua, scegliLingua, traduciSchema } from './lingua.js';
 import { DIPENDE, ETICHETTE, SEZIONI, SOLO_AZIONE, SOLO_PER, STILE_SELETTORE } from './schema.js';
 import { segno } from './segni.js';
 import { STILE_EDITOR } from './stile-editor.js';
@@ -125,6 +125,14 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
   }
 
   _render() {
+    // le linguette si scrivono una volta sola: se la lingua e' arrivata
+    // dopo, butto via quello che c'e' e riscrivo.
+    if (this._costruito && this._linguaScocca !== laLingua()) {
+      this.innerHTML = "";
+      this._costruito = false;
+      this._formaOra = undefined;
+      this._pannelli = [];
+    }
     if (!this._costruito) {
       const stile = document.createElement("style");
       stile.textContent = STILE_EDITOR + STILE_SELETTORE;
@@ -298,6 +306,7 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
       });
       this._barra.appendChild(this._targa);
       this._costruito = true;
+      this._linguaScocca = laLingua();
     }
     // Il selettore del colore manda una modifica a ogni movimento del dito:
     // rifare tutto ogni volta impastava le impostazioni. Quindi rimando il

@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.15.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.15.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,33 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.15.1
+
+The English in 2.15 was half done: with Home Assistant set to English,
+half the card was still Italian.
+
+- **The player buttons, the shell and the panels**: play, pause, search,
+  browse, the queue, the speakers, the source, full screen. They live
+  inside hand-written HTML, and the first pass only looked at the text
+  between tags — almost all of those strings are `title=` tooltips.
+- **The names of the 225 icons** in the picker: *luce* is now *light*,
+  *tapparella* is now *roller blind*. The key written into your dashboard
+  stays the Italian one — otherwise every existing configuration would
+  break — and the search works in both languages.
+- **"For how long"**: *acceso da 40 minuti* is now *on for 40 min*.
+- **Numbers and dates** follow the viewer's language: 1,234.5 for an
+  English reader, 1.234,5 for a German one. They were hard-coded Italian.
+- **The shell is rewritten if the language arrives late.** Home Assistant
+  does not guarantee the order of `setConfig` and `hass`: if the tile was
+  already drawn when the language arrives, it is now redrawn.
+- **And when the language is not known yet, nothing is decided**: before,
+  a `hass` that had not arrived meant English, and the editor tabs —
+  written once and never again — stayed English for an Italian user.
+
+Nothing changes in Italian: the 525 strings use the Italian sentence as
+the key, so what you read is exactly what you read before, checked tile
+by tile.
 
 ## What's new in 2.15
 

@@ -1,7 +1,7 @@
 // -*- coding: utf-8 -*-
 // La finestra che si apre al tocco, e le schede che ci stanno dentro.
 
-import { T } from './lingua.js';
+import { T, TH } from './lingua.js';
 import { riempiRiquadro } from './aiuti.js';
 import { conAlfa, daRgb, scurisci } from './colori.js';
 import { ICONE, aspiraFuori, disegnoAspira, disegnoBatteria, disegnoMdi, indirizzoFoto } from './icone.js';
@@ -92,7 +92,7 @@ export const ConFinestra = (Base) => class extends Base {
     }
     this._firmaAnt = firma;
     this._segnoAnteprima();
-    box.innerHTML = "<div class='titoletto'>Contenuto del pop-up</div>";
+    box.innerHTML = TH("<div class='titoletto'>Contenuto del pop-up</div>");
     const dentro = document.createElement("div");
     dentro.className = "pa-dentro";
     this._misureFinestra(dentro);
@@ -389,7 +389,8 @@ export const ConFinestra = (Base) => class extends Base {
         } catch (err) {
           const avviso = document.createElement("div");
           avviso.style.cssText = "color:#ff9a9a;font-size:13px";
-          avviso.textContent = 'La scheda "' + cfg.type + '" non funziona con questa entita.';
+          avviso.textContent = T('La scheda "') + cfg.type
+            + T('" non funziona con questa entita.');
           this._fCorpo.appendChild(avviso);
         }
       });

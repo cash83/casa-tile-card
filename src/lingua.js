@@ -17,17 +17,43 @@
 // dritto e la traduzione non si aggancia piu', in silenzio.
 
 let LINGUA = 'it';
+// La lingua vera, per come si scrivono numeri e date: un tedesco legge le
+// scritte in inglese ma i numeri li vuole coi suoi punti.
+let LOCALE = 'it-IT';
+let LOCALE_BUONA = null;
 
 // Che lingua parla l'utente lo sa gia' Home Assistant: gliela chiedo.
 // Tutto quello che non e' italiano prende l'inglese.
 export function scegliLingua(hass) {
   const l = String((hass && ((hass.locale && hass.locale.language) || hass.language)) || '')
     .toLowerCase();
+  // Se non lo so ancora NON decido: `setConfig` puo' arrivare prima di
+  // `hass`, e mettere 'en' li' vorrebbe dire scrivere le linguette in
+  // inglese a un utente italiano - si scrivono una volta sola, quindi
+  // non si rimedia piu'.
+  if (!l) return LINGUA;
+  LOCALE = l;
+  LOCALE_BUONA = null;
   LINGUA = l.indexOf('it') === 0 ? 'it' : 'en';
   return LINGUA;
 }
 
 export function laLingua() { return LINGUA; }
+
+// Per toLocaleString: numeri e date nel formato di chi guarda. La sigla
+// arriva da Home Assistant e potrebbe non piacere a Intl: la provo una
+// volta sola, perche' un errore qui lascerebbe la casella bianca.
+export function laLocale() {
+  if (LOCALE_BUONA === null) {
+    try {
+      (0).toLocaleString(LOCALE);
+      LOCALE_BUONA = LOCALE;
+    } catch (e) {
+      LOCALE_BUONA = LINGUA === 'it' ? 'it-IT' : 'en-GB';
+    }
+  }
+  return LOCALE_BUONA;
+}
 
 // Se la scritta non c'e' nel dizionario torna com'era: meglio una frase in
 // italiano che un buco.
@@ -55,6 +81,31 @@ export function traduciSchema(elenco) {
         select: { ...voce.selector.select,
           options: opz.map((o) => (o && o.label ? { ...o, label: T(o.label) } : o)) } } };
   });
+}
+
+// Le scritte dentro a un pezzo di HTML scritto a mano (innerHTML): traduco
+// quello che sta FRA i tag e non tocco i tag. Il testo che non e' nel
+// dizionario resta com'e', come in T(). Serve una passata sola per blocco,
+// e i blocchi si costruiscono una volta sola.
+export function TH(html) {
+  if (LINGUA === 'it' || !html) return html;
+  return String(html)
+    .replace(/>([^<>]+)</g, (tutto, dentro) => {
+      const pulito = dentro.trim();
+      if (!pulito) return tutto;
+      const t = EN[pulito];
+      return t === undefined ? tutto : '>' + dentro.replace(pulito, t) + '<';
+    })
+    // meta' della scocca sono `title=`: i tastini del lettore non hanno
+    // scritte, solo il fumetto che dice cosa fanno.
+    .replace(/(title|placeholder|aria-label)="([^"<>]+)"/g, (tutto, att, dentro) => {
+      const t = EN[dentro.trim()];
+      return t === undefined ? tutto : att + '="' + t + '"';
+    })
+    .replace(/(title|placeholder|aria-label)='([^'<>]+)'/g, (tutto, att, dentro) => {
+      const t = EN[dentro.trim()];
+      return t === undefined ? tutto : att + "='" + t + "'";
+    });
 }
 
 export const EN = {
@@ -246,6 +297,266 @@ export const EN = {
   "Sboccia dalla casella che hai toccato": "Blooms from the tile you tapped",
   "Entra dal basso, come un cassetto": "Slides up from the bottom, like a drawer",
   "Nessuna animazione": "No animation",
+  "pausa": "pause",
+  "acqua": "water",
+  "aereo": "plane",
+  "aggiornamento": "update",
+  "albero": "tree",
+  "allarme": "alarm",
+  "altoparlante": "speaker",
+  "ascensore": "lift",
+  "asciugatrice": "tumble dryer",
+  "aspirapolvere": "vacuum",
+  "assistente": "assistant",
+  "attenzione": "warning",
+  "attrezzi": "tools",
+  "autobus": "bus",
+  "automobile": "car",
+  "bagno": "bathroom",
+  "bambino": "child",
+  "batteria": "battery",
+  "battito": "heartbeat",
+  "benzina": "petrol",
+  "bici": "bike",
+  "bilancia": "scales",
+  "birra": "beer",
+  "bollitore": "kettle",
+  "bombola": "gas bottle",
+  "bussola": "compass",
+  "cacciavite": "screwdriver",
+  "caffe": "coffee",
+  "caldaia": "boiler",
+  "calendario": "calendar",
+  "campana": "bell",
+  "campanello": "doorbell",
+  "campanello_video": "video doorbell",
+  "cancello": "gate",
+  "candela": "candle",
+  "cane": "dog",
+  "carrello": "trolley",
+  "casa": "house",
+  "casa_corrente": "house power",
+  "cassetta_posta": "letterbox",
+  "chiamata": "call",
+  "chiave": "key",
+  "chiave_inglese": "spanner",
+  "ciabatta": "power strip",
+  "condizionatore": "air conditioner",
+  "contatore": "meter",
+  "contatore_luce": "electricity meter",
+  "corrente_ac": "AC power",
+  "corrente_dc": "DC power",
+  "corriere": "courier",
+  "corsa": "running",
+  "cucina": "kitchen",
+  "cuffie": "headphones",
+  "cuore": "heart",
+  "deumidificatore": "dehumidifier",
+  "divano": "sofa",
+  "erba": "grass",
+  "faretti": "spotlights",
+  "filtro_aria": "air filter",
+  "finestra_aperta": "open window",
+  "fiore": "flower",
+  "fornello": "hob",
+  "forno": "oven",
+  "frigo": "fridge",
+  "frigorifero": "fridge",
+  "fulmine": "lightning",
+  "fumo": "smoke",
+  "fuoco": "fire",
+  "gatto": "cat",
+  "gioco": "game",
+  "goccia": "drop",
+  "gruppo": "group",
+  "ingranaggio": "cog",
+  "interruttore": "switch",
+  "irrigazione": "irrigation",
+  "lampadina_accesa": "bulb on",
+  "lampione": "street lamp",
+  "lavastoviglie": "dishwasher",
+  "lavatrice": "washing machine",
+  "lavatrice_mdi": "washing machine (mdi)",
+  "lavoro": "work",
+  "led": "LED",
+  "letto": "bed",
+  "libro": "book",
+  "lucchetto": "padlock",
+  "lucchetto_aperto": "open padlock",
+  "luce": "light",
+  "luna": "moon",
+  "macchina_caffe": "coffee machine",
+  "manopola": "knob",
+  "mappa": "map",
+  "martello": "hammer",
+  "medicina": "medicine",
+  "mela": "apple",
+  "messaggio": "message",
+  "microfono": "microphone",
+  "microonde": "microwave",
+  "misura": "gauge",
+  "moto": "motorbike",
+  "movimento": "motion",
+  "musica": "music",
+  "nebbia": "fog",
+  "neve": "snow",
+  "notifica": "notification",
+  "nuvola": "cloud",
+  "nuvola_cloud": "cloud",
+  "occhio": "eye",
+  "ombrello": "umbrella",
+  "orologio": "clock",
+  "orologio_polso": "watch",
+  "pacco": "parcel",
+  "palestra": "gym",
+  "pannello_solare": "solar panel",
+  "parcheggio": "parking",
+  "pc_fisso": "desktop PC",
+  "persona": "person",
+  "pesce": "fish",
+  "pianta": "plant",
+  "pioggia": "rain",
+  "piscina": "pool",
+  "pompa": "pump",
+  "porta": "door",
+  "porta_scorrevole": "sliding door",
+  "portatile": "laptop",
+  "posizione": "location",
+  "powerstation": "power station",
+  "presa": "socket",
+  "purificatore": "air purifier",
+  "radiatore": "radiator",
+  "regolatore": "dimmer",
+  "ricarica_auto": "car charger",
+  "riciclo": "recycling",
+  "robot_aspirapolvere": "robot vacuum",
+  "robot_mdi": "robot (mdi)",
+  "scale": "stairs",
+  "scena": "scene",
+  "scopa": "broom",
+  "scrivania": "desk",
+  "scudo": "shield",
+  "scuola": "school",
+  "sensore_movimento": "motion sensor",
+  "serranda": "shutter",
+  "serratura": "lock",
+  "sirena": "siren",
+  "sole": "sun",
+  "sole_nuvole": "sun and clouds",
+  "sonno": "sleep",
+  "spazzatura": "rubbish",
+  "spina": "plug",
+  "stampante": "printer",
+  "stampante3d": "3D printer",
+  "stampante_3d": "3D printer (mdi)",
+  "stanza": "room",
+  "stella": "star",
+  "striscia_led": "LED strip",
+  "sveglia": "alarm clock",
+  "tachimetro": "speedometer",
+  "tapparella": "roller blind",
+  "telecamera": "camera",
+  "telecomando": "remote",
+  "telefono": "phone",
+  "televisore": "TV",
+  "temporale": "storm",
+  "tende": "curtains",
+  "termometro": "thermometer",
+  "termosifone": "radiator",
+  "termostato": "thermostat",
+  "tosaerba": "lawn mower",
+  "tostapane": "toaster",
+  "traliccio": "pylon",
+  "trasferisci": "transfer",
+  "treno": "train",
+  "tv_mdi": "TV (mdi)",
+  "umidificatore": "humidifier",
+  "valigia": "suitcase",
+  "ventilatore": "fan",
+  "vento": "wind",
+  "ventola": "fan",
+  "vino": "wine",
+  "wc": "toilet",
+  "wifi_mdi": "wifi (mdi)",
+  "Immagine di quando e' acceso (anche una gif)": "Image for when it is on (a GIF works too)",
+  "Pausa": "Pause",
+  "Premi il pulsante: si apre la galleria del telefono o le cartelle del PC. In alternativa scrivi l'indirizzo nel campo qui sopra (es. /local/foto.jpg).": "Press the button: your phone gallery or your PC folders open. Or type the address in the field above (e.g. /local/photo.jpg).",
+  "Riproduci": "Play",
+  "Scegli un'altra foto": "Pick another photo",
+  "Scegli una foto dal telefono o dal PC": "Pick a photo from your phone or PC",
+  "Usa un'immagine mia (telefono o PC)": "Use a picture of mine (phone or PC)",
+  "si vede solo mentre lavora: alla base torna quella di sopra": "it shows only while it is working: back on the dock the one above returns",
+  "\" non funziona con questa entita.": "\" does not work with this entity.",
+  "Album": "Albums",
+  "Apri": "Open",
+  "Apri la serratura": "Unlock",
+  "Artisti": "Artists",
+  "Brani": "Tracks",
+  "Brani, album, artisti...": "Tracks, albums, artists...",
+  "Che ne faccio": "What do I do with it",
+  "Chiudi": "Close",
+  "Chiudi a chiave": "Lock",
+  "Consigliati": "Recommended",
+  "Distanza in linea d’aria dal punto che Home Assistant considera casa: su strada e sempre di piu": "Straight-line distance from the point Home Assistant calls home: by road it is always more",
+  "Eccezionale": "Exceptional",
+  "Grandine": "Hail",
+  "La scheda \"": "The card \"",
+  "Libreria": "Library",
+  "Mostra la coda": "Show the queue",
+  "Nebbia": "Fog",
+  "Neve": "Snow",
+  "Nevischio": "Sleet",
+  "Nuvoloso": "Cloudy",
+  "Parz. nuvoloso": "Partly cloudy",
+  "Pioggia": "Rain",
+  "Pioggia forte": "Heavy rain",
+  "Play / pausa": "Play / pause",
+  "Playlist": "Playlists",
+  "Porta qui la coda che sta suonando": "Bring the playing queue here",
+  "Precedente": "Previous",
+  "Preferito": "Favourite",
+  "Radio": "Radio",
+  "Recenti": "Recent",
+  "Schermo intero": "Full screen",
+  "Sereno": "Clear",
+  "Sfoglia la musica": "Browse the music",
+  "Successivo": "Next",
+  "Temporale": "Storm",
+  "Torna alla base": "Back to the dock",
+  "Tutto": "Everything",
+  "Vento": "Windy",
+  "Ventoso": "Windy",
+  "da poco": "just now",
+  "da un giorno": "for a day",
+  "da {n} giorni": "for {n} days",
+  "da {n} h": "for {n} h",
+  "da {n} h {m}": "for {n} h {m}",
+  "da {n} min": "for {n} min",
+  "Aggiungi tutte le schede che vuoi: sono le stesse di Home Assistant, e le puoi modificare quando vuoi. Per riordinarle tieni premuto il puntino a sinistra e trascinale.": "Add as many cards as you like: they are the Home Assistant ones, and you can change them whenever you want. To reorder them hold the dot on the left and drag.",
+  "Automatica": "Automatic",
+  "Casse": "Speakers",
+  "Casse del gruppo": "Speakers in the group",
+  "Cerca": "Search",
+  "Cerca l'icona: luce, presa, porta, auto...": "Search the icon: light, plug, door, car...",
+  "Contenuto del pop-up": "Pop-up contents",
+  "Dove va ogni pezzo": "Where each piece goes",
+  "In coda": "Queue",
+  "La ricerca ha bisogno di Music Assistant: qui non lo trovo.": "Search needs Music Assistant: I cannot find it here.",
+  "La ricerca non ha risposto (": "The search did not answer (",
+  "Non c'e' niente in coda": "The queue is empty",
+  "Non ho trovato niente.": "I found nothing.",
+  "Non riesco a leggere la coda": "I cannot read the queue",
+  "Non risponde (": "No answer (",
+  "Per il meteo non serve sceglierla: l'icona la decide il tempo che fa (sole, nuvole, pioggia, neve, temporale, nebbia, vento) e cambia da sola.": "For weather you do not need to pick one: the icon follows the sky (sun, clouds, rain, snow, storm, fog, wind) and changes by itself.",
+  "Prendi il nome, il valore, l'icona o una misura e trascinali dove vuoi dentro alla casella qui sotto. Tocca un pezzo e sul suo angolo compare un quadratino giallo: tienilo premuto e trascina per ingrandirlo o rimpicciolirlo.": "Pick up the name, the value, the icon or a reading and drag them wherever you like inside the tile below. Tap a piece and a little yellow square appears on its corner: hold it and drag to make it bigger or smaller.",
+  "Qui non c'e niente.": "Nothing here.",
+  "Schede dentro il pop-up": "Cards inside the pop-up",
+  "Sensori collegati a questa entita": "Sensors related to this entity",
+  "Sorgente": "Source",
+  "Sto cercando...": "Searching...",
+  "Tocca la ruota per scegliere il colore che vuoi: e' quello dell'alone, del bordo e di tutti gli effetti.": "Tap the wheel to pick the colour you want: it is the one of the glow, the border and every effect.",
+  "Un attimo...": "One moment...",
+  "errore": "error",
   " - tocca per aprire Google Maps": " - tap to open Google Maps",
   " - tocca per i dettagli": " - tap for the details",
   "Stai sistemando: questa casella. Per una scheda del pop-up, toccala nell'anteprima qui di fianco.": "You are arranging: this tile. For a card in the pop-up, tap it in the preview beside.",

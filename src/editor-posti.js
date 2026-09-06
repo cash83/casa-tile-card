@@ -1,7 +1,7 @@
 // -*- coding: utf-8 -*-
 // Dove va ogni pezzo: la pista, le maniglie, i numeri, lo YAML.
 
-import { T } from './lingua.js';
+import { T, TH } from './lingua.js';
 import { nomeAttrezzo } from './aiuti.js';
 import { metti, nomeTasto, segno } from './segni.js';
 import { aYaml, daYaml } from './yaml.js';
@@ -27,11 +27,11 @@ export const ConPosti = (Base) => class extends Base {
     }
     if (!box._fatto) {
       box._fatto = true;
-      box.innerHTML = "<h4>Dove va ogni pezzo</h4>"
+      box.innerHTML = TH("<h4>Dove va ogni pezzo</h4>"
         + "<p class='aiuto'>Prendi il nome, il valore, l'icona o una misura e "
         + "trascinali dove vuoi dentro alla casella qui sotto. Tocca un pezzo "
         + "e sul suo angolo compare un quadratino giallo: tienilo premuto e "
-        + "trascina per ingrandirlo o rimpicciolirlo.</p>";
+        + "trascina per ingrandirlo o rimpicciolirlo.</p>");
       const pista = document.createElement("div");
       pista.className = "pista";
       const carta = document.createElement("casa-tile");

@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.15.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.15.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,35 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.15.1
+
+L'inglese della 2.15 era mezzo: provandola con un Home Assistant in
+inglese, metà della card restava in italiano.
+
+- **I tastini del lettore, la scocca e i riquadri**: play, pausa, cerca,
+  sfoglia, la coda, le casse, la sorgente, schermo intero. Erano scritti
+  dentro all'HTML, e la prima passata aveva guardato solo il testo fra i
+  tag: quasi tutte quelle scritte sono `title=`, il fumetto che compare
+  col dito sopra.
+- **I nomi delle 225 icone** nel selettore: *luce* diventa *light*,
+  *tapparella* diventa *roller blind*. La chiave scritta nella plancia
+  resta quella italiana — se no si romperebbero le configurazioni
+  esistenti — e la ricerca funziona in tutte e due le lingue.
+- **Il «da quanto»**: *acceso da 40 minuti* diventa *on for 40 min*.
+- **I numeri e le date** seguono la lingua di chi guarda: 1,234.5 per un
+  inglese, 1.234,5 per un tedesco. Erano fissi all'italiana.
+- **La scocca si riscrive se la lingua arriva dopo.** Home Assistant non
+  garantisce l'ordine fra `setConfig` e `hass`: se la casella era già
+  disegnata quando arriva la lingua, adesso la rifa'.
+- **E se la lingua non si sa ancora, non si sceglie**: prima, un `hass`
+  non ancora arrivato voleva dire inglese, e le linguette dell'editor
+  — che si scrivono una volta sola — restavano inglesi anche a un
+  utente italiano.
+
+In italiano non cambia niente: le 525 scritte hanno la frase italiana
+come chiave, quindi quello che leggi è esattamente quello di prima,
+verificato casella per casella sulla plancia.
 
 ## Novità della 2.15
 

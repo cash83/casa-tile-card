@@ -4,7 +4,7 @@
 import { riempiRiquadro } from './aiuti.js';
 import { COLORI, coloreLampada, daRgb } from './colori.js';
 import { ICONE, MDI_PAROLE, NOMI_ICONE, NOMI_MDI, SINONIMI, disegnoMdi, iconaAutomatica, indirizzoFoto } from './icone.js';
-import { T } from './lingua.js';
+import { T, TH } from './lingua.js';
 import { ETICHETTE, SEZIONI } from './schema.js';
 import { segno } from './segni.js';
 
@@ -16,12 +16,16 @@ export const ConIcone = (Base) => class extends Base {
     if (!box) return;
     if (!box._fatto) {
       box._fatto = true;
-      box.innerHTML = "<h4>Icona</h4>"
+      box.innerHTML = TH("<h4>Icona</h4>"
         + "<p class='aiuto notaMeteo' hidden>Per il meteo non serve sceglierla: "
         + "l'icona la decide il tempo che fa (sole, nuvole, pioggia, neve, "
         + "temporale, nebbia, vento) e cambia da sola.</p>"
         + "<input class='cercaIcona' type='search' placeholder='Cerca l&apos;icona: luce, presa, porta, auto...'>"
-        + "<div class='iconePicker'></div>";
+        + "<div class='iconePicker'></div>");
+      // il placeholder e' un attributo: TH() traduce quello che sta FRA i
+      // tag, quindi questo lo scrivo da qui.
+      box.querySelector(".cercaIcona").placeholder =
+        T("Cerca l'icona: luce, presa, porta, auto...");
 
       const griglia = box.querySelector(".iconePicker");
       // del meteo ne basta una: tanto poi la sceglie il tempo che fa
@@ -37,8 +41,8 @@ export const ConIcone = (Base) => class extends Base {
         b.dataset.nome = nome;
         if (nome === "auto") {
           b.classList.add("sceltaAuto");
-          b.innerHTML = '<span class="segnoAuto">\u2726</span>'
-            + '<span class="nome">Automatica</span>';
+          b.innerHTML = TH('<span class="segnoAuto">\u2726</span>'
+            + '<span class="nome">Automatica</span>');
           b.title = T("La sceglie la card guardando l'entita");
           b.addEventListener("click", () => {
             this._config = { ...this._config, icona: "auto" };
@@ -55,7 +59,9 @@ export const ConIcone = (Base) => class extends Base {
           .replace(/url\(#([a-z0-9]+)\)/g, "url(#$1_p" + k + ")");
         b.innerHTML = '<svg viewBox="0 0 64 64" fill="none">' + dentro
           + '</svg><span class="nome"></span>';
-        b.querySelector(".nome").textContent = nome;
+        // il nome scritto sotto e' tradotto, la chiave che finisce
+        // nella plancia (`dataset.nome`) resta quella italiana
+        b.querySelector(".nome").textContent = T(nome);
         b.addEventListener("click", () => {
           this._config = { ...this._config, icona: nome };
           this._emetti();
@@ -64,10 +70,10 @@ export const ConIcone = (Base) => class extends Base {
         griglia.appendChild(b);
       });
 
-      tin.innerHTML = "<h4>Colore quando e accesa</h4>"
+      tin.innerHTML = TH("<h4>Colore quando e accesa</h4>"
         + "<p class='aiuto'>Tocca la ruota per scegliere il colore che vuoi: "
         + "e' quello dell'alone, del bordo e di tutti gli effetti.</p>"
-        + "<div class='coloriPicker'></div>";
+        + "<div class='coloriPicker'></div>");
       const fila = tin.querySelector(".coloriPicker");
       // niente piu' pallini fissi: bastano la ruota e "come la lampada"
       [].forEach((nome) => {
@@ -133,17 +139,18 @@ export const ConIcone = (Base) => class extends Base {
       // un'icona tutta sua, presa dal telefono o dal PC - e la sua gemella
       // per quando e' acceso
       box._suaIcona = this._rigaImmagine(box, "icona_immagine",
-        "Usa un'immagine mia (telefono o PC)", "");
+        T("Usa un'immagine mia (telefono o PC)"), "");
       box._suaAccesa = this._rigaImmagine(box, "icona_immagine_accesa",
-        "Immagine di quando e' acceso (anche una gif)",
-        "si vede solo mentre lavora: alla base torna quella di sopra");
+        T("Immagine di quando e' acceso (anche una gif)"),
+        T("si vede solo mentre lavora: alla base torna quella di sopra"));
 
       const cerca = box.querySelector(".cercaIcona");
       cerca.addEventListener("input", () => {
         const q = cerca.value.trim().toLowerCase();
         box.querySelectorAll(".sceltaIcona").forEach((b) => {
           const nome = b.dataset.nome || "";
-          const parole = (SINONIMI[nome] || MDI_PAROLE[nome] || "") + " " + nome;
+          const parole = (SINONIMI[nome] || MDI_PAROLE[nome] || "")
+            + " " + nome + " " + T(nome);
           b.hidden = !!q && nome !== "auto"
             && parole.toLowerCase().replace(/_/g, " ").indexOf(q) < 0;
         });
@@ -378,7 +385,7 @@ export const ConIcone = (Base) => class extends Base {
       return;
     }
     box._firma = firma;
-    box.innerHTML = "<h4>Sensori collegati a questa entita</h4>";
+    box.innerHTML = TH("<h4>Sensori collegati a questa entita</h4>");
     if (!this._config.entity) {
       const vuoto = document.createElement("div");
       vuoto.className = "vuoto";
@@ -509,7 +516,7 @@ export const ConIcone = (Base) => class extends Base {
     const firma = String(this._config.sfondo_immagine || "");
     if (box._firma === firma) return;
     box._firma = firma;
-    box.innerHTML = "<h4>Foto di sfondo</h4>";
+    box.innerHTML = TH("<h4>Foto di sfondo</h4>");
     const riga = document.createElement("div");
     riga.className = "foto-riga";
 
@@ -528,8 +535,8 @@ export const ConIcone = (Base) => class extends Base {
     scegli.className = "bt";
     scegli.type = "button";
     scegli.textContent = this._config.sfondo_immagine
-      ? "Scegli un'altra foto"
-      : "Scegli una foto dal telefono o dal PC";
+      ? T("Scegli un'altra foto")
+      : T("Scegli una foto dal telefono o dal PC");
 
     const file = document.createElement("input");
     file.type = "file";
@@ -568,8 +575,9 @@ export const ConIcone = (Base) => class extends Base {
     this._notaFoto.className = "foto-nota";
     this._notaFoto.textContent = this._config.sfondo_immagine
       ? this._config.sfondo_immagine
-      : "Premi il pulsante: si apre la galleria del telefono o le cartelle del PC. "
-        + "In alternativa scrivi l'indirizzo nel campo qui sopra (es. /local/foto.jpg).";
+      : T("Premi il pulsante: si apre la galleria del telefono o le cartelle "
+        + "del PC. In alternativa scrivi l'indirizzo nel campo qui sopra "
+        + "(es. /local/foto.jpg).");
     box.appendChild(this._notaFoto);
   }
 
