@@ -10,7 +10,7 @@
 // finche' resta aperta la pagina e non dipende da nessuno.
 let APPUNTI_POSTI = null;
 
-const VERSIONE = "2.14.1";
+const VERSIONE = "2.14.2";
 
 // come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
 // "pieno". Serve per dargli un posto suo nella disposizione.
@@ -1377,7 +1377,7 @@ ha-card::after {
 :host([acceso]) .sotto {
   color: var(--testo2, color-mix(in srgb, var(--c) 32%, var(--secondary-text-color, #a9b6c7))); }
 .riga { display: flex; align-items: flex-end; gap: 10px; margin-top: auto; }
-.iconaFoto { width: auto; height: 60px; aspect-ratio: 1; max-height: 100%;
+.iconaFoto { width: auto; height: var(--alt-icona, 60px); aspect-ratio: 1; max-height: 100%;
   flex: 0 1 auto; object-fit: contain;
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) .iconaFoto { filter: drop-shadow(0 0 9px var(--alone2, transparent)); }
@@ -1385,7 +1385,7 @@ ha-card::after {
 :host([grande]) .iconaFoto { width: auto; height: 92px; }
 /* 100% = grande quanto il riquadro che le diamo, cosi' segue tutte le
    disposizioni senza doverle riscrivere una per una */
-.iconaHa { --mdc-icon-size: 100%; width: auto; height: 60px; aspect-ratio: 1;
+.iconaHa { --mdc-icon-size: 100%; width: auto; height: var(--alt-icona, 60px); aspect-ratio: 1;
   max-height: 100%; flex: 0 1 auto;
   display: grid; place-items: center; color: var(--c);
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
@@ -7049,7 +7049,14 @@ class CasaTile extends HTMLElement {
       const q = this._rigaIcona.offsetHeight;
       return q;
     };
+    // La casella ha un'altezza sua, o cresce per stare dietro a quello che
+    // ci metto dentro? Non lo indovino: provo il disegno al minimo e al
+    // massimo e guardo se la CASELLA cambia. Se cambia, l'altezza gliel'ha
+    // data il disegno, e prenderne il 44% vuol dire rincorrersi.
+    this.style.setProperty("--alt-icona", "18px");
+    const bassaCosi = this.offsetHeight;
     let libero = chiedi();
+    const cresceDaSola = (this.offsetHeight - bassaCosi) > 8;
     // Se il posto non basta, la prima cosa che cede e' il nome: una riga
     // sola con i puntini invece di due. Cosi' il disegno resta. Prima
     // toglievo il disegno, e la casella nuova nasceva senza icona:
@@ -7069,7 +7076,11 @@ class CasaTile extends HTMLElement {
         libero = chiedi();                     // la testa ha cambiato altezza
       }
     }
-    const quota = Math.min(h * 0.44, libero > 0 ? libero : h * 0.44);
+    // dove la casella cresce da sola il disegno sta alla misura normale:
+    // il 44% lo uso solo quando l'altezza gliel'ha data qualcun altro
+    const suo = this.hasAttribute("compatta") ? 46 : 60;
+    const tetto = cresceDaSola ? suo : h * 0.44;
+    const quota = Math.min(tetto, libero > 0 ? libero : tetto);
     const ico = Math.max(18, Math.min(160, Math.round(quota / 4) * 4));
     this._icoDetta = ico;
     this.style.setProperty("--alt-icona", ico + "px");

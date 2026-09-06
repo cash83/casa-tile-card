@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.14.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.14.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 ---
 
@@ -87,6 +87,13 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.14.2
+
+Due correzioni sulla grandezza delle icone.
+
+- **Il disegno non gonfia più la casella.** L'icona è alta il 44% della casella: giusto sulla plancia, dove le righe impongono l'altezza, ma dentro a una griglia che si adatta al contenuto quell'altezza gliel'ha data l'icona stessa — icona più grande, casella più alta, icona più grande ancora. Adesso la casella controlla se ha un'altezza sua (mette il disegno al minimo e al massimo e guarda se cambia) e, dove cresce da sola, il disegno sta alla misura normale.
+- **Le tre specie di icona seguono la stessa regola.** Il disegno seguiva `--alt-icona`, mentre l'icona di Home Assistant e l'immagine tua restavano fisse a 60 px: due caselle identiche affiancate, una col disegno e una con l'icona di Home Assistant, venivano una il doppio dell'altra. Nella casella bassa erano già allineate, mancava il caso normale.
 
 ## Novità della 2.14
 
