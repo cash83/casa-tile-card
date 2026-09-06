@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
 
+import { T, scegliLingua, traduciSchema } from './lingua.js';
 import { SCHEDA_APERTA, nomeAttrezzo, riempiRiquadro } from './aiuti.js';
 import { COLORI, coloreLampada, daRgb } from './colori.js';
 import { ICONE, MDI_PAROLE, NOMI_ICONE, NOMI_MDI, SINONIMI, disegnoMdi, iconaAutomatica, indirizzoFoto } from './icone.js';
@@ -49,7 +50,7 @@ export class CasaTileEditor extends HTMLElement {
     this._planciaSalvata = null;
     this._render();
   }
-  set hass(hass) { this._hass = hass; this._propaga(); }
+  set hass(hass) { scegliLingua(hass); this._hass = hass; this._propaga(); }
   set lovelace(lv) { this._lovelace = lv; this._propaga(); }
 
   _lov() { return this._lovelace || { config: { views: [] }, editMode: true }; }
@@ -207,7 +208,7 @@ export class CasaTileEditor extends HTMLElement {
         bottone.type = "button";
         bottone.innerHTML = "<span class='segno'></span><span class='testo'></span>";
         bottone.querySelector(".segno").textContent = sez.segno || "";
-        bottone.querySelector(".testo").textContent = sez.titolo;
+        bottone.querySelector(".testo").textContent = T(sez.titolo);
         if (i === 0) bottone.setAttribute("scelta", "");
         bottone.addEventListener("click", () => this._scegliScheda(i));
         this._barra.appendChild(bottone);
@@ -230,7 +231,7 @@ export class CasaTileEditor extends HTMLElement {
           if (gruppo.titolo) {
             titolo = document.createElement("h4");
             titolo.className = "titoloGruppo";
-            titolo.textContent = gruppo.titolo;
+            titolo.textContent = T(gruppo.titolo);
             scatola.appendChild(titolo);
           }
           const form = document.createElement("ha-form");
@@ -243,7 +244,7 @@ export class CasaTileEditor extends HTMLElement {
           form._quandoHass = Date.now();
           form.schema = this._schemaDi(gruppo);
           form._firma = this._firmaSchema(form.schema);
-          form.computeLabel = (x) => ETICHETTE[x.name] || x.name;
+          form.computeLabel = (x) => T(ETICHETTE[x.name]) || x.name;
           form.addEventListener("value-changed", (e) => {
             e.stopPropagation();
             this._formInUso = form;
@@ -805,7 +806,7 @@ export class CasaTileEditor extends HTMLElement {
     riga.className = "riga-colore";
     const eti = document.createElement("span");
     eti.className = "eti";
-    eti.textContent = ETICHETTE[campo] || campo;
+    eti.textContent = T(ETICHETTE[campo]) || campo;
 
     const via = document.createElement("button");
     via.type = "button";
@@ -3192,7 +3193,7 @@ export class CasaTileEditor extends HTMLElement {
       }
       return vale(voce.name) ? voce : null;
     }).filter(Boolean);
-    return setaccia(gruppo.schema);
+    return traduciSchema(setaccia(gruppo.schema));
   }
 
   // la firma serve a capire se lo schema e' cambiato davvero
@@ -3321,7 +3322,7 @@ export class CasaTileEditor extends HTMLElement {
         const guarda = (elenco) => elenco.forEach((voce) => {
           if (voce.schema) { guarda(voce.schema); return; }
           if (!voce.name) return;
-          const eti = ETICHETTE[voce.name] || voce.name;
+          const eti = T(ETICHETTE[voce.name]) || voce.name;
           if (senzaAccenti(eti + " " + voce.name).includes(parola)) dentro.push(eti);
         });
         guarda(g.form.schema || []);

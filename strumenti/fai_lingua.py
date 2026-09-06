@@ -1,0 +1,288 @@
+# -*- coding: utf-8 -*-
+u"""GENERO src/lingua.js.
+
+La lezione del primo giro: le chiavi NON si riscrivono a mano. Un
+apostrofo tipografico al posto di uno dritto e la traduzione non si
+aggancia, in silenzio. Quindi le chiavi le prendo dal codice - sono le
+stesse stringhe, prese dal file - e le scrivo con json.dumps, che le
+sfugge come si deve.
+
+Le traduzioni le indicizzo per CHIAVE DI IMPOSTAZIONE (mostra_icona,
+docked, ...) invece che per frase italiana: cosi' anche se la frase
+italiana cambia domani, la traduzione resta agganciata.
+"""
+import io
+import json
+import os
+
+REPO = r'C:\Users\tarat\Desktop\cloude\casa-tile-card'
+QUI = os.path.dirname(os.path.abspath(__file__))
+d = json.load(io.open(os.path.join(QUI, 'da_tradurre.json'), encoding='utf-8'))
+
+
+def comeARuntime(s):
+    """nel JSON le stringhe sono come stanno nel CODICE (con gli \\"): a
+    runtime JS le vede con le virgolette vere, e le chiavi devono essere
+    quelle di runtime, se no non si agganciano"""
+    return s.replace('\\"', '"').replace("\'", "'")
+
+
+d['etichette'] = {k: comeARuntime(v) for k, v in d['etichette'].items()}
+d['parole'] = {k: comeARuntime(v) for k, v in d['parole'].items()}
+d['titoli'] = [comeARuntime(v) for v in d['titoli']]
+d['voci'] = [comeARuntime(v) for v in d['voci']]
+
+# quella di pannello_sfondo nel codice sta su due righe unite col +:
+# l'estrattore ne aveva presa solo la prima
+d['etichette']['pannello_sfondo'] = (
+    'Sfondo del riquadro casse e sorgenti (vuoto = scuro di serie; '
+    'le scritte seguono il colore della scritta)')
+
+STATI = {
+    'auto': 'Auto', 'charging': 'Charging', 'cleaning': 'Cleaning', 'closed': 'Closed',
+    'cool': 'Cooling', 'discharging': 'Discharging', 'disconnected': 'Disconnected',
+    'docked': 'Docked', 'error': 'Error', 'full': 'Full', 'heat': 'Heating',
+    'home': 'Home', 'idle': 'Idle', 'not_charging': 'Not charging', 'not_home': 'Away',
+    'off': 'Off', 'on': 'On', 'open': 'Open', 'paused': 'Paused', 'playing': 'Playing',
+    'recording': 'Recording', 'returning': 'Returning', 'standby': 'Standby',
+    'streaming': 'Streaming', 'unavailable': 'Unavailable', 'wired': 'Wired',
+    'locked': 'Locked', 'unlocked': 'Unlocked',
+    # 'none' e 'unknown' sono "-" e "?": simboli, non si traducono
+}
+
+ETI = {
+    'acceso_entita': 'On when another entity is active - any one of them is enough (e.g. the watts going out instead of the charge)',
+    'acceso_se': 'On only when the entity reads exactly this (e.g. 95)',
+    'acceso_sempre': 'Always in colour (even when off)',
+    'anima': 'When it animates (icon and effects)',
+    'azione': 'What happens when you tap it',
+    'camera_diretta': 'Fill the tile with the live camera image',
+    'camera_secondi': 'How often the image refreshes (seconds)',
+    'carica_entita': 'Which entities mean IT IS CHARGING (usually not needed: a sensor named "charge" is enough)',
+    'coda': 'Queue list (needs Music Assistant)',
+    'colore': 'Colour when on',
+    'colore_rgb': 'Custom colour (only applies if you pick "custom" above)',
+    'colore_striscia': 'Which strip to show',
+    'colore_testo': "Colour of the name and subtitle (empty = the theme's)",
+    'colore_valore': 'Colour of the big value (empty = same as the name)',
+    'comandi_media': 'Music controls inside the tile',
+    'comandi_rapidi': 'Quick buttons (shutters, locks, vacuum)',
+    'cursore_colore': 'Colour strip inside the tile',
+    'cursore_max': "Slider tops out at (e.g. 800 instead of the entity's 1200)",
+    'cursore_min': "Slider starts at (empty = the entity's minimum)",
+    'disposizione': 'How the tile is laid out',
+    'distanza_entita': 'Route sensor (Waze, Google): if set, uses road distance',
+    'effetto': 'Tile effect',
+    'entity': 'Entity (leave it empty if the tile only opens the pop-up)',
+    'finestra_apertura': 'How the window opens',
+    'finestra_apertura_durata': 'How long the opening takes (milliseconds)',
+    'finestra_immagine': 'Pop-up background photo - address, e.g. /local/photo.jpg',
+    'finestra_largo': 'Pop-up width in pixels (empty = 560, like everyone else)',
+    'finestra_sfondo': 'Pop-up window tint (the cards inside have their own, below)',
+    'finestra_titolo': 'Pop-up title',
+    'finestra_trasparenza': 'Pop-up transparency (%)',
+    'gira_copertina': 'Spin the round album art like a record',
+    'grafico': 'Show the history chart inside the tile',
+    'grafico_colore': 'Chart colour (empty = same as the tile)',
+    'grafico_ore': 'How many hours of history (24 by default)',
+    'grafico_stile': 'How it is drawn',
+    'grande': 'Big tile',
+    'icona': 'Animated icon',
+    'icona_entita': 'Use the icon the entity already has in Home Assistant, if any',
+    'icona_ha': 'Home Assistant icon (search here; beats the one below)',
+    'icona_immagine': 'Image instead of the icon',
+    'icona_immagine_accesa': 'Image for when it is on (a GIF works too)',
+    'icona_sfondo': 'The big faded icon behind the text',
+    'icona_sfondo_forza': 'How visible the icon behind is (%)',
+    'indirizzo_web': 'Web address to open (for the "Open a web address" action)',
+    'info_entita': 'Readings shown at the bottom (add more here)',
+    'info_nomi_auto': 'Also label the readings you have not named yourself',
+    'intensita': 'Colour strength (%)',
+    'lettori': 'Speakers to choose from (the small buttons at the top)',
+    'meteo_entita': 'Weather in the corner (pick the weather entity)',
+    'meteo_forza': 'How visible the weather scene is (%) - 0 leaves only the colour',
+    'mostra_cursore': 'Slider inside the tile (lights, fans, music, values to set)',
+    'mostra_da_quanto': 'Show how long it has been in this state',
+    'mostra_distanza': 'Distance from home as the crow flies (people)',
+    'mostra_icona': 'Show the icon (turn it off to leave only the text)',
+    'multiroom': 'Speakers button: group the speakers and set the volumes',
+    'name': 'Display name',
+    'nascondi_quanto': 'Hide the little number at the end of the slider',
+    'nascondi_valore': 'Hide the value',
+    'pannello_sfondo': 'Background of the speakers and sources panel (empty = the usual dark; the text follows the text colour)',
+    'pannello_trasparenza': 'Transparency of the speakers and sources panel (%)',
+    'popup': 'bubble-card pop-up to open (e.g. #lights)',
+    'riquadri_trasparenza': 'Transparency of the search, browse and queue panels (%)',
+    'scarica_entita': 'Which entities mean IT IS SUPPLYING POWER (usually not needed: a sensor named "discharge" is enough)',
+    'segui_attivo': 'Follow whichever speaker is playing',
+    'servizio': 'Service to call (e.g. number.set_value)',
+    'servizio_dati': 'Service data, in YAML (e.g. value: 95)',
+    'sfondo_adatta': 'How the photo fits',
+    'sfondo_colore': 'Tile background (tint)',
+    'sfondo_copertina': 'Album art as background',
+    'sfondo_immagine': 'Background photo - address, e.g. /local/photo.jpg',
+    'sfondo_meteo': 'Use the weather as the background of the whole tile',
+    'sfondo_sfocatura': 'How much to blur it (0 = sharp)',
+    'sfondo_velo': 'Dark veil over the photo or album art (%) - so the text stays readable',
+    'soglia': 'On threshold (W)',
+    'sorgente': "Source button: pick the player's input",
+    'sottotitolo': 'Subtitle you write yourself (optional)',
+    'sottotitolo_entita': 'Subtitle taken from another entity (e.g. the address)',
+    'tempo_media': 'Track time and progress bar',
+    'trasparenza': 'Tile transparency (%)',
+    'usa_foto': "Use the entity's own picture, if it has one (people, album art)",
+    'velocita': 'Effect speed (%) - 100 is normal',
+    'yt_attrezzi': 'Small buttons: search / browse / queue / fullscreen',
+    'yt_cuore': 'Favourite heart',
+}
+
+TITOLI = {
+    'Base': 'Basics', "Cosa c'e scritto": 'What it says',
+    'Quando la casella e accesa': 'When the tile counts as on', 'Icona': 'Icon',
+    'Batteria: carica e scarica': 'Battery: charging and discharging', 'Aspetto': 'Looks',
+    'Come e fatta': 'Shape', 'Colore della scritta': 'Text colour', 'Effetti': 'Effects',
+    'Sfondo': 'Background', 'Tinta della casella': 'Tile tint',
+    'La telecamera in diretta': 'Live camera', 'Foto di sfondo': 'Background photo',
+    'La copertina del brano come sfondo': 'Album art as background',
+    'Il cielo del meteo': 'Weather sky', 'Comandi': 'Controls',
+    'Barra dentro la casella': 'Slider inside the tile', 'Tasti rapidi': 'Quick buttons',
+    'Striscia del colore (luci)': 'Colour strip (lights)', 'Grafico': 'Chart',
+    'Musica': 'Music', 'Comandi del lettore': 'Player controls',
+    'Casse e sorgenti': 'Speakers and sources', 'Il riquadro delle casse': 'The speakers panel',
+    'Persone': 'People', 'Dove si trova': 'Where they are', 'Tocco': 'Tap',
+    'Pop-up': 'Pop-up', 'Come si apre': 'How it opens',
+    'Quanto e largo il pop-up': 'Pop-up width', 'Come e vestito il pop-up': 'Pop-up looks',
+    'Pezzi': 'Pieces', 'finestra': 'window',
+    'Sottotitolo scritto da te (facoltativo)': 'Subtitle you write yourself (optional)',
+    'Titolo del pop-up': 'Pop-up title',
+}
+
+VOCI = {
+    'Classica - icona in basso, valore a destra': 'Classic - icon bottom left, value right',
+    'Persona - foto a sinistra, stato e via accanto': 'Person - photo left, state beside it',
+    'Musica - copertina tonda grande e onda del tempo': 'Music - big round album art and a waveform',
+    'Musica - come la tua ytmusic-card': 'Music - like the ytmusic-card',
+    'Alone - morbido': 'Glow - soft', 'Alone - che respira': 'Glow - breathing',
+    'Alone - diffuso e grande': 'Glow - wide and soft', 'Alone - doppio bordo': 'Glow - double border',
+    'Luce - neon dentro e fuori': 'Light - neon inside and out',
+    'Luce - che gira sul bordo': 'Light - running around the border',
+    'Luce - riflesso che scorre': 'Light - sweeping reflection',
+    'Luce - spia lampeggiante': 'Light - blinking indicator',
+    'Luce - lampeggio (per gli avvisi)': 'Light - flashing (for alerts)',
+    'Superficie - vetro smerigliato': 'Surface - frosted glass',
+    'Superficie - sfondo tinto': 'Surface - tinted background',
+    'Superficie - sfondo che si muove': 'Surface - moving background',
+    'Superficie - incavo': 'Surface - inset',
+    'Movimento - onda che sale': 'Motion - rising wave',
+    'Movimento - battito': 'Motion - heartbeat',
+    'Movimento - icona che fluttua': 'Motion - floating icon',
+    'Movimento - icona che pulsa': 'Motion - pulsing icon',
+    'Al passaggio - si ingrandisce': 'On hover - grows',
+    'Al passaggio - si inclina': 'On hover - tilts',
+    'Nessun effetto': 'No effect',
+    'Si muove solo quando e attiva': 'Only while the entity is active',
+    'Si muove sempre': 'Always', 'Non si muove mai': 'Never',
+    'Riempie la casella (taglia i bordi)': 'Fills the tile (crops the edges)',
+    'Tutta intera dentro la casella': 'The whole photo inside the tile',
+    'Grandezza vera della foto': 'Actual photo size',
+    'Solo la tinta (arcobaleno)': 'Colour only (rainbow)',
+    'Solo il bianco caldo/freddo': 'Warm/cool white only',
+    'Tutte e due le strisce': 'Both strips', 'Area piena': 'Filled area',
+    'Solo la linea': 'Line only', 'Accendi / spegni': 'Toggle',
+    'Esegui un servizio (es. imposta un valore)': 'Call a service (e.g. set a value)',
+    'Apri i dettagli': 'Open more-info', 'Apri un pop-up mio': 'Open my own pop-up',
+    'Apri Google Maps sulla posizione': 'Open Google Maps at the location',
+    'Apri un indirizzo web': 'Open a web address',
+    'Apri un pop-up bubble-card (#nome)': 'Open a bubble-card pop-up (#name)',
+    'Sale e sfuma - discreta': 'Rises and fades - discreet',
+    'Sboccia dalla casella che hai toccato': 'Blooms from the tile you tapped',
+    'Entra dal basso, come un cassetto': 'Slides up from the bottom, like a drawer',
+    'Nessuna animazione': 'No animation',
+}
+
+# ------------------------------------------------- costruisco il dizionario
+coppie = []          # (italiano dal codice, inglese)
+mancanti = []
+for k, it in sorted(d['etichette'].items()):
+    en = ETI.get(k)
+    if en:
+        coppie.append((it, en))
+    else:
+        mancanti.append('etichetta ' + k)
+for k, it in sorted(d['parole'].items()):
+    en = STATI.get(k)
+    if en:
+        coppie.append((it, en))
+    elif it not in ('-', '?'):
+        mancanti.append('stato ' + k)
+for it in d['titoli']:
+    en = TITOLI.get(it)
+    if en:
+        coppie.append((it, en))
+    else:
+        mancanti.append('titolo ' + it)
+for it in d['voci']:
+    en = VOCI.get(it)
+    if en:
+        coppie.append((it, en))
+    else:
+        mancanti.append('voce ' + it)
+
+visti = {}
+righe = []
+for it, en in coppie:
+    if it in visti:
+        continue
+    visti[it] = en
+    righe.append('  %s: %s,' % (json.dumps(it, ensure_ascii=False),
+                                json.dumps(en, ensure_ascii=False)))
+
+TESTA = u'''// -*- coding: utf-8 -*-
+// La lingua della casella.
+//
+// Schema: l'ITALIANO fa da chiave. Il codice resta scritto in italiano,
+// leggibile com'era, e qui c'e' solo la traduzione. Due vantaggi che
+// contano davvero: le chiavi non si inventano (sono la frase stessa), e
+// una scritta non ancora tradotta resta in italiano invece di sparire o
+// di mostrare un codice tipo "eti.mostra_icona".
+//
+// ATTENZIONE: le chiavi della CONFIGURAZIONE non si toccano mai - `icona`,
+// `colore`, `posti`, `mostra_cursore` e compagnia stanno scritte dentro
+// alle plance di chi usa la casella, e tradurle vorrebbe dire rompere ogni
+// installazione esistente. Qui si traduce solo quello che si LEGGE.
+//
+// Questo file lo genera uno script dalle stringhe vere del codice: le
+// chiavi non si scrivono a mano. Un apostrofo tipografico al posto di uno
+// dritto e la traduzione non si aggancia piu', in silenzio.
+
+let LINGUA = 'it';
+
+// Che lingua parla l'utente lo sa gia' Home Assistant: gliela chiedo.
+// Tutto quello che non e' italiano prende l'inglese.
+export function scegliLingua(hass) {
+  const l = String((hass && ((hass.locale && hass.locale.language) || hass.language)) || '')
+    .toLowerCase();
+  LINGUA = l.indexOf('it') === 0 ? 'it' : 'en';
+  return LINGUA;
+}
+
+export function laLingua() { return LINGUA; }
+
+// Se la scritta non c'e' nel dizionario torna com'era: meglio una frase in
+// italiano che un buco.
+export function T(testo) {
+  if (LINGUA === 'it' || !testo) return testo;
+  const t = EN[testo];
+  return t === undefined ? testo : t;
+}
+
+export const EN = {
+'''
+
+io.open(os.path.join(REPO, 'src', 'lingua.js'), 'w', encoding='utf-8', newline='\n').write(
+    TESTA + '\n'.join(righe) + '\n};\n')
+
+print('scritte tradotte: %d' % len(righe))
+print('senza traduzione: %d' % len(mancanti))
+for x in mancanti:
+    print('   ', x)

@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // Che disegno fare, e quanto grande: batteria, gradi, foto, timbro.
 
+import { T } from './lingua.js';
 import { PARENTI, PAROLE, riempiRiquadro } from './aiuti.js';
 import { METEO } from './colori.js';
 import { ICONA_METEO, ICONE, aspiraFuori, disegnoAspira, disegnoBatteria, disegnoMdi, disegnoTapparella, disegnoTermometro, iconaAutomatica, tagliaTapparella } from './icone.js';
@@ -210,7 +211,7 @@ export const ConDisegni = (Base) => class extends Base {
     }
     const scritto = valoreScritto(st);
     if (scritto !== null) return scritto;
-    return PAROLE[String(st.state).toLowerCase()] || st.state;
+    return T(PAROLE[String(st.state).toLowerCase()]) || st.state;
   }
 
   // quale disegno ci vuole, con la sua chiave (per non rifarlo inutilmente)

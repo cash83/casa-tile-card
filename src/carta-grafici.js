@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // Cielo, meteo, grafico, misure, barra e tapparella in viaggio.
 
+import { T } from './lingua.js';
 import { PANNELLI_APERTI, PAROLE, RICERCHE, VELOCITA_TAPPARELLE, fotoDi, quantoLontano } from './aiuti.js';
 import { METEO, coloreTemperatura, daRgb } from './colori.js';
 import { tagliaTapparella } from './icone.js';
@@ -727,7 +728,7 @@ export const ConGrafici = (Base) => class extends Base {
       const scritto = valoreScritto(st);
       const testo = scritto !== null
         ? scritto
-        : (PAROLE[String(st.state).toLowerCase()] || st.state);
+        : (T(PAROLE[String(st.state).toLowerCase()]) || st.state);
       pezzi.push({
         eid: eid, st: st, testo: String(testo).slice(0, 26),
         etichetta: this._nomeMisura(st, eid),

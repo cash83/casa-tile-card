@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // La casella.
 
+import { scegliLingua } from './lingua.js';
 import { ConAnteprima } from './carta-anteprima.js';
 import { ConDisegni } from './carta-disegni.js';
 import { ConFinestra } from './carta-finestra.js';
@@ -68,6 +69,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
   // minuto per niente: qui guardo solo le entita' che questa casella usa
   // davvero, e se non e' cambiata nessuna non muovo un dito.
   set hass(hass) {
+    scegliLingua(hass);
     const prima = this._hass;
     this._hass = hass;
     if (prima && this._costruito && !this._miRiguarda(prima, hass)) return;
