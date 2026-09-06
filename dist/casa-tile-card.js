@@ -6954,7 +6954,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.14.2";
+const VERSIONE = "2.15.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.

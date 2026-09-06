@@ -2,7 +2,9 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.14.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.15.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+
+🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
 ---
 
@@ -87,6 +89,20 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.15
+
+Dentro cambia tutto, fuori niente: la card fa esattamente le stesse cose di prima.
+
+- **Parla anche inglese.** La lingua la prende da Home Assistant: se il tuo HA è
+  in italiano non cambia una virgola, altrimenti nomi delle impostazioni, linguette,
+  scritte dei pop-up e voci delle tendine passano in inglese — 265 scritte in tutto.
+  Le lingue che non conosciamo ricadono sull'inglese.
+- **Il codice è diviso in 22 file** invece di uno solo da quindicimila righe: la
+  casella, i disegni, il grafico, il lettore, la finestra, i pezzi liberi, e le
+  quattro parti dell'editor. Si ricompone in un file unico quando si costruisce,
+  quindi in Home Assistant arriva sempre una risorsa sola.
+- **Niente più blocco «solo Italia»** nell'elenco di HACS.
 
 ## Novità della 2.14.2
 

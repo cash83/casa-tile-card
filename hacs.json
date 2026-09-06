@@ -2,6 +2,5 @@
   "name": "Casa Tile Card",
   "render_readme": true,
   "filename": "casa-tile-card.js",
-  "country": ["IT"],
   "homeassistant": "2024.8.0"
 }
