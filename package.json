@@ -1,0 +1,16 @@
+{
+  "name": "casa-tile-card",
+  "version": "2.14.2",
+  "description": "Casa Tile Card - casella animata per Home Assistant",
+  "author": "cash83",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c --watch"
+  },
+  "devDependencies": {
+    "rollup": "^4.24.0"
+  }
+}
