@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.15.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.15.4-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,21 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.15.4
+
+**"Bloom from the tile" now really blooms, every time.** The point the
+window should be born from was measured while the animation had already
+started — but "bloom" starts from the window scaled down to 22 % and
+displaced, so asking where the window is at that moment returns the
+shrunken one. The point came out different at every opening (66px −474,
+then 248px 289, then 106px −306): once it grew out of the tile, the next
+time it flew in from off-screen — and looked like the plain opening.
+
+Now the animation is switched off, the window is measured where it really
+is, and then it starts. Five openings in a row give the very same point.
+And the first time, when the pop-up cards mount and the window grows, the
+measurement is redone as soon as the content is there.
 
 ## What's new in 2.15.3
 

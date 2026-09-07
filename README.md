@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.15.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.15.4-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,22 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.15.4
+
+**«Sboccia dalla casella» adesso sboccia davvero, tutte le volte.** Il
+punto da cui deve nascere la finestra veniva misurato mentre l'animazione
+era già partita — ma «sboccia» comincia dalla finestra rimpicciolita al
+22 % e spostata, e chiedere a quel punto dov'è la finestra restituisce
+quella rimpicciolita. Il punto veniva fuori diverso a ogni apertura
+(66 px −474, poi 248 px 289, poi 106 px −306): una volta nasceva dalla
+casella, la volta dopo arrivava da fuori schermo — e sembrava l'apertura
+normale.
+
+Adesso l'animazione si spegne, la finestra si misura dov'è davvero, e poi
+riparte. Cinque aperture di fila danno lo stesso identico punto. E la
+prima volta, quando le schede del pop-up si montano e la finestra cresce,
+la misura si rifà appena il contenuto c'è.
 
 ## Novità della 2.15.3
 

@@ -224,20 +224,8 @@ export const ConFinestra = (Base) => class extends Base {
     riempiRiquadro(this._fIcona, nomeIco);
     this._vestiApertura();
     this.removeAttribute("chiude");
-    // L'animazione riparte perche' il velo passa da display:none a flex.
-    // Riaprendo mentre si chiudeva il velo era rimasto aperto, quindi non
-    // ripartiva niente e la finestra compariva di colpo: quella "stock".
-    // Lo chiudo davvero per un istante e costringo il browser a rifare i
-    // conti, cosi' l'animazione ricomincia da capo.
-    if (this._velo.hasAttribute("aperto")) {
-      this._velo.removeAttribute("aperto");
-      void this._velo.offsetWidth;
-    }
     this._velo.toggleAttribute("aperto", true);
-    // "sboccia dalla casella" ha bisogno di sapere DOVE sta la casella:
-    // glielo dico adesso, che la finestra e' appena comparsa e la sua
-    // posizione si puo' misurare
-    if (this.getAttribute("apertura") === "sboccia") this._puntoDiNascita();
+    this._faiNascere();
     document.addEventListener("keydown", this._esc = (e) => {
       if (e.key === "Escape") this._chiudiFinestra();
     });
@@ -249,9 +237,16 @@ export const ConFinestra = (Base) => class extends Base {
     let tipo = c.finestra_scheda || "entities";
     if (tipo === "altra") tipo = (c.finestra_scheda_altra || "entities").trim();
 
+    // La PRIMA volta le schede si montano adesso, e la finestra cresce: il
+    // punto di nascita misurato un attimo fa era quello di una finestra
+    // vuota, piu' bassa e quindi piu' in mezzo allo schermo. Rimisuro
+    // quando il contenuto c'e' - da li' in poi la misura e' gia' buona.
+    const monta = (lista) => Promise.resolve(this._montaSchede(lista))
+      .then(() => { requestAnimationFrame(() => this._faiNascere()); });
+
     const schede = [];
-    if (scelte && scelte.length) { return this._montaSchede(scelte); }
-    if (!elenco.length) { return this._montaSchede([]); }
+    if (scelte && scelte.length) { return monta(scelte); }
+    if (!elenco.length) { return monta([]); }
     if (c.finestra_grafico) {
       schede.push({ type: "history-graph", hours_to_show: 24, entities: elenco });
     }
@@ -264,7 +259,7 @@ export const ConFinestra = (Base) => class extends Base {
       elenco.forEach((e) => schede.push({ type: tipo, entity: e }));
     }
 
-    return this._montaSchede(schede);
+    return monta(schede);
   }
 
   // le schede del pop-up, cosi' come stanno scritte
@@ -445,6 +440,32 @@ export const ConFinestra = (Base) => class extends Base {
       Math.round(isFinite(n) && n >= 60 ? Math.min(2000, n) : 220) + "ms");
   }
 
+  // PRIMA MISURO, POI FACCIO SBOCCIARE.
+  //
+  // Il punto di nascita si misurava mentre l'animazione era gia' partita:
+  // ma "sboccia" comincia dal 22% e spostata, e chiedere il rettangolo di
+  // una finestra in mezzo a un'animazione restituisce quello rimpicciolito
+  // e fuori posto. Cosi' il punto veniva fuori diverso a ogni apertura
+  // (66px -474px, poi 248px 289px, poi 106px -306px): la prima sbocciava
+  // dalla casella e la seconda arrivava da fuori schermo, che sembrava
+  // l'apertura normale.
+  //
+  // Adesso spengo l'animazione, misuro la finestra dov'e' davvero, e la
+  // riaccendo. Lo spegnimento non resta scritto sull'elemento, se no
+  // coprirebbe anche l'animazione della chiusura. In piu' cosi'
+  // l'animazione riparte per forza da capo a ogni apertura.
+  _faiNascere() {
+    const fin = this._finestra;
+    if (!fin) return;
+    fin.style.animation = "none";
+    this._velo.style.animation = "none";
+    void fin.offsetWidth;
+    if (this.getAttribute("apertura") === "sboccia") this._puntoDiNascita();
+    else this.style.removeProperty("--nasce");
+    fin.style.animation = "";
+    this._velo.style.animation = "";
+  }
+
   // DOVE NASCE LA FINESTRA: il centro della casella che ha toccato, contato
   // dentro alla finestra. Cosi' crescendo sembra che venga da li'.
   _puntoDiNascita() {
@@ -454,7 +475,9 @@ export const ConFinestra = (Base) => class extends Base {
       if (!card || !fin) return;
       const r = card.getBoundingClientRect();
       const f = fin.getBoundingClientRect();
-      if (!r.width || !f.width) return;
+      // misura non riuscita: meglio sbocciare dal centro che dal punto
+      // dell'apertura di prima, che ormai non c'entra piu' niente
+      if (!r.width || !f.width) { this.style.removeProperty("--nasce"); return; }
       const x = Math.round(r.left + r.width / 2 - f.left);
       const y = Math.round(r.top + r.height / 2 - f.top);
       this.style.setProperty("--nasce", x + "px " + y + "px");
