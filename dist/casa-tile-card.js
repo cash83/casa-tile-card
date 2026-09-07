@@ -7335,7 +7335,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.16.4";
+const VERSIONE = "2.16.5";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -11085,35 +11085,6 @@ const ConMusica = (Base) => class extends Base {
     }
   }
 
-  // IL VOLUME DEL GRUPPO SECONDO MUSIC ASSISTANT.
-  //
-  // In un gruppo di Music Assistant il volume che conta e' quello del
-  // gruppo, non il `volume_level` delle singole casse: una cassa che
-  // segna zero si sente lo stesso. Music Assistant lo dice e lo cambia
-  // con due servizi suoi, e sono quelli che usa anche la sua ytmusic-card.
-  //
-  // Lo chiedo quando si apre il riquadro, non a ogni disegno: e' una
-  // chiamata di rete.
-  _chiediVolumeGruppoMA(eid) {
-    if (!this._hass || !eid || !this._daMusicAssistant(eid)) {
-      this._volGruppoMA = null;
-      return;
-    }
-    if (this._chiedendoVolGruppo) return;
-    this._chiedendoVolGruppo = true;
-    this._hass.callWS({ type: "call_service", domain: "mass_queue",
-      service: "get_group_volume", service_data: { entity: eid },
-      return_response: true })
-      .then((r) => {
-        const v = r && r.response && r.response.volume_level;
-        this._volGruppoMA = typeof v === "number"
-          ? { eid: eid, quanto: Math.max(0, Math.min(100, Math.round(v))) } : null;
-        this._render();
-      })
-      .catch(() => { this._volGruppoMA = null; })
-      .then(() => { this._chiedendoVolGruppo = false; });
-  }
-
   // DI CHI E' IL VOLUME CHE MUOVE IL CURSORE.
   //
   // La casella puo' star facendo vedere il capogruppo, perche' e' li' che
@@ -11130,54 +11101,6 @@ const ConMusica = (Base) => class extends Base {
     const membri = st && st.attributes.group_members;
     if (Array.isArray(membri) && membri.indexOf(mia) >= 0 && stati[mia]) return mia;
     return c.entity;
-  }
-
-  // I VOLUMI DELLE CASSE UNITE. Torna niente se non c'e' gruppo, o se le
-  // casse che sanno dire il loro volume sono meno di due: in quel caso il
-  // volume del gruppo non vorrebbe dire niente.
-  _volumiDelGruppo(st) {
-    const membri = st && Array.isArray(st.attributes.group_members)
-      ? st.attributes.group_members : [];
-    if (membri.length < 2) return null;
-    const stati = this._hass ? this._hass.states : {};
-    const dentro = membri.map((e) => stati[e])
-      .filter((s) => s && s.attributes.volume_level !== undefined);
-    if (dentro.length < 2) return null;
-    const somma = dentro.reduce((t, s) => t + Number(s.attributes.volume_level || 0), 0);
-    return { media: Math.round((somma / dentro.length) * 100),
-      casse: dentro.map((s) => s.entity_id) };
-  }
-
-  // Muovere il generale: ogni cassa parte DAL SUO volume e si sposta dello
-  // stesso tanto. Alzo il generale di dieci, ognuna sale di dieci.
-  //
-  // Prima spostava in proporzione (moltiplicando): sembra piu' elegante ma
-  // una cassa a zero restava a zero per sempre - zero per qualsiasi cosa fa
-  // zero - e tutte le altre si riscalavano, come se il volume glielo
-  // dettasse il generale invece del loro.
-  _mandaVolumeGruppo(gruppo, valore) {
-    if (!this._hass) return;
-    // Music Assistant il volume del gruppo ce l'ha suo: e' quello che
-    // decide cosa esce davvero, e va cambiato con il suo servizio.
-    const capo = this._config.entity;
-    if (this._daMusicAssistant(capo)) {
-      const quanto = Math.max(1, Math.min(100, Math.round(Number(valore))));
-      this._volGruppoMA = { eid: capo, quanto: quanto };
-      this._hass.callService("mass_queue", "set_group_volume",
-        { entity: capo, volume_level: quanto });
-      return;
-    }
-    const stati = this._hass.states;
-    const vuole = Math.max(0, Math.min(100, Number(valore))) / 100;
-    const quanto = vuole - gruppo.media / 100;
-    gruppo.casse.forEach((eid) => {
-      const s = stati[eid];
-      if (!s) return;
-      const ora = Number(s.attributes.volume_level || 0);
-      const nuovo = Math.max(0, Math.min(1, ora + quanto));
-      this._hass.callService("media_player", "volume_set",
-        { entity_id: eid, volume_level: Math.round(nuovo * 1000) / 1000 });
-    });
   }
 
   _casseCandidate(padrone) {
@@ -11345,57 +11268,6 @@ const ConMusica = (Base) => class extends Base {
         box.appendChild(r);
       });
     }
-    // IN CIMA: il volume di TUTTE le casse insieme. La barra della casella
-    // fa gia' questo, ma col riquadro aperto sta sotto e non si vede.
-    let tutte = box.querySelector(".tutte-le-casse");
-    if (!tutte) {
-      tutte = document.createElement("div");
-      tutte.className = "voce tutte-le-casse";
-      tutte.innerHTML = TH('<span class="chi">Tutte le casse</span>'
-        + '<input class="vol" type="range" min="0" max="100" step="1" '
-        + 'title="Alza e abbassa tutte insieme, ognuna dal suo volume">');
-      const volT = tutte.querySelector(".vol");
-      soloDalPallino(volT);
-      const mandaT = () => {
-        const suo = this._hass && this._hass.states[this._config.entity];
-        const gr = this._volumiDelGruppo(suo);
-        if (gr) this._mandaVolumeGruppo(gr, Number(volT.value));
-      };
-      // UNA VOLTA SOLA, QUANDO LASCI. Mandarlo a raffica mentre trascini
-      // faceva fare le cose a caso: Music Assistant, a ogni comando,
-      // rifa' i conti sulle casse, e dieci comandi di fila si
-      // accavallavano. La sua ytmusic-card manda a `change`, e ha ragione.
-      volT.addEventListener("input", () => {
-        tutte._trascino = true;
-        volT.style.setProperty("--riempito", volT.value + "%");
-      });
-      ["pointerup", "touchend", "mouseup", "keyup", "change"].forEach((ev) =>
-        volT.addEventListener(ev, () => {
-          if (!tutte._trascino) return;
-          tutte._trascino = false;
-          mandaT();
-          // e mi rifaccio dire da lui com'e' andata a finire
-          clearTimeout(tutte._ricontrolla);
-          tutte._ricontrolla = setTimeout(() => {
-            this._volGruppoMA = null;
-            this._chiediVolumeGruppoMA(this._config.entity);
-          }, 900);
-        }));
-      volT.addEventListener("blur", () => { tutte._trascino = false; });
-    }
-    if (tutte.parentNode !== box) box.insertBefore(tutte, box.firstChild);
-    const insieme = this._volumiDelGruppo(st);
-    tutte.hidden = !insieme;
-    if (insieme && !tutte._trascino) {
-      // con Music Assistant il numero buono e' il suo, non la media delle
-      // casse: quelle possono segnare zero e sentirsi lo stesso
-      const suo = this._volGruppoMA;
-      const quanto = (suo && suo.eid === padrone) ? suo.quanto : insieme.media;
-      const volT = tutte.querySelector(".vol");
-      volT.value = String(quanto);
-      volT.style.setProperty("--riempito", quanto + "%");
-    }
-
     // in fondo, "svuota la coda": e' un comando di serie di Home Assistant
     // (clear_playlist), quindi vale per Music Assistant come per yTube
     let via = box.querySelector(".svuota-coda");
@@ -14237,14 +14109,6 @@ svg.iconafondo[hidden], img.fotofondo[hidden] { display: none !important; }
   overflow: hidden; text-overflow: ellipsis;
   color: var(--testo, var(--primary-text-color, #eaf1fb)); }
 .pannello .voce .vol { flex: none; width: 92px; }
-/* il volume di tutte: sta in cima, staccato dalle singole casse */
-.pannello .voce.tutte-le-casse {
-  border-bottom: 1px solid var(--casa-border, rgba(255,255,255,.12));
-  padding-bottom: 8px; margin-bottom: 4px;
-}
-.pannello .voce.tutte-le-casse .chi { font-weight: 700; opacity: .95; }
-.pannello .voce.tutte-le-casse .vol { width: 126px; }
-.pannello .voce.tutte-le-casse[hidden] { display: none !important; }
 .pannello .voce .vol[hidden] { display: none !important; }
 .pannello .voce .sw {
   appearance: none; border: none; padding: 0; flex: none; cursor: pointer;
@@ -15720,8 +15584,6 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
   _apriPannello(quale) {
     const gruppo = quale === "gruppo";
     const eraAperto = gruppo ? !this._panGruppo.hidden : !this._panFonti.hidden;
-    // il volume del gruppo di Music Assistant lo so solo chiedendoglielo
-    if (gruppo && !eraAperto) this._chiediVolumeGruppoMA(this._config.entity);
     this._panGruppo.hidden = gruppo ? eraAperto : true;
     this._panFonti.hidden = gruppo ? true : eraAperto;
     this._bGruppo.toggleAttribute("aperto", !this._panGruppo.hidden);

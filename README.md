@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.16.4-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.16.5-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,19 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.16.5
+
+**Via il volume generale: resta quello di ogni cassa.** Il volume di
+gruppo di Music Assistant si è rivelato inaffidabile — lo diceva
+sbagliato (12 mentre il lettore stava a 50, e senza nemmeno un gruppo) e
+cambiandolo rifaceva i conti su tutte le casse. Lo stesso comportamento
+si vede nell'interfaccia di Music Assistant, card o non card: metti muto
+una cassa, alzi il volume, e resta muta ma si sente.
+
+Quindi la card non ci prova più: nel riquadro «Casse» c'è il volume di
+ogni cassa, uno per riga, e la barra della casella è il volume della sua.
+Cose semplici che fanno quello che dicono.
 
 ## Novità della 2.16.4
 

@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.16.4-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.16.5-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,19 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.16.5
+
+**The overall volume is gone: each speaker keeps its own.** Music
+Assistant's group volume turned out to be unreliable — it reported the
+wrong number (12 while the player sat at 50, with no group at all) and
+setting it redid the sums across every speaker. The same happens in Music
+Assistant's own interface, card or no card: mute a speaker, raise the
+volume, and it stays muted yet you can hear it.
+
+So the card no longer tries: the "Speakers" panel has one volume per
+speaker, and the tile slider is its own speaker's. Simple things that do
+what they say.
 
 ## What's new in 2.16.4
 

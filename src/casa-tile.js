@@ -1158,8 +1158,6 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
   _apriPannello(quale) {
     const gruppo = quale === "gruppo";
     const eraAperto = gruppo ? !this._panGruppo.hidden : !this._panFonti.hidden;
-    // il volume del gruppo di Music Assistant lo so solo chiedendoglielo
-    if (gruppo && !eraAperto) this._chiediVolumeGruppoMA(this._config.entity);
     this._panGruppo.hidden = gruppo ? eraAperto : true;
     this._panFonti.hidden = gruppo ? true : eraAperto;
     this._bGruppo.toggleAttribute("aperto", !this._panGruppo.hidden);
