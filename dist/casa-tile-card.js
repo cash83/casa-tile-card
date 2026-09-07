@@ -297,6 +297,7 @@ const EN = {
   "Sboccia dalla casella che hai toccato": "Blooms from the tile you tapped",
   "Entra dal basso, come un cassetto": "Slides up from the bottom, like a drawer",
   "Nessuna animazione": "No animation",
+  "Volume di tutte le casse del gruppo": "Volume of every speaker in the group",
   "pausa": "pause",
   "acqua": "water",
   "aereo": "plane",
@@ -7332,7 +7333,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.15.4";
+const VERSIONE = "2.16.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -10086,6 +10087,8 @@ const ConGrafici = (Base) => class extends Base {
       this._hass.callService("fan", "set_percentage",
         { entity_id: c.entity, percentage: valore });
     } else if (dominio === "media_player") {
+      const gruppo = this._volumiDelGruppo(this._hass.states[c.entity]);
+      if (gruppo) { this._mandaVolumeGruppo(gruppo, valore); return; }
       this._hass.callService("media_player", "volume_set",
         { entity_id: c.entity, volume_level: valore / 100 });
     } else if (dominio === "number" || dominio === "input_number") {
@@ -10190,7 +10193,16 @@ const ConGrafici = (Base) => class extends Base {
     } else if (dominio === "fan") {
       valore = Math.round(st.attributes.percentage || 0);
     } else {
-      valore = Math.round((st.attributes.volume_level || 0) * 100);
+      // con le casse unite la barra e' il volume di TUTTE, come in Music
+      // Assistant: fa vedere la media e le muove insieme. Quello della
+      // singola cassa resta nel riquadro delle Casse.
+      const gruppo = this._volumiDelGruppo(st);
+      valore = gruppo ? gruppo.media
+        : Math.round((st.attributes.volume_level || 0) * 100);
+      this._cursore.toggleAttribute("gruppo", !!gruppo);
+      this._range.title = gruppo
+        ? T("Volume di tutte le casse del gruppo")
+        : "";
     }
     if (!this._trascino) {
       this._range.value = String(valore);
@@ -11073,12 +11085,56 @@ const ConMusica = (Base) => class extends Base {
     }
   }
 
+  // I VOLUMI DELLE CASSE UNITE. Torna niente se non c'e' gruppo, o se le
+  // casse che sanno dire il loro volume sono meno di due: in quel caso il
+  // volume del gruppo non vorrebbe dire niente.
+  _volumiDelGruppo(st) {
+    const membri = st && Array.isArray(st.attributes.group_members)
+      ? st.attributes.group_members : [];
+    if (membri.length < 2) return null;
+    const stati = this._hass ? this._hass.states : {};
+    const dentro = membri.map((e) => stati[e])
+      .filter((s) => s && s.attributes.volume_level !== undefined);
+    if (dentro.length < 2) return null;
+    const somma = dentro.reduce((t, s) => t + Number(s.attributes.volume_level || 0), 0);
+    return { media: Math.round((somma / dentro.length) * 100),
+      casse: dentro.map((s) => s.entity_id) };
+  }
+
+  // Muovere il gruppo: ogni cassa si sposta IN PROPORZIONE, cosi' chi era
+  // piu' bassa resta piu' bassa - e' quello che uno si aspetta e quello che
+  // fa Music Assistant. Se erano tutte a zero vanno tutte al valore
+  // chiesto, se no da li' non si muoverebbero mai piu'.
+  _mandaVolumeGruppo(gruppo, valore) {
+    if (!this._hass) return;
+    const stati = this._hass.states;
+    const vuole = Math.max(0, Math.min(100, Number(valore))) / 100;
+    const media = gruppo.media / 100;
+    gruppo.casse.forEach((eid) => {
+      const s = stati[eid];
+      if (!s) return;
+      const ora = Number(s.attributes.volume_level || 0);
+      const nuovo = media > 0 ? ora * (vuole / media) : vuole;
+      this._hass.callService("media_player", "volume_set",
+        { entity_id: eid,
+          volume_level: Math.max(0, Math.min(1, Math.round(nuovo * 1000) / 1000)) });
+    });
+  }
+
   _casseCandidate(padrone) {
     let lista = this._lettori();
     if (!lista.length) {
       const stati = this._hass ? this._hass.states : {};
+      const reg = (this._hass && this._hass.entities) || {};
+      // SOLO LE CASSE DELLA SUA INTEGRAZIONE. Prima guardava qualsiasi
+      // media_player della casa: bastava che partisse la musica su un
+      // lettore di un'altra integrazione e la casella ci saltava sopra,
+      // facendo vedere una cosa che non era la sua. E unire casse di
+      // integrazioni diverse non si puo' fare comunque.
+      const sua = (reg[padrone] || {}).platform;
       lista = Object.keys(stati).filter((e) => e.indexOf("media_player.") === 0
-        && Array.isArray(stati[e].attributes.group_members)).slice(0, 14);
+        && Array.isArray(stati[e].attributes.group_members)
+        && (!sua || (reg[e] || {}).platform === sua)).slice(0, 14);
     }
     lista = lista.filter((e) => e !== padrone);
     lista.unshift(padrone);

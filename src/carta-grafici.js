@@ -842,6 +842,8 @@ export const ConGrafici = (Base) => class extends Base {
       this._hass.callService("fan", "set_percentage",
         { entity_id: c.entity, percentage: valore });
     } else if (dominio === "media_player") {
+      const gruppo = this._volumiDelGruppo(this._hass.states[c.entity]);
+      if (gruppo) { this._mandaVolumeGruppo(gruppo, valore); return; }
       this._hass.callService("media_player", "volume_set",
         { entity_id: c.entity, volume_level: valore / 100 });
     } else if (dominio === "number" || dominio === "input_number") {
@@ -946,7 +948,16 @@ export const ConGrafici = (Base) => class extends Base {
     } else if (dominio === "fan") {
       valore = Math.round(st.attributes.percentage || 0);
     } else {
-      valore = Math.round((st.attributes.volume_level || 0) * 100);
+      // con le casse unite la barra e' il volume di TUTTE, come in Music
+      // Assistant: fa vedere la media e le muove insieme. Quello della
+      // singola cassa resta nel riquadro delle Casse.
+      const gruppo = this._volumiDelGruppo(st);
+      valore = gruppo ? gruppo.media
+        : Math.round((st.attributes.volume_level || 0) * 100);
+      this._cursore.toggleAttribute("gruppo", !!gruppo);
+      this._range.title = gruppo
+        ? T("Volume di tutte le casse del gruppo")
+        : "";
     }
     if (!this._trascino) {
       this._range.value = String(valore);

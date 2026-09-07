@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.15.4-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.16.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,23 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.16
+
+- **Il volume del gruppo, come in Music Assistant.** Con le casse unite la
+  barra della casella muoveva solo quella che comanda, e le altre restavano
+  dov'erano. Adesso mostra la media e le muove tutte insieme, ognuna
+  tenendo la sua differenza: da 60-30-90 portandola a metà vengono
+  30-15-45. Il volume della singola cassa resta dov'era, nel riquadro
+  «Casse».
+- **La casella non salta più su un lettore che non c'entra.** Senza un
+  elenco di casse scelto a mano, guardava *qualsiasi* media player della
+  casa: bastava che partisse la musica da un'altra integrazione e ci
+  saltava sopra. Così la casella di ytube_music_player faceva vedere il
+  lettore di Music Assistant mentre il suo era spento. Adesso guarda solo
+  le casse della **sua** integrazione — unire casse di integrazioni diverse
+  non si può fare comunque, quindi non erano candidate nemmeno prima. Se
+  vuoi che ne segua altre, l'elenco a mano continua a comandare lui.
 
 ## Novità della 2.15.4
 

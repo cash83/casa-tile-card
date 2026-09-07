@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.15.4-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.16.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,21 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.16
+
+- **Group volume, the way Music Assistant does it.** With speakers joined,
+  the tile slider only moved the one in charge and left the others where
+  they were. Now it shows the average and moves them together, each keeping
+  its own difference: 60-30-90 taken to half becomes 30-15-45. Each
+  speaker's own volume stays where it was, in the "Speakers" panel.
+- **The tile no longer jumps to an unrelated player.** With no hand-picked
+  speaker list, it watched *any* media player in the house: music starting
+  on another integration was enough for it to jump there. That is why a
+  tile for ytube_music_player showed the Music Assistant player while its
+  own was off. Now it only watches speakers from **its own** integration —
+  joining speakers across integrations is not possible anyway. A
+  hand-picked list still wins.
 
 ## What's new in 2.15.4
 

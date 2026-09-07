@@ -137,6 +137,7 @@ ETI = {
 }
 
 LIBERE = {
+    'Volume di tutte le casse del gruppo': 'Volume of every speaker in the group',
     'pausa': 'pause',
     'acqua': 'water',
     'aereo': 'plane',
