@@ -1905,6 +1905,57 @@ const ONDA_D = "M0 13" + " q18.75 -14 37.5 0 q18.75 14 37.5 0".repeat(4);
 
 // --- YAML: giusto quel tanto che serve alle schede di Lovelace -------
 
+// I CURSORI SI MUOVONO SOLO DAL PALLINO.
+//
+// Un `input type=range` nativo salta al punto dove lo tocchi. Sul telefono,
+// mentre si scorre la pagina, basta sfiorare la barra e il valore cambia
+// senza che uno se ne accorga - una batteria ritrovata al 5%. Qui il tocco
+// che non parte dal pallino non muove niente.
+//
+// Non tocco `touch-action`: la pagina continua a scorrere come prima anche
+// col dito appoggiato sulla barra. E la tastiera muove sempre, perche' le
+// frecce sono una scelta, non una sbadataggine.
+const PALLINO = 18;   // quant'e' largo il pallino
+const MARGINE = 12;   // e quanto sbaglia un dito
+
+function soloDalPallino(cursore) {
+  if (!cursore || cursore._soloPallino) return;
+  cursore._soloPallino = true;
+  cursore._dalPallino = true;
+
+  const sulPallino = (e) => {
+    const r = cursore.getBoundingClientRect();
+    if (!r.width) return true;
+    const min = Number(cursore.min === "" ? 0 : cursore.min);
+    const max = Number(cursore.max === "" ? 100 : cursore.max);
+    const q = max > min
+      ? Math.min(1, Math.max(0, (Number(cursore.value) - min) / (max - min)))
+      : 0;
+    // il pallino non arriva mai col centro sui bordi: si ferma di mezzo se stesso
+    const centro = r.left + PALLINO / 2 + q * (r.width - PALLINO);
+    return Math.abs(e.clientX - centro) <= PALLINO / 2 + MARGINE;
+  };
+
+  cursore.addEventListener("pointerdown", (e) => {
+    cursore._dalPallino = sulPallino(e);
+    cursore._valorePrima = cursore.value;
+    // niente salto al punto toccato
+    if (!cursore._dalPallino) e.preventDefault();
+  }, true);
+  ["pointerup", "pointercancel", "keydown"].forEach((ev) =>
+    cursore.addEventListener(ev, () => { cursore._dalPallino = true; }, true));
+
+  // rete di sicurezza: se il browser il valore l'ha mosso lo stesso, lo
+  // rimetto com'era e non lascio passare l'avviso a chi manda il comando.
+  ["input", "change"].forEach((ev) =>
+    cursore.addEventListener(ev, (e) => {
+      if (cursore._dalPallino) return;
+      cursore.value = cursore._valorePrima;
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }, true));
+}
+
 // -*- coding: utf-8 -*-
 // I disegni delle icone e il catalogo MDI.
 
@@ -7279,7 +7330,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.15.1";
+const VERSIONE = "2.15.2";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -11124,6 +11175,7 @@ const ConMusica = (Base) => class extends Base {
           this._hass.callService("media_player", "volume_set",
             { entity_id: eid, volume_level: Number(vol.value) / 100 });
         };
+        soloDalPallino(vol);
         vol.addEventListener("input", () => {
           r._trascino = true;
           vol.style.setProperty("--riempito", vol.value + "%");
@@ -14765,8 +14817,12 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
       this._hass.callService("light", "turn_on", dati);
     };
     [["tinta", this._tinta], ["calore", this._calore]].forEach(([nome, el]) => {
+      soloDalPallino(el);
       ["pointerdown", "touchstart", "mousedown", "keydown"].forEach((ev) =>
-        el.addEventListener(ev, () => { this._trascinoColore = true; }));
+        el.addEventListener(ev, () => {
+          if (el._dalPallino === false) return;
+          this._trascinoColore = true;
+        }));
       el.addEventListener("input", () => {
         this._trascinoColore = true;
         clearTimeout(this._frenoColore);
@@ -14855,6 +14911,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     });
     this._range = root.querySelector(".cursore input");
     this._quanto = root.querySelector(".cursore .quanto");
+    soloDalPallino(this._range);
     ["click", "pointerdown", "touchstart"].forEach((ev) =>
       this._cursore.addEventListener(ev, (e) => e.stopPropagation()));
     const soloAllaFine = () => {
@@ -14884,6 +14941,9 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     };
     ["pointerdown", "touchstart", "mousedown", "keydown"].forEach((ev) =>
       this._range.addEventListener(ev, () => {
+        // se il tocco non e' partito dal pallino non sto trascinando
+        // niente: se no al dito alzato partiva il comando lo stesso
+        if (this._range._dalPallino === false) return;
         this._trascino = true;
         this._fermaViaggio(false);
       }));

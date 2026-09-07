@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.15.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.15.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,17 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.15.2
+
+**Sliders only move by the knob.** A plain slider jumps to wherever you
+touch it: on a phone, while scrolling the page, brushing against one is
+enough to change the value without noticing — a battery found at 5 %.
+Now a touch that does not start on the knob moves nothing and sends no
+command. It applies to the tile slider (light, volume, blind, settable
+value), to the two colour ones and to each speaker's volume in the group
+panel. The knob has a finger of margin around it, dragging it works as
+before, so do the arrow keys, and the page scrolls as always.
 
 ## What's new in 2.15.1
 

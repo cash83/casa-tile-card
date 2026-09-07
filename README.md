@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.15.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.15.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,18 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.15.2
+
+**I cursori si muovono solo dal pallino.** Una barra normale salta al
+punto dove la tocchi: sul telefono, mentre si scorre la pagina, basta
+sfiorarla e il valore cambia senza che uno se ne accorga — una batteria
+ritrovata al 5 %. Adesso il tocco che non parte dal pallino non muove
+niente e non manda nessun comando. Vale per il cursore della casella
+(luce, volume, tapparella, valore impostabile), per i due del colore e
+per il volume di ogni cassa nel riquadro del gruppo. Il pallino ha un
+dito di margine attorno, trascinarlo funziona come prima, le frecce
+della tastiera pure, e la pagina scorre come sempre.
 
 ## Novità della 2.15.1
 

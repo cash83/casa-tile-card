@@ -2,7 +2,7 @@
 // Il lettore: cerca, sfoglia, coda, casse del gruppo, sorgenti.
 
 import { T, TH } from './lingua.js';
-import { RICERCHE } from './aiuti.js';
+import { RICERCHE, soloDalPallino } from './aiuti.js';
 import { segno } from './segni.js';
 
 export const ConMusica = (Base) => class extends Base {
@@ -889,6 +889,7 @@ export const ConMusica = (Base) => class extends Base {
           this._hass.callService("media_player", "volume_set",
             { entity_id: eid, volume_level: Number(vol.value) / 100 });
         };
+        soloDalPallino(vol);
         vol.addEventListener("input", () => {
           r._trascino = true;
           vol.style.setProperty("--riempito", vol.value + "%");

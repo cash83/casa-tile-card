@@ -8,7 +8,7 @@ import { ConFinestra } from './carta-finestra.js';
 import { ConGrafici } from './carta-grafici.js';
 import { ConMusica } from './carta-musica.js';
 import { ConPezzi } from './carta-pezzi.js';
-import { ONDA_D, PANNELLI_APERTI, SPENTI, daQuanto, fotoDi } from './aiuti.js';
+import { ONDA_D, PANNELLI_APERTI, SPENTI, daQuanto, fotoDi, soloDalPallino } from './aiuti.js';
 import { CIELI, COLORI, METEO, coloreDaGradi, coloreLampada, coloreTemperatura, conAlfa, daRgb, scurisci } from './colori.js';
 import { indirizzoFoto, tagliaTapparella } from './icone.js';
 import { metti, nomeArtista, segno } from './segni.js';
@@ -467,8 +467,12 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       this._hass.callService("light", "turn_on", dati);
     };
     [["tinta", this._tinta], ["calore", this._calore]].forEach(([nome, el]) => {
+      soloDalPallino(el);
       ["pointerdown", "touchstart", "mousedown", "keydown"].forEach((ev) =>
-        el.addEventListener(ev, () => { this._trascinoColore = true; }));
+        el.addEventListener(ev, () => {
+          if (el._dalPallino === false) return;
+          this._trascinoColore = true;
+        }));
       el.addEventListener("input", () => {
         this._trascinoColore = true;
         clearTimeout(this._frenoColore);
@@ -557,6 +561,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     });
     this._range = root.querySelector(".cursore input");
     this._quanto = root.querySelector(".cursore .quanto");
+    soloDalPallino(this._range);
     ["click", "pointerdown", "touchstart"].forEach((ev) =>
       this._cursore.addEventListener(ev, (e) => e.stopPropagation()));
     const soloAllaFine = () => {
@@ -586,6 +591,9 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     };
     ["pointerdown", "touchstart", "mousedown", "keydown"].forEach((ev) =>
       this._range.addEventListener(ev, () => {
+        // se il tocco non e' partito dal pallino non sto trascinando
+        // niente: se no al dito alzato partiva il comando lo stesso
+        if (this._range._dalPallino === false) return;
         this._trascino = true;
         this._fermaViaggio(false);
       }));
