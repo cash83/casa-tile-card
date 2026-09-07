@@ -1,175 +1,4 @@
 // -*- coding: utf-8 -*-
-// I conti sui colori: gradi, lampade, sfumature, meteo.
-
-const COLORI = {
-  ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
-  rosa: "#ff9ec7", viola: "#9b6bff", blu: "#5ec8ff", azzurro: "#7aa7ff",
-  verde: "#3fd98a", acqua: "#4fe0c8", lime: "#cddc39", grigio: "#8ab4f8",
-};
-
-function coloreDaGradi(k) {
-  const t = Math.max(1000, Math.min(12000, Number(k) || 4000)) / 100;
-  const dentro = (x) => Math.max(0, Math.min(255, Math.round(x)));
-  let r; let g; let b;
-  if (t <= 66) {
-    r = 255;
-    g = 99.47 * Math.log(t) - 161.12;
-    b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04;
-  } else {
-    r = 329.7 * Math.pow(t - 60, -0.1332);
-    g = 288.12 * Math.pow(t - 60, -0.0755);
-    b = 255;
-  }
-  return [dentro(r), dentro(g), dentro(b)];
-}
-
-// dal freddo al caldo: azzurro, verde, ambra, arancio, rosso
-const SCALA_TERMICA = [
-  [-5, [79, 139, 255]], [8, [79, 184, 255]], [15, [79, 224, 200]],
-  [19, [63, 217, 138]], [23, [255, 207, 92]], [27, [255, 154, 60]],
-  [32, [255, 95, 95]],
-];
-
-function coloreTemperatura(t) {
-  const n = Number(t);
-  if (isNaN(n)) return null;
-  let a = SCALA_TERMICA[0];
-  let b = SCALA_TERMICA[SCALA_TERMICA.length - 1];
-  if (n <= a[0]) return daRgb(a[1]);
-  if (n >= b[0]) return daRgb(b[1]);
-  for (let i = 0; i < SCALA_TERMICA.length - 1; i += 1) {
-    if (n >= SCALA_TERMICA[i][0] && n <= SCALA_TERMICA[i + 1][0]) {
-      a = SCALA_TERMICA[i];
-      b = SCALA_TERMICA[i + 1];
-      break;
-    }
-  }
-  const q = (n - a[0]) / (b[0] - a[0]);
-  return daRgb([0, 1, 2].map((k) => Math.round(a[1][k] + (b[1][k] - a[1][k]) * q)));
-}
-
-// Come fa Mushroom: il colore della lampada va corretto, se no i bianchi
-// e i colori slavati non si vedono sul fondo scuro.
-function coloreLampada(rgb) {
-  const r = rgb[0] / 255;
-  const g = rgb[1] / 255;
-  const b = rgb[2] / 255;
-  const max = Math.max(r, g, b);
-  const delta = max - Math.min(r, g, b);
-  let h = 0;
-  if (delta) {
-    if (max === r) h = (g - b) / delta;
-    else if (max === g) h = 2 + (b - r) / delta;
-    else h = 4 + (r - g) / delta;
-  }
-  h = 60 * (h < 0 ? h + 6 : h);
-  let sat = max ? delta / max : 0;
-  let val = max * 255;
-  if (sat < 0.4) {
-    if (sat < 0.1) val = 225;      // quasi bianca: la faccio brillare
-    else sat = 0.4;                // slavata: le do' un po' di tinta
-  }
-  const canale = (n) => {
-    const k = (n + h / 60) % 6;
-    return Math.round(val - val * sat * Math.max(Math.min(k, 4 - k, 1), 0));
-  };
-  return [canale(5), canale(3), canale(1)];
-}
-
-function daRgb(rgb) {
-  if (!Array.isArray(rgb) || rgb.length < 3) return null;
-  return "#" + rgb.slice(0, 3)
-    .map((x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0"))
-    .join("");
-}
-
-// lo stesso colore, ma piu' scuro (quanto: 1 = uguale, 0 = nero)
-function scurisci(colore, quanto) {
-  const h = String(colore || "").replace("#", "");
-  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
-  if (pieno.length !== 6) return colore;
-  const n = parseInt(pieno, 16);
-  const r = Math.round(((n >> 16) & 255) * quanto);
-  const g = Math.round(((n >> 8) & 255) * quanto);
-  const b = Math.round((n & 255) * quanto);
-  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
-}
-
-function conAlfa(colore, a) {
-  const h = String(colore || "").replace("#", "");
-  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
-  if (pieno.length !== 6) return colore;
-  const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
-  return "#" + pieno + alfa;
-}
-
-const METEO = {
-  "clear-night": ["\uD83C\uDF19", "Sereno"],
-  cloudy: ["\u2601\uFE0F", "Nuvoloso"],
-  fog: ["\uD83C\uDF2B\uFE0F", "Nebbia"],
-  hail: ["\uD83C\uDF28\uFE0F", "Grandine"],
-  lightning: ["\u26C8\uFE0F", "Temporale"],
-  "lightning-rainy": ["\u26C8\uFE0F", "Temporale"],
-  partlycloudy: ["\u26C5", "Parz. nuvoloso"],
-  pouring: ["\uD83C\uDF27\uFE0F", "Pioggia forte"],
-  rainy: ["\uD83C\uDF27\uFE0F", "Pioggia"],
-  snowy: ["\u2744\uFE0F", "Neve"],
-  "snowy-rainy": ["\uD83C\uDF28\uFE0F", "Nevischio"],
-  sunny: ["\u2600\uFE0F", "Sereno"],
-  windy: ["\uD83D\uDCA8", "Vento"],
-  "windy-variant": ["\uD83D\uDCA8", "Vento"],
-  exceptional: ["\u26A0\uFE0F", "Attenzione"],
-};
-
-const CIELI = {
-  sunny: [
-    "radial-gradient(115% 80% at 84% -14%, rgba(255,216,140,.95), rgba(255,216,140,0) 58%),"
-    + "linear-gradient(168deg, #1668b8 0%, #3f97dd 42%, #8cc6ee 74%, #f2b877 100%)", "sole"],
-  "clear-night": [
-    "radial-gradient(90% 70% at 74% 10%, rgba(190,206,255,.30), rgba(190,206,255,0) 62%),"
-    + "linear-gradient(168deg, #060b1e 0%, #101c48 55%, #22366e 100%)", "stelle"],
-  partlycloudy: [
-    "radial-gradient(110% 80% at 78% -10%, rgba(255,226,170,.55), rgba(255,226,170,0) 55%),"
-    + "linear-gradient(168deg, #1f5a94 0%, #5b8fc4 55%, #a8c4dc 100%)", "sole_nuvole"],
-  cloudy: [
-    "radial-gradient(110% 75% at 30% -12%, rgba(226,236,246,.35), rgba(226,236,246,0) 60%),"
-    + "linear-gradient(168deg, #33445a 0%, #566a80 60%, #7b8b9d 100%)", "nuvole"],
-  rainy: [
-    "radial-gradient(100% 70% at 22% -12%, rgba(150,180,205,.45), rgba(150,180,205,0) 60%),"
-    + "linear-gradient(168deg, #17222f 0%, #2b3c4e 55%, #3c5468 100%)", "pioggia"],
-  pouring: [
-    "radial-gradient(100% 70% at 22% -12%, rgba(140,170,200,.4), rgba(140,170,200,0) 58%),"
-    + "linear-gradient(168deg, #101923 0%, #22303f 55%, #33475b 100%)", "pioggia"],
-  lightning: [
-    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
-    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
-  "lightning-rainy": [
-    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
-    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
-  snowy: [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.5), rgba(255,255,255,0) 60%),"
-    + "linear-gradient(168deg, #46596e 0%, #778fa6 55%, #b3c6d6 100%)", "neve"],
-  "snowy-rainy": [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
-    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
-  hail: [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
-    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
-  fog: [
-    "radial-gradient(120% 90% at 50% 40%, rgba(235,240,245,.35), rgba(235,240,245,0) 65%),"
-    + "linear-gradient(168deg, #46505c 0%, #6d7883 55%, #98a2ab 100%)", "nebbia"],
-  windy: [
-    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
-    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
-  "windy-variant": [
-    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
-    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
-  exceptional: [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,190,150,.45), rgba(255,190,150,0) 58%),"
-    + "linear-gradient(168deg, #4d2424 0%, #7c4034 55%, #a76a4f 100%)", ""],
-};
-
-// -*- coding: utf-8 -*-
 // La lingua della casella.
 //
 // Schema: l'ITALIANO fa da chiave. Il codice resta scritto in italiano,
@@ -808,6 +637,177 @@ const EN = {
 };
 
 // -*- coding: utf-8 -*-
+// I conti sui colori: gradi, lampade, sfumature, meteo.
+
+const COLORI = {
+  ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
+  rosa: "#ff9ec7", viola: "#9b6bff", blu: "#5ec8ff", azzurro: "#7aa7ff",
+  verde: "#3fd98a", acqua: "#4fe0c8", lime: "#cddc39", grigio: "#8ab4f8",
+};
+
+function coloreDaGradi(k) {
+  const t = Math.max(1000, Math.min(12000, Number(k) || 4000)) / 100;
+  const dentro = (x) => Math.max(0, Math.min(255, Math.round(x)));
+  let r; let g; let b;
+  if (t <= 66) {
+    r = 255;
+    g = 99.47 * Math.log(t) - 161.12;
+    b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04;
+  } else {
+    r = 329.7 * Math.pow(t - 60, -0.1332);
+    g = 288.12 * Math.pow(t - 60, -0.0755);
+    b = 255;
+  }
+  return [dentro(r), dentro(g), dentro(b)];
+}
+
+// dal freddo al caldo: azzurro, verde, ambra, arancio, rosso
+const SCALA_TERMICA = [
+  [-5, [79, 139, 255]], [8, [79, 184, 255]], [15, [79, 224, 200]],
+  [19, [63, 217, 138]], [23, [255, 207, 92]], [27, [255, 154, 60]],
+  [32, [255, 95, 95]],
+];
+
+function coloreTemperatura(t) {
+  const n = Number(t);
+  if (isNaN(n)) return null;
+  let a = SCALA_TERMICA[0];
+  let b = SCALA_TERMICA[SCALA_TERMICA.length - 1];
+  if (n <= a[0]) return daRgb(a[1]);
+  if (n >= b[0]) return daRgb(b[1]);
+  for (let i = 0; i < SCALA_TERMICA.length - 1; i += 1) {
+    if (n >= SCALA_TERMICA[i][0] && n <= SCALA_TERMICA[i + 1][0]) {
+      a = SCALA_TERMICA[i];
+      b = SCALA_TERMICA[i + 1];
+      break;
+    }
+  }
+  const q = (n - a[0]) / (b[0] - a[0]);
+  return daRgb([0, 1, 2].map((k) => Math.round(a[1][k] + (b[1][k] - a[1][k]) * q)));
+}
+
+// Come fa Mushroom: il colore della lampada va corretto, se no i bianchi
+// e i colori slavati non si vedono sul fondo scuro.
+function coloreLampada(rgb) {
+  const r = rgb[0] / 255;
+  const g = rgb[1] / 255;
+  const b = rgb[2] / 255;
+  const max = Math.max(r, g, b);
+  const delta = max - Math.min(r, g, b);
+  let h = 0;
+  if (delta) {
+    if (max === r) h = (g - b) / delta;
+    else if (max === g) h = 2 + (b - r) / delta;
+    else h = 4 + (r - g) / delta;
+  }
+  h = 60 * (h < 0 ? h + 6 : h);
+  let sat = max ? delta / max : 0;
+  let val = max * 255;
+  if (sat < 0.4) {
+    if (sat < 0.1) val = 225;      // quasi bianca: la faccio brillare
+    else sat = 0.4;                // slavata: le do' un po' di tinta
+  }
+  const canale = (n) => {
+    const k = (n + h / 60) % 6;
+    return Math.round(val - val * sat * Math.max(Math.min(k, 4 - k, 1), 0));
+  };
+  return [canale(5), canale(3), canale(1)];
+}
+
+function daRgb(rgb) {
+  if (!Array.isArray(rgb) || rgb.length < 3) return null;
+  return "#" + rgb.slice(0, 3)
+    .map((x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// lo stesso colore, ma piu' scuro (quanto: 1 = uguale, 0 = nero)
+function scurisci(colore, quanto) {
+  const h = String(colore || "").replace("#", "");
+  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
+  if (pieno.length !== 6) return colore;
+  const n = parseInt(pieno, 16);
+  const r = Math.round(((n >> 16) & 255) * quanto);
+  const g = Math.round(((n >> 8) & 255) * quanto);
+  const b = Math.round((n & 255) * quanto);
+  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+function conAlfa(colore, a) {
+  const h = String(colore || "").replace("#", "");
+  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
+  if (pieno.length !== 6) return colore;
+  const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
+  return "#" + pieno + alfa;
+}
+
+const METEO = {
+  "clear-night": ["\uD83C\uDF19", "Sereno"],
+  cloudy: ["\u2601\uFE0F", "Nuvoloso"],
+  fog: ["\uD83C\uDF2B\uFE0F", "Nebbia"],
+  hail: ["\uD83C\uDF28\uFE0F", "Grandine"],
+  lightning: ["\u26C8\uFE0F", "Temporale"],
+  "lightning-rainy": ["\u26C8\uFE0F", "Temporale"],
+  partlycloudy: ["\u26C5", "Parz. nuvoloso"],
+  pouring: ["\uD83C\uDF27\uFE0F", "Pioggia forte"],
+  rainy: ["\uD83C\uDF27\uFE0F", "Pioggia"],
+  snowy: ["\u2744\uFE0F", "Neve"],
+  "snowy-rainy": ["\uD83C\uDF28\uFE0F", "Nevischio"],
+  sunny: ["\u2600\uFE0F", "Sereno"],
+  windy: ["\uD83D\uDCA8", "Vento"],
+  "windy-variant": ["\uD83D\uDCA8", "Vento"],
+  exceptional: ["\u26A0\uFE0F", "Attenzione"],
+};
+
+const CIELI = {
+  sunny: [
+    "radial-gradient(115% 80% at 84% -14%, rgba(255,216,140,.95), rgba(255,216,140,0) 58%),"
+    + "linear-gradient(168deg, #1668b8 0%, #3f97dd 42%, #8cc6ee 74%, #f2b877 100%)", "sole"],
+  "clear-night": [
+    "radial-gradient(90% 70% at 74% 10%, rgba(190,206,255,.30), rgba(190,206,255,0) 62%),"
+    + "linear-gradient(168deg, #060b1e 0%, #101c48 55%, #22366e 100%)", "stelle"],
+  partlycloudy: [
+    "radial-gradient(110% 80% at 78% -10%, rgba(255,226,170,.55), rgba(255,226,170,0) 55%),"
+    + "linear-gradient(168deg, #1f5a94 0%, #5b8fc4 55%, #a8c4dc 100%)", "sole_nuvole"],
+  cloudy: [
+    "radial-gradient(110% 75% at 30% -12%, rgba(226,236,246,.35), rgba(226,236,246,0) 60%),"
+    + "linear-gradient(168deg, #33445a 0%, #566a80 60%, #7b8b9d 100%)", "nuvole"],
+  rainy: [
+    "radial-gradient(100% 70% at 22% -12%, rgba(150,180,205,.45), rgba(150,180,205,0) 60%),"
+    + "linear-gradient(168deg, #17222f 0%, #2b3c4e 55%, #3c5468 100%)", "pioggia"],
+  pouring: [
+    "radial-gradient(100% 70% at 22% -12%, rgba(140,170,200,.4), rgba(140,170,200,0) 58%),"
+    + "linear-gradient(168deg, #101923 0%, #22303f 55%, #33475b 100%)", "pioggia"],
+  lightning: [
+    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
+    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
+  "lightning-rainy": [
+    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
+    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
+  snowy: [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.5), rgba(255,255,255,0) 60%),"
+    + "linear-gradient(168deg, #46596e 0%, #778fa6 55%, #b3c6d6 100%)", "neve"],
+  "snowy-rainy": [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
+    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
+  hail: [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
+    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
+  fog: [
+    "radial-gradient(120% 90% at 50% 40%, rgba(235,240,245,.35), rgba(235,240,245,0) 65%),"
+    + "linear-gradient(168deg, #46505c 0%, #6d7883 55%, #98a2ab 100%)", "nebbia"],
+  windy: [
+    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
+    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
+  "windy-variant": [
+    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
+    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
+  exceptional: [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,190,150,.45), rgba(255,190,150,0) 58%),"
+    + "linear-gradient(168deg, #4d2424 0%, #7c4034 55%, #a76a4f 100%)", ""],
+};
+
+// -*- coding: utf-8 -*-
 // I simboli dei tasti, e come si mettono dentro a un bottone.
 
 
@@ -1012,6 +1012,211 @@ function valoreScritto(st) {
     if (bella) return bella;
   }
   return (Math.round(n * 10) / 10).toLocaleString(laLocale()) + (u ? " " + u : "");
+}
+
+// -*- coding: utf-8 -*-
+// Aiuti di servizio: tempi, misure, parole, memorie condivise.
+
+
+// come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
+// "pieno". Serve per dargli un posto suo nella disposizione.
+const nomeAttrezzo = (b) => {
+  const trovato = [...b.classList].find((k) => k.indexOf("t-") === 0);
+  return trovato ? trovato.slice(2) : "";
+};
+
+const PAROLE = {
+  docked: "Alla base", cleaning: "Pulisce", returning: "Rientra",
+  paused: "In pausa", idle: "Fermo", error: "Errore", unavailable: "Assente",
+  unknown: "?", home: "In casa", not_home: "Fuori casa", playing: "In riproduzione",
+  standby: "In attesa", heat: "Riscalda", cool: "Raffredda", auto: "Auto",
+  streaming: "In diretta", recording: "Registra",
+  charging: "In carica", discharging: "In scarica", not_charging: "Ferma", full: "Carica",
+  open: "Aperta", closed: "Chiusa", locked: "Chiusa", unlocked: "Aperta",
+  on: "Acceso", off: "Spento", none: "-", wired: "Via cavo", disconnected: "Scollegato",
+};
+
+// da quanto tempo dura questo stato, detto come lo direbbe uno
+function daQuanto(quando) {
+  const t = Date.parse(quando);
+  if (isNaN(t)) return "";
+  const sec = Math.max(0, (Date.now() - t) / 1000);
+  // Le frasi col numero in mezzo hanno il segnaposto {n}: in italiano
+  // T() torna la chiave com'e', quindi esce esattamente quello di prima.
+  if (sec < 60) return T("da poco");
+  const min = Math.round(sec / 60);
+  if (min < 60) return T("da {n} min").replace("{n}", min);
+  const ore = Math.floor(min / 60);
+  const resto = min % 60;
+  if (ore < 24) {
+    return (resto ? T("da {n} h {m}").replace("{m}", resto) : T("da {n} h"))
+      .replace("{n}", ore);
+  }
+  const giorni = Math.round(ore / 24);
+  return giorni === 1 ? T("da un giorno")
+    : T("da {n} giorni").replace("{n}", giorni);
+}
+
+// quanto e' lontano, in linea d'aria (formula dell'emisenoverso)
+function quantoLontano(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const g = Math.PI / 180;
+  const dLat = (lat2 - lat1) * g;
+  const dLon = (lon2 - lon1) * g;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+    + Math.cos(lat1 * g) * Math.cos(lat2 * g)
+    * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// la foto dell'entita': meglio quella che passa da Home Assistant
+// (`entity_picture_local`), perche' l'altra puo' essere un indirizzo che
+// da fuori casa non si raggiunge o che il browser blocca se e' http
+function fotoDi(st) {
+  if (!st || !st.attributes) return null;
+  return st.attributes.entity_picture_local || st.attributes.entity_picture || null;
+}
+
+// quale riquadro (casse / sorgenti) era aperto, per entita'. Sta fuori
+// dall'elemento apposta: serve a ritrovarlo se Home Assistant, mentre si
+// modificano le impostazioni, rifa' la casella da zero.
+const PANNELLI_APERTI = new Map();
+
+// DOVE ERAVAMO ARRIVATI NELLA COLONNA DELL'ANTEPRIMA.
+// Quando si cambia un'impostazione, Home Assistant non aggiorna la casella:
+// la butta e ne fa una nuova (tutte quante, anche quelle dentro al pop-up).
+// La nuova nasce staccata dalla pagina, quindi da sola non puo' sapere
+// niente. Il segno va tenuto qui fuori, legato alla colonna: quella non
+// cambia mai, e cosi' sopravvive al ricambio.
+const SEGNI_ANTEPRIMA = new WeakMap();
+
+// QUALE SCHEDA DEL POP-UP STA MODIFICANDO. Serve a tenere ferma LEI mentre
+// cambia misura: se si sta allargando l'ultima e uno e' scorso in fondo,
+// rimpicciolendola il contenuto si accorcia proprio sotto di lui e il fondo
+// pagina gli viene incontro. Tenendo ferma la scheda che ha in mano, invece,
+// si muove solo quello che le sta sotto.
+const SCHEDA_APERTA = { indice: null };
+// L'ultima ricerca fatta, per casella: nell'anteprima delle impostazioni la
+// casella viene rifatta da capo a ogni ritocco, e senza questo il riquadro
+// si riapriva sì, ma vuoto - parola cancellata e risultati spariti.
+const RICERCHE = new Map();
+
+// quanto ci mette ogni tapparella per un punto percentuale: si impara
+// guardando quanto ci mette davvero, cosi' il movimento disegnato va
+// alla stessa velocita' di quella vera
+const VELOCITA_TAPPARELLE = {};
+
+// le entita' "parenti" di una casella (stesso inizio di nome) che parlano di
+// carica e scarica: si cercano una volta sola per tutta la pagina
+const PARENTI = {};
+
+// quanto occupa davvero ogni disegno: si misura una volta sola
+const MISURE_ICONA = {};   // rifatte dalla v2.3.6 (aria = spessore del tratto)
+
+// stringe il riquadro attorno al disegno, cosi' riempie il suo spazio come
+// fanno le icone di Home Assistant
+function riempiRiquadro(svg, chiave) {
+  if (!svg || !chiave) return;
+  const gia = MISURE_ICONA[chiave];
+  if (gia !== undefined) {
+    svg.setAttribute("viewBox", gia || "0 0 64 64");
+    return;
+  }
+  if (!svg.isConnected) return;
+  // misuro una copia ferma: gli aloni che si muovono falserebbero il conto
+  let b = null;
+  const copia = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  copia.setAttribute("viewBox", "0 0 64 64");
+  copia.setAttribute("fill", "none");
+  copia.setAttribute("style", "position:absolute;left:-9999px;top:0;"
+    + "width:64px;height:64px;visibility:hidden");
+  copia.classList.add("misuratore");
+  copia.innerHTML = svg.innerHTML;
+  (svg.parentNode || document.body).appendChild(copia);
+  try { b = copia.getBBox(); } catch (e) { b = null; }
+  copia.remove();
+  if (!b || b.width < 4 || b.height < 4) return;
+  const lato = Math.max(b.width, b.height);
+  let box = null;
+  if (lato < 62 && lato > 64 / 2.5) {
+    // getBBox non conta lo spessore delle linee: senza questo, le icone
+    // disegnate a tratto (il tachimetro) restano tagliate
+    let tratto = 0;
+    const dentro = svg.innerHTML || "";
+    const spessori = dentro.match(/stroke-width="([0-9.]+)"/g) || [];
+    spessori.forEach((x) => {
+      const n2 = parseFloat(x.replace(/[^0-9.]/g, ""));
+      if (!isNaN(n2) && n2 > tratto) tratto = n2;
+    });
+    // un filo d'aria in piu' anche per i disegni che dondolano (il campanello)
+    const aria = Math.max(lato * 0.045, tratto / 2 + 0.8);
+    const cx = b.x + b.width / 2;
+    const cy = b.y + b.height / 2;
+    const mezzo = lato / 2 + aria;
+    box = [(cx - mezzo).toFixed(1), (cy - mezzo).toFixed(1),
+           (mezzo * 2).toFixed(1), (mezzo * 2).toFixed(1)].join(" ");
+  }
+  MISURE_ICONA[chiave] = box;
+  svg.setAttribute("viewBox", box || "0 0 64 64");
+}
+
+const SPENTI = ["off", "unavailable", "unknown", "not_home", "idle", "docked",
+                "standby", "paused", "closed", "disarmed", "none"];
+
+// una riga ondulata larga 300 unita': 4 gobbe complete
+const ONDA_D = "M0 13" + " q18.75 -14 37.5 0 q18.75 14 37.5 0".repeat(4);
+
+// --- YAML: giusto quel tanto che serve alle schede di Lovelace -------
+
+// I CURSORI SI MUOVONO SOLO DAL PALLINO.
+//
+// Un `input type=range` nativo salta al punto dove lo tocchi. Sul telefono,
+// mentre si scorre la pagina, basta sfiorare la barra e il valore cambia
+// senza che uno se ne accorga - una batteria ritrovata al 5%. Qui il tocco
+// che non parte dal pallino non muove niente.
+//
+// Non tocco `touch-action`: la pagina continua a scorrere come prima anche
+// col dito appoggiato sulla barra. E la tastiera muove sempre, perche' le
+// frecce sono una scelta, non una sbadataggine.
+const PALLINO = 18;   // quant'e' largo il pallino
+const MARGINE = 12;   // e quanto sbaglia un dito
+
+function soloDalPallino(cursore) {
+  if (!cursore || cursore._soloPallino) return;
+  cursore._soloPallino = true;
+  cursore._dalPallino = true;
+
+  const sulPallino = (e) => {
+    const r = cursore.getBoundingClientRect();
+    if (!r.width) return true;
+    const min = Number(cursore.min === "" ? 0 : cursore.min);
+    const max = Number(cursore.max === "" ? 100 : cursore.max);
+    const q = max > min
+      ? Math.min(1, Math.max(0, (Number(cursore.value) - min) / (max - min)))
+      : 0;
+    // il pallino non arriva mai col centro sui bordi: si ferma di mezzo se stesso
+    const centro = r.left + PALLINO / 2 + q * (r.width - PALLINO);
+    return Math.abs(e.clientX - centro) <= PALLINO / 2 + MARGINE;
+  };
+
+  cursore.addEventListener("pointerdown", (e) => {
+    cursore._dalPallino = sulPallino(e);
+    cursore._valorePrima = cursore.value;
+    // niente salto al punto toccato
+    if (!cursore._dalPallino) e.preventDefault();
+  }, true);
+  ["pointerup", "pointercancel", "keydown"].forEach((ev) =>
+    cursore.addEventListener(ev, () => { cursore._dalPallino = true; }, true));
+
+  // rete di sicurezza: se il browser il valore l'ha mosso lo stesso, lo
+  // rimetto com'era e non lascio passare l'avviso a chi manda il comando.
+  ["input", "change"].forEach((ev) =>
+    cursore.addEventListener(ev, (e) => {
+      if (cursore._dalPallino) return;
+      cursore.value = cursore._valorePrima;
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }, true));
 }
 
 // -*- coding: utf-8 -*-
@@ -1597,6 +1802,7 @@ const ConColori = (Base) => class extends Base {
     luce.type = "range";
     luce.className = "luce";
     luce.min = "0"; luce.max = "100"; luce.step = "1";
+    soloDalPallino(luce);
 
     let H = 210; let S2 = 60;
     const metti = (rgb) => {
@@ -1750,211 +1956,6 @@ const ConColori = (Base) => class extends Base {
   }
 
 };
-
-// -*- coding: utf-8 -*-
-// Aiuti di servizio: tempi, misure, parole, memorie condivise.
-
-
-// come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
-// "pieno". Serve per dargli un posto suo nella disposizione.
-const nomeAttrezzo = (b) => {
-  const trovato = [...b.classList].find((k) => k.indexOf("t-") === 0);
-  return trovato ? trovato.slice(2) : "";
-};
-
-const PAROLE = {
-  docked: "Alla base", cleaning: "Pulisce", returning: "Rientra",
-  paused: "In pausa", idle: "Fermo", error: "Errore", unavailable: "Assente",
-  unknown: "?", home: "In casa", not_home: "Fuori casa", playing: "In riproduzione",
-  standby: "In attesa", heat: "Riscalda", cool: "Raffredda", auto: "Auto",
-  streaming: "In diretta", recording: "Registra",
-  charging: "In carica", discharging: "In scarica", not_charging: "Ferma", full: "Carica",
-  open: "Aperta", closed: "Chiusa", locked: "Chiusa", unlocked: "Aperta",
-  on: "Acceso", off: "Spento", none: "-", wired: "Via cavo", disconnected: "Scollegato",
-};
-
-// da quanto tempo dura questo stato, detto come lo direbbe uno
-function daQuanto(quando) {
-  const t = Date.parse(quando);
-  if (isNaN(t)) return "";
-  const sec = Math.max(0, (Date.now() - t) / 1000);
-  // Le frasi col numero in mezzo hanno il segnaposto {n}: in italiano
-  // T() torna la chiave com'e', quindi esce esattamente quello di prima.
-  if (sec < 60) return T("da poco");
-  const min = Math.round(sec / 60);
-  if (min < 60) return T("da {n} min").replace("{n}", min);
-  const ore = Math.floor(min / 60);
-  const resto = min % 60;
-  if (ore < 24) {
-    return (resto ? T("da {n} h {m}").replace("{m}", resto) : T("da {n} h"))
-      .replace("{n}", ore);
-  }
-  const giorni = Math.round(ore / 24);
-  return giorni === 1 ? T("da un giorno")
-    : T("da {n} giorni").replace("{n}", giorni);
-}
-
-// quanto e' lontano, in linea d'aria (formula dell'emisenoverso)
-function quantoLontano(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const g = Math.PI / 180;
-  const dLat = (lat2 - lat1) * g;
-  const dLon = (lon2 - lon1) * g;
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-    + Math.cos(lat1 * g) * Math.cos(lat2 * g)
-    * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-// la foto dell'entita': meglio quella che passa da Home Assistant
-// (`entity_picture_local`), perche' l'altra puo' essere un indirizzo che
-// da fuori casa non si raggiunge o che il browser blocca se e' http
-function fotoDi(st) {
-  if (!st || !st.attributes) return null;
-  return st.attributes.entity_picture_local || st.attributes.entity_picture || null;
-}
-
-// quale riquadro (casse / sorgenti) era aperto, per entita'. Sta fuori
-// dall'elemento apposta: serve a ritrovarlo se Home Assistant, mentre si
-// modificano le impostazioni, rifa' la casella da zero.
-const PANNELLI_APERTI = new Map();
-
-// DOVE ERAVAMO ARRIVATI NELLA COLONNA DELL'ANTEPRIMA.
-// Quando si cambia un'impostazione, Home Assistant non aggiorna la casella:
-// la butta e ne fa una nuova (tutte quante, anche quelle dentro al pop-up).
-// La nuova nasce staccata dalla pagina, quindi da sola non puo' sapere
-// niente. Il segno va tenuto qui fuori, legato alla colonna: quella non
-// cambia mai, e cosi' sopravvive al ricambio.
-const SEGNI_ANTEPRIMA = new WeakMap();
-
-// QUALE SCHEDA DEL POP-UP STA MODIFICANDO. Serve a tenere ferma LEI mentre
-// cambia misura: se si sta allargando l'ultima e uno e' scorso in fondo,
-// rimpicciolendola il contenuto si accorcia proprio sotto di lui e il fondo
-// pagina gli viene incontro. Tenendo ferma la scheda che ha in mano, invece,
-// si muove solo quello che le sta sotto.
-const SCHEDA_APERTA = { indice: null };
-// L'ultima ricerca fatta, per casella: nell'anteprima delle impostazioni la
-// casella viene rifatta da capo a ogni ritocco, e senza questo il riquadro
-// si riapriva sì, ma vuoto - parola cancellata e risultati spariti.
-const RICERCHE = new Map();
-
-// quanto ci mette ogni tapparella per un punto percentuale: si impara
-// guardando quanto ci mette davvero, cosi' il movimento disegnato va
-// alla stessa velocita' di quella vera
-const VELOCITA_TAPPARELLE = {};
-
-// le entita' "parenti" di una casella (stesso inizio di nome) che parlano di
-// carica e scarica: si cercano una volta sola per tutta la pagina
-const PARENTI = {};
-
-// quanto occupa davvero ogni disegno: si misura una volta sola
-const MISURE_ICONA = {};   // rifatte dalla v2.3.6 (aria = spessore del tratto)
-
-// stringe il riquadro attorno al disegno, cosi' riempie il suo spazio come
-// fanno le icone di Home Assistant
-function riempiRiquadro(svg, chiave) {
-  if (!svg || !chiave) return;
-  const gia = MISURE_ICONA[chiave];
-  if (gia !== undefined) {
-    svg.setAttribute("viewBox", gia || "0 0 64 64");
-    return;
-  }
-  if (!svg.isConnected) return;
-  // misuro una copia ferma: gli aloni che si muovono falserebbero il conto
-  let b = null;
-  const copia = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  copia.setAttribute("viewBox", "0 0 64 64");
-  copia.setAttribute("fill", "none");
-  copia.setAttribute("style", "position:absolute;left:-9999px;top:0;"
-    + "width:64px;height:64px;visibility:hidden");
-  copia.classList.add("misuratore");
-  copia.innerHTML = svg.innerHTML;
-  (svg.parentNode || document.body).appendChild(copia);
-  try { b = copia.getBBox(); } catch (e) { b = null; }
-  copia.remove();
-  if (!b || b.width < 4 || b.height < 4) return;
-  const lato = Math.max(b.width, b.height);
-  let box = null;
-  if (lato < 62 && lato > 64 / 2.5) {
-    // getBBox non conta lo spessore delle linee: senza questo, le icone
-    // disegnate a tratto (il tachimetro) restano tagliate
-    let tratto = 0;
-    const dentro = svg.innerHTML || "";
-    const spessori = dentro.match(/stroke-width="([0-9.]+)"/g) || [];
-    spessori.forEach((x) => {
-      const n2 = parseFloat(x.replace(/[^0-9.]/g, ""));
-      if (!isNaN(n2) && n2 > tratto) tratto = n2;
-    });
-    // un filo d'aria in piu' anche per i disegni che dondolano (il campanello)
-    const aria = Math.max(lato * 0.045, tratto / 2 + 0.8);
-    const cx = b.x + b.width / 2;
-    const cy = b.y + b.height / 2;
-    const mezzo = lato / 2 + aria;
-    box = [(cx - mezzo).toFixed(1), (cy - mezzo).toFixed(1),
-           (mezzo * 2).toFixed(1), (mezzo * 2).toFixed(1)].join(" ");
-  }
-  MISURE_ICONA[chiave] = box;
-  svg.setAttribute("viewBox", box || "0 0 64 64");
-}
-
-const SPENTI = ["off", "unavailable", "unknown", "not_home", "idle", "docked",
-                "standby", "paused", "closed", "disarmed", "none"];
-
-// una riga ondulata larga 300 unita': 4 gobbe complete
-const ONDA_D = "M0 13" + " q18.75 -14 37.5 0 q18.75 14 37.5 0".repeat(4);
-
-// --- YAML: giusto quel tanto che serve alle schede di Lovelace -------
-
-// I CURSORI SI MUOVONO SOLO DAL PALLINO.
-//
-// Un `input type=range` nativo salta al punto dove lo tocchi. Sul telefono,
-// mentre si scorre la pagina, basta sfiorare la barra e il valore cambia
-// senza che uno se ne accorga - una batteria ritrovata al 5%. Qui il tocco
-// che non parte dal pallino non muove niente.
-//
-// Non tocco `touch-action`: la pagina continua a scorrere come prima anche
-// col dito appoggiato sulla barra. E la tastiera muove sempre, perche' le
-// frecce sono una scelta, non una sbadataggine.
-const PALLINO = 18;   // quant'e' largo il pallino
-const MARGINE = 12;   // e quanto sbaglia un dito
-
-function soloDalPallino(cursore) {
-  if (!cursore || cursore._soloPallino) return;
-  cursore._soloPallino = true;
-  cursore._dalPallino = true;
-
-  const sulPallino = (e) => {
-    const r = cursore.getBoundingClientRect();
-    if (!r.width) return true;
-    const min = Number(cursore.min === "" ? 0 : cursore.min);
-    const max = Number(cursore.max === "" ? 100 : cursore.max);
-    const q = max > min
-      ? Math.min(1, Math.max(0, (Number(cursore.value) - min) / (max - min)))
-      : 0;
-    // il pallino non arriva mai col centro sui bordi: si ferma di mezzo se stesso
-    const centro = r.left + PALLINO / 2 + q * (r.width - PALLINO);
-    return Math.abs(e.clientX - centro) <= PALLINO / 2 + MARGINE;
-  };
-
-  cursore.addEventListener("pointerdown", (e) => {
-    cursore._dalPallino = sulPallino(e);
-    cursore._valorePrima = cursore.value;
-    // niente salto al punto toccato
-    if (!cursore._dalPallino) e.preventDefault();
-  }, true);
-  ["pointerup", "pointercancel", "keydown"].forEach((ev) =>
-    cursore.addEventListener(ev, () => { cursore._dalPallino = true; }, true));
-
-  // rete di sicurezza: se il browser il valore l'ha mosso lo stesso, lo
-  // rimetto com'era e non lascio passare l'avviso a chi manda il comando.
-  ["input", "change"].forEach((ev) =>
-    cursore.addEventListener(ev, (e) => {
-      if (cursore._dalPallino) return;
-      cursore.value = cursore._valorePrima;
-      e.stopImmediatePropagation();
-      e.preventDefault();
-    }, true));
-}
 
 // -*- coding: utf-8 -*-
 // I disegni delle icone e il catalogo MDI.
@@ -6825,6 +6826,7 @@ const ConSchede = (Base) => class extends Base {
     const barra = document.createElement("input");
     barra.type = "range";
     barra.min = "0"; barra.max = "100"; barra.step = "5";
+    soloDalPallino(barra);
     barra.title = T("Quanto e trasparente");
     barra.value = String(mio.trasparenza === undefined ? 0 : mio.trasparenza);
     const quanto = document.createElement("span");
@@ -7330,7 +7332,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.15.2";
+const VERSIONE = "2.15.3";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -8908,6 +8910,10 @@ const ConFinestra = (Base) => class extends Base {
   }
 
   async _apriFinestra() {
+    // Stavo ancora chiudendo? Quel timer spegneva la finestra un attimo
+    // dopo averla riaperta - il "apri e chiudi" che non apriva.
+    clearTimeout(this._chiusuraDopo);
+    this._chiusuraDopo = 0;
     const c = this._config;
     // qui lo stato me lo prendo da solo: non arriva da fuori
     const suoStato = (this._hass && c.entity) ? this._hass.states[c.entity] : null;
@@ -8922,6 +8928,15 @@ const ConFinestra = (Base) => class extends Base {
     riempiRiquadro(this._fIcona, nomeIco);
     this._vestiApertura();
     this.removeAttribute("chiude");
+    // L'animazione riparte perche' il velo passa da display:none a flex.
+    // Riaprendo mentre si chiudeva il velo era rimasto aperto, quindi non
+    // ripartiva niente e la finestra compariva di colpo: quella "stock".
+    // Lo chiudo davvero per un istante e costringo il browser a rifare i
+    // conti, cosi' l'animazione ricomincia da capo.
+    if (this._velo.hasAttribute("aperto")) {
+      this._velo.removeAttribute("aperto");
+      void this._velo.offsetWidth;
+    }
     this._velo.toggleAttribute("aperto", true);
     // "sboccia dalla casella" ha bisogno di sapere DOVE sta la casella:
     // glielo dico adesso, che la finestra e' appena comparsa e la sua

@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.15.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.15.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,22 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.15.3
+
+- **Il pop-up si riapriva senza animazione, o non si apriva proprio.**
+  Chiudendo, la finestra resta a schermo il tempo di farsi vedere andare
+  via, e un timer la spegne alla fine. Se nel frattempo la riaprivi, quel
+  timer partiva lo stesso e te la richiudeva sotto il naso; e il velo non
+  era mai passato per «chiuso», quindi il browser non rifaceva
+  l'animazione e la finestra compariva di colpo — quella che sembrava
+  «stock». Adesso riaprire ferma il timer della chiusura e fa
+  ricominciare l'animazione da capo, «sboccia» compresa.
+- **Anche i cursori dell'editor si muovono solo dal pallino**: la
+  luminosità della ruota dei colori e la trasparenza delle schede del
+  pop-up, come quelli della casella. Quelli delle impostazioni numeriche
+  (intensità, velocità, ore del grafico…) sono i cursori di Home
+  Assistant e restano come sono ovunque in Home Assistant.
 
 ## Novità della 2.15.2
 

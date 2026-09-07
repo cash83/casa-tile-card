@@ -2,7 +2,7 @@
 // Le schede del pop-up: sceglierle, ordinarle, vestirle.
 
 import { T, TH } from './lingua.js';
-import { SCHEDA_APERTA } from './aiuti.js';
+import { SCHEDA_APERTA, soloDalPallino } from './aiuti.js';
 import { SCHEDA_MANO, SCHEDE_ALTRE, SCHEDE_PRONTE, SEZIONI, nomeScheda } from './schema.js';
 import { segno } from './segni.js';
 import { aYaml, daYaml } from './yaml.js';
@@ -581,6 +581,7 @@ export const ConSchede = (Base) => class extends Base {
     const barra = document.createElement("input");
     barra.type = "range";
     barra.min = "0"; barra.max = "100"; barra.step = "5";
+    soloDalPallino(barra);
     barra.title = T("Quanto e trasparente");
     barra.value = String(mio.trasparenza === undefined ? 0 : mio.trasparenza);
     const quanto = document.createElement("span");

@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // Il cerchio dei colori e le righe che li scelgono.
 
+import { soloDalPallino } from './aiuti.js';
 import { daRgb } from './colori.js';
 import { T } from './lingua.js';
 import { DIPENDE, ETICHETTE, SOLO_AZIONE, SOLO_PER } from './schema.js';
@@ -72,6 +73,7 @@ export const ConColori = (Base) => class extends Base {
     luce.type = "range";
     luce.className = "luce";
     luce.min = "0"; luce.max = "100"; luce.step = "1";
+    soloDalPallino(luce);
 
     let H = 210; let S2 = 60;
     const metti = (rgb) => {

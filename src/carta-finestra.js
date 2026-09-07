@@ -206,6 +206,10 @@ export const ConFinestra = (Base) => class extends Base {
   }
 
   async _apriFinestra() {
+    // Stavo ancora chiudendo? Quel timer spegneva la finestra un attimo
+    // dopo averla riaperta - il "apri e chiudi" che non apriva.
+    clearTimeout(this._chiusuraDopo);
+    this._chiusuraDopo = 0;
     const c = this._config;
     // qui lo stato me lo prendo da solo: non arriva da fuori
     const suoStato = (this._hass && c.entity) ? this._hass.states[c.entity] : null;
@@ -220,6 +224,15 @@ export const ConFinestra = (Base) => class extends Base {
     riempiRiquadro(this._fIcona, nomeIco);
     this._vestiApertura();
     this.removeAttribute("chiude");
+    // L'animazione riparte perche' il velo passa da display:none a flex.
+    // Riaprendo mentre si chiudeva il velo era rimasto aperto, quindi non
+    // ripartiva niente e la finestra compariva di colpo: quella "stock".
+    // Lo chiudo davvero per un istante e costringo il browser a rifare i
+    // conti, cosi' l'animazione ricomincia da capo.
+    if (this._velo.hasAttribute("aperto")) {
+      this._velo.removeAttribute("aperto");
+      void this._velo.offsetWidth;
+    }
     this._velo.toggleAttribute("aperto", true);
     // "sboccia dalla casella" ha bisogno di sapere DOVE sta la casella:
     // glielo dico adesso, che la finestra e' appena comparsa e la sua

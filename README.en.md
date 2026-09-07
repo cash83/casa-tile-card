@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.15.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.15.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,20 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.15.3
+
+- **The pop-up reopened without its animation, or did not open at all.**
+  On closing, the window stays on screen long enough to be seen leaving,
+  and a timer switches it off at the end. If you reopened it meanwhile,
+  that timer fired anyway and shut it in your face; and the veil never
+  went through "closed", so the browser did not replay the animation and
+  the window just appeared — the one that looked "stock". Reopening now
+  stops the closing timer and restarts the animation, "bloom" included.
+- **The editor sliders only move by the knob too**: the lightness on the
+  colour wheel and the transparency of the pop-up cards, like the ones on
+  the tile. The numeric settings (strength, speed, graph hours…) use Home
+  Assistant's own sliders and stay as they are everywhere in HA.
 
 ## What's new in 2.15.2
 
