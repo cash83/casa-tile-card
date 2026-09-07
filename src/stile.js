@@ -1585,6 +1585,25 @@ svg.iconafondo[hidden], img.fotofondo[hidden] { display: none !important; }
   overflow: hidden; text-overflow: ellipsis;
   color: var(--testo, var(--primary-text-color, #eaf1fb)); }
 .pannello .voce .vol { flex: none; width: 92px; }
+/* il muto di ogni cassa, appiccicato alla sua barra */
+.pannello .voce .mutino {
+  appearance: none; border: none; padding: 0; flex: none; cursor: pointer;
+  width: 22px; height: 22px; border-radius: 50%; background: none;
+  color: var(--primary-text-color, #eaf1fb); opacity: .75;
+  display: grid; place-items: center;
+}
+.pannello .voce .mutino svg { width: 15px; height: 15px; fill: currentColor; }
+.pannello .voce .mutino:hover { opacity: 1; }
+.pannello .voce .mutino[zitto] { color: var(--c); opacity: 1; }
+.pannello .voce .mutino[hidden] { display: none !important; }
+/* il volume di tutte: sta in cima, staccato dalle singole casse */
+.pannello .voce.tutte-le-casse {
+  border-bottom: 1px solid var(--casa-border, rgba(255,255,255,.12));
+  padding-bottom: 8px; margin-bottom: 4px;
+}
+.pannello .voce.tutte-le-casse .chi { font-weight: 700; opacity: .95; }
+.pannello .voce.tutte-le-casse .vol { width: 126px; }
+.pannello .voce.tutte-le-casse[hidden] { display: none !important; }
 .pannello .voce .vol[hidden] { display: none !important; }
 .pannello .voce .sw {
   appearance: none; border: none; padding: 0; flex: none; cursor: pointer;

@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.16.5-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.17.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -90,90 +90,31 @@ finestra_cards:
     entities: {}
 ```
 
-## What's new in 2.16.5
+## What's new in 2.17
 
-**The overall volume is gone: each speaker keeps its own.** Music
-Assistant's group volume turned out to be unreliable — it reported the
-wrong number (12 while the player sat at 50, with no group at all) and
-setting it redid the sums across every speaker. The same happens in Music
-Assistant's own interface, card or no card: mute a speaker, raise the
-volume, and it stays muted yet you can hear it.
+The player, redone where it needed it — with Music Assistant in hand.
 
-So the card no longer tries: the "Speakers" panel has one volume per
-speaker, and the tile slider is its own speaker's. Simple things that do
-what they say.
-
-## What's new in 2.16.4
-
-**The all-speakers volume is sent once, when you let go.** While dragging
-it fired one command every 250 ms, and Music Assistant redoes its sums
-across every speaker on each one: ten commands in a row piled up and the
-volume did random things. The history showed it plainly — 0.88 → 0.84 →
-0.04 → 0.06 → 0.65 → 0.52 → 0.1 → 0, all within the same second.
-
-Now only the slider moves while you drag; the command goes out when you
-lift your finger, one of them, the way the ytmusic-card does. And right
-after, the card asks Music Assistant how it actually ended up, instead of
-trusting the number it just wrote.
-
-## What's new in 2.16.3
-
-**Music Assistant owns the group volume, and now the card uses it.** The
-Veranda read zero and could still be heard: inside a Music Assistant
-group a single speaker's `volume_level` is not what decides what comes
-out. The group volume belongs to Music Assistant, and is read and written
-with two of its own services (`mass_queue.get_group_volume` and
-`set_group_volume`).
-
-The "All the speakers" row now goes through them: it reads the real number
-when you open the panel, and writes that one. On a real system the
-difference shows: Music Assistant says 12 where the average of the
-speakers would say 6.
-
-For players from other integrations, which have no group volume, nothing
-changes: they all move by the same amount, each from its own. And a single
-speaker's volume takes the same road as before, here and on the tile.
-
-## What's new in 2.16.2
-
-**Each speaker its own volume.** In 2.16 the tile slider had become the
-group volume, and that was wrong: the Veranda tile, sitting at 0, showed
-25 — the average with the others, a number belonging to nobody. And
-moving it moved everything.
-
-- **The tile slider is its own speaker's volume again.** Even when the
-  tile is showing the group leader (that is where the queue lives, and
-  where commands must go), volume and mute stay the tile speaker's.
-- **The overall one moves them all by the same amount**, each from its
-  own: raise it by ten and a speaker at 50 goes to 60, one at 0 goes to
-  10. It used to scale proportionally, and a speaker at zero stayed at
-  zero forever — zero times anything is zero.
-
-The volume for all of them sits where it is useful: at the top of the
-"Speakers" panel, above the individual ones.
-
-## What's new in 2.16.1
-
-**The overall volume inside the Speakers panel too**, at the top of the
-list: the tile slider already does this, but with the panel open it sits
-underneath and you cannot see it. The "All the speakers" row only shows
-when more than one speaker is joined, and each one stays controllable on
-its own, as before.
-
-## What's new in 2.16
-
-- **Group volume, the way Music Assistant does it.** With speakers joined,
-  the tile slider only moved the one in charge and left the others where
-  they were. Now it shows the average and moves them together, each keeping
-  its own difference: 60-30-90 taken to half becomes 30-15-45. Each
-  speaker's own volume stays where it was, in the "Speakers" panel.
+- **The group volume**, at the top of the "Speakers" panel. It is the
+  leader's volume, the way Music Assistant shows it on its own player bar,
+  and it is sent **once, when you let go of the slider**: sending it while
+  dragging made MA redo its sums on every command and the volumes bounced.
+- **A mute button for each speaker**, next to its slider, lit in the tile
+  colour when that speaker is silenced.
+- **Slider at 0 means muted**, and raising it lifts the mute. In Home
+  Assistant the two are separate, but nobody expects a speaker at zero to
+  still be audible.
+- **Volume belongs to the speaker, not to the session.** With speakers
+  joined, the tile shows the group leader — the queue lives there, and
+  that is where commands must go — but the slider and the mute stay its
+  own speaker's.
 - **The tile no longer jumps to an unrelated player.** With no hand-picked
-  speaker list, it watched *any* media player in the house: music starting
-  on another integration was enough for it to jump there. That is why a
-  tile for ytube_music_player showed the Music Assistant player while its
-  own was off. Now it only watches speakers from **its own** integration —
-  joining speakers across integrations is not possible anyway. A
-  hand-picked list still wins.
+  speaker list it watched *any* media player in the house. Now it only
+  watches speakers from its **own** integration.
+- **Whoever was muted stays muted**: while propagating the group volume,
+  Music Assistant unmutes speakers on its own initiative (their bug,
+  [support#6334](https://github.com/music-assistant/support/issues/6334)).
+  The tile notices and puts the mute back — and steps aside as soon as you
+  touch the mute yourself.
 
 ## What's new in 2.15.4
 

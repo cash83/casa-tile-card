@@ -137,6 +137,9 @@ ETI = {
 }
 
 LIBERE = {
+    'Volume del gruppo': 'Group volume',
+    "Riattiva l'audio": 'Unmute',
+    'Silenzia': 'Mute',
     'Alza e abbassa tutte insieme, ognuna dal suo volume': 'Raises and lowers them together, each from its own volume',
     'Tutte le casse': 'All the speakers',
     'Volume di tutte le casse del gruppo': 'Volume of every speaker in the group',

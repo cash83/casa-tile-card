@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.16.5-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.17.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -90,94 +90,33 @@ finestra_cards:
     entities: {}
 ```
 
-## Novità della 2.16.5
+## Novità della 2.17
 
-**Via il volume generale: resta quello di ogni cassa.** Il volume di
-gruppo di Music Assistant si è rivelato inaffidabile — lo diceva
-sbagliato (12 mentre il lettore stava a 50, e senza nemmeno un gruppo) e
-cambiandolo rifaceva i conti su tutte le casse. Lo stesso comportamento
-si vede nell'interfaccia di Music Assistant, card o non card: metti muto
-una cassa, alzi il volume, e resta muta ma si sente.
+Il lettore, rifatto dove serviva — con Music Assistant alla mano.
 
-Quindi la card non ci prova più: nel riquadro «Casse» c'è il volume di
-ogni cassa, uno per riga, e la barra della casella è il volume della sua.
-Cose semplici che fanno quello che dicono.
-
-## Novità della 2.16.4
-
-**Il volume di tutte le casse si manda una volta sola, quando lasci.**
-Mentre trascinavi ne partiva uno ogni 250 ms, e Music Assistant a ogni
-comando rifà i conti su tutte le casse: dieci comandi di fila si
-accavallavano e il volume faceva le cose a caso. Nella cronologia si
-vedeva bene — 0,88 → 0,84 → 0,04 → 0,06 → 0,65 → 0,52 → 0,1 → 0, tutto
-nello stesso secondo.
-
-Adesso mentre trascini si muove solo la barra; il comando parte quando
-lasci il dito, uno solo, come fa la ytmusic-card. E subito dopo la card
-si rifà dire da Music Assistant com'è andata a finire, invece di
-fidarsi del numero che ha appena scritto.
-
-## Novità della 2.16.3
-
-**Il volume del gruppo lo tiene Music Assistant, e adesso è il suo.** La
-Veranda segnava zero e si sentiva lo stesso: dentro a un gruppo di Music
-Assistant il `volume_level` della singola cassa non è quello che decide
-cosa esce. Il volume del gruppo ce l'ha Music Assistant, e si chiede e si
-cambia con due servizi suoi (`mass_queue.get_group_volume` e
-`set_group_volume`).
-
-La riga «Tutte le casse» adesso passa di lì: legge il numero vero quando
-apri il riquadro e scrive quello. Sul suo impianto la differenza si vede:
-Music Assistant dice 12, la media delle casse direbbe 6.
-
-Per i lettori delle altre integrazioni, che un volume di gruppo non ce
-l'hanno, resta com'era: le sposta tutte dello stesso tanto, ognuna dal
-suo. E il volume della singola cassa non cambia strada, né qui né nella
-casella.
-
-## Novità della 2.16.2
-
-**Ogni cassa il suo volume.** Nella 2.16 la barra della casella era
-diventata il volume del gruppo, e non andava bene: la casella della
-Veranda, ferma a 0, faceva vedere 25 — la media con le altre, un numero
-che non era di nessuno. E muovendola muoveva tutto.
-
-- **La barra della casella è di nuovo il volume della sua cassa.** Anche
-  quando la casella fa vedere il capogruppo (la coda sta lì, e i comandi
-  vanno dati a lui), volume e muto restano quelli della cassa della
-  casella.
-- **Il generale sposta tutte dello stesso tanto**, ognuna partendo dal
-  suo: alzandolo di dieci, chi era a 50 va a 60, chi era a 0 va a 10.
-  Prima spostava in proporzione, e una cassa a zero restava a zero per
-  sempre — zero per qualsiasi cosa fa zero.
-
-Il volume di tutte insieme sta dove serve: in cima al riquadro «Casse»,
-sopra a quelle delle singole.
-
-## Novità della 2.16.1
-
-**Il volume generale anche dentro al riquadro delle Casse**, in cima
-all'elenco: la barra della casella fa già questo, ma con il riquadro
-aperto sta sotto e non si vede. La riga «Tutte le casse» compare solo
-quando le casse unite sono più d'una, e ognuna resta comandabile per
-conto suo, come prima.
-
-## Novità della 2.16
-
-- **Il volume del gruppo, come in Music Assistant.** Con le casse unite la
-  barra della casella muoveva solo quella che comanda, e le altre restavano
-  dov'erano. Adesso mostra la media e le muove tutte insieme, ognuna
-  tenendo la sua differenza: da 60-30-90 portandola a metà vengono
-  30-15-45. Il volume della singola cassa resta dov'era, nel riquadro
-  «Casse».
+- **Il volume del gruppo**, in cima al riquadro «Casse». È il volume del
+  capogruppo, come lo mostra Music Assistant nella sua schermata, e si
+  manda **una volta sola quando lasci il cursore**: mandarlo mentre
+  trascini faceva rifare i conti a MA a ogni comando, e i volumi
+  rimbalzavano.
+- **Il muto per ogni cassa**, accanto alla sua barra, che si accende del
+  colore della casella quando è zittita.
+- **Barra a 0 = muto**, e rialzandola il muto se ne va. In Home Assistant
+  sono due cose separate, ma una cassa a zero che si sente lo stesso non
+  se la aspetta nessuno.
+- **Il volume è della cassa, non della sessione.** Con le casse unite la
+  casella fa vedere il capogruppo — la coda sta lì e i comandi vanno dati
+  a lui — ma cursore e muto restano quelli della *sua* cassa. Prima la
+  casella della Veranda, ferma a 0, faceva vedere il volume del PC.
 - **La casella non salta più su un lettore che non c'entra.** Senza un
-  elenco di casse scelto a mano, guardava *qualsiasi* media player della
+  elenco di casse scelto a mano guardava *qualsiasi* media player della
   casa: bastava che partisse la musica da un'altra integrazione e ci
-  saltava sopra. Così la casella di ytube_music_player faceva vedere il
-  lettore di Music Assistant mentre il suo era spento. Adesso guarda solo
-  le casse della **sua** integrazione — unire casse di integrazioni diverse
-  non si può fare comunque, quindi non erano candidate nemmeno prima. Se
-  vuoi che ne segua altre, l'elenco a mano continua a comandare lui.
+  saltava sopra. Adesso guarda solo le casse della **sua** integrazione.
+- **Chi era zittito resta zittito**: Music Assistant, propagando il volume
+  del gruppo, toglie il muto alle casse di sua iniziativa (è un difetto
+  suo, [support#6334](https://github.com/music-assistant/support/issues/6334)).
+  La casella se ne accorge e glielo rimette — e si fa da parte appena sei
+  tu a toccare il muto.
 
 ## Novità della 2.15.4
 

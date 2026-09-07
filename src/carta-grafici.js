@@ -842,8 +842,10 @@ export const ConGrafici = (Base) => class extends Base {
       this._hass.callService("fan", "set_percentage",
         { entity_id: c.entity, percentage: valore });
     } else if (dominio === "media_player") {
+      const chi = this._cassaDelVolume();
       this._hass.callService("media_player", "volume_set",
-        { entity_id: this._cassaDelVolume(), volume_level: valore / 100 });
+        { entity_id: chi, volume_level: valore / 100 });
+      this._zeroVuolDireMuto(chi, valore / 100);
     } else if (dominio === "number" || dominio === "input_number") {
       this._hass.callService(dominio, "set_value",
         { entity_id: c.entity, value: valore });

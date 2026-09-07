@@ -297,6 +297,9 @@ const EN = {
   "Sboccia dalla casella che hai toccato": "Blooms from the tile you tapped",
   "Entra dal basso, come un cassetto": "Slides up from the bottom, like a drawer",
   "Nessuna animazione": "No animation",
+  "Volume del gruppo": "Group volume",
+  "Riattiva l'audio": "Unmute",
+  "Silenzia": "Mute",
   "Alza e abbassa tutte insieme, ognuna dal suo volume": "Raises and lowers them together, each from its own volume",
   "Tutte le casse": "All the speakers",
   "Volume di tutte le casse del gruppo": "Volume of every speaker in the group",
@@ -7335,7 +7338,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.16.5";
+const VERSIONE = "2.17.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -10089,8 +10092,10 @@ const ConGrafici = (Base) => class extends Base {
       this._hass.callService("fan", "set_percentage",
         { entity_id: c.entity, percentage: valore });
     } else if (dominio === "media_player") {
+      const chi = this._cassaDelVolume();
       this._hass.callService("media_player", "volume_set",
-        { entity_id: this._cassaDelVolume(), volume_level: valore / 100 });
+        { entity_id: chi, volume_level: valore / 100 });
+      this._zeroVuolDireMuto(chi, valore / 100);
     } else if (dominio === "number" || dominio === "input_number") {
       this._hass.callService(dominio, "set_value",
         { entity_id: c.entity, value: valore });
@@ -11085,6 +11090,104 @@ const ConMusica = (Base) => class extends Base {
     }
   }
 
+  // I VOLUMI DELLE CASSE UNITE. Torna niente se non c'e' gruppo, o se le
+  // casse che sanno dire il loro volume sono meno di due.
+  _volumiDelGruppo(st) {
+    const membri = st && Array.isArray(st.attributes.group_members)
+      ? st.attributes.group_members : [];
+    if (membri.length < 2) return null;
+    const stati = this._hass ? this._hass.states : {};
+    const dentro = membri.map((e) => stati[e])
+      .filter((s) => s && s.attributes.volume_level !== undefined);
+    if (dentro.length < 2) return null;
+    const capo = membri[0];
+    const suo = stati[capo];
+    return { capo: capo,
+      // quello che si vede sulla barra: il volume del capogruppo, come in
+      // Music Assistant
+      quanto: Math.round(Number((suo && suo.attributes.volume_level) || 0) * 100),
+      casse: dentro.map((s) => s.entity_id) };
+  }
+
+  // IL VOLUME DEL GRUPPO E' QUELLO DEL CAPOGRUPPO.
+  //
+  // E' come fa Music Assistant nella sua schermata: la barra in cima segue
+  // la cassa che comanda, e muovendola lui distribuisce alle altre. Provato
+  // sul campo: capogruppo a 10 e la barra del gruppo a 10, mentre l'altra
+  // cassa stava a 2.
+  //
+  // (La strada del servizio `mass_queue.set_group_volume` l'ho tolta: su
+  // Music Assistant 2.9.11 il suo `get_group_volume` risponde errore 500.)
+  _mandaVolumeGruppo(gruppo, valore) {
+    if (!this._hass) return;
+    // CHI ERA ZITTITO RESTA ZITTITO.
+    //
+    // Music Assistant, quando cambia il volume di un gruppo, lo propaga
+    // alle casse e "unmutes the player before setting volume" - lo scrive
+    // lui nel suo log. Cosi' una cassa che avevi messo in muto riattacca a
+    // sentirsi. E' un difetto suo (support#6334, la regressione della
+    // #5098) e non lo posso correggere da qui: quello che posso fare e'
+    // segnarmi chi era zittito e rimetterglielo appena vedo che gliel'ha
+    // tolto. La propagazione ci mette qualche secondo, quindi guardo per
+    // un po'.
+    this._rimettiIlMuto(gruppo.casse);
+    const vuole = Math.max(0, Math.min(100, Number(valore))) / 100;
+    this._hass.callService("media_player", "volume_set",
+      { entity_id: gruppo.capo, volume_level: Math.round(vuole * 1000) / 1000 });
+  }
+
+  // Rimette il muto a chi ce l'aveva, se Music Assistant glielo toglie
+  // mentre propaga il volume del gruppo. Guardo qualche volta nei sei
+  // secondi dopo il comando, poi smetto: se lo toglie l'utente dopo, e'
+  // una sua scelta e non ci torno sopra.
+  _rimettiIlMuto(casse) {
+    const stati = this._hass ? this._hass.states : {};
+    const zitti = (casse || []).filter((e) =>
+      stati[e] && stati[e].attributes.is_volume_muted);
+    if (!zitti.length) return;
+    clearTimeout(this._guardiaMuto);
+    this._guardiaAperta = true;
+    let giri = 0;
+    const guarda = () => {
+      giri += 1;
+      // se nel frattempo il muto l'ha toccato lui, comanda lui: la guardia
+      // si fa da parte. Se no, togliendo il muto entro quei secondi se lo
+      // ritrovava rimesso, e sembrava che il muto non andasse piu' via.
+      if (!this._guardiaAperta || !this._hass || !this.isConnected) return;
+      zitti.forEach((eid) => {
+        const s = this._hass.states[eid];
+        if (s && s.attributes.is_volume_muted === false) {
+          this._hass.callService("media_player", "volume_mute",
+            { entity_id: eid, is_volume_muted: true });
+        }
+      });
+      if (giri < 2) this._guardiaMuto = setTimeout(guarda, 1200);
+    };
+    this._guardiaMuto = setTimeout(guarda, 1200);
+  }
+
+  // PORTARE LA BARRA A ZERO VUOL DIRE "ZITTA", RIALZARLA VUOL DIRE "PARLA".
+  //
+  // Home Assistant tiene il volume e il muto separati, e Music Assistant
+  // pure. Ma una cassa a zero che si sente lo stesso non se la aspetta
+  // nessuno, quindi qui le due cose vanno insieme.
+  _zeroVuolDireMuto(eid, livello) {
+    if (!this._hass) return;
+    const s = this._hass.states[eid];
+    if (!s) return;
+    const zitto = !!s.attributes.is_volume_muted;
+    if (livello <= 0 && !zitto) {
+      this._hass.callService("media_player", "volume_mute",
+        { entity_id: eid, is_volume_muted: true });
+    } else if (livello > 0 && zitto) {
+      // la guardia che rimette il muto non deve rimetterlo adesso
+      this._guardiaAperta = false;
+      clearTimeout(this._guardiaMuto);
+      this._hass.callService("media_player", "volume_mute",
+        { entity_id: eid, is_volume_muted: false });
+    }
+  }
+
   // DI CHI E' IL VOLUME CHE MUOVE IL CURSORE.
   //
   // La casella puo' star facendo vedere il capogruppo, perche' e' li' che
@@ -11225,6 +11328,7 @@ const ConMusica = (Base) => class extends Base {
         r.dataset.eid = eid;
         r.innerHTML = TH('<button class="sw" type="button"></button>'
           + '<span class="chi"></span>'
+          + '<button class="mutino" type="button" hidden></button>'
           + '<input class="vol" type="range" min="0" max="100" step="1">'
           + '<button class="tras" type="button" hidden title="Porta qui la coda '
           + 'che sta suonando">') + segno("trasferisci") + "</button>";
@@ -11245,11 +11349,24 @@ const ConMusica = (Base) => class extends Base {
           if (this._lettori().includes(eid)) this._ricordaScelto(eid);
           this._chiudiPannelli();
         });
+        // il muto di QUESTA cassa, accanto alla sua barra
+        r.querySelector(".mutino").addEventListener("click", (e) => {
+          e.stopPropagation();
+          // comanda lui: la guardia che rimette il muto si ferma qui
+          this._guardiaAperta = false;
+          clearTimeout(this._guardiaMuto);
+          const s = this._hass && this._hass.states[eid];
+          if (!s) return;
+          this._hass.callService("media_player", "volume_mute",
+            { entity_id: eid, is_volume_muted: !s.attributes.is_volume_muted });
+        });
         const vol = r.querySelector(".vol");
         const manda = () => {
           if (!this._hass) return;
+          const liv = Number(vol.value) / 100;
           this._hass.callService("media_player", "volume_set",
-            { entity_id: eid, volume_level: Number(vol.value) / 100 });
+            { entity_id: eid, volume_level: liv });
+          this._zeroVuolDireMuto(eid, liv);
         };
         soloDalPallino(vol);
         vol.addEventListener("input", () => {
@@ -11268,6 +11385,46 @@ const ConMusica = (Base) => class extends Base {
         box.appendChild(r);
       });
     }
+    // IN CIMA: il volume di TUTTE le casse insieme. La barra della casella
+    // e' il volume della SUA cassa, quindi il generale serve, e serve qui.
+    let tutte = box.querySelector(".tutte-le-casse");
+    if (!tutte) {
+      tutte = document.createElement("div");
+      tutte.className = "voce tutte-le-casse";
+      tutte.innerHTML = TH('<span class="chi">Volume del gruppo</span>'
+        + '<input class="vol" type="range" min="0" max="100" step="1">');
+      const volT = tutte.querySelector(".vol");
+      soloDalPallino(volT);
+      const mandaT = () => {
+        const suo = this._hass && this._hass.states[this._config.entity];
+        const gr = this._volumiDelGruppo(suo);
+        if (gr) this._mandaVolumeGruppo(gr, Number(volT.value));
+      };
+      // UNA VOLTA SOLA, QUANDO LASCI. Mandarlo a raffica mentre trascini
+      // faceva fare le cose a caso: Music Assistant, a ogni comando, rifa'
+      // i conti su tutte le casse, e dieci comandi di fila si accavallano.
+      volT.addEventListener("input", () => {
+        tutte._trascino = true;
+        volT.style.setProperty("--riempito", volT.value + "%");
+      });
+      ["pointerup", "touchend", "mouseup", "keyup", "change"].forEach((ev) =>
+        volT.addEventListener(ev, () => {
+          if (!tutte._trascino) return;
+          tutte._trascino = false;
+          mandaT();
+        }));
+      volT.addEventListener("blur", () => { tutte._trascino = false; });
+    }
+    if (tutte.parentNode !== box) box.insertBefore(tutte, box.firstChild);
+    const insieme = this._volumiDelGruppo(st);
+    tutte.hidden = !insieme;
+    if (insieme && !tutte._trascino) {
+      const quanto = insieme.quanto;
+      const volT = tutte.querySelector(".vol");
+      volT.value = String(quanto);
+      volT.style.setProperty("--riempito", quanto + "%");
+    }
+
     // in fondo, "svuota la coda": e' un comando di serie di Home Assistant
     // (clear_playlist), quindi vale per Music Assistant come per yTube
     let via = box.querySelector(".svuota-coda");
@@ -11340,6 +11497,23 @@ const ConMusica = (Base) => class extends Base {
             : (dentro ? "Togli dal gruppo" : "Unisci al gruppo"));
       const vol = r.querySelector(".vol");
       vol.hidden = !dentro || !suo || suo.attributes.volume_level === undefined;
+      const mutino = r.querySelector(".mutino");
+      const saFareMuto = !!suo && (!suo.attributes.supported_features
+        || (Number(suo.attributes.supported_features) & 8));
+      mutino.hidden = vol.hidden || !saFareMuto;
+      if (!mutino.hidden) {
+        const zitto = !!suo.attributes.is_volume_muted;
+        // Il disegno dentro al tastino si rifa' SOLO quando cambia. Col
+        // riquadro aperto la casella si ridisegna dieci volte al secondo:
+        // rifacendolo ogni volta, il dito premeva su un'icona che un
+        // attimo dopo non c'era piu' e il primo tocco andava perso.
+        if (mutino._zitto !== zitto) {
+          mutino._zitto = zitto;
+          mutino.toggleAttribute("zitto", zitto);
+          mutino.innerHTML = segno(zitto ? "muto" : "volume");
+          mutino.title = zitto ? T("Riattiva l'audio") : T("Silenzia");
+        }
+      }
       if (!vol.hidden && !r._trascino) {
         const liv = Math.round(suo.attributes.volume_level * 100);
         vol.value = String(liv);
@@ -14109,6 +14283,25 @@ svg.iconafondo[hidden], img.fotofondo[hidden] { display: none !important; }
   overflow: hidden; text-overflow: ellipsis;
   color: var(--testo, var(--primary-text-color, #eaf1fb)); }
 .pannello .voce .vol { flex: none; width: 92px; }
+/* il muto di ogni cassa, appiccicato alla sua barra */
+.pannello .voce .mutino {
+  appearance: none; border: none; padding: 0; flex: none; cursor: pointer;
+  width: 22px; height: 22px; border-radius: 50%; background: none;
+  color: var(--primary-text-color, #eaf1fb); opacity: .75;
+  display: grid; place-items: center;
+}
+.pannello .voce .mutino svg { width: 15px; height: 15px; fill: currentColor; }
+.pannello .voce .mutino:hover { opacity: 1; }
+.pannello .voce .mutino[zitto] { color: var(--c); opacity: 1; }
+.pannello .voce .mutino[hidden] { display: none !important; }
+/* il volume di tutte: sta in cima, staccato dalle singole casse */
+.pannello .voce.tutte-le-casse {
+  border-bottom: 1px solid var(--casa-border, rgba(255,255,255,.12));
+  padding-bottom: 8px; margin-bottom: 4px;
+}
+.pannello .voce.tutte-le-casse .chi { font-weight: 700; opacity: .95; }
+.pannello .voce.tutte-le-casse .vol { width: 126px; }
+.pannello .voce.tutte-le-casse[hidden] { display: none !important; }
 .pannello .voce .vol[hidden] { display: none !important; }
 .pannello .voce .sw {
   appearance: none; border: none; padding: 0; flex: none; cursor: pointer;
