@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.16.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.16.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,24 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.16.3
+
+**Il volume del gruppo lo tiene Music Assistant, e adesso è il suo.** La
+Veranda segnava zero e si sentiva lo stesso: dentro a un gruppo di Music
+Assistant il `volume_level` della singola cassa non è quello che decide
+cosa esce. Il volume del gruppo ce l'ha Music Assistant, e si chiede e si
+cambia con due servizi suoi (`mass_queue.get_group_volume` e
+`set_group_volume`).
+
+La riga «Tutte le casse» adesso passa di lì: legge il numero vero quando
+apri il riquadro e scrive quello. Sul suo impianto la differenza si vede:
+Music Assistant dice 12, la media delle casse direbbe 6.
+
+Per i lettori delle altre integrazioni, che un volume di gruppo non ce
+l'hanno, resta com'era: le sposta tutte dello stesso tanto, ognuna dal
+suo. E il volume della singola cassa non cambia strada, né qui né nella
+casella.
 
 ## Novità della 2.16.2
 

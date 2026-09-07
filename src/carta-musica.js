@@ -749,6 +749,35 @@ export const ConMusica = (Base) => class extends Base {
     }
   }
 
+  // IL VOLUME DEL GRUPPO SECONDO MUSIC ASSISTANT.
+  //
+  // In un gruppo di Music Assistant il volume che conta e' quello del
+  // gruppo, non il `volume_level` delle singole casse: una cassa che
+  // segna zero si sente lo stesso. Music Assistant lo dice e lo cambia
+  // con due servizi suoi, e sono quelli che usa anche la sua ytmusic-card.
+  //
+  // Lo chiedo quando si apre il riquadro, non a ogni disegno: e' una
+  // chiamata di rete.
+  _chiediVolumeGruppoMA(eid) {
+    if (!this._hass || !eid || !this._daMusicAssistant(eid)) {
+      this._volGruppoMA = null;
+      return;
+    }
+    if (this._chiedendoVolGruppo) return;
+    this._chiedendoVolGruppo = true;
+    this._hass.callWS({ type: "call_service", domain: "mass_queue",
+      service: "get_group_volume", service_data: { entity: eid },
+      return_response: true })
+      .then((r) => {
+        const v = r && r.response && r.response.volume_level;
+        this._volGruppoMA = typeof v === "number"
+          ? { eid: eid, quanto: Math.max(0, Math.min(100, Math.round(v))) } : null;
+        this._render();
+      })
+      .catch(() => { this._volGruppoMA = null; })
+      .then(() => { this._chiedendoVolGruppo = false; });
+  }
+
   // DI CHI E' IL VOLUME CHE MUOVE IL CURSORE.
   //
   // La casella puo' star facendo vedere il capogruppo, perche' e' li' che
@@ -792,6 +821,16 @@ export const ConMusica = (Base) => class extends Base {
   // dettasse il generale invece del loro.
   _mandaVolumeGruppo(gruppo, valore) {
     if (!this._hass) return;
+    // Music Assistant il volume del gruppo ce l'ha suo: e' quello che
+    // decide cosa esce davvero, e va cambiato con il suo servizio.
+    const capo = this._config.entity;
+    if (this._daMusicAssistant(capo)) {
+      const quanto = Math.max(1, Math.min(100, Math.round(Number(valore))));
+      this._volGruppoMA = { eid: capo, quanto: quanto };
+      this._hass.callService("mass_queue", "set_group_volume",
+        { entity: capo, volume_level: quanto });
+      return;
+    }
     const stati = this._hass.states;
     const vuole = Math.max(0, Math.min(100, Number(valore))) / 100;
     const quanto = vuole - gruppo.media / 100;
@@ -1004,9 +1043,13 @@ export const ConMusica = (Base) => class extends Base {
     const insieme = this._volumiDelGruppo(st);
     tutte.hidden = !insieme;
     if (insieme && !tutte._trascino) {
+      // con Music Assistant il numero buono e' il suo, non la media delle
+      // casse: quelle possono segnare zero e sentirsi lo stesso
+      const suo = this._volGruppoMA;
+      const quanto = (suo && suo.eid === padrone) ? suo.quanto : insieme.media;
       const volT = tutte.querySelector(".vol");
-      volT.value = String(insieme.media);
-      volT.style.setProperty("--riempito", insieme.media + "%");
+      volT.value = String(quanto);
+      volT.style.setProperty("--riempito", quanto + "%");
     }
 
     // in fondo, "svuota la coda": e' un comando di serie di Home Assistant

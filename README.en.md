@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.16.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.16.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,24 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.16.3
+
+**Music Assistant owns the group volume, and now the card uses it.** The
+Veranda read zero and could still be heard: inside a Music Assistant
+group a single speaker's `volume_level` is not what decides what comes
+out. The group volume belongs to Music Assistant, and is read and written
+with two of its own services (`mass_queue.get_group_volume` and
+`set_group_volume`).
+
+The "All the speakers" row now goes through them: it reads the real number
+when you open the panel, and writes that one. On a real system the
+difference shows: Music Assistant says 12 where the average of the
+speakers would say 6.
+
+For players from other integrations, which have no group volume, nothing
+changes: they all move by the same amount, each from its own. And a single
+speaker's volume takes the same road as before, here and on the tile.
 
 ## What's new in 2.16.2
 
