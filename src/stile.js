@@ -1585,6 +1585,14 @@ svg.iconafondo[hidden], img.fotofondo[hidden] { display: none !important; }
   overflow: hidden; text-overflow: ellipsis;
   color: var(--testo, var(--primary-text-color, #eaf1fb)); }
 .pannello .voce .vol { flex: none; width: 92px; }
+/* il volume di tutte: sta in cima, staccato dalle singole casse */
+.pannello .voce.tutte-le-casse {
+  border-bottom: 1px solid var(--casa-border, rgba(255,255,255,.12));
+  padding-bottom: 8px; margin-bottom: 4px;
+}
+.pannello .voce.tutte-le-casse .chi { font-weight: 700; opacity: .95; }
+.pannello .voce.tutte-le-casse .vol { width: 126px; }
+.pannello .voce.tutte-le-casse[hidden] { display: none !important; }
 .pannello .voce .vol[hidden] { display: none !important; }
 .pannello .voce .sw {
   appearance: none; border: none; padding: 0; flex: none; cursor: pointer;

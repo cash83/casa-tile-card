@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.16.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.16.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,14 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.16.1
+
+**Il volume generale anche dentro al riquadro delle Casse**, in cima
+all'elenco: la barra della casella fa già questo, ma con il riquadro
+aperto sta sotto e non si vede. La riga «Tutte le casse» compare solo
+quando le casse unite sono più d'una, e ognuna resta comandabile per
+conto suo, come prima.
 
 ## Novità della 2.16
 

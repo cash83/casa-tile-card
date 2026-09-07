@@ -950,6 +950,44 @@ export const ConMusica = (Base) => class extends Base {
         box.appendChild(r);
       });
     }
+    // IN CIMA: il volume di TUTTE le casse insieme. La barra della casella
+    // fa gia' questo, ma col riquadro aperto sta sotto e non si vede.
+    let tutte = box.querySelector(".tutte-le-casse");
+    if (!tutte) {
+      tutte = document.createElement("div");
+      tutte.className = "voce tutte-le-casse";
+      tutte.innerHTML = TH('<span class="chi">Tutte le casse</span>'
+        + '<input class="vol" type="range" min="0" max="100" step="1">');
+      const volT = tutte.querySelector(".vol");
+      soloDalPallino(volT);
+      const mandaT = () => {
+        const suo = this._hass && this._hass.states[this._config.entity];
+        const gr = this._volumiDelGruppo(suo);
+        if (gr) this._mandaVolumeGruppo(gr, Number(volT.value));
+      };
+      volT.addEventListener("input", () => {
+        tutte._trascino = true;
+        volT.style.setProperty("--riempito", volT.value + "%");
+        clearTimeout(tutte._freno);
+        tutte._freno = setTimeout(mandaT, 250);
+      });
+      ["pointerup", "touchend", "mouseup", "keyup"].forEach((ev) =>
+        volT.addEventListener(ev, () => {
+          if (!tutte._trascino) return;
+          mandaT();
+          setTimeout(() => { tutte._trascino = false; }, 900);
+        }));
+      volT.addEventListener("blur", () => { tutte._trascino = false; });
+    }
+    if (tutte.parentNode !== box) box.insertBefore(tutte, box.firstChild);
+    const insieme = this._volumiDelGruppo(st);
+    tutte.hidden = !insieme;
+    if (insieme && !tutte._trascino) {
+      const volT = tutte.querySelector(".vol");
+      volT.value = String(insieme.media);
+      volT.style.setProperty("--riempito", insieme.media + "%");
+    }
+
     // in fondo, "svuota la coda": e' un comando di serie di Home Assistant
     // (clear_playlist), quindi vale per Music Assistant come per yTube
     let via = box.querySelector(".svuota-coda");

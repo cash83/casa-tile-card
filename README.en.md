@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.16.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.16.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,14 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.16.1
+
+**The overall volume inside the Speakers panel too**, at the top of the
+list: the tile slider already does this, but with the panel open it sits
+underneath and you cannot see it. The "All the speakers" row only shows
+when more than one speaker is joined, and each one stays controllable on
+its own, as before.
 
 ## What's new in 2.16
 

@@ -297,6 +297,7 @@ const EN = {
   "Sboccia dalla casella che hai toccato": "Blooms from the tile you tapped",
   "Entra dal basso, come un cassetto": "Slides up from the bottom, like a drawer",
   "Nessuna animazione": "No animation",
+  "Tutte le casse": "All the speakers",
   "Volume di tutte le casse del gruppo": "Volume of every speaker in the group",
   "pausa": "pause",
   "acqua": "water",
@@ -7333,7 +7334,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.16.0";
+const VERSIONE = "2.16.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -11286,6 +11287,44 @@ const ConMusica = (Base) => class extends Base {
         box.appendChild(r);
       });
     }
+    // IN CIMA: il volume di TUTTE le casse insieme. La barra della casella
+    // fa gia' questo, ma col riquadro aperto sta sotto e non si vede.
+    let tutte = box.querySelector(".tutte-le-casse");
+    if (!tutte) {
+      tutte = document.createElement("div");
+      tutte.className = "voce tutte-le-casse";
+      tutte.innerHTML = TH('<span class="chi">Tutte le casse</span>'
+        + '<input class="vol" type="range" min="0" max="100" step="1">');
+      const volT = tutte.querySelector(".vol");
+      soloDalPallino(volT);
+      const mandaT = () => {
+        const suo = this._hass && this._hass.states[this._config.entity];
+        const gr = this._volumiDelGruppo(suo);
+        if (gr) this._mandaVolumeGruppo(gr, Number(volT.value));
+      };
+      volT.addEventListener("input", () => {
+        tutte._trascino = true;
+        volT.style.setProperty("--riempito", volT.value + "%");
+        clearTimeout(tutte._freno);
+        tutte._freno = setTimeout(mandaT, 250);
+      });
+      ["pointerup", "touchend", "mouseup", "keyup"].forEach((ev) =>
+        volT.addEventListener(ev, () => {
+          if (!tutte._trascino) return;
+          mandaT();
+          setTimeout(() => { tutte._trascino = false; }, 900);
+        }));
+      volT.addEventListener("blur", () => { tutte._trascino = false; });
+    }
+    if (tutte.parentNode !== box) box.insertBefore(tutte, box.firstChild);
+    const insieme = this._volumiDelGruppo(st);
+    tutte.hidden = !insieme;
+    if (insieme && !tutte._trascino) {
+      const volT = tutte.querySelector(".vol");
+      volT.value = String(insieme.media);
+      volT.style.setProperty("--riempito", insieme.media + "%");
+    }
+
     // in fondo, "svuota la coda": e' un comando di serie di Home Assistant
     // (clear_playlist), quindi vale per Music Assistant come per yTube
     let via = box.querySelector(".svuota-coda");
@@ -14127,6 +14166,14 @@ svg.iconafondo[hidden], img.fotofondo[hidden] { display: none !important; }
   overflow: hidden; text-overflow: ellipsis;
   color: var(--testo, var(--primary-text-color, #eaf1fb)); }
 .pannello .voce .vol { flex: none; width: 92px; }
+/* il volume di tutte: sta in cima, staccato dalle singole casse */
+.pannello .voce.tutte-le-casse {
+  border-bottom: 1px solid var(--casa-border, rgba(255,255,255,.12));
+  padding-bottom: 8px; margin-bottom: 4px;
+}
+.pannello .voce.tutte-le-casse .chi { font-weight: 700; opacity: .95; }
+.pannello .voce.tutte-le-casse .vol { width: 126px; }
+.pannello .voce.tutte-le-casse[hidden] { display: none !important; }
 .pannello .voce .vol[hidden] { display: none !important; }
 .pannello .voce .sw {
   appearance: none; border: none; padding: 0; flex: none; cursor: pointer;
