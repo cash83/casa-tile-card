@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.16.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.16.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,25 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.16.2
+
+**Ogni cassa il suo volume.** Nella 2.16 la barra della casella era
+diventata il volume del gruppo, e non andava bene: la casella della
+Veranda, ferma a 0, faceva vedere 25 — la media con le altre, un numero
+che non era di nessuno. E muovendola muoveva tutto.
+
+- **La barra della casella è di nuovo il volume della sua cassa.** Anche
+  quando la casella fa vedere il capogruppo (la coda sta lì, e i comandi
+  vanno dati a lui), volume e muto restano quelli della cassa della
+  casella.
+- **Il generale sposta tutte dello stesso tanto**, ognuna partendo dal
+  suo: alzandolo di dieci, chi era a 50 va a 60, chi era a 0 va a 10.
+  Prima spostava in proporzione, e una cassa a zero restava a zero per
+  sempre — zero per qualsiasi cosa fa zero.
+
+Il volume di tutte insieme sta dove serve: in cima al riquadro «Casse»,
+sopra a quelle delle singole.
 
 ## Novità della 2.16.1
 

@@ -842,10 +842,8 @@ export const ConGrafici = (Base) => class extends Base {
       this._hass.callService("fan", "set_percentage",
         { entity_id: c.entity, percentage: valore });
     } else if (dominio === "media_player") {
-      const gruppo = this._volumiDelGruppo(this._hass.states[c.entity]);
-      if (gruppo) { this._mandaVolumeGruppo(gruppo, valore); return; }
       this._hass.callService("media_player", "volume_set",
-        { entity_id: c.entity, volume_level: valore / 100 });
+        { entity_id: this._cassaDelVolume(), volume_level: valore / 100 });
     } else if (dominio === "number" || dominio === "input_number") {
       this._hass.callService(dominio, "set_value",
         { entity_id: c.entity, value: valore });
@@ -916,13 +914,17 @@ export const ConGrafici = (Base) => class extends Base {
     this._range.max = "100";
     this._range.step = "1";
 
-    // il tasto del muto sta accanto al volume, solo per la musica
+    // il tasto del muto sta accanto al volume, solo per la musica.
+    // Volume e muto sono della cassa della casella, anche quando quello
+    // che si vede e' il capogruppo (vedi _cassaDelVolume).
+    const stVol = dominio === "media_player"
+      ? (this._hass.states[this._cassaDelVolume()] || st) : st;
     const puoMuto = dominio === "media_player"
-      && (!st.attributes.supported_features
-          || (Number(st.attributes.supported_features) & 8));
+      && (!stVol.attributes.supported_features
+          || (Number(stVol.attributes.supported_features) & 8));
     this._muto.hidden = !puoMuto;
     if (puoMuto) {
-      const zitto = !!st.attributes.is_volume_muted;
+      const zitto = !!stVol.attributes.is_volume_muted;
       this._muto.toggleAttribute("zitto", zitto);
       metti(this._muto, zitto ? "muto" : "volume");
       this._muto.title = zitto ? "Riattiva l'audio" : "Silenzia";
@@ -948,16 +950,12 @@ export const ConGrafici = (Base) => class extends Base {
     } else if (dominio === "fan") {
       valore = Math.round(st.attributes.percentage || 0);
     } else {
-      // con le casse unite la barra e' il volume di TUTTE, come in Music
-      // Assistant: fa vedere la media e le muove insieme. Quello della
-      // singola cassa resta nel riquadro delle Casse.
-      const gruppo = this._volumiDelGruppo(st);
-      valore = gruppo ? gruppo.media
-        : Math.round((st.attributes.volume_level || 0) * 100);
-      this._cursore.toggleAttribute("gruppo", !!gruppo);
-      this._range.title = gruppo
-        ? T("Volume di tutte le casse del gruppo")
-        : "";
+      // Il volume della cassa che sto mostrando, il suo e basta. Farlo
+      // diventare la media del gruppo voleva dire che la casella della
+      // Veranda, ferma a zero, faceva vedere 25 - un numero che non era
+      // di nessuno. Il volume di tutte insieme sta in cima al riquadro
+      // delle Casse, dove si vedono anche le singole.
+      valore = Math.round((stVol.attributes.volume_level || 0) * 100);
     }
     if (!this._trascino) {
       this._range.value = String(valore);

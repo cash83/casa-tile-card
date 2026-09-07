@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.16.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.16.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,24 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.16.2
+
+**Each speaker its own volume.** In 2.16 the tile slider had become the
+group volume, and that was wrong: the Veranda tile, sitting at 0, showed
+25 — the average with the others, a number belonging to nobody. And
+moving it moved everything.
+
+- **The tile slider is its own speaker's volume again.** Even when the
+  tile is showing the group leader (that is where the queue lives, and
+  where commands must go), volume and mute stay the tile speaker's.
+- **The overall one moves them all by the same amount**, each from its
+  own: raise it by ten and a speaker at 50 goes to 60, one at 0 goes to
+  10. It used to scale proportionally, and a speaker at zero stayed at
+  zero forever — zero times anything is zero.
+
+The volume for all of them sits where it is useful: at the top of the
+"Speakers" panel, above the individual ones.
 
 ## What's new in 2.16.1
 

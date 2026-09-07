@@ -749,6 +749,24 @@ export const ConMusica = (Base) => class extends Base {
     }
   }
 
+  // DI CHI E' IL VOLUME CHE MUOVE IL CURSORE.
+  //
+  // La casella puo' star facendo vedere il capogruppo, perche' e' li' che
+  // sta la coda e li' vanno dati i comandi. Il volume pero' e' della
+  // cassa, non della sessione: se la MIA cassa e' agganciata a quel
+  // gruppo, il cursore resta il suo. Se no la casella della Veranda,
+  // ferma a zero, faceva vedere il volume del PC ufficio.
+  _cassaDelVolume() {
+    const c = this._config || {};
+    const mia = (this._base || {}).entity;
+    if (!mia || mia === c.entity) return c.entity;
+    const stati = this._hass ? this._hass.states : {};
+    const st = stati[c.entity];
+    const membri = st && st.attributes.group_members;
+    if (Array.isArray(membri) && membri.indexOf(mia) >= 0 && stati[mia]) return mia;
+    return c.entity;
+  }
+
   // I VOLUMI DELLE CASSE UNITE. Torna niente se non c'e' gruppo, o se le
   // casse che sanno dire il loro volume sono meno di due: in quel caso il
   // volume del gruppo non vorrebbe dire niente.
@@ -765,23 +783,25 @@ export const ConMusica = (Base) => class extends Base {
       casse: dentro.map((s) => s.entity_id) };
   }
 
-  // Muovere il gruppo: ogni cassa si sposta IN PROPORZIONE, cosi' chi era
-  // piu' bassa resta piu' bassa - e' quello che uno si aspetta e quello che
-  // fa Music Assistant. Se erano tutte a zero vanno tutte al valore
-  // chiesto, se no da li' non si muoverebbero mai piu'.
+  // Muovere il generale: ogni cassa parte DAL SUO volume e si sposta dello
+  // stesso tanto. Alzo il generale di dieci, ognuna sale di dieci.
+  //
+  // Prima spostava in proporzione (moltiplicando): sembra piu' elegante ma
+  // una cassa a zero restava a zero per sempre - zero per qualsiasi cosa fa
+  // zero - e tutte le altre si riscalavano, come se il volume glielo
+  // dettasse il generale invece del loro.
   _mandaVolumeGruppo(gruppo, valore) {
     if (!this._hass) return;
     const stati = this._hass.states;
     const vuole = Math.max(0, Math.min(100, Number(valore))) / 100;
-    const media = gruppo.media / 100;
+    const quanto = vuole - gruppo.media / 100;
     gruppo.casse.forEach((eid) => {
       const s = stati[eid];
       if (!s) return;
       const ora = Number(s.attributes.volume_level || 0);
-      const nuovo = media > 0 ? ora * (vuole / media) : vuole;
+      const nuovo = Math.max(0, Math.min(1, ora + quanto));
       this._hass.callService("media_player", "volume_set",
-        { entity_id: eid,
-          volume_level: Math.max(0, Math.min(1, Math.round(nuovo * 1000) / 1000)) });
+        { entity_id: eid, volume_level: Math.round(nuovo * 1000) / 1000 });
     });
   }
 
@@ -957,7 +977,8 @@ export const ConMusica = (Base) => class extends Base {
       tutte = document.createElement("div");
       tutte.className = "voce tutte-le-casse";
       tutte.innerHTML = TH('<span class="chi">Tutte le casse</span>'
-        + '<input class="vol" type="range" min="0" max="100" step="1">');
+        + '<input class="vol" type="range" min="0" max="100" step="1" '
+        + 'title="Alza e abbassa tutte insieme, ognuna dal suo volume">');
       const volT = tutte.querySelector(".vol");
       soloDalPallino(volT);
       const mandaT = () => {

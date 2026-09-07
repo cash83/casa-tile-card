@@ -297,6 +297,7 @@ export const EN = {
   "Sboccia dalla casella che hai toccato": "Blooms from the tile you tapped",
   "Entra dal basso, come un cassetto": "Slides up from the bottom, like a drawer",
   "Nessuna animazione": "No animation",
+  "Alza e abbassa tutte insieme, ognuna dal suo volume": "Raises and lowers them together, each from its own volume",
   "Tutte le casse": "All the speakers",
   "Volume di tutte le casse del gruppo": "Volume of every speaker in the group",
   "pausa": "pause",

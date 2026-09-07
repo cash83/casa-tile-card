@@ -552,10 +552,11 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     ["click", "pointerdown"].forEach((ev) =>
       this._muto.addEventListener(ev, (e) => e.stopPropagation()));
     this._muto.addEventListener("click", () => {
-      const st = this._hass ? this._hass.states[this._config.entity] : null;
+      const chi = this._cassaDelVolume();
+      const st = this._hass ? this._hass.states[chi] : null;
       if (!st) return;
       this._hass.callService("media_player", "volume_mute", {
-        entity_id: this._config.entity,
+        entity_id: chi,
         is_volume_muted: !st.attributes.is_volume_muted,
       });
     });
