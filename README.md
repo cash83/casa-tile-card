@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.16.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.16.4-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,20 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.16.4
+
+**Il volume di tutte le casse si manda una volta sola, quando lasci.**
+Mentre trascinavi ne partiva uno ogni 250 ms, e Music Assistant a ogni
+comando rifà i conti su tutte le casse: dieci comandi di fila si
+accavallavano e il volume faceva le cose a caso. Nella cronologia si
+vedeva bene — 0,88 → 0,84 → 0,04 → 0,06 → 0,65 → 0,52 → 0,1 → 0, tutto
+nello stesso secondo.
+
+Adesso mentre trascini si muove solo la barra; il comando parte quando
+lasci il dito, uno solo, come fa la ytmusic-card. E subito dopo la card
+si rifà dire da Music Assistant com'è andata a finire, invece di
+fidarsi del numero che ha appena scritto.
 
 ## Novità della 2.16.3
 

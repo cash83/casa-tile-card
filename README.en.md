@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.16.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.16.4-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,19 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.16.4
+
+**The all-speakers volume is sent once, when you let go.** While dragging
+it fired one command every 250 ms, and Music Assistant redoes its sums
+across every speaker on each one: ten commands in a row piled up and the
+volume did random things. The history showed it plainly — 0.88 → 0.84 →
+0.04 → 0.06 → 0.65 → 0.52 → 0.1 → 0, all within the same second.
+
+Now only the slider moves while you drag; the command goes out when you
+lift your finger, one of them, the way the ytmusic-card does. And right
+after, the card asks Music Assistant how it actually ended up, instead of
+trusting the number it just wrote.
 
 ## What's new in 2.16.3
 

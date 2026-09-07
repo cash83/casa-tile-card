@@ -1025,17 +1025,25 @@ export const ConMusica = (Base) => class extends Base {
         const gr = this._volumiDelGruppo(suo);
         if (gr) this._mandaVolumeGruppo(gr, Number(volT.value));
       };
+      // UNA VOLTA SOLA, QUANDO LASCI. Mandarlo a raffica mentre trascini
+      // faceva fare le cose a caso: Music Assistant, a ogni comando,
+      // rifa' i conti sulle casse, e dieci comandi di fila si
+      // accavallavano. La sua ytmusic-card manda a `change`, e ha ragione.
       volT.addEventListener("input", () => {
         tutte._trascino = true;
         volT.style.setProperty("--riempito", volT.value + "%");
-        clearTimeout(tutte._freno);
-        tutte._freno = setTimeout(mandaT, 250);
       });
-      ["pointerup", "touchend", "mouseup", "keyup"].forEach((ev) =>
+      ["pointerup", "touchend", "mouseup", "keyup", "change"].forEach((ev) =>
         volT.addEventListener(ev, () => {
           if (!tutte._trascino) return;
+          tutte._trascino = false;
           mandaT();
-          setTimeout(() => { tutte._trascino = false; }, 900);
+          // e mi rifaccio dire da lui com'e' andata a finire
+          clearTimeout(tutte._ricontrolla);
+          tutte._ricontrolla = setTimeout(() => {
+            this._volGruppoMA = null;
+            this._chiediVolumeGruppoMA(this._config.entity);
+          }, 900);
         }));
       volT.addEventListener("blur", () => { tutte._trascino = false; });
     }
