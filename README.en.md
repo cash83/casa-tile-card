@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.17.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.17.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,23 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.17.1
+
+**Press and hold to open more-info**, like Home Assistant's tile. A tap
+does what you chose — toggle, open your pop-up, call a service — and
+holding for half a second opens the entity's more-info dialog: the big
+slider, the history, the settings cog. Before, you could only reach it
+if the tap itself was set to "Open more-info", so a tile whose tap opens
+a pop-up had no way there.
+
+- lifting your finger after the long press does **not** fire the tap as
+  well: no light switching on while more-info opens;
+- if the finger moves you are scrolling the page, and nothing happens;
+- on the slider, the buttons and the panels you keep the usual control;
+- in the settings preview, holding still detaches a card to move it;
+- don't want it on a tile? **Tap → "What it does when you press and
+  hold" → Nothing**.
 
 ## What's new in 2.17
 

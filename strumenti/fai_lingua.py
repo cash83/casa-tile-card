@@ -137,6 +137,8 @@ ETI = {
 }
 
 LIBERE = {
+    'Cosa fa quando la tieni premuta': 'What it does when you press and hold',
+    'Niente': 'Nothing',
     'Volume del gruppo': 'Group volume',
     "Riattiva l'audio": 'Unmute',
     'Silenzia': 'Mute',

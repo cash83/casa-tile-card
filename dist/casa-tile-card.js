@@ -297,6 +297,8 @@ const EN = {
   "Sboccia dalla casella che hai toccato": "Blooms from the tile you tapped",
   "Entra dal basso, come un cassetto": "Slides up from the bottom, like a drawer",
   "Nessuna animazione": "No animation",
+  "Cosa fa quando la tieni premuta": "What it does when you press and hold",
+  "Niente": "Nothing",
   "Volume del gruppo": "Group volume",
   "Riattiva l'audio": "Unmute",
   "Silenzia": "Mute",
@@ -1449,6 +1451,10 @@ const SEZIONI = [
           { value: "link", label: "Apri un indirizzo web" },
           { value: "popup", label: "Apri un pop-up bubble-card (#nome)" },
         ] } } },
+        { name: "tieni_premuto", selector: { select: { mode: "dropdown", options: [
+          { value: "more-info", label: "Apri i dettagli" },
+          { value: "niente", label: "Niente" },
+        ] } } },
         { name: "servizio", selector: { text: {} } },
         { name: "servizio_dati", selector: { text: { multiline: true } } },
         { name: "indirizzo_web", selector: { text: {} } },
@@ -1586,7 +1592,8 @@ const ETICHETTE = {
   carica_entita: "Quali entita vogliono dire che STA CARICANDO (di solito non serve: basta chiamare carica una misura)",
   scarica_entita: "Quali entita vogliono dire che STA DANDO CORRENTE (di solito non serve: basta chiamare scarica una misura)",
   disposizione: "Come e disposta la casella",
-  azione: "Cosa fa quando la tocchi", anima: "Quando si muove l'icona",
+  azione: "Cosa fa quando la tocchi",
+  tieni_premuto: "Cosa fa quando la tieni premuta", anima: "Quando si muove l'icona",
   effetto: "Effetto della casella", intensita: "Intensita del colore (%)",
   anima: "Quando si muove (icona ed effetti)",
   coda: "Elenco In coda (serve Music Assistant)",
@@ -7338,7 +7345,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.17.0";
+const VERSIONE = "2.17.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -15264,8 +15271,42 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
         el.classList.contains("ytattrezzi") || el.classList.contains("ytcuore")
         || el.classList.contains("pannello") || el.classList.contains("menucoda")));
     };
-    const azione = (e) => { if (!nostro(e)) this._azione(); };
+    const azione = (e) => {
+      if (nostro(e)) return;
+      // appena finita una pressione lunga il dito, alzandosi, manda anche un
+      // clic: quello non deve fare anche l'azione del tocco
+      if (this._premutoLungo) { this._premutoLungo = false; return; }
+      this._azione();
+    };
     this._card.addEventListener("click", azione);
+
+    // TENERE PREMUTO: mezzo secondo fermo sulla casella apre i dettagli
+    // dell'entita', come la tile di Home Assistant. I comandi dentro la
+    // casella (barra, tasti, riquadri) fermano gia' il pointerdown per conto
+    // loro, quindi tenere premuto sulla barra non apre niente.
+    const smetti = () => { clearTimeout(this._tieniTimer); this._tieniTimer = 0; };
+    this._card.addEventListener("pointerdown", (e) => {
+      if (nostro(e) || (e.button !== undefined && e.button !== 0)) return;
+      smetti();
+      this._premutoLungo = false;
+      this._tieniDa = { x: e.clientX, y: e.clientY };
+      this._tieniTimer = setTimeout(() => {
+        this._tieniTimer = 0;
+        if (this._tieniPremuto()) this._premutoLungo = true;
+      }, 500);
+    });
+    // se il dito si sposta sta scorrendo la pagina, non tenendo premuto
+    this._card.addEventListener("pointermove", (e) => {
+      if (!this._tieniTimer || !this._tieniDa) return;
+      if (Math.abs(e.clientX - this._tieniDa.x) > 10
+        || Math.abs(e.clientY - this._tieniDa.y) > 10) smetti();
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach((ev) =>
+      this._card.addEventListener(ev, smetti));
+    // sul telefono la pressione lunga apre il menu del browser: qui no
+    this._card.addEventListener("contextmenu", (e) => {
+      if (this._premutoLungo || this._tieniTimer) e.preventDefault();
+    });
     this._card.addEventListener("keydown", (e) => {
       if (nostro(e)) return;
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this._azione(); }
@@ -15273,6 +15314,22 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     this._costruito = true;
     // in che lingua l'ho scritta: se cambia, la rifaccio
     this._linguaScocca = laLingua();
+  }
+
+  // Tenendo premuto: i dettagli di Home Assistant. Torna true se ha fatto
+  // qualcosa, cosi' il clic che arriva alzando il dito viene ignorato.
+  _tieniPremuto() {
+    const c = this._config || {};
+    // nell'anteprima delle impostazioni tenere premuto serve a staccare la
+    // scheda per spostarla: li' i dettagli non c'entrano
+    if (this._sonoAnteprima) return false;
+    if ((c.tieni_premuto || "more-info") === "niente" || !c.entity) return false;
+    // la vibrazione che fanno anche le schede di Home Assistant
+    this.dispatchEvent(new CustomEvent("haptic",
+      { detail: "medium", bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("hass-more-info",
+      { detail: { entityId: c.entity }, bubbles: true, composed: true }));
+    return true;
   }
 
   _azione() {

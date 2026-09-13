@@ -645,8 +645,42 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
         el.classList.contains("ytattrezzi") || el.classList.contains("ytcuore")
         || el.classList.contains("pannello") || el.classList.contains("menucoda")));
     };
-    const azione = (e) => { if (!nostro(e)) this._azione(); };
+    const azione = (e) => {
+      if (nostro(e)) return;
+      // appena finita una pressione lunga il dito, alzandosi, manda anche un
+      // clic: quello non deve fare anche l'azione del tocco
+      if (this._premutoLungo) { this._premutoLungo = false; return; }
+      this._azione();
+    };
     this._card.addEventListener("click", azione);
+
+    // TENERE PREMUTO: mezzo secondo fermo sulla casella apre i dettagli
+    // dell'entita', come la tile di Home Assistant. I comandi dentro la
+    // casella (barra, tasti, riquadri) fermano gia' il pointerdown per conto
+    // loro, quindi tenere premuto sulla barra non apre niente.
+    const smetti = () => { clearTimeout(this._tieniTimer); this._tieniTimer = 0; };
+    this._card.addEventListener("pointerdown", (e) => {
+      if (nostro(e) || (e.button !== undefined && e.button !== 0)) return;
+      smetti();
+      this._premutoLungo = false;
+      this._tieniDa = { x: e.clientX, y: e.clientY };
+      this._tieniTimer = setTimeout(() => {
+        this._tieniTimer = 0;
+        if (this._tieniPremuto()) this._premutoLungo = true;
+      }, 500);
+    });
+    // se il dito si sposta sta scorrendo la pagina, non tenendo premuto
+    this._card.addEventListener("pointermove", (e) => {
+      if (!this._tieniTimer || !this._tieniDa) return;
+      if (Math.abs(e.clientX - this._tieniDa.x) > 10
+        || Math.abs(e.clientY - this._tieniDa.y) > 10) smetti();
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach((ev) =>
+      this._card.addEventListener(ev, smetti));
+    // sul telefono la pressione lunga apre il menu del browser: qui no
+    this._card.addEventListener("contextmenu", (e) => {
+      if (this._premutoLungo || this._tieniTimer) e.preventDefault();
+    });
     this._card.addEventListener("keydown", (e) => {
       if (nostro(e)) return;
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this._azione(); }
@@ -654,6 +688,22 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     this._costruito = true;
     // in che lingua l'ho scritta: se cambia, la rifaccio
     this._linguaScocca = laLingua();
+  }
+
+  // Tenendo premuto: i dettagli di Home Assistant. Torna true se ha fatto
+  // qualcosa, cosi' il clic che arriva alzando il dito viene ignorato.
+  _tieniPremuto() {
+    const c = this._config || {};
+    // nell'anteprima delle impostazioni tenere premuto serve a staccare la
+    // scheda per spostarla: li' i dettagli non c'entrano
+    if (this._sonoAnteprima) return false;
+    if ((c.tieni_premuto || "more-info") === "niente" || !c.entity) return false;
+    // la vibrazione che fanno anche le schede di Home Assistant
+    this.dispatchEvent(new CustomEvent("haptic",
+      { detail: "medium", bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("hass-more-info",
+      { detail: { entityId: c.entity }, bubbles: true, composed: true }));
+    return true;
   }
 
   _azione() {

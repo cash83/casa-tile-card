@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.17.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.17.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,25 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.17.1
+
+**Tieni premuto per aprire i dettagli**, come la tile di Home Assistant.
+Il tocco fa quello che hai scelto — accende, apre il tuo pop-up, lancia
+un servizio — e tenendo premuto mezzo secondo si apre la finestra dei
+dettagli dell'entità: il cursore grande, lo storico, l'ingranaggio delle
+impostazioni. Prima ai dettagli ci arrivavi solo se il tocco era «Apri i
+dettagli», quindi su una casella che col tocco apre un pop-up non c'era
+strada.
+
+- alzando il dito dopo la pressione lunga il tocco **non parte** anche
+  lui: niente luce accesa mentre si aprono i dettagli;
+- se il dito si sposta stai scorrendo la pagina, e non succede niente;
+- sulla barra, sui tasti e nei riquadri resta il comando di sempre;
+- nell'anteprima delle impostazioni tenere premuto continua a staccare
+  la scheda per spostarla;
+- non la vuoi su una casella? **Tocco → «Cosa fa quando la tieni
+  premuta» → Niente**.
 
 ## Novità della 2.17
 
