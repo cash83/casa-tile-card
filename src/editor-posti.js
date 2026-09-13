@@ -1540,6 +1540,26 @@ export const ConPosti = (Base) => class extends Base {
       + '10.5L10.5,9.1L6.4,5H9V3H3V9H5V6.4L9.1,10.5Z"></path></svg></i>';
     carta._maniglia = maniglia;
 
+    // LE DUE MANIGLIE DI LATO, solo per le figure (l'icona e il timbro):
+    // quella a destra allarga senza alzare, quella sotto alza senza
+    // allargare. Quella sull'angolo resta com'era e ingrandisce tutto in
+    // proporzione. Per le scritte non ci sono: una scritta stirata non la
+    // vuole nessuno.
+    const FIGURE = ["icona", "sfondo"];
+    const faiLato = (verso) => {
+      const m = document.createElement("div");
+      m.className = "pista-lato " + verso;
+      m.hidden = true;
+      m.title = verso === "destra"
+        ? T("Tieni premuto e trascina per allargare o stringere")
+        : T("Tieni premuto e trascina per alzare o abbassare");
+      m.innerHTML = '<i class="q"></i>';
+      return m;
+    };
+    const latoDestra = faiLato("destra");
+    const latoSotto = faiLato("sotto");
+    const lati = [latoDestra, latoSotto];
+
     const pezziDi = (chi) => {
       const radice = carta.shadowRoot;
       if (!radice || !chi) return [];
@@ -1606,6 +1626,7 @@ export const ConPosti = (Base) => class extends Base {
       if (numeri) numeri.riga.hidden = !chi || !pezzi.length;
       if (!chi || !pezzi.length || !pista) {
         maniglia.hidden = true;
+        lati.forEach((m) => { m.hidden = true; });
         if (carta.shadowRoot) {
           carta.shadowRoot.querySelectorAll(".scelto")
             .forEach((el) => el.classList.remove("scelto"));
@@ -1634,6 +1655,18 @@ export const ConPosti = (Base) => class extends Base {
       // agganciati a destra ci pensa "perLaSinistra", appena lo prendi.
       maniglia.style.left = (r.right - rp.left - 12 + pista.scrollLeft) + "px";
       maniglia.style.top = (r.bottom - rp.top - 12 + pista.scrollTop) + "px";
+      // le maniglie di lato: a meta' del bordo destro e di quello di sotto
+      const figura = FIGURE.indexOf(chi) !== -1;
+      lati.forEach((m) => {
+        if (m.parentElement !== pista) pista.appendChild(m);
+        m.hidden = !figura;
+      });
+      if (figura) {
+        latoDestra.style.left = (r.right - rp.left - 12 + pista.scrollLeft) + "px";
+        latoDestra.style.top = (r.top + r.height / 2 - rp.top - 12 + pista.scrollTop) + "px";
+        latoSotto.style.left = (r.left + r.width / 2 - rp.left - 12 + pista.scrollLeft) + "px";
+        latoSotto.style.top = (r.bottom - rp.top - 12 + pista.scrollTop) + "px";
+      }
       // e le caselline dicono dov'e' e quanto e' grande - ma non mentre ci
       // sta scrivendo dentro
       if (numeri) {
@@ -1661,6 +1694,8 @@ export const ConPosti = (Base) => class extends Base {
       pezziDi(chi).forEach((el) => {
         el.style.transformOrigin = "top left";
         el.style.transform = k === 1 ? "" : "scale(" + k + ")";
+        if (k === 1) el.style.removeProperty("--scala-pezzo");
+        else el.style.setProperty("--scala-pezzo", String(k));
       });
     };
 
@@ -1756,6 +1791,105 @@ export const ConPosti = (Base) => class extends Base {
       misuro = null;
       setTimeout(aggiornaManiglia, 60);
     };
+    // TIRARE UN LATO. Come per il quadratino, il pezzo si riaggancia a
+    // sinistra appena lo prendi (se no, agganciato a destra, crescerebbe
+    // dalla parte sbagliata). Il rapporto larghezza/altezza non cambia con
+    // l'ingrandimento; l'altezza invece si salva SENZA l'ingrandimento,
+    // come tutte le misure dei pezzi.
+    let tiro = null;
+    const avviaLato = (e, verso) => {
+      const chi = carta._pezzoScelto;
+      const pezzi = chi ? pezziDi(chi) : [];
+      if (!pezzi.length || FIGURE.indexOf(chi) === -1) return false;
+      e.preventDefault();
+      e.stopPropagation();
+      perLaSinistra(chi);
+      const r = pezzi[0].getBoundingClientRect();
+      const rc = carta.riquadroCasella();
+      if (!rc || !rc.width || !rc.height) return false;
+      const s0 = scalaDi(chi);
+      // da dove parto: larghezza e altezza di adesso in percentuale della
+      // casella, SENZA l'ingrandimento (come tutte le misure dei pezzi)
+      tiro = { chi: chi, verso: verso, x: e.clientX, y: e.clientY, s: s0,
+               destra0: r.right, fondo0: r.bottom, sinistra: r.left, cima: r.top,
+               w: Math.round((r.width / s0) / rc.width * 1000) / 10,
+               h: Math.round((r.height / s0) / rc.height * 1000) / 10 };
+      (verso === "destra" ? latoDestra : latoSotto).classList.add("inmano");
+      return true;
+    };
+    const sulLato = (m, x, y) => {
+      if (m.hidden || !m.isConnected) return false;
+      const r = m.getBoundingClientRect();
+      return r.width > 0 && x >= r.left - 6 && x <= r.right + 6
+        && y >= r.top - 6 && y <= r.bottom + 6;
+    };
+    const tiraMuovi = (e) => {
+      if (!tiro) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const rc = carta.riquadroCasella();
+      if (!rc || !rc.width || !rc.height) return;
+      // la calamita: arrivando a 3 punti dal bordo della casella, ci si attacca
+      const calamitaX = rc.width * 0.03;
+      const calamitaY = rc.height * 0.03;
+      if (tiro.verso === "destra") {
+        let destra = tiro.destra0 + (e.clientX - tiro.x);
+        const bordo = rc.left + rc.width;
+        if (Math.abs(destra - bordo) < calamitaX) destra = bordo;
+        const largo = Math.max(12, destra - tiro.sinistra);
+        tiro.w = Math.round((largo / tiro.s) / rc.width * 1000) / 10;
+      } else {
+        let fondo = tiro.fondo0 + (e.clientY - tiro.y);
+        const bordo = rc.top + rc.height;
+        if (Math.abs(fondo - bordo) < calamitaY) fondo = bordo;
+        const alto = Math.max(12, fondo - tiro.cima);
+        tiro.h = Math.round((alto / tiro.s) / rc.height * 1000) / 10;
+      }
+      // il rapporto resta solo come segno che la forma l'ha scelta lui
+      tiro.r = Math.round(((tiro.w * rc.width) / (tiro.h * rc.height)) * 100) / 100;
+      pezziDi(tiro.chi).forEach((el) => {
+        el.style.width = tiro.w + "%";
+        el.style.height = tiro.h + "%";
+        el.style.maxWidth = "none";
+        el.style.maxHeight = "none";
+        el.style.aspectRatio = "";
+        el.style.objectFit = el.tagName === "IMG" ? "fill" : "";
+      });
+      aggiornaManiglia();
+      this._dico((tiro.verso === "destra" ? "larghezza" : "altezza")
+        + ": forma " + tiro.r);
+    };
+    const tiraLascia = () => {
+      if (!tiro) return;
+      lati.forEach((m) => m.classList.remove("inmano"));
+      if (!tiro.r) { tiro = null; return; }
+      const posti = { ...((this._cfgPista() || {}).posti || {}) };
+      const vecchio = { ...(posti[tiro.chi] || {}) };
+      vecchio.r = tiro.r;
+      vecchio.w = tiro.w;
+      vecchio.h = tiro.h;
+      // la figura ha cambiato forma: mi riprendo dov'e' e quant'e' larga,
+      // cosi' combaciano sia l'aggancio a sinistra sia quello a destra
+      const rc2 = carta.riquadroCasella();
+      const pz2 = pezziDi(tiro.chi)[0];
+      if (rc2 && pz2) {
+        const rr = pz2.getBoundingClientRect();
+        vecchio.x = Math.round((rr.left - rc2.left) / rc2.width * 1000) / 10;
+        vecchio.y = Math.round((rr.top - rc2.top) / rc2.height * 1000) / 10;
+        vecchio.dx = Math.round((rc2.width - (rr.right - rc2.left))
+          / rc2.width * 1000) / 10;
+      }
+      posti[tiro.chi] = vecchio;
+      carta._appenaSpostato = true;
+      this._scriviPosti(posti);
+      this._dico("forma salvata: " + tiro.r);
+      tiro = null;
+      setTimeout(aggiornaManiglia, 60);
+    };
+    lati.forEach((m) => {
+      m.addEventListener("pointerdown", (e) => avviaLato(e, m === latoDestra ? "destra" : "sotto"));
+    });
+
     maniglia.addEventListener("pointermove", misuraMuovi);
     maniglia.addEventListener("pointerup", misuraLascia);
     maniglia.addEventListener("pointercancel", misuraLascia);
@@ -1777,6 +1911,11 @@ export const ConPosti = (Base) => class extends Base {
       if (e.target === maniglia
         || (e.target && e.target.nodeType && maniglia.contains(e.target))) return;
       if (sulQuadratino(e.clientX, e.clientY) && avviaMisura(e)) return;
+      // e le maniglie di lato, prima di prendere il pezzo che c'e' sotto
+      if (lati.some((m) => e.target === m
+        || (e.target && e.target.nodeType && m.contains(e.target)))) return;
+      if (sulLato(latoDestra, e.clientX, e.clientY) && avviaLato(e, "destra")) return;
+      if (sulLato(latoSotto, e.clientX, e.clientY) && avviaLato(e, "sotto")) return;
       const q = chiSono(e.clientX, e.clientY);
       this._dico(q ? "preso: " + q.chi : "sotto al dito non c'e' nessun pezzo");
       if (!q) {
@@ -1960,6 +2099,9 @@ export const ConPosti = (Base) => class extends Base {
     window.addEventListener("pointermove", misuraMuovi, true);
     ["pointerup", "pointercancel"].forEach((ev) =>
       window.addEventListener(ev, misuraLascia, true));
+    window.addEventListener("pointermove", tiraMuovi, true);
+    ["pointerup", "pointercancel"].forEach((ev) =>
+      window.addEventListener(ev, tiraLascia, true));
     // e quando lui tocca una casella dentro all'anteprima del pop-up
     const scegli = (e) => {
       const cfg = e.detail && e.detail.config;
@@ -1999,6 +2141,9 @@ export const ConPosti = (Base) => class extends Base {
       window.removeEventListener("pointermove", misuraMuovi, true);
       ["pointerup", "pointercancel"].forEach((ev) =>
         window.removeEventListener(ev, misuraLascia, true));
+      window.removeEventListener("pointermove", tiraMuovi, true);
+      ["pointerup", "pointercancel"].forEach((ev) =>
+        window.removeEventListener(ev, tiraLascia, true));
     };
     // e mentre sposto un pezzo la casella non deve fare il suo mestiere
     carta.addEventListener("click", (e) => {

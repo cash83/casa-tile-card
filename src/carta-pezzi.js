@@ -69,14 +69,40 @@ export const ConPezzi = (Base) => class extends Base {
     // come farebbe un foglio stampato in scala.
     let zoom = 1;
     if (liberi) {
-      const q = this.getBoundingClientRect().width;
+      // LA MISURA VERA, NON QUELLA A VISTA. Il pop-up "sboccia" nasce a un
+      // quinto della sua grandezza e cresce: la casella dentro si misurava
+      // proprio in quel momento, si credeva minuscola e rimpiccioliva le
+      // scritte al minimo. Finita l'animazione la sua misura non cambia (un
+      // ingrandimento non la tocca) e nessuno le rifaceva: restavano
+      // piccole per sempre. offsetWidth/offsetHeight non vedono gli
+      // ingrandimenti; getBoundingClientRect si'.
+      const cartaMia = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
+      let mio = { width: 0, height: 0 };
+      if (cartaMia && cartaMia.offsetWidth > 0) {
+        mio = { width: cartaMia.offsetWidth, height: cartaMia.offsetHeight };
+      } else {
+        const r0 = this.getBoundingClientRect();
+        mio = { width: r0.width, height: r0.height };
+      }
+      const q = mio.width;
       // la larghezza di riferimento: quella salvata quando li ha sistemati,
       // o - per le caselle sistemate prima che me la segnassi - la piu'
       // larga che le ho mai visto addosso, che se la impara da sola
       const largo0 = Number(this._config.posti_largo) > 40
         ? Number(this._config.posti_largo) : this._largaMaiVista(q);
       if (largo0 > 40 && q > 40) {
-        zoom = Math.max(0.55, Math.min(1, q / largo0));
+        const perLargo = q / largo0;
+        zoom = Math.max(0.55, Math.min(1, perLargo));
+        // ...E SE E' PIU' GRANDE, IN LARGHEZZA E IN ALTEZZA, le scritte
+        // crescono con lei. La foto e le barre sono in percentuale e
+        // crescevano da sole: in un pop-up largo il doppio la foto veniva
+        // grande e "luce ufficio" e "Acceso" restavano piccole piccole.
+        // Solo se cresce in tutte e due: allargata ma non alzata, una
+        // scritta piu' grande non ci starebbe piu' in altezza.
+        const alto0 = Number(this._config.posti_alto);
+        if (perLargo > 1 && alto0 > 40 && mio.height > 40) {
+          zoom = Math.max(1, Math.min(2.5, perLargo, mio.height / alto0));
+        }
       }
     }
     zoom = Math.round(zoom * 100) / 100;
@@ -97,6 +123,12 @@ export const ConPezzi = (Base) => class extends Base {
           const el = this.shadowRoot.querySelector(sel);
           firmaTasti += (el ? el.offsetHeight : 0) + ";";
         });
+      // e la larghezza delle scritte: "Acceso da 5 min" diventa "Acceso da
+      // 55 min", o si accende "da quanto tempo", e va rimisurata
+      [".testi", ".valore"].forEach((sel) => {
+        const el = this.shadowRoot.querySelector(sel);
+        firmaTasti += (el ? el.offsetWidth : 0) + ":";
+      });
     }
     const firma = this._firmaPosti + "|" + zoom + "|" + firmaTasti;
     let rcFile = null;
@@ -131,6 +163,9 @@ export const ConPezzi = (Base) => class extends Base {
           // il timbro e' un disegno quadrato come l'icona: stessa regola
           this._posaPezzo(el, qui, chi === "icona" || chi === "sfondo",
             larghi[chi]);
+          if ((chi === "nome" || chi === "valore") && !this.hasAttribute("trascinabile")) {
+            this._staNelSuo(el, qui);
+          }
         } else {
           el.style.left = "";
           el.style.top = "";
@@ -141,6 +176,7 @@ export const ConPezzi = (Base) => class extends Base {
           el.style.maxHeight = "";
           el.style.transform = "";
           el.style.transformOrigin = "";
+          el.style.removeProperty("--scala-pezzo");
           // A pezzi liberi la regola stacca dal flusso TUTTI i pezzi, anche
           // quelli a cui lui non ha ancora dato un posto: quelli finiscono
           // impilati nello stesso punto e l'ultimo si prende i clic degli
@@ -275,9 +311,14 @@ export const ConPezzi = (Base) => class extends Base {
     if (k !== 1) {
       el.style.transformOrigin = aDestra ? "top right" : "top left";
       el.style.transform = "scale(" + k + ")";
+      // l'ingrandimento ingrandisce anche gli angoli tondi: a 3 volte i
+      // 18 punti diventavano 54 e la foto un tondo. Il foglio di stile li
+      // divide per questo numero, cosi' restano quelli della casella.
+      el.style.setProperty("--scala-pezzo", String(k));
     } else {
       el.style.transform = "";
       el.style.transformOrigin = "";
+      el.style.removeProperty("--scala-pezzo");
     }
     // i tasti tondi tengono la loro misura: se gli tocco la larghezza
     // diventano ovali
@@ -294,6 +335,40 @@ export const ConPezzi = (Base) => class extends Base {
         el.style.width = "auto";
         el.style.maxWidth = "none";
       }
+      // ...A MENO CHE LUI NON ABBIA SCELTO UN'ALTRA FORMA con le maniglie
+      // di lato: allora anche la larghezza e' sua. Una foto riempie il
+      // riquadro senza deformarsi (si taglia quello che avanza); un disegno
+      // resta proporzionato dentro, come fa sempre.
+      // La forma e' in PERCENTUALE DELLA CASELLA, in larghezza come in
+      // altezza: cosi' segue la casella quando sulla plancia ha un'altra
+      // forma da quella dove si e' composto. Un rapporto fisso non la
+      // seguiva, e una foto "a tutta casella" diventava storta.
+      // LA STESSA REGOLA DELLE SCRITTE. In percentuale la foto seguiva la
+      // casella per conto suo: nel pop-up, largo diverso dall'editor, si
+      // stirava mentre le scritte restavano come le aveva composte. Adesso
+      // la sua misura e' quella che aveva nella casella dove l'ha composta
+      // (posti_largo x posti_alto), per lo stesso ingrandimento delle
+      // scritte: foto e scritte crescono e calano insieme e la foto non
+      // cambia mai forma.
+      const L0 = Number(this._config.posti_largo);
+      const A0 = Number(this._config.posti_alto);
+      const z = this._zoomPosti > 0 ? this._zoomPosti : 1;
+      if (isFinite(dove.r) && dove.r > 0 && isFinite(dove.w) && dove.w > 0
+        && isFinite(dove.h) && L0 > 40 && A0 > 40) {
+        el.style.width = (Math.round(dove.w / 100 * L0 * z * 10) / 10) + "px";
+        el.style.height = (Math.round(dove.h / 100 * A0 * z * 10) / 10) + "px";
+        el.style.maxWidth = "none";
+        el.style.aspectRatio = "";
+        el.style.objectFit = el.tagName === "IMG" ? "fill" : "";
+      } else if (isFinite(dove.r) && dove.r > 0 && isFinite(dove.w) && dove.w > 0) {
+        el.style.width = dove.w + "%";
+        el.style.maxWidth = "none";
+        el.style.aspectRatio = "";
+        el.style.objectFit = el.tagName === "IMG" ? "fill" : "";
+      } else {
+        el.style.aspectRatio = "";
+        el.style.objectFit = "";
+      }
       return;
     }
     if (eLargo && w > 0) {
@@ -304,6 +379,29 @@ export const ConPezzi = (Base) => class extends Base {
     el.style.width = "max-content";
     const spazio = aDestra ? (dove.x + w) : (100 - dove.x);
     el.style.maxWidth = "calc(" + Math.max(15, Math.round(spazio)) + "% - 6px)";
+  }
+
+  // LA SCRITTA STA NEL SUO SPAZIO. Quando l'ha composta era larga "w" (per
+  // cento della casella dove l'ha composta). Se poi la scritta si allunga -
+  // si accende "da quanto tempo", "Acceso" diventa "Acceso da 55 min" - non
+  // deve sbordare addosso alla foto e finirci sotto: rimpicciolisce quanto
+  // basta per stare nello spazio che aveva. Mai sotto la meta'.
+  _staNelSuo(el, dove) {
+    const L0 = Number(this._config.posti_largo);
+    if (!isFinite(dove.w) || dove.w <= 0 || !(L0 > 40)) return;
+    const n = el.offsetWidth;
+    if (!n) return;
+    const posto = dove.w / 100 * L0;
+    // un filo di margine: una lettera in piu' non deve far saltare niente
+    if (n <= posto * 1.08) return;
+    const s = isFinite(dove.s) && dove.s > 0 ? dove.s : 1;
+    const z = this._zoomPosti > 0 ? this._zoomPosti : 1;
+    const f = Math.max(0.5, posto / n);
+    const k = Math.round(s * z * f * 1000) / 1000;
+    el.style.transform = "scale(" + k + ")";
+    if (!el.style.transformOrigin) {
+      el.style.transformOrigin = el.style.left === "auto" ? "top right" : "top left";
+    }
   }
 
   // DI QUANTO E' INGRANDITO QUESTO PEZZO. Serve per togliere

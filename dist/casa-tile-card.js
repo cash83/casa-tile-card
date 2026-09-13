@@ -152,6 +152,7 @@ const EN = {
   "Immagine di quando e acceso (anche una gif)": "Image for when it is on (a GIF works too)",
   "L'icona in grande dietro alle scritte": "The big faded icon behind the text",
   "Quanto si vede l'icona dietro (%)": "How visible the icon behind is (%)",
+  "Trasparenza dell'icona o della foto (%)": "Icon or photo transparency (%)",
   "Indirizzo web da aprire (per l'azione \"Apri un indirizzo web\")": "Web address to open (for the \"Open a web address\" action)",
   "Misure mostrate in basso (aggiungine altre da qui)": "Readings shown at the bottom (add more here)",
   "Scrivi un nome anche sulle misure che non hai chiamato tu": "Also label the readings you have not named yourself",
@@ -297,6 +298,8 @@ const EN = {
   "Sboccia dalla casella che hai toccato": "Blooms from the tile you tapped",
   "Entra dal basso, come un cassetto": "Slides up from the bottom, like a drawer",
   "Nessuna animazione": "No animation",
+  "Tieni premuto e trascina per allargare o stringere": "Press and drag to make it wider or narrower",
+  "Tieni premuto e trascina per alzare o abbassare": "Press and drag to make it taller or shorter",
   "Cosa fa quando la tieni premuta": "What it does when you press and hold",
   "Niente": "Nothing",
   "Volume del gruppo": "Group volume",
@@ -1270,6 +1273,8 @@ const SEZIONI = [
         },
         { name: "icona_entita", selector: { boolean: {} } },
         { name: "icona_ha", selector: { icon: {} } },
+        { name: "icona_trasparenza",
+          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
       ] },
       { titolo: "Batteria: carica e scarica", schema: [
         { name: "carica_entita", selector: { entity: { multiple: true } } },
@@ -1589,6 +1594,7 @@ const ETICHETTE = {
   icona: "Icona animata", colore: "Colore quando e accesa",
   icona_sfondo: "L'icona in grande dietro alle scritte",
   icona_sfondo_forza: "Quanto si vede l'icona dietro (%)",
+  icona_trasparenza: "Trasparenza dell'icona o della foto (%)",
   carica_entita: "Quali entita vogliono dire che STA CARICANDO (di solito non serve: basta chiamare carica una misura)",
   scarica_entita: "Quali entita vogliono dire che STA DANDO CORRENTE (di solito non serve: basta chiamare scarica una misura)",
   disposizione: "Come e disposta la casella",
@@ -5716,6 +5722,26 @@ const ConPosti = (Base) => class extends Base {
       + '10.5L10.5,9.1L6.4,5H9V3H3V9H5V6.4L9.1,10.5Z"></path></svg></i>';
     carta._maniglia = maniglia;
 
+    // LE DUE MANIGLIE DI LATO, solo per le figure (l'icona e il timbro):
+    // quella a destra allarga senza alzare, quella sotto alza senza
+    // allargare. Quella sull'angolo resta com'era e ingrandisce tutto in
+    // proporzione. Per le scritte non ci sono: una scritta stirata non la
+    // vuole nessuno.
+    const FIGURE = ["icona", "sfondo"];
+    const faiLato = (verso) => {
+      const m = document.createElement("div");
+      m.className = "pista-lato " + verso;
+      m.hidden = true;
+      m.title = verso === "destra"
+        ? T("Tieni premuto e trascina per allargare o stringere")
+        : T("Tieni premuto e trascina per alzare o abbassare");
+      m.innerHTML = '<i class="q"></i>';
+      return m;
+    };
+    const latoDestra = faiLato("destra");
+    const latoSotto = faiLato("sotto");
+    const lati = [latoDestra, latoSotto];
+
     const pezziDi = (chi) => {
       const radice = carta.shadowRoot;
       if (!radice || !chi) return [];
@@ -5782,6 +5808,7 @@ const ConPosti = (Base) => class extends Base {
       if (numeri) numeri.riga.hidden = !chi || !pezzi.length;
       if (!chi || !pezzi.length || !pista) {
         maniglia.hidden = true;
+        lati.forEach((m) => { m.hidden = true; });
         if (carta.shadowRoot) {
           carta.shadowRoot.querySelectorAll(".scelto")
             .forEach((el) => el.classList.remove("scelto"));
@@ -5810,6 +5837,18 @@ const ConPosti = (Base) => class extends Base {
       // agganciati a destra ci pensa "perLaSinistra", appena lo prendi.
       maniglia.style.left = (r.right - rp.left - 12 + pista.scrollLeft) + "px";
       maniglia.style.top = (r.bottom - rp.top - 12 + pista.scrollTop) + "px";
+      // le maniglie di lato: a meta' del bordo destro e di quello di sotto
+      const figura = FIGURE.indexOf(chi) !== -1;
+      lati.forEach((m) => {
+        if (m.parentElement !== pista) pista.appendChild(m);
+        m.hidden = !figura;
+      });
+      if (figura) {
+        latoDestra.style.left = (r.right - rp.left - 12 + pista.scrollLeft) + "px";
+        latoDestra.style.top = (r.top + r.height / 2 - rp.top - 12 + pista.scrollTop) + "px";
+        latoSotto.style.left = (r.left + r.width / 2 - rp.left - 12 + pista.scrollLeft) + "px";
+        latoSotto.style.top = (r.bottom - rp.top - 12 + pista.scrollTop) + "px";
+      }
       // e le caselline dicono dov'e' e quanto e' grande - ma non mentre ci
       // sta scrivendo dentro
       if (numeri) {
@@ -5837,6 +5876,8 @@ const ConPosti = (Base) => class extends Base {
       pezziDi(chi).forEach((el) => {
         el.style.transformOrigin = "top left";
         el.style.transform = k === 1 ? "" : "scale(" + k + ")";
+        if (k === 1) el.style.removeProperty("--scala-pezzo");
+        else el.style.setProperty("--scala-pezzo", String(k));
       });
     };
 
@@ -5932,6 +5973,105 @@ const ConPosti = (Base) => class extends Base {
       misuro = null;
       setTimeout(aggiornaManiglia, 60);
     };
+    // TIRARE UN LATO. Come per il quadratino, il pezzo si riaggancia a
+    // sinistra appena lo prendi (se no, agganciato a destra, crescerebbe
+    // dalla parte sbagliata). Il rapporto larghezza/altezza non cambia con
+    // l'ingrandimento; l'altezza invece si salva SENZA l'ingrandimento,
+    // come tutte le misure dei pezzi.
+    let tiro = null;
+    const avviaLato = (e, verso) => {
+      const chi = carta._pezzoScelto;
+      const pezzi = chi ? pezziDi(chi) : [];
+      if (!pezzi.length || FIGURE.indexOf(chi) === -1) return false;
+      e.preventDefault();
+      e.stopPropagation();
+      perLaSinistra(chi);
+      const r = pezzi[0].getBoundingClientRect();
+      const rc = carta.riquadroCasella();
+      if (!rc || !rc.width || !rc.height) return false;
+      const s0 = scalaDi(chi);
+      // da dove parto: larghezza e altezza di adesso in percentuale della
+      // casella, SENZA l'ingrandimento (come tutte le misure dei pezzi)
+      tiro = { chi: chi, verso: verso, x: e.clientX, y: e.clientY, s: s0,
+               destra0: r.right, fondo0: r.bottom, sinistra: r.left, cima: r.top,
+               w: Math.round((r.width / s0) / rc.width * 1000) / 10,
+               h: Math.round((r.height / s0) / rc.height * 1000) / 10 };
+      (verso === "destra" ? latoDestra : latoSotto).classList.add("inmano");
+      return true;
+    };
+    const sulLato = (m, x, y) => {
+      if (m.hidden || !m.isConnected) return false;
+      const r = m.getBoundingClientRect();
+      return r.width > 0 && x >= r.left - 6 && x <= r.right + 6
+        && y >= r.top - 6 && y <= r.bottom + 6;
+    };
+    const tiraMuovi = (e) => {
+      if (!tiro) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const rc = carta.riquadroCasella();
+      if (!rc || !rc.width || !rc.height) return;
+      // la calamita: arrivando a 3 punti dal bordo della casella, ci si attacca
+      const calamitaX = rc.width * 0.03;
+      const calamitaY = rc.height * 0.03;
+      if (tiro.verso === "destra") {
+        let destra = tiro.destra0 + (e.clientX - tiro.x);
+        const bordo = rc.left + rc.width;
+        if (Math.abs(destra - bordo) < calamitaX) destra = bordo;
+        const largo = Math.max(12, destra - tiro.sinistra);
+        tiro.w = Math.round((largo / tiro.s) / rc.width * 1000) / 10;
+      } else {
+        let fondo = tiro.fondo0 + (e.clientY - tiro.y);
+        const bordo = rc.top + rc.height;
+        if (Math.abs(fondo - bordo) < calamitaY) fondo = bordo;
+        const alto = Math.max(12, fondo - tiro.cima);
+        tiro.h = Math.round((alto / tiro.s) / rc.height * 1000) / 10;
+      }
+      // il rapporto resta solo come segno che la forma l'ha scelta lui
+      tiro.r = Math.round(((tiro.w * rc.width) / (tiro.h * rc.height)) * 100) / 100;
+      pezziDi(tiro.chi).forEach((el) => {
+        el.style.width = tiro.w + "%";
+        el.style.height = tiro.h + "%";
+        el.style.maxWidth = "none";
+        el.style.maxHeight = "none";
+        el.style.aspectRatio = "";
+        el.style.objectFit = el.tagName === "IMG" ? "fill" : "";
+      });
+      aggiornaManiglia();
+      this._dico((tiro.verso === "destra" ? "larghezza" : "altezza")
+        + ": forma " + tiro.r);
+    };
+    const tiraLascia = () => {
+      if (!tiro) return;
+      lati.forEach((m) => m.classList.remove("inmano"));
+      if (!tiro.r) { tiro = null; return; }
+      const posti = { ...((this._cfgPista() || {}).posti || {}) };
+      const vecchio = { ...(posti[tiro.chi] || {}) };
+      vecchio.r = tiro.r;
+      vecchio.w = tiro.w;
+      vecchio.h = tiro.h;
+      // la figura ha cambiato forma: mi riprendo dov'e' e quant'e' larga,
+      // cosi' combaciano sia l'aggancio a sinistra sia quello a destra
+      const rc2 = carta.riquadroCasella();
+      const pz2 = pezziDi(tiro.chi)[0];
+      if (rc2 && pz2) {
+        const rr = pz2.getBoundingClientRect();
+        vecchio.x = Math.round((rr.left - rc2.left) / rc2.width * 1000) / 10;
+        vecchio.y = Math.round((rr.top - rc2.top) / rc2.height * 1000) / 10;
+        vecchio.dx = Math.round((rc2.width - (rr.right - rc2.left))
+          / rc2.width * 1000) / 10;
+      }
+      posti[tiro.chi] = vecchio;
+      carta._appenaSpostato = true;
+      this._scriviPosti(posti);
+      this._dico("forma salvata: " + tiro.r);
+      tiro = null;
+      setTimeout(aggiornaManiglia, 60);
+    };
+    lati.forEach((m) => {
+      m.addEventListener("pointerdown", (e) => avviaLato(e, m === latoDestra ? "destra" : "sotto"));
+    });
+
     maniglia.addEventListener("pointermove", misuraMuovi);
     maniglia.addEventListener("pointerup", misuraLascia);
     maniglia.addEventListener("pointercancel", misuraLascia);
@@ -5953,6 +6093,11 @@ const ConPosti = (Base) => class extends Base {
       if (e.target === maniglia
         || (e.target && e.target.nodeType && maniglia.contains(e.target))) return;
       if (sulQuadratino(e.clientX, e.clientY) && avviaMisura(e)) return;
+      // e le maniglie di lato, prima di prendere il pezzo che c'e' sotto
+      if (lati.some((m) => e.target === m
+        || (e.target && e.target.nodeType && m.contains(e.target)))) return;
+      if (sulLato(latoDestra, e.clientX, e.clientY) && avviaLato(e, "destra")) return;
+      if (sulLato(latoSotto, e.clientX, e.clientY) && avviaLato(e, "sotto")) return;
       const q = chiSono(e.clientX, e.clientY);
       this._dico(q ? "preso: " + q.chi : "sotto al dito non c'e' nessun pezzo");
       if (!q) {
@@ -6136,6 +6281,9 @@ const ConPosti = (Base) => class extends Base {
     window.addEventListener("pointermove", misuraMuovi, true);
     ["pointerup", "pointercancel"].forEach((ev) =>
       window.addEventListener(ev, misuraLascia, true));
+    window.addEventListener("pointermove", tiraMuovi, true);
+    ["pointerup", "pointercancel"].forEach((ev) =>
+      window.addEventListener(ev, tiraLascia, true));
     // e quando lui tocca una casella dentro all'anteprima del pop-up
     const scegli = (e) => {
       const cfg = e.detail && e.detail.config;
@@ -6175,6 +6323,9 @@ const ConPosti = (Base) => class extends Base {
       window.removeEventListener("pointermove", misuraMuovi, true);
       ["pointerup", "pointercancel"].forEach((ev) =>
         window.removeEventListener(ev, misuraLascia, true));
+      window.removeEventListener("pointermove", tiraMuovi, true);
+      ["pointerup", "pointercancel"].forEach((ev) =>
+        window.removeEventListener(ev, tiraLascia, true));
     };
     // e mentre sposto un pezzo la casella non deve fare il suo mestiere
     carta.addEventListener("click", (e) => {
@@ -7137,6 +7288,23 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .pista-maniglia:hover .q { transform: scale(1.15); }
 .pista-maniglia.inmano .q { transform: scale(1.3); }
 .pista-maniglia[hidden] { display: none !important; }
+/* le maniglie di lato: una barretta gialla a meta' del bordo */
+.pista-lato {
+  position: absolute; width: 24px; height: 24px; padding: 0; border: none;
+  background: none; display: grid; place-items: center; touch-action: none;
+  z-index: 9;
+}
+.pista-lato.destra { cursor: ew-resize !important; }
+.pista-lato.sotto { cursor: ns-resize !important; }
+.pista-lato .q {
+  border-radius: 3px; background: #f0b429; border: 1px solid rgba(0,0,0,.45);
+  box-shadow: 0 1px 4px rgba(0,0,0,.55); pointer-events: none;
+  transition: transform .12s ease;
+}
+.pista-lato.destra .q { width: 6px; height: 18px; }
+.pista-lato.sotto .q { width: 18px; height: 6px; }
+.pista-lato:hover .q, .pista-lato.inmano .q { transform: scale(1.25); }
+.pista-lato[hidden] { display: none !important; }
 .pista.larga { overflow: auto; }
 .pista { position: relative; padding: 26px 14px 16px; border-radius: 12px; touch-action: none;
   background: var(--secondary-background-color, rgba(255,255,255,.04));
@@ -7345,7 +7513,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.17.1";
+const VERSIONE = "2.18.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -11771,14 +11939,40 @@ const ConPezzi = (Base) => class extends Base {
     // come farebbe un foglio stampato in scala.
     let zoom = 1;
     if (liberi) {
-      const q = this.getBoundingClientRect().width;
+      // LA MISURA VERA, NON QUELLA A VISTA. Il pop-up "sboccia" nasce a un
+      // quinto della sua grandezza e cresce: la casella dentro si misurava
+      // proprio in quel momento, si credeva minuscola e rimpiccioliva le
+      // scritte al minimo. Finita l'animazione la sua misura non cambia (un
+      // ingrandimento non la tocca) e nessuno le rifaceva: restavano
+      // piccole per sempre. offsetWidth/offsetHeight non vedono gli
+      // ingrandimenti; getBoundingClientRect si'.
+      const cartaMia = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
+      let mio = { width: 0, height: 0 };
+      if (cartaMia && cartaMia.offsetWidth > 0) {
+        mio = { width: cartaMia.offsetWidth, height: cartaMia.offsetHeight };
+      } else {
+        const r0 = this.getBoundingClientRect();
+        mio = { width: r0.width, height: r0.height };
+      }
+      const q = mio.width;
       // la larghezza di riferimento: quella salvata quando li ha sistemati,
       // o - per le caselle sistemate prima che me la segnassi - la piu'
       // larga che le ho mai visto addosso, che se la impara da sola
       const largo0 = Number(this._config.posti_largo) > 40
         ? Number(this._config.posti_largo) : this._largaMaiVista(q);
       if (largo0 > 40 && q > 40) {
-        zoom = Math.max(0.55, Math.min(1, q / largo0));
+        const perLargo = q / largo0;
+        zoom = Math.max(0.55, Math.min(1, perLargo));
+        // ...E SE E' PIU' GRANDE, IN LARGHEZZA E IN ALTEZZA, le scritte
+        // crescono con lei. La foto e le barre sono in percentuale e
+        // crescevano da sole: in un pop-up largo il doppio la foto veniva
+        // grande e "luce ufficio" e "Acceso" restavano piccole piccole.
+        // Solo se cresce in tutte e due: allargata ma non alzata, una
+        // scritta piu' grande non ci starebbe piu' in altezza.
+        const alto0 = Number(this._config.posti_alto);
+        if (perLargo > 1 && alto0 > 40 && mio.height > 40) {
+          zoom = Math.max(1, Math.min(2.5, perLargo, mio.height / alto0));
+        }
       }
     }
     zoom = Math.round(zoom * 100) / 100;
@@ -11799,6 +11993,12 @@ const ConPezzi = (Base) => class extends Base {
           const el = this.shadowRoot.querySelector(sel);
           firmaTasti += (el ? el.offsetHeight : 0) + ";";
         });
+      // e la larghezza delle scritte: "Acceso da 5 min" diventa "Acceso da
+      // 55 min", o si accende "da quanto tempo", e va rimisurata
+      [".testi", ".valore"].forEach((sel) => {
+        const el = this.shadowRoot.querySelector(sel);
+        firmaTasti += (el ? el.offsetWidth : 0) + ":";
+      });
     }
     const firma = this._firmaPosti + "|" + zoom + "|" + firmaTasti;
     let rcFile = null;
@@ -11833,6 +12033,9 @@ const ConPezzi = (Base) => class extends Base {
           // il timbro e' un disegno quadrato come l'icona: stessa regola
           this._posaPezzo(el, qui, chi === "icona" || chi === "sfondo",
             larghi[chi]);
+          if ((chi === "nome" || chi === "valore") && !this.hasAttribute("trascinabile")) {
+            this._staNelSuo(el, qui);
+          }
         } else {
           el.style.left = "";
           el.style.top = "";
@@ -11843,6 +12046,7 @@ const ConPezzi = (Base) => class extends Base {
           el.style.maxHeight = "";
           el.style.transform = "";
           el.style.transformOrigin = "";
+          el.style.removeProperty("--scala-pezzo");
           // A pezzi liberi la regola stacca dal flusso TUTTI i pezzi, anche
           // quelli a cui lui non ha ancora dato un posto: quelli finiscono
           // impilati nello stesso punto e l'ultimo si prende i clic degli
@@ -11977,9 +12181,14 @@ const ConPezzi = (Base) => class extends Base {
     if (k !== 1) {
       el.style.transformOrigin = aDestra ? "top right" : "top left";
       el.style.transform = "scale(" + k + ")";
+      // l'ingrandimento ingrandisce anche gli angoli tondi: a 3 volte i
+      // 18 punti diventavano 54 e la foto un tondo. Il foglio di stile li
+      // divide per questo numero, cosi' restano quelli della casella.
+      el.style.setProperty("--scala-pezzo", String(k));
     } else {
       el.style.transform = "";
       el.style.transformOrigin = "";
+      el.style.removeProperty("--scala-pezzo");
     }
     // i tasti tondi tengono la loro misura: se gli tocco la larghezza
     // diventano ovali
@@ -11996,6 +12205,40 @@ const ConPezzi = (Base) => class extends Base {
         el.style.width = "auto";
         el.style.maxWidth = "none";
       }
+      // ...A MENO CHE LUI NON ABBIA SCELTO UN'ALTRA FORMA con le maniglie
+      // di lato: allora anche la larghezza e' sua. Una foto riempie il
+      // riquadro senza deformarsi (si taglia quello che avanza); un disegno
+      // resta proporzionato dentro, come fa sempre.
+      // La forma e' in PERCENTUALE DELLA CASELLA, in larghezza come in
+      // altezza: cosi' segue la casella quando sulla plancia ha un'altra
+      // forma da quella dove si e' composto. Un rapporto fisso non la
+      // seguiva, e una foto "a tutta casella" diventava storta.
+      // LA STESSA REGOLA DELLE SCRITTE. In percentuale la foto seguiva la
+      // casella per conto suo: nel pop-up, largo diverso dall'editor, si
+      // stirava mentre le scritte restavano come le aveva composte. Adesso
+      // la sua misura e' quella che aveva nella casella dove l'ha composta
+      // (posti_largo x posti_alto), per lo stesso ingrandimento delle
+      // scritte: foto e scritte crescono e calano insieme e la foto non
+      // cambia mai forma.
+      const L0 = Number(this._config.posti_largo);
+      const A0 = Number(this._config.posti_alto);
+      const z = this._zoomPosti > 0 ? this._zoomPosti : 1;
+      if (isFinite(dove.r) && dove.r > 0 && isFinite(dove.w) && dove.w > 0
+        && isFinite(dove.h) && L0 > 40 && A0 > 40) {
+        el.style.width = (Math.round(dove.w / 100 * L0 * z * 10) / 10) + "px";
+        el.style.height = (Math.round(dove.h / 100 * A0 * z * 10) / 10) + "px";
+        el.style.maxWidth = "none";
+        el.style.aspectRatio = "";
+        el.style.objectFit = el.tagName === "IMG" ? "fill" : "";
+      } else if (isFinite(dove.r) && dove.r > 0 && isFinite(dove.w) && dove.w > 0) {
+        el.style.width = dove.w + "%";
+        el.style.maxWidth = "none";
+        el.style.aspectRatio = "";
+        el.style.objectFit = el.tagName === "IMG" ? "fill" : "";
+      } else {
+        el.style.aspectRatio = "";
+        el.style.objectFit = "";
+      }
       return;
     }
     if (eLargo && w > 0) {
@@ -12006,6 +12249,29 @@ const ConPezzi = (Base) => class extends Base {
     el.style.width = "max-content";
     const spazio = aDestra ? (dove.x + w) : (100 - dove.x);
     el.style.maxWidth = "calc(" + Math.max(15, Math.round(spazio)) + "% - 6px)";
+  }
+
+  // LA SCRITTA STA NEL SUO SPAZIO. Quando l'ha composta era larga "w" (per
+  // cento della casella dove l'ha composta). Se poi la scritta si allunga -
+  // si accende "da quanto tempo", "Acceso" diventa "Acceso da 55 min" - non
+  // deve sbordare addosso alla foto e finirci sotto: rimpicciolisce quanto
+  // basta per stare nello spazio che aveva. Mai sotto la meta'.
+  _staNelSuo(el, dove) {
+    const L0 = Number(this._config.posti_largo);
+    if (!isFinite(dove.w) || dove.w <= 0 || !(L0 > 40)) return;
+    const n = el.offsetWidth;
+    if (!n) return;
+    const posto = dove.w / 100 * L0;
+    // un filo di margine: una lettera in piu' non deve far saltare niente
+    if (n <= posto * 1.08) return;
+    const s = isFinite(dove.s) && dove.s > 0 ? dove.s : 1;
+    const z = this._zoomPosti > 0 ? this._zoomPosti : 1;
+    const f = Math.max(0.5, posto / n);
+    const k = Math.round(s * z * f * 1000) / 1000;
+    el.style.transform = "scale(" + k + ")";
+    if (!el.style.transformOrigin) {
+      el.style.transformOrigin = el.style.left === "auto" ? "top right" : "top left";
+    }
   }
 
   // DI QUANTO E' INGRANDITO QUESTO PEZZO. Serve per togliere
@@ -12763,6 +13029,12 @@ ha-card::after {
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) .iconaFoto { filter: drop-shadow(0 0 9px var(--alone2, transparent)); }
 .iconaFoto[hidden] { display: none !important; }
+/* LE FOTO HANNO GLI ANGOLI TONDI, come la casella che le contiene: con gli
+   angoli vivi una foto dentro a una scheda arrotondata sembra appoggiata
+   sopra invece che parte della casella. Il ritratto delle persone no: quello
+   e' gia' un tondo. */
+.iconaFoto, img.fotofondo {
+  border-radius: calc(var(--casa-radius, 18px) / var(--scala-pezzo, 1)); }
 :host([grande]) .iconaFoto { width: auto; height: 92px; }
 /* 100% = grande quanto il riquadro che le diamo, cosi' segue tutte le
    disposizioni senza doverle riscrivere una per una */
@@ -13369,6 +13641,12 @@ svg.iconafondo[hidden], img.fotofondo[hidden] { display: none !important; }
 .lettori, .extra, .pannello, .tempo, .comandi, .colori, .ytcoda,
 .ytattrezzi, .ytcuore,
 .iconaHa, .iconaFoto { position: relative; z-index: 1; }
+/* a pezzi liberi le scritte stanno SOPRA alla foto e all'icona: se una
+   scritta si allunga e ci arriva addosso, deve vedersi lei */
+:host([liberi]) .testi, :host([liberi]) .valore,
+:host([liberi]) .chips .metrica { z-index: 2; }
+/* la trasparenza dell'icona o della foto, scelta da lui */
+svg.icona, .iconaHa, .iconaFoto { opacity: var(--icona-opaca, 1); }
 
 /* --- il cielo del meteo, fatto di pezzi veri --- */
 
@@ -16192,6 +16470,12 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     const numero = Array.isArray(c.colore_valore) ? daRgb(c.colore_valore) : null;
     if (numero) this.style.setProperty("--testo-val", numero);
     else this.style.removeProperty("--testo-val");
+
+    // trasparenza dell'icona o della foto
+    const tIcona = Number(c.icona_trasparenza);
+    if (tIcona > 0) {
+      this.style.setProperty("--icona-opaca", String(Math.round((1 - Math.min(90, tIcona) / 100) * 100) / 100));
+    } else this.style.removeProperty("--icona-opaca");
 
     // sfondo della casella: tinta, foto o quello di serie, con trasparenza
     const opaco = 1 - (c.trasparenza === undefined ? 0 : Number(c.trasparenza)) / 100;

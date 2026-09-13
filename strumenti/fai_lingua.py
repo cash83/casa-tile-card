@@ -94,6 +94,7 @@ ETI = {
     'icona_immagine_accesa': 'Image for when it is on (a GIF works too)',
     'icona_sfondo': 'The big faded icon behind the text',
     'icona_sfondo_forza': 'How visible the icon behind is (%)',
+    'icona_trasparenza': 'Icon or photo transparency (%)',
     'indirizzo_web': 'Web address to open (for the "Open a web address" action)',
     'info_entita': 'Readings shown at the bottom (add more here)',
     'info_nomi_auto': 'Also label the readings you have not named yourself',
@@ -137,6 +138,8 @@ ETI = {
 }
 
 LIBERE = {
+    'Tieni premuto e trascina per allargare o stringere': 'Press and drag to make it wider or narrower',
+    'Tieni premuto e trascina per alzare o abbassare': 'Press and drag to make it taller or shorter',
     'Cosa fa quando la tieni premuta': 'What it does when you press and hold',
     'Niente': 'Nothing',
     'Volume del gruppo': 'Group volume',

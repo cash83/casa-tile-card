@@ -126,6 +126,23 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 .pista-maniglia:hover .q { transform: scale(1.15); }
 .pista-maniglia.inmano .q { transform: scale(1.3); }
 .pista-maniglia[hidden] { display: none !important; }
+/* le maniglie di lato: una barretta gialla a meta' del bordo */
+.pista-lato {
+  position: absolute; width: 24px; height: 24px; padding: 0; border: none;
+  background: none; display: grid; place-items: center; touch-action: none;
+  z-index: 9;
+}
+.pista-lato.destra { cursor: ew-resize !important; }
+.pista-lato.sotto { cursor: ns-resize !important; }
+.pista-lato .q {
+  border-radius: 3px; background: #f0b429; border: 1px solid rgba(0,0,0,.45);
+  box-shadow: 0 1px 4px rgba(0,0,0,.55); pointer-events: none;
+  transition: transform .12s ease;
+}
+.pista-lato.destra .q { width: 6px; height: 18px; }
+.pista-lato.sotto .q { width: 18px; height: 6px; }
+.pista-lato:hover .q, .pista-lato.inmano .q { transform: scale(1.25); }
+.pista-lato[hidden] { display: none !important; }
 .pista.larga { overflow: auto; }
 .pista { position: relative; padding: 26px 14px 16px; border-radius: 12px; touch-action: none;
   background: var(--secondary-background-color, rgba(255,255,255,.04));

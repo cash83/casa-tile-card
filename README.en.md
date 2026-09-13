@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.17.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.18.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,32 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## What's new in 2.18
+
+Photos and text in free layout, fixed where they got in the way.
+
+- **Photo width and height, each on its own.** When you pick a figure
+  piece (the icon or the stamp) in the "Where each piece goes" panel, two
+  yellow handles appear on its sides: the right one makes it wider or
+  narrower, the bottom one taller or shorter. Drag them to the edge of the
+  tile and a **magnet** snaps them to it. The photo fills exactly the box
+  you draw, whole.
+- **Photos have rounded corners** like the tile, whatever their scale:
+  before, a photo scaled three times turned almost into a circle.
+- **The photo follows the same rule as the text.** On the dashboard the
+  tile can have a different size from the one you composed it on: photo
+  and text grow and shrink together, and the photo keeps its shape.
+- **Text no longer stays tiny inside pop-ups.** The "bloom" pop-up starts
+  at a fifth of its size, and the tiles inside measured themselves right
+  at that moment: they thought they were tiny and shrank their text to
+  the minimum, for good.
+- **Text that gets longer stays in its space.** Turn on "Show how long it
+  has been in this state", or "On" becomes "On for 55 min", and the text
+  shrinks just enough to stay where you put it instead of sliding under
+  the photo. And if it does reach it, it stays in front.
+- **Icon or photo transparency**: a new slider in the **Icon** tab, from
+  0 to 90%.
 
 ## What's new in 2.17.1
 

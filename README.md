@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.17.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.18.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,34 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Novità della 2.18
+
+Le foto e le scritte a pezzi liberi, sistemate dove davano fastidio.
+
+- **Larghezza e altezza della foto, ognuna per conto suo.** Scegliendo un
+  pezzo figura (l'icona o il timbro) nel riquadro «Dove va ogni pezzo»
+  compaiono due maniglie gialle sui lati: quella a destra allarga o
+  stringe, quella sotto alza o abbassa. Tirandole fino al bordo della
+  casella c'è una **calamita** che le attacca al bordo. La foto prende
+  esattamente il riquadro che disegni, intera.
+- **Le foto hanno gli angoli tondi** come la casella, qualunque
+  ingrandimento abbiano: prima, ingrandita tre volte, una foto diventava
+  quasi un tondo.
+- **La foto segue la stessa regola delle scritte.** Sulla plancia la
+  casella può avere un'altra misura da quella su cui l'hai composta:
+  foto e scritte crescono e calano insieme, e la foto non cambia forma.
+- **Le scritte non restano più piccole nei pop-up.** Il pop-up «sboccia»
+  nasce a un quinto della sua grandezza, e le caselle dentro si
+  misuravano proprio in quell'istante: si credevano minuscole e
+  rimpicciolivano le scritte al minimo, per sempre.
+- **Una scritta che si allunga resta nel suo spazio.** Se accendi «Scrivi
+  da quanto tempo e in questo stato», o «Acceso» diventa «Acceso da 55
+  min», la scritta rimpicciolisce quanto basta per stare dove l'avevi
+  messa, invece di finire sotto la foto. E se proprio ci arriva addosso,
+  sta davanti.
+- **Trasparenza dell'icona o della foto**: nuovo cursore nella linguetta
+  **Icona**, da 0 a 90%.
 
 ## Novità della 2.17.1
 

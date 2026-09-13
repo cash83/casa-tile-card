@@ -58,6 +58,12 @@ ha-card::after {
   filter: grayscale(.8) brightness(.62); transition: filter .35s ease; }
 :host([acceso]) .iconaFoto { filter: drop-shadow(0 0 9px var(--alone2, transparent)); }
 .iconaFoto[hidden] { display: none !important; }
+/* LE FOTO HANNO GLI ANGOLI TONDI, come la casella che le contiene: con gli
+   angoli vivi una foto dentro a una scheda arrotondata sembra appoggiata
+   sopra invece che parte della casella. Il ritratto delle persone no: quello
+   e' gia' un tondo. */
+.iconaFoto, img.fotofondo {
+  border-radius: calc(var(--casa-radius, 18px) / var(--scala-pezzo, 1)); }
 :host([grande]) .iconaFoto { width: auto; height: 92px; }
 /* 100% = grande quanto il riquadro che le diamo, cosi' segue tutte le
    disposizioni senza doverle riscrivere una per una */
@@ -664,6 +670,12 @@ svg.iconafondo[hidden], img.fotofondo[hidden] { display: none !important; }
 .lettori, .extra, .pannello, .tempo, .comandi, .colori, .ytcoda,
 .ytattrezzi, .ytcuore,
 .iconaHa, .iconaFoto { position: relative; z-index: 1; }
+/* a pezzi liberi le scritte stanno SOPRA alla foto e all'icona: se una
+   scritta si allunga e ci arriva addosso, deve vedersi lei */
+:host([liberi]) .testi, :host([liberi]) .valore,
+:host([liberi]) .chips .metrica { z-index: 2; }
+/* la trasparenza dell'icona o della foto, scelta da lui */
+svg.icona, .iconaHa, .iconaFoto { opacity: var(--icona-opaca, 1); }
 
 /* --- il cielo del meteo, fatto di pezzi veri --- */
 

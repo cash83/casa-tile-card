@@ -42,6 +42,8 @@ export const SEZIONI = [
         },
         { name: "icona_entita", selector: { boolean: {} } },
         { name: "icona_ha", selector: { icon: {} } },
+        { name: "icona_trasparenza",
+          selector: { number: { min: 0, max: 90, step: 5, mode: "slider" } } },
       ] },
       { titolo: "Batteria: carica e scarica", schema: [
         { name: "carica_entita", selector: { entity: { multiple: true } } },
@@ -361,6 +363,7 @@ export const ETICHETTE = {
   icona: "Icona animata", colore: "Colore quando e accesa",
   icona_sfondo: "L'icona in grande dietro alle scritte",
   icona_sfondo_forza: "Quanto si vede l'icona dietro (%)",
+  icona_trasparenza: "Trasparenza dell'icona o della foto (%)",
   carica_entita: "Quali entita vogliono dire che STA CARICANDO (di solito non serve: basta chiamare carica una misura)",
   scarica_entita: "Quali entita vogliono dire che STA DANDO CORRENTE (di solito non serve: basta chiamare scarica una misura)",
   disposizione: "Come e disposta la casella",

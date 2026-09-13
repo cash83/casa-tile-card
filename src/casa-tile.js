@@ -1567,6 +1567,12 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     if (numero) this.style.setProperty("--testo-val", numero);
     else this.style.removeProperty("--testo-val");
 
+    // trasparenza dell'icona o della foto
+    const tIcona = Number(c.icona_trasparenza);
+    if (tIcona > 0) {
+      this.style.setProperty("--icona-opaca", String(Math.round((1 - Math.min(90, tIcona) / 100) * 100) / 100));
+    } else this.style.removeProperty("--icona-opaca");
+
     // sfondo della casella: tinta, foto o quello di serie, con trasparenza
     const opaco = 1 - (c.trasparenza === undefined ? 0 : Number(c.trasparenza)) / 100;
     const tinta = Array.isArray(c.sfondo_colore) ? daRgb(c.sfondo_colore) : null;
