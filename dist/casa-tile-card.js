@@ -8185,7 +8185,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.19.3";
+const VERSIONE = "2.19.4";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -18015,7 +18015,12 @@ class CasaEnergia extends HTMLElement {
     }
     this._root.querySelector(".dm-e-top").textContent = this._topText(hass);
     const fvEl = this._root.querySelector(".dm-e-fv");
-    if (fvEl) fvEl.textContent = this._euro(hass.states[cfg.bill_today]?.attributes?.risparmio_fotovoltaico);
+    if (fvEl) {
+      const oggi = this._euro(hass.states[cfg.bill_today]?.attributes?.risparmio_fotovoltaico);
+      fvEl.textContent = cfg.bill_month
+        ? `${oggi} \u00b7 ${this._euro(hass.states[cfg.bill_month]?.attributes?.risparmio_fotovoltaico)}`
+        : oggi;
+    }
     const soloEl = this._root.querySelector(".dm-e-solo");
     if (soloEl) soloEl.textContent = this._euro(hass.states[cfg.bill_today]?.attributes?.energia);
 
