@@ -14,6 +14,7 @@ import { CasaTileEditor } from './casa-tile-editor.js';
 import { CasaTile } from './casa-tile.js';
 import { VERSIONE } from './versione.js';
 import { CasaEnergia } from './elettro-energia.js';
+import { CasaEnergiaEditor } from './elettro-energia-editor.js';
 import { CasaElettrodomestico } from './elettro-elettrodomestico.js';
 
 if (!customElements.get("casa-tile")) {
@@ -26,6 +27,9 @@ if (!customElements.get("casa-tile-editor")) {
 // elettrodomestico (nate dal lavoro di Simonz82, adesso vivono qui).
 if (!customElements.get("casa-energia")) {
   customElements.define("casa-energia", CasaEnergia);
+}
+if (!customElements.get("casa-energia-editor")) {
+  customElements.define("casa-energia-editor", CasaEnergiaEditor);
 }
 if (!customElements.get("casa-elettrodomestico")) {
   customElements.define("casa-elettrodomestico", CasaElettrodomestico);
