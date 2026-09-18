@@ -21,8 +21,39 @@ import {
   STYLE,
   esc,
 } from './elettro-comune.js';
+import { righeInOrdine } from './elettro-righe-editor.js';
+
+// Le righe dell'Ultimo ciclo, col nome che si vede nell'editor.
+export const RIGHE_CICLO = [
+  { id: "fine", nome: "Fine del ciclo (data e ora)", etichetta: "Fine" },
+  { id: "durata", nome: "Durata del ciclo", etichetta: "Durata" },
+  { id: "consumo", nome: "Consumo del ciclo (kWh)", etichetta: "Consumo" },
+  { id: "costo", nome: "Costo del ciclo", etichetta: "Costo" },
+];
 
 export class CasaElettrodomestico extends HTMLElement {
+  // Le righe dell'Ultimo ciclo, nell'ordine e coi nomi della configurazione.
+  _righeCiclo() {
+    const R = {
+      fine: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_FLAG}</span><small>Fine</small></span><b class="dm-c-end">\u2014</b></div>`,
+      durata: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TIMER}</span><small>Durata</small></span><b class="dm-c-duration">\u2014</b></div>`,
+      consumo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-c-energy">\u2014</b></div>`,
+      costo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo</small></span><b class="dm-c-cost">\u2014</b></div>`,
+    };
+    return righeInOrdine(this._config, RIGHE_CICLO, R, esc);
+  }
+
+  static getConfigElement() {
+    return document.createElement("casa-elettrodomestico-editor");
+  }
+
+  static getStubConfig(hass) {
+    const st = (hass && hass.states) || {};
+    const potenza = Object.keys(st).find((k) => k.startsWith("sensor.")
+      && (st[k].attributes || {}).device_class === "power") || "";
+    return { type: "custom:casa-elettrodomestico", name: "Lavatrice", artwork: "washer", power_entity: potenza };
+  }
+
   setConfig(config) {
     if (!config.power_entity) throw new Error("power_entity \u00e8 obbligatorio");
     this._config = {
@@ -71,10 +102,7 @@ export class CasaElettrodomestico extends HTMLElement {
           <div class="dm-ap-cycle-side">
             <span class="dm-ap-cycle-cap">Ultimo ciclo</span>
             <div class="dm-ap-cycle-list">
-              <div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_FLAG}</span><small>Fine</small></span><b class="dm-c-end">\u2014</b></div>
-              <div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TIMER}</span><small>Durata</small></span><b class="dm-c-duration">\u2014</b></div>
-              <div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-c-energy">\u2014</b></div>
-              <div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo</small></span><b class="dm-c-cost">\u2014</b></div>
+              ${this._righeCiclo()}
             </div>
           </div>
         </div>
@@ -653,10 +681,10 @@ export class CasaElettrodomestico extends HTMLElement {
     const duration = this._cycleAttr(hass, "duration");
     const energy = this._cycleAttr(hass, "energy");
     const cost = this._cycleAttr(hass, "cost");
-    this._root.querySelector(".dm-c-end").textContent = end ?? "\u2014";
-    this._root.querySelector(".dm-c-duration").textContent = duration ?? "\u2014";
-    this._root.querySelector(".dm-c-energy").textContent = energy ?? "\u2014";
-    this._root.querySelector(".dm-c-cost").textContent = Number.isFinite(Number(cost)) ? `${Number(cost).toFixed(2)} \u20ac` : "\u2014";
+    { const x = this._root.querySelector(".dm-c-end"); if (x) x.textContent = end ?? "\u2014"; }
+    { const x = this._root.querySelector(".dm-c-duration"); if (x) x.textContent = duration ?? "\u2014"; }
+    { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
+    { const x = this._root.querySelector(".dm-c-cost"); if (x) x.textContent = Number.isFinite(Number(cost)) ? `${Number(cost).toFixed(2)} \u20ac` : "\u2014"; }
 
     const warnEl = this._root.querySelector(".dm-ap-warn");
     const activeWarnings = (cfg.warn_entities || [])

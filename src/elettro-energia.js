@@ -19,6 +19,7 @@ import {
 } from './elettro-comune.js';
 const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 import { ESCLUSI_DI_SERIE } from './elettro-prepara.js';
+import { righeInOrdine } from './elettro-righe-editor.js';
 
 // Le righe che puo' avere il riquadro Oggi, con il nome che si vede nell'editor.
 export const RIGHE_OGGI = [
@@ -44,14 +45,7 @@ export class CasaEnergia extends HTMLElement {
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>`,
       top: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>`,
     };
-    const ordine = Array.isArray(this._config.righe) && this._config.righe.length
-      ? this._config.righe : RIGHE_OGGI.map((r) => r.id);
-    // i nomi scelti a mano (`nomi_righe: {id: "nome"}`) al posto di quelli di serie
-    const nomi = this._config.nomi_righe || {};
-    return ordine.filter((id) => R[id] !== undefined).map((id) => {
-      const nome = nomi[id] && String(nomi[id]).trim();
-      return nome ? R[id].replace(/<small>[^<]*<\/small>/, `<small>${esc(nome)}</small>`) : R[id];
-    }).join("\n              ");
+    return righeInOrdine(this._config, RIGHE_OGGI, R, esc);
   }
 
   static getConfigElement() {
