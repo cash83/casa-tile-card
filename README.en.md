@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.19.6-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.20.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -203,6 +203,13 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.20
+
+- **Speaker group volume, redone.** The group slider is its own and no longer follows the group leader: moving it shifts every speaker **by the same amount**, each from its own volume. A speaker taken to zero and back returns where it was, and one muted on purpose stays muted. **− and +** buttons move it by 1, percentages next to each speaker, a small **haptic** tap on phones. The slider position is shared with the ytmusic-card when both are open.
+- **Click-to-configure editors** for `casa-energia` and `casa-elettrodomestico`, no YAML needed: settings, circuits, and **the box rows are dragged** by their ⠿ handle to reorder them, hidden with the checkbox and **renamed as you like** (`righe`, `nomi_righe`). The appliance editor also has **"Set up by itself"**.
+- **The "Today" box reads like a receipt**, one colour per row: usage · energy incl. taxes (without solar) · solar savings (today · month) · solar incl. taxes (what you pay) · energy now · month incl. taxes · top consumer. The last cycle and the bill line by line are coloured too.
+- In narrow rows the label shortens with an ellipsis and the figure stays whole; circuit bars never go below zero.
 
 ## What's new in 2.19
 

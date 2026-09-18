@@ -305,6 +305,8 @@ export const EN = {
   "Cosa fa quando la tieni premuta": "What it does when you press and hold",
   "Niente": "Nothing",
   "Volume del gruppo": "Group volume",
+  "Abbassa di 1": "Down by 1",
+  "Alza di 1": "Up by 1",
   "Riattiva l'audio": "Unmute",
   "Silenzia": "Mute",
   "Alza e abbassa tutte insieme, ognuna dal suo volume": "Raises and lowers them together, each from its own volume",

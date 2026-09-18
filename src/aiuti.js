@@ -167,6 +167,14 @@ export const ONDA_D = "M0 13" + " q18.75 -14 37.5 0 q18.75 14 37.5 0".repeat(4);
 const PALLINO = 18;   // quant'e' largo il pallino
 const MARGINE = 12;   // e quanto sbaglia un dito
 
+// Fa vibrare il telefono attraverso l'app di Home Assistant: l'evento sale
+// fino alla finestra, dove l'app lo ascolta. `tipo` e' uno di quelli di Home
+// Assistant: "light", "medium", "heavy", "selection", "success"...
+export function vibra(da, tipo) {
+  if (!da) return;
+  da.dispatchEvent(new CustomEvent("haptic", { detail: tipo, bubbles: true, composed: true }));
+}
+
 export function soloDalPallino(cursore) {
   if (!cursore || cursore._soloPallino) return;
   cursore._soloPallino = true;
@@ -185,12 +193,34 @@ export function soloDalPallino(cursore) {
     return Math.abs(e.clientX - centro) <= PALLINO / 2 + MARGINE;
   };
 
+  // LA VIBRAZIONE, sul telefono: un colpetto quando prendi il pallino e uno
+  // ogni ventesimo di barra mentre lo porti, come le tacche di una manopola.
+  // La fa l'app di Home Assistant: ascolta l'evento "haptic" come per le sue
+  // schede, e rispetta la vibrazione accesa o spenta nel profilo. Sul
+  // computer non succede niente.
+  const tacca = () => {
+    const min = Number(cursore.min === "" ? 0 : cursore.min);
+    const max = Number(cursore.max === "" ? 100 : cursore.max);
+    return max > min ? Math.round((Number(cursore.value) - min) / (max - min) * 20) : 0;
+  };
+  let ultimaTacca = null;
+
   cursore.addEventListener("pointerdown", (e) => {
     cursore._dalPallino = sulPallino(e);
     cursore._valorePrima = cursore.value;
     // niente salto al punto toccato
     if (!cursore._dalPallino) e.preventDefault();
+    else {
+      ultimaTacca = tacca();
+      vibra(cursore, "light");
+    }
   }, true);
+  // qui arriva solo quello che la rete di sicurezza qui sotto lascia passare
+  cursore.addEventListener("input", () => {
+    const t = tacca();
+    if (ultimaTacca !== null && t !== ultimaTacca) vibra(cursore, "selection");
+    ultimaTacca = t;
+  });
   ["pointerup", "pointercancel", "keydown"].forEach((ev) =>
     cursore.addEventListener(ev, () => { cursore._dalPallino = true; }, true));
 

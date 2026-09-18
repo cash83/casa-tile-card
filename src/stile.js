@@ -30,6 +30,17 @@ ha-card:active { transform: scale(.985); }
    salto. */
 :host([trascinabile]) ha-card:active,
 :host([solo-casella]) ha-card:active { transform: none; }
+/* ...e NON quando premi qualcosa DENTRO la casella. :active vale anche per
+   tutti i genitori di quello che tocchi, quindi ogni tasto, cursore o
+   pannello strizzava la casella intera: coi - e + del volume premuti di
+   fila rimbalzava tutta a ogni tocco. Il tasto ha gia' la sua reazione.
+   Vale anche per gli effetti "ingrandisce" e "inclina" (qui sotto): :host
+   in testa la fa vincere su quelle regole. */
+:host ha-card:active:has(button:active, input:active, select:active,
+  a:active, [role="button"]:active, .pannello:active, .tempo:active,
+  .mirino:active) {
+  transform: none;
+}
 ha-card:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
 :host([acceso]) ha-card {
   border-color: var(--bordo, var(--c));
@@ -1150,9 +1161,11 @@ svg.icona, .iconaHa, .iconaFoto { opacity: var(--icona-opaca, 1); }
   font-size: calc(12.5px * var(--lettore, 1)); border-radius: 99px;
   background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.06);
 }
-/* il volume: barra grossa e piena, con l'altoparlante a DESTRA come da lui */
+/* il volume: barra grossa e piena, con l'altoparlante a DESTRA come da lui,
+   e la percentuale fra la barra e l'altoparlante */
 :host([ytm]) .cursore { margin-top: calc(14px * var(--lettore, 1)); gap: calc(10px * var(--lettore, 1)); }
-:host([ytm]) .cursore .quanto { display: none; }
+:host([ytm]) .cursore .quanto { order: 1; min-width: calc(34px * var(--lettore, 1));
+  font-size: calc(12px * var(--lettore, 1)); }
 :host([ytm]) .cursore .muto { order: 2; background: none;
   width: calc(22px * var(--lettore, 1)); height: calc(22px * var(--lettore, 1)); }
 :host([ytm]) .cursore .muto svg {
@@ -1614,7 +1627,28 @@ svg.icona, .iconaHa, .iconaFoto { opacity: var(--icona-opaca, 1); }
   padding-bottom: 8px; margin-bottom: 4px;
 }
 .pannello .voce.tutte-le-casse .chi { font-weight: 700; opacity: .95; }
-.pannello .voce.tutte-le-casse .vol { width: 126px; }
+.pannello .voce.tutte-le-casse .vol { width: 100px; }
+/* - e + del gruppo, grandi come il muto delle casse, e il numero */
+.pannello .voce.tutte-le-casse .passo {
+  appearance: none; border: none; padding: 0; flex: none; cursor: pointer;
+  width: 22px; height: 22px; border-radius: 50%; background: none;
+  color: var(--primary-text-color, #eaf1fb); opacity: .75;
+  display: grid; place-items: center;
+}
+.pannello .voce.tutte-le-casse .passo svg { width: 15px; height: 15px; fill: currentColor; }
+.pannello .voce.tutte-le-casse .passo:hover { opacity: 1; }
+.pannello .voce.tutte-le-casse .quanto {
+  flex: none; min-width: 32px; text-align: right;
+  font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--primary-text-color, #eaf1fb);
+}
+/* la percentuale di ogni cassa, accanto alla sua barra */
+.pannello .voce .quanto {
+  flex: none; min-width: 32px; text-align: right;
+  font-size: 11.5px; font-variant-numeric: tabular-nums;
+  color: var(--secondary-text-color, #9fb0c6);
+}
+.pannello .voce .quanto[hidden] { display: none !important; }
 .pannello .voce.tutte-le-casse[hidden] { display: none !important; }
 .pannello .voce .vol[hidden] { display: none !important; }
 .pannello .voce .sw {
@@ -1673,6 +1707,15 @@ svg.icona, .iconaHa, .iconaFoto { opacity: var(--icona-opaca, 1); }
 /* ================= la casella si adatta alla sua larghezza ============= */
 
 /* --- stretta: telefono con due caselle affiancate, o colonne strette --- */
+/* Casella stretta (il telefono): con la percentuale accanto a ogni barra il
+   nome della cassa restava a "Assisten...". Un po' meno spazio fra i pezzi e
+   barre piu' corte, e il nome torna a leggersi. Sta PRIMA del blocco sotto,
+   che per le caselle strettissime stringe ancora. */
+@container (max-width: 400px) {
+  .pannello .voce { gap: 6px; }
+  .pannello .voce .vol { width: 76px; }
+  .pannello .voce.tutte-le-casse .vol { width: 84px; }
+}
 @container (max-width: 245px) {
   ha-card { padding: 11px; gap: 8px; }
   .nome { font-size: 12.5px; }
@@ -1687,6 +1730,7 @@ svg.icona, .iconaHa, .iconaFoto { opacity: var(--icona-opaca, 1); }
   .pannello .voce { gap: 6px; padding: 4px 0; }
   .pannello .voce .chi { font-size: 11px; }
   .pannello .voce .vol { width: 62px; }
+  .pannello .voce.tutte-le-casse .vol { width: 62px; }
   :host([disposizione="vinile"]) svg.icona,
   :host([disposizione="vinile"]) .iconaHa,
   :host([disposizione="vinile"]) .iconaFoto,

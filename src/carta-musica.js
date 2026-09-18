@@ -2,7 +2,7 @@
 // Il lettore: cerca, sfoglia, coda, casse del gruppo, sorgenti.
 
 import { T, TH } from './lingua.js';
-import { RICERCHE, soloDalPallino } from './aiuti.js';
+import { RICERCHE, soloDalPallino, vibra } from './aiuti.js';
 import { segno } from './segni.js';
 
 export const ConMusica = (Base) => class extends Base {
@@ -750,49 +750,115 @@ export const ConMusica = (Base) => class extends Base {
   }
 
   // I VOLUMI DELLE CASSE UNITE. Torna niente se non c'e' gruppo, o se le
-  // casse che sanno dire il loro volume sono meno di due.
+  // casse accese che sanno dire il loro volume sono meno di due.
+  //
+  // `quanto` e' la posizione del cursore del gruppo, che e' SUA e non
+  // viene dalle casse: vedi _mandaVolumeGruppo.
   _volumiDelGruppo(st) {
     const membri = st && Array.isArray(st.attributes.group_members)
       ? st.attributes.group_members : [];
     if (membri.length < 2) return null;
     const stati = this._hass ? this._hass.states : {};
     const dentro = membri.map((e) => stati[e])
-      .filter((s) => s && s.attributes.volume_level !== undefined);
+      .filter((s) => s && s.state !== "off" && s.state !== "unavailable"
+        && s.attributes.volume_level !== undefined);
     if (dentro.length < 2) return null;
-    const capo = membri[0];
-    const suo = stati[capo];
-    return { capo: capo,
-      // quello che si vede sulla barra: il volume del capogruppo, come in
-      // Music Assistant
-      quanto: Math.round(Number((suo && suo.attributes.volume_level) || 0) * 100),
+    const chiave = [...membri].sort().join(",");
+    let cur = this._leggiCursoreGruppo(chiave);
+    if (!cur || typeof cur.f !== "number") {
+      // la prima volta che vedo queste casse insieme il cursore parte dalla
+      // piu' alta: cosi' portarlo a zero le zittisce tutte
+      cur = { f: Math.max(...dentro.map((s) => Number(s.attributes.volume_level) || 0)) };
+      this._scriviCursoreGruppo(chiave, cur);
+    }
+    return { capo: membri[0], chiave: chiave,
+      quanto: Math.round(cur.f * 100),
       casse: dentro.map((s) => s.entity_id) };
   }
 
-  // IL VOLUME DEL GRUPPO E' QUELLO DEL CAPOGRUPPO.
+  // IL CURSORE DEL GRUPPO E' INDIPENDENTE DALLE CASSE.
   //
-  // E' come fa Music Assistant nella sua schermata: la barra in cima segue
-  // la cassa che comanda, e muovendola lui distribuisce alle altre. Provato
-  // sul campo: capogruppo a 10 e la barra del gruppo a 10, mentre l'altra
-  // cassa stava a 2.
+  // Muovere una cassa - capogruppo compreso - non lo sposta. Prima era il
+  // volume del capogruppo: alzavi il capogruppo e "il gruppo" saliva mentre
+  // la Veranda restava dov'era. E comandarlo con `media_player.volume_set`
+  // sul capogruppo muoveva SOLO il capogruppo: Music Assistant gira il
+  // comando al gruppo solo per i gruppi creati da lui, non per quelli fatti
+  // con `media_player.join`.
   //
-  // (La strada del servizio `mass_queue.set_group_volume` l'ho tolta: su
-  // Music Assistant 2.9.11 il suo `get_group_volume` risponde errore 500.)
+  // Spostandolo, ogni cassa si sposta DELLO STESSO TANTO, ognuna dal suo
+  // volume, e il conto lo faccio qui cassa per cassa. Il volume di gruppo
+  // di Music Assistant (`mass_queue.set_group_volume`) non si presta: legge
+  // il numero contro la cassa piu' alta.
+  //
+  // Lo spostamento si applica a una FOTO dei volumi, cosi' una cassa
+  // portata a zero e poi rialzata torna dov'era. La foto si rifa' appena
+  // una cassa non e' dove l'ha lasciata il cursore (qualcuno l'ha mossa da
+  // sola). La posizione sta nel browser, una per ogni combinazione di
+  // casse, nella STESSA chiave della ytmusic-card: aperte tutte e due sullo
+  // stesso telefono dicono lo stesso numero.
   _mandaVolumeGruppo(gruppo, valore) {
     if (!this._hass) return;
-    // CHI ERA ZITTITO RESTA ZITTITO.
-    //
-    // Music Assistant, quando cambia il volume di un gruppo, lo propaga
-    // alle casse e "unmutes the player before setting volume" - lo scrive
-    // lui nel suo log. Cosi' una cassa che avevi messo in muto riattacca a
-    // sentirsi. E' un difetto suo (support#6334, la regressione della
-    // #5098) e non lo posso correggere da qui: quello che posso fare e'
-    // segnarmi chi era zittito e rimetterglielo appena vedo che gliel'ha
-    // tolto. La propagazione ci mette qualche secondo, quindi guardo per
-    // un po'.
-    this._rimettiIlMuto(gruppo.casse);
-    const vuole = Math.max(0, Math.min(100, Number(valore))) / 100;
-    this._hass.callService("media_player", "volume_set",
-      { entity_id: gruppo.capo, volume_level: Math.round(vuole * 1000) / 1000 });
+    const stati = this._hass.states;
+    const v = Math.max(0, Math.min(100, Number(valore))) / 100;
+    const ora = {};
+    gruppo.casse.forEach((e) => {
+      ora[e] = Number(stati[e] && stati[e].attributes.volume_level) || 0;
+    });
+    const chi = Object.keys(ora);
+    const cur = this._leggiCursoreGruppo(gruppo.chiave) || {};
+    const daF = typeof cur.f === "number" ? cur.f : v;
+    // la foto vale finche' ogni cassa sta dove l'ha lasciata il cursore; per
+    // qualche secondo dopo una mossa le casse non hanno ancora detto il loro
+    // nuovo volume, e conta quello mandato
+    const mandati = cur.sent || {};
+    const stesse = !!cur.snap && chi.length === Object.keys(cur.snap).length
+      && chi.every((e) => e in cur.snap && typeof mandati[e] === "number");
+    const fresca = typeof cur.at === "number" && Date.now() - cur.at < 3000;
+    const intatta = stesse
+      && (fresca || chi.every((e) => Math.abs(mandati[e] - ora[e]) <= 0.02));
+    const foto = intatta ? cur.snap : ora;
+    const fotoF = intatta ? cur.snapF : daF;
+    // CHI ERA ZITTITO APPOSTA RESTA ZITTITO. Una cassa in muto con il volume
+    // sopra zero l'ha zittita qualcuno; una a zero e in muto e' solo a zero,
+    // e rialzando il gruppo deve tornare a sentirsi.
+    this._rimettiIlMuto(chi.filter((e) => ora[e] > 0));
+    const nuovi = {};
+    chi.forEach((e) => {
+      const dove = Math.round(Math.max(0, Math.min(1, foto[e] + (v - fotoF))) * 100) / 100;
+      nuovi[e] = dove;
+      const adesso = intatta && fresca ? mandati[e] : ora[e];
+      if (Math.abs(dove - adesso) >= 0.005) {
+        this._hass.callService("media_player", "volume_set",
+          { entity_id: e, volume_level: dove });
+      }
+    });
+    this._scriviCursoreGruppo(gruppo.chiave,
+      { f: v, snap: foto, snapF: fotoF, sent: nuovi, at: Date.now() });
+  }
+
+  // Una cassa mossa da sola: il cursore del gruppo resta dov'e', ma la sua
+  // foto non vale piu' e si rifa' alla prossima mossa del gruppo.
+  _fotoGruppoScaduta() {
+    const suo = this._hass && this._hass.states[this._config.entity];
+    const membri = suo && Array.isArray(suo.attributes.group_members)
+      ? suo.attributes.group_members : [];
+    if (membri.length < 2) return;
+    const chiave = [...membri].sort().join(",");
+    const cur = this._leggiCursoreGruppo(chiave);
+    if (cur && typeof cur.f === "number") this._scriviCursoreGruppo(chiave, { f: cur.f });
+  }
+
+  // la chiave e' quella della ytmusic-card apposta (vedi sopra)
+  _leggiCursoreGruppo(chiave) {
+    try {
+      return JSON.parse(localStorage.getItem("ytmusic-card-groupvol:" + chiave) || "null");
+    } catch (e) { return null; }
+  }
+
+  _scriviCursoreGruppo(chiave, cosa) {
+    try {
+      localStorage.setItem("ytmusic-card-groupvol:" + chiave, JSON.stringify(cosa));
+    } catch (e) { /* senza memoria il cursore va lo stesso, solo non se lo ricorda */ }
   }
 
   // Rimette il muto a chi ce l'aveva, se Music Assistant glielo toglie
@@ -989,6 +1055,7 @@ export const ConMusica = (Base) => class extends Base {
           + '<span class="chi"></span>'
           + '<button class="mutino" type="button" hidden></button>'
           + '<input class="vol" type="range" min="0" max="100" step="1">'
+          + '<span class="quanto" hidden></span>'
           + '<button class="tras" type="button" hidden title="Porta qui la coda '
           + 'che sta suonando">') + segno("trasferisci") + "</button>";
         r.querySelector(".sw").addEventListener("click", () => this._cambiaGruppo(eid, r));
@@ -1026,11 +1093,13 @@ export const ConMusica = (Base) => class extends Base {
           this._hass.callService("media_player", "volume_set",
             { entity_id: eid, volume_level: liv });
           this._zeroVuolDireMuto(eid, liv);
+          this._fotoGruppoScaduta();
         };
         soloDalPallino(vol);
         vol.addEventListener("input", () => {
           r._trascino = true;
           vol.style.setProperty("--riempito", vol.value + "%");
+          r.querySelector(".quanto").textContent = vol.value + "%";
           clearTimeout(r._freno);
           r._freno = setTimeout(manda, 250);
         });
@@ -1050,38 +1119,64 @@ export const ConMusica = (Base) => class extends Base {
     if (!tutte) {
       tutte = document.createElement("div");
       tutte.className = "voce tutte-le-casse";
-      tutte.innerHTML = TH('<span class="chi">Volume del gruppo</span>'
-        + '<input class="vol" type="range" min="0" max="100" step="1">');
+      tutte.innerHTML = TH('<span class="chi">Volume del gruppo</span>')
+        + TH('<button class="passo" data-passo="-1" type="button" title="Abbassa di 1">')
+        + segno("meno") + "</button>"
+        + '<input class="vol" type="range" min="0" max="100" step="1">'
+        + TH('<button class="passo" data-passo="1" type="button" title="Alza di 1">')
+        + segno("piu") + "</button>"
+        + '<span class="quanto"></span>';
       const volT = tutte.querySelector(".vol");
+      const numero = tutte.querySelector(".quanto");
       soloDalPallino(volT);
-      const mandaT = () => {
+      const mandaT = (quanto) => {
         const suo = this._hass && this._hass.states[this._config.entity];
         const gr = this._volumiDelGruppo(suo);
-        if (gr) this._mandaVolumeGruppo(gr, Number(volT.value));
+        if (gr) this._mandaVolumeGruppo(gr, quanto);
       };
       // UNA VOLTA SOLA, QUANDO LASCI. Mandarlo a raffica mentre trascini
-      // faceva fare le cose a caso: Music Assistant, a ogni comando, rifa'
-      // i conti su tutte le casse, e dieci comandi di fila si accavallano.
+      // faceva fare le cose a caso: dieci comandi di fila si accavallano.
       volT.addEventListener("input", () => {
         tutte._trascino = true;
         volT.style.setProperty("--riempito", volT.value + "%");
+        numero.textContent = volT.value + "%";
       });
       ["pointerup", "touchend", "mouseup", "keyup", "change"].forEach((ev) =>
         volT.addEventListener(ev, () => {
           if (!tutte._trascino) return;
           tutte._trascino = false;
-          mandaT();
+          mandaT(Number(volT.value));
         }));
       volT.addEventListener("blur", () => { tutte._trascino = false; });
+      // - E + SPOSTANO DI 1: col dito sul cursore un punto solo non si
+      // riesce a fare. Piu' tocchi di fila partono come UNA mossa quando
+      // smetti, cosi' le casse ricevono un comando e non una raffica.
+      tutte.querySelectorAll(".passo").forEach((btn) =>
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          vibra(btn, "light");
+          const da = tutte._inAttesa != null ? tutte._inAttesa : Number(volT.value);
+          const a = Math.max(0, Math.min(100, da + Number(btn.dataset.passo)));
+          tutte._inAttesa = a;
+          volT.value = String(a);
+          volT.style.setProperty("--riempito", a + "%");
+          numero.textContent = a + "%";
+          clearTimeout(tutte._freno);
+          tutte._freno = setTimeout(() => {
+            tutte._inAttesa = null;
+            mandaT(a);
+          }, 350);
+        }));
     }
     if (tutte.parentNode !== box) box.insertBefore(tutte, box.firstChild);
     const insieme = this._volumiDelGruppo(st);
     tutte.hidden = !insieme;
-    if (insieme && !tutte._trascino) {
+    if (insieme && !tutte._trascino && tutte._inAttesa == null) {
       const quanto = insieme.quanto;
       const volT = tutte.querySelector(".vol");
       volT.value = String(quanto);
       volT.style.setProperty("--riempito", quanto + "%");
+      tutte.querySelector(".quanto").textContent = quanto + "%";
     }
 
     // in fondo, "svuota la coda": e' un comando di serie di Home Assistant
@@ -1173,10 +1268,13 @@ export const ConMusica = (Base) => class extends Base {
           mutino.title = zitto ? T("Riattiva l'audio") : T("Silenzia");
         }
       }
+      const numero = r.querySelector(".quanto");
+      numero.hidden = vol.hidden;
       if (!vol.hidden && !r._trascino) {
         const liv = Math.round(suo.attributes.volume_level * 100);
         vol.value = String(liv);
         vol.style.setProperty("--riempito", liv + "%");
+        numero.textContent = liv + "%";
       }
     });
   }

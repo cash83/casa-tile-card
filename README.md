@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.19.6-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.20.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -204,6 +204,13 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.20
+
+- **Volume del gruppo di casse, rifatto.** Il cursore del gruppo è suo e non segue più il capogruppo: spostandolo, ogni cassa sale o scende **dello stesso tanto**, ognuna dal suo volume. Una cassa portata a zero e poi rialzata torna dov'era, e chi era zittito apposta resta zittito. Tasti **− e +** per spostarlo di 1, percentuali accanto a ogni cassa, una piccola **vibrazione** al tocco sul telefono. La posizione del cursore è la stessa della ytmusic-card, se le hai aperte tutte e due.
+- **Editor a clic** per le schede `casa-energia` e `casa-elettrodomestico`, senza più YAML: impostazioni, circuiti, e **le righe del riquadro si trascinano** dalla maniglia ⠿ per metterle in ordine, si spengono con la spunta e **si rinominano come vuoi** (`righe`, `nomi_righe`). Nell'elettrodomestico c'è anche **«Prepara da solo»**.
+- **Riquadro «Oggi» a scontrino**, una riga per colore: Consumo · Energia + tasse (senza pannelli) · Risparmio pannelli (oggi · mese) · PV + tasse (quello che paghi) · Energia attuale · Mese (+ tasse) · Top consumo. Colorati anche l'Ultimo ciclo e il conto voce per voce.
+- Nelle righe strette la scritta si accorcia coi puntini e la cifra resta intera; le barre dei circuiti non vanno sotto zero.
 
 ## Novità della 2.19
 

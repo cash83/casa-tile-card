@@ -37,6 +37,9 @@ export const SEGNI = {
   // Le due frecce da sole sembravano il volume di un telecomando
   su: "M4,4H20V6H4V4M12,7L17,12H14V20H10V12H7L12,7Z",
   giu: "M4,20H20V18H4V20M12,17L17,12H14V4H10V12H7L12,17Z",
+  // il volume del gruppo un punto alla volta
+  meno: "M19,13H5V11H19V13Z",
+  piu: "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z",
   serra: "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17"
     + "M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6"
     + "A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z",
