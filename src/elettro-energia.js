@@ -61,12 +61,13 @@ export class CasaEnergia extends HTMLElement {
             <span class="dm-ap-cycle-cap">Oggi</span>
             <div class="dm-ap-cycle-list">
               <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-e-today-kwh">\u2014</b></div>
-              <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo + tasse</small></span><b class="dm-e-today-cost">\u2014</b></div>
-              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Solo energia</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}
+              <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Pagato + tasse</small></span><b class="dm-e-today-cost">\u2014</b></div>
+              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Pagato no tasse</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}
+              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Senza FV + tasse</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}
+              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Senza FV no tasse</small></span><b class="dm-e-senzafv-en">\u2014</b></div>` : ""}
+              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio FV</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}
               <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese + tasse</small></span><b class="dm-e-month-cost">\u2014</b></div>
               <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>
-              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio FV</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}
-              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Senza FV</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}
             </div>
           </div>
         </div>
@@ -562,7 +563,7 @@ export class CasaEnergia extends HTMLElement {
     if (fvEl) {
       const oggi = this._euro(hass.states[cfg.bill_today]?.attributes?.risparmio_fotovoltaico);
       fvEl.textContent = cfg.bill_month
-        ? `${oggi} \u00b7 ${this._euro(hass.states[cfg.bill_month]?.attributes?.risparmio_fotovoltaico)}`
+        ? `${oggi} oggi \u00b7 ${this._euro(hass.states[cfg.bill_month]?.attributes?.risparmio_fotovoltaico)} mese`
         : oggi;
     }
     const senzaEl = this._root.querySelector(".dm-e-senzafv");
@@ -571,7 +572,9 @@ export class CasaEnergia extends HTMLElement {
       const a = b?.attributes || {};
       const tot = Number(b?.state) + Number(a.risparmio_fotovoltaico || 0);
       const en = Number(a.energia || 0) + Number(a.risparmio_fotovoltaico_energia || 0);
-      senzaEl.textContent = `${this._euro(tot)} + tasse \u00b7 ${this._euro(en)} energia`;
+      senzaEl.textContent = this._euro(tot);
+      const senzaEn = this._root.querySelector(".dm-e-senzafv-en");
+      if (senzaEn) senzaEn.textContent = this._euro(en);
     }
     const soloEl = this._root.querySelector(".dm-e-solo");
     if (soloEl) soloEl.textContent = this._euro(hass.states[cfg.bill_today]?.attributes?.energia);
