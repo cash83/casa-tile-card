@@ -2,6 +2,7 @@
 // Il riquadro delle impostazioni.
 
 import { ConColori } from './editor-colori.js';
+import { inFinestra } from './elettro-prepara.js';
 import { ConIcone } from './editor-icone.js';
 import { ConPosti } from './editor-posti.js';
 import { ConSchede } from './editor-schede.js';
@@ -239,7 +240,7 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
             // suoi, e il resto della configurazione non lo tocca nessuno.
             const suoi = this._nomiSchema(form.schema);
             const dispPrima = this._config.disposizione;
-            const c2 = { ...this._config };
+            let c2 = { ...this._config };
             suoi.forEach((nome) => {
               if (nome in e.detail.value) c2[nome] = e.detail.value[nome];
               else delete c2[nome];
@@ -254,6 +255,12 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
               c2.usa_foto = true;
               if (c2.sfondo_copertina === undefined) c2.sfondo_copertina = true;
               if (!(Number(c2.sfondo_sfocatura) > 0)) c2.sfondo_sfocatura = 34;
+            }
+            // "Apri la scheda elettrodomestico/energia": preparo io il pop-up con
+            // la scheda gia' compilata e lo trasformo in un normale pop-up mio,
+            // cosi' da li' in poi si ritocca a clic come tutto il resto.
+            if (c2.azione === "elettrodomestico" || c2.azione === "energia") {
+              c2 = inFinestra(this._hass, c2);
             }
             this._config = c2;
             this._emetti();

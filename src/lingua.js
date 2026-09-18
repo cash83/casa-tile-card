@@ -291,6 +291,8 @@ export const EN = {
   "Esegui un servizio (es. imposta un valore)": "Call a service (e.g. set a value)",
   "Apri i dettagli": "Open more-info",
   "Apri un pop-up mio": "Open my own pop-up",
+  "Apri la scheda elettrodomestico (si prepara da sola)": "Open the appliance card (sets itself up)",
+  "Apri la scheda energia della casa (si prepara da sola)": "Open the home energy card (sets itself up)",
   "Apri Google Maps sulla posizione": "Open Google Maps at the location",
   "Apri un indirizzo web": "Open a web address",
   "Apri un pop-up bubble-card (#nome)": "Open a bubble-card pop-up (#name)",

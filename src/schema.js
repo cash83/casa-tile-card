@@ -221,6 +221,8 @@ export const SEZIONI = [
           { value: "servizio", label: "Esegui un servizio (es. imposta un valore)" },
           { value: "more-info", label: "Apri i dettagli" },
           { value: "finestra", label: "Apri un pop-up mio" },
+          { value: "elettrodomestico", label: "Apri la scheda elettrodomestico (si prepara da sola)" },
+          { value: "energia", label: "Apri la scheda energia della casa (si prepara da sola)" },
           { value: "mappa", label: "Apri Google Maps sulla posizione" },
           { value: "link", label: "Apri un indirizzo web" },
           { value: "popup", label: "Apri un pop-up bubble-card (#nome)" },

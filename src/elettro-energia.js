@@ -17,6 +17,7 @@ import {
   esc,
   meterSeverityColor,
 } from './elettro-comune.js';
+import { ESCLUSI_DI_SERIE } from './elettro-prepara.js';
 
 export class CasaEnergia extends HTMLElement {
   setConfig(config) {
@@ -419,7 +420,7 @@ export class CasaEnergia extends HTMLElement {
   // quelli che contengono una delle parole di top_exclude (produzione, batterie...).
   _autoLoads(hass) {
     const cfg = this._config;
-    const excl = (cfg.top_exclude || []).map((p) => String(p).toLowerCase());
+    const excl = (cfg.top_exclude || ESCLUSI_DI_SERIE).map((p) => String(p).toLowerCase());
     const incl = new Set(cfg.top_include || []);
     const loads = [];
     Object.values(hass.states).forEach((st) => {
