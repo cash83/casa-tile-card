@@ -571,7 +571,7 @@ export class CasaEnergia extends HTMLElement {
       const a = b?.attributes || {};
       const tot = Number(b?.state) + Number(a.risparmio_fotovoltaico || 0);
       const en = Number(a.energia || 0) + Number(a.risparmio_fotovoltaico_energia || 0);
-      senzaEl.textContent = `${this._euro(tot)} \u00b7 en. ${this._euro(en)}`;
+      senzaEl.textContent = `${this._euro(tot)} + tasse \u00b7 ${this._euro(en)} energia`;
     }
     const soloEl = this._root.querySelector(".dm-e-solo");
     if (soloEl) soloEl.textContent = this._euro(hass.states[cfg.bill_today]?.attributes?.energia);
