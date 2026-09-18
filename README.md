@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.18.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.19.5-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -89,6 +89,128 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Energia ed elettrodomestici
+
+Dalla 2.19 dentro a casa-tile ci sono **due schede grandi** in più, fatte per
+stare nel pop-up di una casella (o da sole su una plancia):
+
+- **`custom:casa-energia`** — la luce di casa: Watt adesso, consumo e costo di
+  oggi, **solo energia** e **+ tasse**, costo del mese, **chi consuma di più**
+  (trova da sola tutte le prese che misurano, anche quelle che aggiungi dopo, e
+  conta anche il **«Non misurato»**), **risparmio del fotovoltaico**, le barre
+  dei circuiti e **il conto voce per voce** come in bolletta.
+- **`custom:casa-elettrodomestico`** — lavatrice, lavastoviglie, forno,
+  asciugatrice, TV, boiler: stato, **ultimo ciclo** (fine, durata, consumo,
+  costo), cicli, tempi e costi di oggi, ieri, mese e mese prima.
+
+Nascono dalle schede di [Simonz82](https://github.com/Simonz82/smart-home-cards),
+che le lascia libere: qui sono state portate dentro a casa-tile (niente secondo
+file da installare) e ampliate.
+
+### Come si aggiungono
+
+Nell'editor della casella, linguetta **Tocco** → *Cosa fa quando la tocchi*:
+
+- **Apri la scheda elettrodomestico (si prepara da sola)**
+- **Apri la scheda energia della casa (si prepara da sola)**
+
+La scheda si compila da sola partendo dall'entità della casella: trova la presa
+che misura (anche risalendo dal dispositivo, se hai scelto i kWh), il disegno
+giusto dal nome (lavatrice, lavastoviglie, asciugatrice, forno…) e i sensori qui
+sotto, se ci sono. Poi la voce diventa «Apri un pop-up mio» e la scheda la
+ritocchi nella linguetta **Pop-up** come tutte le altre.
+
+### Quali sensori servono
+
+Le schede **mostrano** i valori, non li calcolano: i conti li fa Home Assistant.
+Senza sensori si vedono lo stesso i Watt; il resto compare man mano che li crei.
+
+| Valore sulla scheda | Da dove arriva | Come si crea |
+|---|---|---|
+| Watt adesso, barre dei circuiti, top consumo | sensori di potenza (W) delle prese | ci sono già (Shelly, Tuya, Zigbee…) |
+| Consumo di oggi / periodi | `sensor.casa_totale_casa_rete_ora` · `_oggi` · `_settimana` · `_mese` | contatori di utenza (`utility_meter`) sul contatore generale in kWh |
+| Costo + tasse, Mese + tasse | `sensor.costo_energia_ora` · `_oggi` · `_ieri` · `_settimana` · `_mese` | sensori template: kWh × prezzo + quota fissa |
+| Solo energia, conto voce per voce | `sensor.costi_luce_oggi`, `sensor.costi_luce_mese` (attributi `kwh`, `energia`, `rete_e_oneri`, `accise`, `quota_fissa`, `iva`, `risparmio_fotovoltaico`) | sensori template + macro `luce.jinja` |
+| Risparmio FV | `sensor.risparmio_fotovoltaico` + contatori `_oggi` / `_mese` | sensore trigger + `utility_meter` con `net_consumption: true` |
+| Il prezzo | `input_number.prezzo_luce_energia`, `…_rete_e_oneri`, `…_accise`, `input_number.iva_luce`, `input_number.quota_fissa_energia_giorno` → `input_number.prezzo_energia` (totale) | aiutanti + un'automazione che ricalcola il totale |
+| Ultimo ciclo, cicli, tempi e costi di un elettrodomestico | `sensor.<nome>_ciclo`, `sensor.<nome>_cicli_oggi`, `sensor.<nome>_cicli_mese` (+ contatori `<nome>_energia_oggi` / `_mese`) | sensori trigger che guardano i W della presa |
+
+**È tutto pronto in [`esempi/luce/`](esempi/luce/):**
+
+1. copia [`luce.yaml`](esempi/luce/luce.yaml) in `/config/packages/`
+   (in `configuration.yaml` serve `homeassistant: packages: !include_dir_named packages`);
+2. copia [`luce.jinja`](esempi/luce/luce.jinja) in `/config/custom_templates/`;
+3. in cima a `luce.yaml` c'è l'elenco dei nomi da **cercare e sostituire** con i
+   tuoi (contatore della rete, pannelli, batteria, presa della lavatrice);
+4. riavvia Home Assistant, poi scrivi i prezzi negli aiutanti
+   **Prezzo luce energia**, **… rete e oneri**, **… accise**, **IVA luce** e
+   **Quota fissa energia giorno** (si trovano sulla bolletta: spesa per
+   l'energia / kWh, spese di rete e oneri / kWh, accise / kWh, IVA; la quota
+   fissa del giorno è quota fissa + quota potenza con IVA, divisa per i giorni).
+   Il totale per kWh si calcola da solo.
+
+Per un secondo elettrodomestico copia il blocco della lavatrice in fondo a
+`luce.yaml` e cambia nome, presa e soglia: il nome deve essere lo stesso che dai
+alla casella, perché la scheda cerca `sensor.<nome>_ciclo`.
+
+**Una presa per due macchine?** Se una presa sola misura due macchine (per
+esempio lavatrice e asciugatrice), fai partire il ciclo della lavatrice solo
+quando l'altra è ferma (`… > 10 and not is_state('binary_sensor.asciugatrice_in_funzione', 'on')`)
+e dai all'asciugatrice i kWh della stessa presa mentre è in funzione.
+
+### Le opzioni di casa-energia
+
+| Opzione | Cosa fa |
+|---|---|
+| `power_entity` | **obbligatoria**: W della casa |
+| `max_power` | fondo scala della barra (es. 3300 con 3 kW) |
+| `periods` | righe `label` / `energy` / `cost`: la 2ª è «Oggi», la 4ª «Mese» |
+| `periods_prev` | come sopra, per «ieri» (con `energy_attr: last_period`) |
+| `circuits` | barre: `label`, `entity` (W), `max` |
+| `top_auto` | `true` = chi consuma di più lo trova da sola fra tutti i sensori di potenza |
+| `top_exclude` | pezzi di entity_id da non contare (produzione, batterie…); c'è già una lista di serie |
+| `top_include` | entità da contare comunque |
+| `top_min_w` | sotto questi W non è «top» (di serie 5) |
+| `unmeasured_label` | nome della voce «Non misurato» |
+| `bill_today`, `bill_month` | i sensori col conto voce per voce (`sensor.costi_luce_oggi` / `_mese`) |
+| `settings_sections` | cosa c'è nell'ingranaggio (es. gli aiutanti del prezzo) |
+| `notification_path` | se c'è, compare il tasto per andare alla tua pagina delle notifiche |
+
+### Le opzioni di casa-elettrodomestico
+
+| Opzione | Cosa fa |
+|---|---|
+| `power_entity` | **obbligatoria**: W della presa (o un altro numero, vedi sotto) |
+| `artwork` | `washer`, `dishwasher`, `dryer`, `oven`, `tv`, `boiler` |
+| `threshold_run`, `threshold_standby` | W sopra cui è «in funzione» / «in standby» |
+| `max_power` | fondo scala della barra |
+| `power_label`, `power_unit`, `power_decimals` | per mostrare nella barra altro dai W (es. `Tempo residuo`, `min`) |
+| `live.state_entity` | stato vero dell'apparecchio (integrazioni LG, Bosch/Home Connect…) |
+| `state_map` | traduce gli stati: `In funzione: {mode: running, label: IN FUNZIONE}` |
+| `live.extra` | righe in più: `entity`, `label`, `attribute`, `value_map`… |
+| `cycle_sensor`, `cycle_attrs` | l'ultimo ciclo: attributi `terminato`, `tempo_ciclo`, `consumo_ciclo`, `costo_ciclo` |
+| `period_attrs` | tempi e costi per oggi / ieri / mese / mese prima |
+| `stats.cycles_today`, `stats.cycles_month` | quanti cicli |
+
+### La pagina Energia di Home Assistant
+
+La pagina Energia di HA ha un solo «costo» per la rete e non sa niente di quote
+fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegliere
+**«Usa un'entità che tiene traccia dei costi totali»** e mettere:
+
+- `sensor.costo_rete_bolletta` per vedere **quanto paghi davvero** (con la quota
+  fissa, che entra a mezzanotte), oppure
+- `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
+
+Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.19
+
+- **Due schede nuove, `casa-energia` e `casa-elettrodomestico`**, dentro allo stesso file: vedi [Energia ed elettrodomestici](#energia-ed-elettrodomestici).
+- Nel **Tocco** due voci che preparano da sole il pop-up con la scheda giusta.
+- **Top consumo automatico** con la voce «Non misurato», **conto voce per voce**, **solo energia** e **+ tasse**, **risparmio del fotovoltaico** oggi e mese.
+- Esempi pronti dei sensori in [`esempi/luce/`](esempi/luce/).
 
 ## Novità della 2.18
 

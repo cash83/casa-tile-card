@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.18.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.19.5-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -89,6 +89,127 @@ finestra_cards:
   - type: custom:power-flow-card-plus
     entities: {}
 ```
+
+## Energy and appliances
+
+Since 2.19 casa-tile ships **two big cards** as well, made to live inside a
+tile's pop-up (or on their own on a dashboard):
+
+- **`custom:casa-energia`** — your home's electricity: Watts right now, today's
+  usage and cost, **energy only** and **incl. taxes**, the month's cost, **who is
+  using the most** (it finds every power-measuring plug by itself, even the
+  ones you add later, and also counts the **"Not measured"** part), **solar
+  savings**, circuit bars and **the bill split line by line**.
+- **`custom:casa-elettrodomestico`** — washer, dishwasher, oven, dryer, TV,
+  boiler: status, **last cycle** (end, duration, energy, cost), number of
+  cycles, time and cost for today, yesterday, this month and last month.
+
+They grew out of [Simonz82](https://github.com/Simonz82/smart-home-cards)'s
+cards, which are free to reuse: here they live inside casa-tile (no second file
+to install) and have been extended. Their labels are in Italian for now.
+
+### How to add them
+
+In the tile editor, **Tap** tab → *What happens when you tap it*:
+
+- **Open the appliance card (sets itself up)**
+- **Open the home energy card (sets itself up)**
+
+The card fills itself in from the tile's entity: it finds the power-measuring
+plug (even going through the device, if you picked the kWh sensor), the right
+drawing from the name (washer, dishwasher, dryer, oven…) and the sensors below,
+if they exist. Then the choice turns into "Open my own pop-up" and you tweak the
+card in the **Pop-up** tab like any other.
+
+### Which sensors you need
+
+The cards **show** values, they don't compute them: Home Assistant does the
+maths. Without sensors you still get the Watts; everything else appears as you
+create them.
+
+| Value on the card | Comes from | How to create it |
+|---|---|---|
+| Watts now, circuit bars, top consumer | power sensors (W) of your plugs | you already have them (Shelly, Tuya, Zigbee…) |
+| Today's usage / periods | `sensor.casa_totale_casa_rete_ora` · `_oggi` · `_settimana` · `_mese` | `utility_meter` on your main grid meter in kWh |
+| Cost incl. taxes, month incl. taxes | `sensor.costo_energia_ora` · `_oggi` · `_ieri` · `_settimana` · `_mese` | template sensors: kWh × price + daily fixed fee |
+| Energy only, bill line by line | `sensor.costi_luce_oggi`, `sensor.costi_luce_mese` (attributes `kwh`, `energia`, `rete_e_oneri`, `accise`, `quota_fissa`, `iva`, `risparmio_fotovoltaico`) | template sensors + the `luce.jinja` macro |
+| Solar savings | `sensor.risparmio_fotovoltaico` + `_oggi` / `_mese` meters | trigger sensor + `utility_meter` with `net_consumption: true` |
+| The price | `input_number.prezzo_luce_energia`, `…_rete_e_oneri`, `…_accise`, `input_number.iva_luce`, `input_number.quota_fissa_energia_giorno` → `input_number.prezzo_energia` (total) | helpers + one automation that recomputes the total |
+| Last cycle, cycles, time and cost of an appliance | `sensor.<name>_ciclo`, `sensor.<name>_cicli_oggi`, `sensor.<name>_cicli_mese` (+ `<name>_energia_oggi` / `_mese` meters) | trigger sensors watching the plug's Watts |
+
+**Everything is ready in [`esempi/luce/`](esempi/luce/):**
+
+1. copy [`luce.yaml`](esempi/luce/luce.yaml) into `/config/packages/`
+   (`configuration.yaml` needs `homeassistant: packages: !include_dir_named packages`);
+2. copy [`luce.jinja`](esempi/luce/luce.jinja) into `/config/custom_templates/`;
+3. at the top of `luce.yaml` there is the list of names to **search and
+   replace** with yours (grid meter, solar, battery, washer plug);
+4. restart Home Assistant, then type your prices into the helpers (they're on
+   your bill: energy per kWh, network and system charges per kWh, excise per
+   kWh, VAT; the daily fixed fee is fixed + power charge incl. VAT, divided by
+   the days). The total per kWh is computed for you.
+
+For a second appliance copy the washer block at the end of `luce.yaml` and
+change name, plug and threshold: the name must match the tile's, because the
+card looks for `sensor.<name>_ciclo`.
+
+**One plug for two machines?** If one plug measures two appliances (say washer
+and dryer), start the washer's cycle only while the other one is idle
+(`… > 10 and not is_state('binary_sensor.asciugatrice_in_funzione', 'on')`) and
+give the dryer the same plug's kWh while it runs.
+
+### casa-energia options
+
+| Option | What it does |
+|---|---|
+| `power_entity` | **required**: home Watts |
+| `max_power` | bar full scale (e.g. 3300 with a 3 kW contract) |
+| `periods` | rows with `label` / `energy` / `cost`: the 2nd is "Today", the 4th "Month" |
+| `periods_prev` | same, for "yesterday" (with `energy_attr: last_period`) |
+| `circuits` | bars: `label`, `entity` (W), `max` |
+| `top_auto` | `true` = find the top consumer among all power sensors |
+| `top_exclude` | bits of entity_id to skip (production, batteries…); a default list is built in |
+| `top_include` | entities to count anyway |
+| `top_min_w` | below these Watts nothing is "top" (default 5) |
+| `unmeasured_label` | name of the "Not measured" entry |
+| `bill_today`, `bill_month` | the line-by-line bill sensors (`sensor.costi_luce_oggi` / `_mese`) |
+| `settings_sections` | what the gear shows (e.g. the price helpers) |
+| `notification_path` | if set, a button takes you to your notifications page |
+
+### casa-elettrodomestico options
+
+| Option | What it does |
+|---|---|
+| `power_entity` | **required**: the plug's Watts (or another number, see below) |
+| `artwork` | `washer`, `dishwasher`, `dryer`, `oven`, `tv`, `boiler` |
+| `threshold_run`, `threshold_standby` | Watts above which it's "running" / "standby" |
+| `max_power` | bar full scale |
+| `power_label`, `power_unit`, `power_decimals` | show something else in the bar (e.g. remaining time in `min`) |
+| `live.state_entity` | the appliance's real status (LG, Bosch/Home Connect… integrations) |
+| `state_map` | translates states: `Running: {mode: running, label: RUNNING}` |
+| `live.extra` | extra rows: `entity`, `label`, `attribute`, `value_map`… |
+| `cycle_sensor`, `cycle_attrs` | last cycle: attributes `terminato`, `tempo_ciclo`, `consumo_ciclo`, `costo_ciclo` |
+| `period_attrs` | time and cost for today / yesterday / month / last month |
+| `stats.cycles_today`, `stats.cycles_month` | how many cycles |
+
+### Home Assistant's Energy dashboard
+
+HA's Energy page has a single "cost" for the grid and knows nothing about fixed
+fees. In **Settings → Dashboards → Energy → Grid → cost** choose **"Use an
+entity tracking the total costs"** and pick:
+
+- `sensor.costo_rete_bolletta` to see **what you actually pay** (fixed fee
+  included, added at midnight), or
+- `sensor.costo_energia_pura` to see **energy only**, without taxes.
+
+The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.19
+
+- **Two new cards, `casa-energia` and `casa-elettrodomestico`**, in the same file: see [Energy and appliances](#energy-and-appliances).
+- Two new **Tap** choices that set up the pop-up with the right card by themselves.
+- **Automatic top consumer** with a "Not measured" entry, **the bill line by line**, **energy only** and **incl. taxes**, **solar savings** for today and the month.
+- Ready-made sensor examples in [`esempi/luce/`](esempi/luce/).
 
 ## What's new in 2.18
 

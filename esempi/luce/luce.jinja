@@ -1,0 +1,17 @@
+{# Il conto della luce diviso nelle voci della bolletta.
+   kwh = kWh presi dalla rete, giorni = quante quote fisse, voce = energia |
+   rete_e_oneri | accise | quota_fissa | iva | totale. I prezzi a consumo sono
+   SENZA IVA (input_number.prezzo_luce_*), la quota fissa del giorno e' CON IVA. #}
+{% macro conto(kwh, giorni, voce) -%}
+{%- set iva = states('input_number.iva_luce') | float(0) / 100 -%}
+{%- set v = {
+  'energia': kwh * states('input_number.prezzo_luce_energia') | float(0),
+  'rete_e_oneri': kwh * states('input_number.prezzo_luce_rete_e_oneri') | float(0),
+  'accise': kwh * states('input_number.prezzo_luce_accise') | float(0),
+  'quota_fissa': states('input_number.quota_fissa_energia_giorno') | float(0) / (1 + iva) * giorni,
+} -%}
+{%- set netto = v.values() | sum -%}
+{%- if voce == 'iva' -%}{{ (netto * iva) | round(2) }}
+{%- elif voce == 'totale' -%}{{ (netto * (1 + iva)) | round(2) }}
+{%- else -%}{{ v[voce] | round(2) }}{%- endif -%}
+{%- endmacro %}

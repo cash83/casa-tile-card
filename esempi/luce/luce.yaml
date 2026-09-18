@@ -1,0 +1,351 @@
+# =============================================================================
+#  Casa Tile Card - i sensori per le schede casa-energia e casa-elettrodomestico
+# =============================================================================
+#  Package di esempio: copialo in /config/packages/luce.yaml
+#  (in configuration.yaml serve:  homeassistant: packages: !include_dir_named packages)
+#  e copia luce.jinja in /config/custom_templates/luce.jinja.
+#
+#  PRIMA DI TUTTO cerca e sostituisci questi nomi con i tuoi sensori:
+#    sensor.mio_contatore_rete_kwh     energia PRESA dalla rete, in kWh, che sale sempre
+#                                      (contatore generale: Shelly EM, contatore smart...)
+#    sensor.mio_contatore_rete_w       potenza della casa in W (serve alla scheda, non qui)
+#    sensor.mio_fotovoltaico_kwh       energia prodotta dai pannelli, kWh che sale sempre
+#    sensor.mia_rete_restituita_kwh    energia regalata/venduta alla rete, kWh
+#    sensor.mia_batteria_carica_kwh    energia messa nella batteria, kWh      (se ce l'hai)
+#    sensor.mia_batteria_scarica_kwh   energia uscita dalla batteria, kWh     (se ce l'hai)
+#    sensor.lavatrice_potenza          W della presa della lavatrice
+#    sensor.lavatrice_energia          kWh della presa della lavatrice
+#  Niente fotovoltaico? Togli il blocco "Risparmio fotovoltaico" e i suoi contatori.
+#  Niente batteria? Togli le due righe della batteria dalle "fonti".
+#
+#  I NOMI DEI SENSORI CREATI QUI NON CAMBIARLI: la scheda, quando la prepari dal
+#  menu "Cosa fa quando la tocchi", li cerca proprio con questi nomi.
+# =============================================================================
+
+# --- Il prezzo, diviso nelle voci della bolletta -----------------------------
+# Si leggono sulla bolletta: "spesa per la vendita di energia" / kWh, "spese per
+# la rete e gli oneri" / kWh, accise / kWh (in media), IVA. Senza IVA.
+# La quota fissa del giorno = (quota fissa + quota potenza) con IVA / giorni.
+input_number:
+  prezzo_luce_energia:
+    name: Prezzo luce energia
+    min: 0
+    max: 1
+    step: 0.0001
+    mode: box
+    unit_of_measurement: "€/kWh"
+    icon: mdi:lightning-bolt
+  prezzo_luce_rete_e_oneri:
+    name: Prezzo luce rete e oneri
+    min: 0
+    max: 1
+    step: 0.0001
+    mode: box
+    unit_of_measurement: "€/kWh"
+    icon: mdi:transmission-tower
+  prezzo_luce_accise:
+    name: Prezzo luce accise
+    min: 0
+    max: 1
+    step: 0.0001
+    mode: box
+    unit_of_measurement: "€/kWh"
+    icon: mdi:bank
+  iva_luce:
+    name: IVA luce
+    min: 0
+    max: 30
+    step: 1
+    mode: box
+    unit_of_measurement: "%"
+    icon: mdi:percent
+  quota_fissa_energia_giorno:
+    name: Quota fissa energia giorno
+    min: 0
+    max: 5
+    step: 0.001
+    mode: box
+    unit_of_measurement: "€/giorno"
+    icon: mdi:calendar-today
+  # il totale per kWh (tutto compreso): lo riscrive da solo l'automazione qui sotto
+  prezzo_energia:
+    name: Prezzo energia
+    min: 0
+    max: 1
+    step: 0.0001
+    mode: box
+    unit_of_measurement: "€/kWh"
+    icon: mdi:currency-eur
+
+automation:
+  - id: prezzo_luce_dalle_voci_della_bolletta
+    alias: Prezzo luce dalle voci della bolletta
+    description: Ricalcola il prezzo tutto compreso quando cambia una delle voci.
+    mode: queued
+    triggers:
+      - trigger: state
+        entity_id:
+          - input_number.prezzo_luce_energia
+          - input_number.prezzo_luce_rete_e_oneri
+          - input_number.prezzo_luce_accise
+          - input_number.iva_luce
+      - trigger: homeassistant
+        event: start
+    actions:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.prezzo_energia
+        data:
+          value: >-
+            {{ ((states('input_number.prezzo_luce_energia') | float(0)
+                 + states('input_number.prezzo_luce_rete_e_oneri') | float(0)
+                 + states('input_number.prezzo_luce_accise') | float(0))
+                * (1 + states('input_number.iva_luce') | float(0) / 100)) | round(4) }}
+
+# --- I contatori per periodo -------------------------------------------------
+# I nomi "casa_totale_casa_rete_*" sono quelli che la scheda cerca da sola.
+utility_meter:
+  casa_totale_casa_rete_ora:
+    source: sensor.mio_contatore_rete_kwh
+    cycle: hourly
+  casa_totale_casa_rete_oggi:
+    source: sensor.mio_contatore_rete_kwh
+    cycle: daily
+  casa_totale_casa_rete_settimana:
+    source: sensor.mio_contatore_rete_kwh
+    cycle: weekly
+  casa_totale_casa_rete_mese:
+    source: sensor.mio_contatore_rete_kwh
+    cycle: monthly
+  lavatrice_energia_oggi:
+    source: sensor.lavatrice_energia
+    cycle: daily
+  lavatrice_energia_mese:
+    source: sensor.lavatrice_energia
+    cycle: monthly
+  risparmio_fotovoltaico_oggi:
+    source: sensor.risparmio_fotovoltaico
+    cycle: daily
+    net_consumption: true
+  risparmio_fotovoltaico_mese:
+    source: sensor.risparmio_fotovoltaico
+    cycle: monthly
+    net_consumption: true
+
+template:
+# --- I costi per periodo (tutto compreso = consumo x prezzo + quota fissa) ---
+- sensor:
+  - name: Costo energia ora
+    unique_id: luce_costo_energia_ora
+    unit_of_measurement: EUR
+    device_class: monetary
+    state: "{{ (states('sensor.casa_totale_casa_rete_ora') | float(0) * states('input_number.prezzo_energia') | float(0)) | round(2) }}"
+  - name: Costo energia oggi
+    unique_id: luce_costo_energia_oggi
+    unit_of_measurement: EUR
+    device_class: monetary
+    state: "{{ (states('sensor.casa_totale_casa_rete_oggi') | float(0) * states('input_number.prezzo_energia') | float(0) + states('input_number.quota_fissa_energia_giorno') | float(0)) | round(2) }}"
+  - name: Costo energia ieri
+    unique_id: luce_costo_energia_ieri
+    unit_of_measurement: EUR
+    device_class: monetary
+    state: "{{ (state_attr('sensor.casa_totale_casa_rete_oggi', 'last_period') | float(0) * states('input_number.prezzo_energia') | float(0) + states('input_number.quota_fissa_energia_giorno') | float(0)) | round(2) }}"
+  - name: Costo energia settimana
+    unique_id: luce_costo_energia_settimana
+    unit_of_measurement: EUR
+    device_class: monetary
+    state: "{{ (states('sensor.casa_totale_casa_rete_settimana') | float(0) * states('input_number.prezzo_energia') | float(0) + states('input_number.quota_fissa_energia_giorno') | float(0) * (now().weekday() + 1)) | round(2) }}"
+  - name: Costo energia mese
+    unique_id: luce_costo_energia_mese
+    unit_of_measurement: EUR
+    device_class: monetary
+    state: "{{ (states('sensor.casa_totale_casa_rete_mese') | float(0) * states('input_number.prezzo_energia') | float(0) + states('input_number.quota_fissa_energia_giorno') | float(0) * now().day) | round(2) }}"
+
+# --- Il conto voce per voce (i conti li fa la macro in luce.jinja) -----------
+  - name: Costi luce oggi
+    unique_id: luce_costi_luce_oggi
+    unit_of_measurement: EUR
+    device_class: monetary
+    state: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_oggi') | float(0), 1, 'totale') }}"
+    attributes:
+      kwh: "{{ states('sensor.casa_totale_casa_rete_oggi') | float(0) | round(2) }}"
+      energia: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_oggi') | float(0), 1, 'energia') }}"
+      rete_e_oneri: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_oggi') | float(0), 1, 'rete_e_oneri') }}"
+      accise: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_oggi') | float(0), 1, 'accise') }}"
+      quota_fissa: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_oggi') | float(0), 1, 'quota_fissa') }}"
+      iva: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_oggi') | float(0), 1, 'iva') }}"
+      risparmio_fotovoltaico: "{{ states('sensor.risparmio_fotovoltaico_oggi') | float(0) | round(2) }}"
+  - name: Costi luce mese
+    unique_id: luce_costi_luce_mese
+    unit_of_measurement: EUR
+    device_class: monetary
+    state: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_mese') | float(0), now().day, 'totale') }}"
+    attributes:
+      kwh: "{{ states('sensor.casa_totale_casa_rete_mese') | float(0) | round(2) }}"
+      energia: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_mese') | float(0), now().day, 'energia') }}"
+      rete_e_oneri: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_mese') | float(0), now().day, 'rete_e_oneri') }}"
+      accise: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_mese') | float(0), now().day, 'accise') }}"
+      quota_fissa: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_mese') | float(0), now().day, 'quota_fissa') }}"
+      iva: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_mese') | float(0), now().day, 'iva') }}"
+      risparmio_fotovoltaico: "{{ states('sensor.risparmio_fotovoltaico_mese') | float(0) | round(2) }}"
+
+# --- Per la pagina Energia di Home Assistant (facoltativi) -------------------
+# Mettine UNO come "costo" della rete in Impostazioni > Plance > Energia:
+#  - Costo rete bolletta: tutto compreso, come in bolletta (quota fissa a mezzanotte)
+#  - Costo energia pura: solo kWh x prezzo dell'energia, senza tasse
+- triggers:
+  - trigger: state
+    entity_id: sensor.mio_contatore_rete_kwh
+    id: energia
+  - trigger: time
+    at: "00:00:00"
+    id: mezzanotte
+  sensor:
+  - name: Costo rete bolletta
+    unique_id: luce_costo_rete_bolletta
+    unit_of_measurement: EUR
+    device_class: monetary
+    state_class: total_increasing
+    state: >-
+      {% set base = this.state | float(0) %}
+      {% set cur = states('sensor.mio_contatore_rete_kwh') | float(none) %}
+      {% set last = this.attributes.get('ultima_lettura') %}
+      {% set d = (cur - last | float(0)) if (cur is not none and last is not none) else 0 %}
+      {% set d = d if 0 < d < 50 else 0 %}
+      {% set q = states('input_number.quota_fissa_energia_giorno') | float(0) if trigger.id == 'mezzanotte' else 0 %}
+      {{ (base + d * states('input_number.prezzo_energia') | float(0) + q) | round(5) }}
+    attributes:
+      ultima_lettura: >-
+        {% set cur = states('sensor.mio_contatore_rete_kwh') | float(none) %}
+        {{ cur if cur is not none else this.attributes.get('ultima_lettura') }}
+  - name: Costo energia pura
+    unique_id: luce_costo_energia_pura
+    unit_of_measurement: EUR
+    device_class: monetary
+    state_class: total_increasing
+    state: >-
+      {% set base = this.state | float(0) %}
+      {% set cur = states('sensor.mio_contatore_rete_kwh') | float(none) %}
+      {% set last = this.attributes.get('ultima_lettura') %}
+      {% set d = (cur - last | float(0)) if (cur is not none and last is not none) else 0 %}
+      {% set d = d if 0 < d < 50 else 0 %}
+      {{ (base + d * states('input_number.prezzo_luce_energia') | float(0)) | round(5) }}
+    attributes:
+      ultima_lettura: >-
+        {% set cur = states('sensor.mio_contatore_rete_kwh') | float(none) %}
+        {{ cur if cur is not none else this.attributes.get('ultima_lettura') }}
+
+# --- Risparmio fotovoltaico --------------------------------------------------
+# Energia dei pannelli usata in casa (anche passando dalla batteria) x prezzo:
+# + pannelli, + scarica batteria, - restituita alla rete, - carica batteria.
+- triggers:
+  - trigger: state
+    entity_id:
+    - sensor.mio_fotovoltaico_kwh
+    - sensor.mia_rete_restituita_kwh
+    - sensor.mia_batteria_carica_kwh
+    - sensor.mia_batteria_scarica_kwh
+  sensor:
+  - name: Risparmio fotovoltaico
+    unique_id: luce_risparmio_fotovoltaico
+    unit_of_measurement: EUR
+    device_class: monetary
+    state_class: total
+    state: >-
+      {% set fonti = {'sensor.mio_fotovoltaico_kwh': 1, 'sensor.mia_rete_restituita_kwh': -1,
+                      'sensor.mia_batteria_carica_kwh': -1, 'sensor.mia_batteria_scarica_kwh': 1} %}
+      {% set prima = this.attributes.get('letture', {}) %}
+      {% set ns = namespace(k=0) %}
+      {% for e, segno in fonti.items() %}
+        {% set ora = states(e) | float(none) %}
+        {% set p = prima.get(e) if prima is mapping else none %}
+        {% if ora is not none and p is not none %}
+          {% set d = ora - p | float(0) %}
+          {% if 0 < d < 20 %}{% set ns.k = ns.k + segno * d %}{% endif %}
+        {% endif %}
+      {% endfor %}
+      {{ (this.state | float(0) + ns.k * states('input_number.prezzo_energia') | float(0)) | round(5) }}
+    attributes:
+      letture: >-
+        {% set fonti = ['sensor.mio_fotovoltaico_kwh', 'sensor.mia_rete_restituita_kwh',
+                        'sensor.mia_batteria_carica_kwh', 'sensor.mia_batteria_scarica_kwh'] %}
+        {% set prima = this.attributes.get('letture', {}) %}
+        {% set ns = namespace(d={}) %}
+        {% for e in fonti %}
+          {% set ora = states(e) | float(none) %}
+          {% set p = prima.get(e) if prima is mapping else none %}
+          {% set v = ora if ora is not none else p %}
+          {% if v is not none %}{% set ns.d = dict(ns.d, **{e: v}) %}{% endif %}
+        {% endfor %}
+        {{ ns.d }}
+
+# --- Un elettrodomestico: la lavatrice ---------------------------------------
+# Per un altro elettrodomestico copia tutto il blocco qui sotto e cambia
+# "lavatrice" col suo nome (lo stesso che darai alla casella), la presa e la
+# soglia in W. I nomi <nome>_ciclo, <nome>_cicli_oggi e <nome>_cicli_mese sono
+# quelli che la scheda cerca da sola. Ricorda anche i due contatori <nome>_energia_oggi/_mese.
+- binary_sensor:
+  - name: Lavatrice in funzione
+    unique_id: shc_lavatrice_in_funzione
+    icon: "mdi:play-circle-outline"
+    state: "{{ states('sensor.lavatrice_potenza')|float(0) > 10 }}"
+    delay_on: "00:01:00"
+    delay_off: "00:10:00"
+- triggers:
+  - trigger: state
+    entity_id: binary_sensor.lavatrice_in_funzione
+    not_from:
+    - unavailable
+    - 'on'
+    to: 'on'
+    id: inizio
+  - trigger: state
+    entity_id: binary_sensor.lavatrice_in_funzione
+    from: 'on'
+    to: 'off'
+    id: fine
+  - trigger: time
+    at: "00:00:00"
+    id: mezzanotte
+  - trigger: time_pattern
+    minutes: /5
+    id: aggiorna
+  - trigger: homeassistant
+    event: start
+    id: aggiorna
+  sensor:
+  - name: Lavatrice ciclo
+    unique_id: shc_lavatrice_ciclo
+    icon: "mdi:history"
+    state: "{{ 'In funzione' if is_state('binary_sensor.lavatrice_in_funzione', 'on') else 'Fermo' }}"
+    attributes:
+      inizio: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% if trigger.id == 'inizio' %}{{ (now() - timedelta(minutes=1)).isoformat() }}{% elif trigger.id == 'fine' %}{% else %}{{ ini }}{% endif %}"
+      terminato: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% if chiude %}{{ fine_t.strftime('%d/%m %H:%M') }}{% else %}{{ this.attributes.get('terminato', '—') }}{% endif %}"
+      tempo_ciclo: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% if chiude %}{% set v = d %}{{ '%dh %02dm' % (v // 60, v % 60) if v >= 60 else '%d min' % v }}{% else %}{{ this.attributes.get('tempo_ciclo', '—') }}{% endif %}"
+      energia_inizio: "{% if trigger.id == 'inizio' %}{{ states('sensor.lavatrice_energia')|float(0) }}{% else %}{{ this.attributes.get('energia_inizio', 0) }}{% endif %}"
+      consumo_ciclo: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% if chiude %}{{ '%.2f kWh' % ((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) }}{% else %}{{ this.attributes.get('consumo_ciclo', '—') }}{% endif %}"
+      costo_ciclo: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% if chiude %}{{ (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(2) }}{% else %}{{ this.attributes.get('costo_ciclo', '') }}{% endif %}"
+      costo_oggi: "{{ [0, states('sensor.lavatrice_energia_oggi')|float(0) * states('input_number.prezzo_energia')|float(0)] | max | round(2) }}"
+      costo_ieri: "{{ [0, state_attr('sensor.lavatrice_energia_oggi', 'last_period')|float(0) * states('input_number.prezzo_energia')|float(0)] | max | round(2) }}"
+      costo_mese: "{{ [0, states('sensor.lavatrice_energia_mese')|float(0) * states('input_number.prezzo_energia')|float(0)] | max | round(2) }}"
+      costo_mese_prec: "{{ [0, state_attr('sensor.lavatrice_energia_mese', 'last_period')|float(0) * states('input_number.prezzo_energia')|float(0)] | max | round(2) }}"
+      min_oggi: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set v = 0 if trigger.id == 'mezzanotte' else (this.attributes.get('min_oggi', 0)|int(0) + d) %}{{ v }}"
+      tempo_oggi: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set v = 0 if trigger.id == 'mezzanotte' else (this.attributes.get('min_oggi', 0)|int(0) + d) %}{{ '%dh %02dm' % (v // 60, v % 60) if v >= 60 else '%d min' % v }}"
+      min_ieri: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set v = (this.attributes.get('min_oggi', 0)|int(0)) if trigger.id == 'mezzanotte' else (this.attributes.get('min_ieri', 0)|int(0)) %}{{ v }}"
+      tempo_ieri: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set v = (this.attributes.get('min_oggi', 0)|int(0)) if trigger.id == 'mezzanotte' else (this.attributes.get('min_ieri', 0)|int(0)) %}{{ '%dh %02dm' % (v // 60, v % 60) if v >= 60 else '%d min' % v }}"
+      min_mese: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set v = 0 if nuovo_mese else (this.attributes.get('min_mese', 0)|int(0) + d) %}{{ v }}"
+      tempo_mese: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set v = 0 if nuovo_mese else (this.attributes.get('min_mese', 0)|int(0) + d) %}{{ '%dh %02dm' % (v // 60, v % 60) if v >= 60 else '%d min' % v }}"
+      min_mese_prec: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set v = (this.attributes.get('min_mese', 0)|int(0)) if nuovo_mese else (this.attributes.get('min_mese_prec', 0)|int(0)) %}{{ v }}"
+      tempo_mese_prec: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set v = (this.attributes.get('min_mese', 0)|int(0)) if nuovo_mese else (this.attributes.get('min_mese_prec', 0)|int(0)) %}{{ '%dh %02dm' % (v // 60, v % 60) if v >= 60 else '%d min' % v }}"
+  - name: Lavatrice cicli oggi
+    unique_id: shc_lavatrice_cicli_oggi
+    icon: "mdi:counter"
+    state: "{% set c = this.state | int(0) %}{{ 0 if trigger.id == 'mezzanotte' else (c + 1 if trigger.id == 'inizio' else c) }}"
+    attributes:
+      last_period: "{{ (this.state | int(0)) if trigger.id == 'mezzanotte' else this.attributes.get('last_period', 0) }}"
+  - name: Lavatrice cicli mese
+    unique_id: shc_lavatrice_cicli_mese
+    icon: "mdi:counter"
+    state: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set c = this.state | int(0) %}{{ 0 if nuovo_mese else (c + 1 if trigger.id == 'inizio' else c) }}"
+    attributes:
+      last_period: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{{ (this.state | int(0)) if nuovo_mese else this.attributes.get('last_period', 0) }}"
