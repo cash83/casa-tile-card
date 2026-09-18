@@ -392,6 +392,9 @@ const STYLE = `
 .dm-ap-cycle-row-b{padding:4px 8px;border-radius:9px;border:1px solid var(--dm-border);background:var(--dm-card);align-items:center}
 .dm-ap-cycle-label{display:flex;align-items:center;gap:5px;min-width:0}
 .dm-ap-cycle-ic{display:flex;align-items:center;flex:0 0 auto;color:var(--dm-blue)}
+.dm-colore{border-left:3px solid var(--c)!important;border-radius:4px 9px 9px 4px!important}
+.dm-colore small,.dm-colore b,.dm-colore .dm-ap-cycle-ic,.dm-colore .dm-ap-row-label,.dm-colore .dm-ap-row-val{color:var(--c)!important}
+.dm-colore.dm-forte b,.dm-colore.dm-forte .dm-ap-row-val{font-size:15.5px;font-weight:700}
 .dm-ap-panel{display:flex;align-items:center;gap:14px;margin:10px 13px 13px;padding:13px 14px;border-radius:16px;background:var(--dm-soft)}
 .dm-ap-meters{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
 .dm-c-meter-clickable{cursor:pointer;border-radius:8px;transition:background .12s ease}

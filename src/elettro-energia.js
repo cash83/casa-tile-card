@@ -60,14 +60,13 @@ export class CasaEnergia extends HTMLElement {
           <div class="dm-ap-cycle-side">
             <span class="dm-ap-cycle-cap">Oggi</span>
             <div class="dm-ap-cycle-list">
-              <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-e-today-kwh">\u2014</b></div>
-              <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Pagato + tasse</small></span><b class="dm-e-today-cost">\u2014</b></div>
-              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Pagato no tasse</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}
-              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Senza FV + tasse</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}
-              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Senza FV no tasse</small></span><b class="dm-e-senzafv-en">\u2014</b></div>` : ""}
-              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio FV</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}
-              <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese + tasse</small></span><b class="dm-e-month-cost">\u2014</b></div>
-              <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>
+              <div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-e-today-kwh">\u2014</b></div>
+              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f28c3c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Energia + tasse</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}
+              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#43b86a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio pannelli</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}
+              <div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore dm-forte" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Paghi (+ tasse)</small></span><b class="dm-e-today-cost">\u2014</b></div>
+              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}
+              <div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>
+              <div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>
             </div>
           </div>
         </div>
@@ -248,6 +247,13 @@ export class CasaEnergia extends HTMLElement {
     return this._row(label, `<span class="dm-ap-row-val">${esc(value)}</span>`);
   }
 
+  // come _statRow2, ma con la barretta e le scritte del colore della riga
+  _statRow2c(colore, forte, label, aVal, bVal) {
+    const html = this._statRow2(label, aVal, bVal);
+    if (!colore) return html;
+    return html.replace('class="dm-ap-row"', `class="dm-ap-row dm-colore${forte ? " dm-forte" : ""}" style="--c:${colore}"`);
+  }
+
   _statRow2(label, aVal, bVal) {
     return this._row(label, `<span class="dm-ap-row-val">${esc(aVal)}&nbsp;&nbsp;\u00b7&nbsp;&nbsp;${esc(bVal)}</span>`);
   }
@@ -405,21 +411,21 @@ export class CasaEnergia extends HTMLElement {
     const oggi = a(cfg.bill_today);
     const mese = a(cfg.bill_month);
     const tot = (id) => this._euro(id ? hass.states[id]?.state : null);
-    const riga = (label, k, euro = true) => this._statRow2(label,
+    const riga = (label, k, euro = true, colore = null, forte = false) => this._statRow2c(colore, forte, label,
       euro ? this._euro(oggi[k]) : `${Number(oggi[k] ?? 0).toFixed(2)} kWh`,
       euro ? this._euro(mese[k]) : `${Number(mese[k] ?? 0).toFixed(2)} kWh`);
     return `
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Il conto, voce per voce &nbsp;(oggi &middot; mese)</div>
-        ${riga("kWh presi dalla rete", "kwh", false)}
-        ${riga("Energia", "energia")}
-        ${riga("Rete e oneri", "rete_e_oneri")}
-        ${riga("Accise", "accise")}
-        ${riga("Quota fissa", "quota_fissa")}
-        ${riga("IVA", "iva")}
-        ${this._statRow2("Totale", tot(cfg.bill_today), tot(cfg.bill_month))}
+        ${riga("kWh presi dalla rete", "kwh", false, "#3fb4ea")}
+        ${riga("Energia", "energia", true, "#2fbfb0")}
+        ${riga("Rete e oneri", "rete_e_oneri", true, "#f28c3c")}
+        ${riga("Accise", "accise", true, "#a283f2")}
+        ${riga("Quota fissa", "quota_fissa", true, "#f06e82")}
+        ${riga("IVA", "iva", true, "#8e98a4")}
+        ${this._statRow2c("#e2ad1c", true, "Totale", tot(cfg.bill_today), tot(cfg.bill_month))}
       </div>
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Fotovoltaico</div>
-        ${riga("Risparmio (energia che non hai comprato)", "risparmio_fotovoltaico")}
+        ${riga("Risparmio (energia che non hai comprato)", "risparmio_fotovoltaico", true, "#43b86a")}
       </div>`;
   }
 
@@ -563,7 +569,7 @@ export class CasaEnergia extends HTMLElement {
     if (fvEl) {
       const oggi = this._euro(hass.states[cfg.bill_today]?.attributes?.risparmio_fotovoltaico);
       fvEl.textContent = cfg.bill_month
-        ? `${oggi} oggi \u00b7 ${this._euro(hass.states[cfg.bill_month]?.attributes?.risparmio_fotovoltaico)} mese`
+        ? `\u2212 ${oggi} \u00b7 ${this._euro(hass.states[cfg.bill_month]?.attributes?.risparmio_fotovoltaico)} mese`
         : oggi;
     }
     const senzaEl = this._root.querySelector(".dm-e-senzafv");
