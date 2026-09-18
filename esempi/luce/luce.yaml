@@ -1,6 +1,7 @@
 # =============================================================================
 #  Casa Tile Card - i sensori per le schede casa-energia e casa-elettrodomestico
 # =============================================================================
+#  Istruzioni passo per passo: esempi/luce/README.md
 #  Package di esempio: copialo in /config/packages/luce.yaml
 #  (in configuration.yaml serve:  homeassistant: packages: !include_dir_named packages)
 #  e copia luce.jinja in /config/custom_templates/luce.jinja.
