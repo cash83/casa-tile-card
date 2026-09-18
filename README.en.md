@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.19.5-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.19.6-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -132,7 +132,7 @@ create them.
 | Watts now, circuit bars, top consumer | power sensors (W) of your plugs | you already have them (Shelly, Tuya, Zigbee…) |
 | Today's usage / periods | `sensor.casa_totale_casa_rete_ora` · `_oggi` · `_settimana` · `_mese` | `utility_meter` on your main grid meter in kWh |
 | Cost incl. taxes, month incl. taxes | `sensor.costo_energia_ora` · `_oggi` · `_ieri` · `_settimana` · `_mese` | template sensors: kWh × price + daily fixed fee |
-| Energy only, bill line by line | `sensor.costi_luce_oggi`, `sensor.costi_luce_mese` (attributes `kwh`, `energia`, `rete_e_oneri`, `accise`, `quota_fissa`, `iva`, `risparmio_fotovoltaico`) | template sensors + the `luce.jinja` macro |
+| Energy only, bill line by line | `sensor.costi_luce_oggi`, `sensor.costi_luce_mese` (attributes `kwh`, `energia`, `rete_e_oneri`, `accise`, `quota_fissa`, `iva`, `risparmio_fotovoltaico`, `risparmio_fotovoltaico_energia`) — also used for the "Without solar" row | template sensors + the `luce.jinja` macro |
 | Solar savings | `sensor.risparmio_fotovoltaico` + `_oggi` / `_mese` meters | trigger sensor + `utility_meter` with `net_consumption: true` |
 | The price | `input_number.prezzo_luce_energia`, `…_rete_e_oneri`, `…_accise`, `input_number.iva_luce`, `input_number.quota_fissa_energia_giorno` → `input_number.prezzo_energia` (total) | helpers + one automation that recomputes the total |
 | Last cycle, cycles, time and cost of an appliance | `sensor.<name>_ciclo`, `sensor.<name>_cicli_oggi`, `sensor.<name>_cicli_mese` (+ `<name>_energia_oggi` / `_mese` meters) | trigger sensors watching the plug's Watts |

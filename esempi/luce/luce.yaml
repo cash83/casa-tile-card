@@ -176,6 +176,7 @@ template:
       quota_fissa: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_oggi') | float(0), 1, 'quota_fissa') }}"
       iva: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_oggi') | float(0), 1, 'iva') }}"
       risparmio_fotovoltaico: "{{ states('sensor.risparmio_fotovoltaico_oggi') | float(0) | round(2) }}"
+      risparmio_fotovoltaico_energia: "{{ (states('sensor.risparmio_fotovoltaico_oggi') | float(0) * states('input_number.prezzo_luce_energia') | float(0) / ([states('input_number.prezzo_energia') | float(0), 0.0001] | max)) | round(2) }}"
   - name: Costi luce mese
     unique_id: luce_costi_luce_mese
     unit_of_measurement: EUR
@@ -189,6 +190,7 @@ template:
       quota_fissa: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_mese') | float(0), now().day, 'quota_fissa') }}"
       iva: "{% from 'luce.jinja' import conto %}{{ conto(states('sensor.casa_totale_casa_rete_mese') | float(0), now().day, 'iva') }}"
       risparmio_fotovoltaico: "{{ states('sensor.risparmio_fotovoltaico_mese') | float(0) | round(2) }}"
+      risparmio_fotovoltaico_energia: "{{ (states('sensor.risparmio_fotovoltaico_mese') | float(0) * states('input_number.prezzo_luce_energia') | float(0) / ([states('input_number.prezzo_energia') | float(0), 0.0001] | max)) | round(2) }}"
 
 # --- Per la pagina Energia di Home Assistant (facoltativi) -------------------
 # Mettine UNO come "costo" della rete in Impostazioni > Plance > Energia:

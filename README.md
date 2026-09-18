@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.19.5-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.19.6-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -131,7 +131,7 @@ Senza sensori si vedono lo stesso i Watt; il resto compare man mano che li crei.
 | Watt adesso, barre dei circuiti, top consumo | sensori di potenza (W) delle prese | ci sono già (Shelly, Tuya, Zigbee…) |
 | Consumo di oggi / periodi | `sensor.casa_totale_casa_rete_ora` · `_oggi` · `_settimana` · `_mese` | contatori di utenza (`utility_meter`) sul contatore generale in kWh |
 | Costo + tasse, Mese + tasse | `sensor.costo_energia_ora` · `_oggi` · `_ieri` · `_settimana` · `_mese` | sensori template: kWh × prezzo + quota fissa |
-| Solo energia, conto voce per voce | `sensor.costi_luce_oggi`, `sensor.costi_luce_mese` (attributi `kwh`, `energia`, `rete_e_oneri`, `accise`, `quota_fissa`, `iva`, `risparmio_fotovoltaico`) | sensori template + macro `luce.jinja` |
+| Solo energia, conto voce per voce | `sensor.costi_luce_oggi`, `sensor.costi_luce_mese` (attributi `kwh`, `energia`, `rete_e_oneri`, `accise`, `quota_fissa`, `iva`, `risparmio_fotovoltaico`, `risparmio_fotovoltaico_energia`) — da qui anche la riga «Senza FV» | sensori template + macro `luce.jinja` |
 | Risparmio FV | `sensor.risparmio_fotovoltaico` + contatori `_oggi` / `_mese` | sensore trigger + `utility_meter` con `net_consumption: true` |
 | Il prezzo | `input_number.prezzo_luce_energia`, `…_rete_e_oneri`, `…_accise`, `input_number.iva_luce`, `input_number.quota_fissa_energia_giorno` → `input_number.prezzo_energia` (totale) | aiutanti + un'automazione che ricalcola il totale |
 | Ultimo ciclo, cicli, tempi e costi di un elettrodomestico | `sensor.<nome>_ciclo`, `sensor.<nome>_cicli_oggi`, `sensor.<nome>_cicli_mese` (+ contatori `<nome>_energia_oggi` / `_mese`) | sensori trigger che guardano i W della presa |
