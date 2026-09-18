@@ -8185,7 +8185,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.19.2";
+const VERSIONE = "2.19.3";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -17519,6 +17519,7 @@ class CasaEnergia extends HTMLElement {
             <div class="dm-ap-cycle-list">
               <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-e-today-kwh">\u2014</b></div>
               <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo</small></span><b class="dm-e-today-cost">\u2014</b></div>
+              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Solo energia</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}
               <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo mese</small></span><b class="dm-e-month-cost">\u2014</b></div>
               <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>
               ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio FV</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}
@@ -18015,6 +18016,8 @@ class CasaEnergia extends HTMLElement {
     this._root.querySelector(".dm-e-top").textContent = this._topText(hass);
     const fvEl = this._root.querySelector(".dm-e-fv");
     if (fvEl) fvEl.textContent = this._euro(hass.states[cfg.bill_today]?.attributes?.risparmio_fotovoltaico);
+    const soloEl = this._root.querySelector(".dm-e-solo");
+    if (soloEl) soloEl.textContent = this._euro(hass.states[cfg.bill_today]?.attributes?.energia);
 
     (cfg.circuits || []).slice(0, 4).forEach((c, i) => {
       const el = this._root.querySelector(`[data-circuit-index="${i}"]`);
