@@ -8185,7 +8185,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.19.5";
+const VERSIONE = "2.19.6";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -17523,6 +17523,7 @@ class CasaEnergia extends HTMLElement {
               <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese + tasse</small></span><b class="dm-e-month-cost">\u2014</b></div>
               <div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>
               ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio FV</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}
+              ${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Senza FV</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}
             </div>
           </div>
         </div>
@@ -18021,6 +18022,14 @@ class CasaEnergia extends HTMLElement {
         ? `${oggi} \u00b7 ${this._euro(hass.states[cfg.bill_month]?.attributes?.risparmio_fotovoltaico)}`
         : oggi;
     }
+    const senzaEl = this._root.querySelector(".dm-e-senzafv");
+    if (senzaEl) {
+      const b = hass.states[cfg.bill_today];
+      const a = b?.attributes || {};
+      const tot = Number(b?.state) + Number(a.risparmio_fotovoltaico || 0);
+      const en = Number(a.energia || 0) + Number(a.risparmio_fotovoltaico_energia || 0);
+      senzaEl.textContent = `${this._euro(tot)} \u00b7 en. ${this._euro(en)}`;
+    }
     const soloEl = this._root.querySelector(".dm-e-solo");
     if (soloEl) soloEl.textContent = this._euro(hass.states[cfg.bill_today]?.attributes?.energia);
 
@@ -18028,7 +18037,7 @@ class CasaEnergia extends HTMLElement {
       const el = this._root.querySelector(`[data-circuit-index="${i}"]`);
       if (!el) return;
       const v = Number(hass.states[c.entity]?.state);
-      const vVal = Number.isFinite(v) ? v : 0;
+      const vVal = Number.isFinite(v) ? Math.max(0, v) : 0;
       el.querySelector(".dm-e-c-val").textContent = `${vVal.toFixed(0)} W`;
       const pct = c.max ? Math.min(100, (vVal / c.max) * 100) : 0;
       const bar = el.querySelector(".dm-e-c-bar");
