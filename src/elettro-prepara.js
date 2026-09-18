@@ -152,6 +152,9 @@ export function preparaEnergia(hass, cfg) {
     scheda.periods = periodi;
     scheda.periods_prev = [{ label: "Ieri", energy: "sensor.casa_totale_casa_rete_oggi", energy_attr: "last_period", cost: "sensor.costo_energia_ieri" }];
   }
+  // il conto voce per voce e il risparmio del fotovoltaico, se ci sono
+  if (st["sensor.costi_luce_oggi"]) scheda.bill_today = "sensor.costi_luce_oggi";
+  if (st["sensor.costi_luce_mese"]) scheda.bill_month = "sensor.costi_luce_mese";
   if (st["input_number.prezzo_energia"]) {
     const righe = [{ entity: "input_number.prezzo_energia", label: "Prezzo energia (€/kWh)" }];
     if (st["input_number.quota_fissa_energia_giorno"]) {
