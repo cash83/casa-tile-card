@@ -1,6 +1,6 @@
 // L'editor a clic di custom:casa-energia.
 // Sopra: le impostazioni (ha-form di Home Assistant). Sotto: le righe del
-// riquadro Oggi, da accendere/spegnere e mettere in ordine con le frecce.
+// riquadro Oggi, da accendere/spegnere, trascinare in ordine e rinominare.
 // I circuiti si scelgono come elenco di entita': il nome lo prendo dal
 // sensore, e chi li ha gia' configurati a mano li ritrova come erano.
 
@@ -43,6 +43,8 @@ const STILE = `
   .ce-riga .ent{flex:1 1 35%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
   .ce-riga input.nome{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
   .ce-riga input.max{width:72px;padding:5px 6px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
+  .ce-riga .maniglia{cursor:grab;touch-action:none;user-select:none;font-size:18px;line-height:1;padding:2px 4px;color:var(--secondary-text-color)}
+  .ce-riga.trascino{outline:2px solid var(--primary-color);opacity:.85}
   .ce-riga button{border:1px solid var(--divider-color,#555);background:none;color:inherit;border-radius:7px;width:30px;height:28px;cursor:pointer;font-size:14px}
   .ce-riga button:disabled{opacity:.3;cursor:default}
   .ce-prepara{margin-top:10px;border:1px solid var(--primary-color);background:none;color:var(--primary-color);border-radius:9px;padding:7px 12px;cursor:pointer}
@@ -114,15 +116,13 @@ export class CasaEnergiaEditor extends HTMLElement {
     box.innerHTML = "";
     [...scelte, ...spente].forEach((id) => {
       const accesa = scelte.includes(id);
-      const pos = scelte.indexOf(id);
       const voce = RIGHE_OGGI.find((r) => r.id === id);
       const riga = document.createElement("div");
       riga.className = "ce-riga" + (accesa ? "" : " spenta");
-      riga.innerHTML = `<label><input type="checkbox" ${accesa ? "checked" : ""}> <span></span></label>
+      riga.innerHTML = `<span class="maniglia" title="Trascina per spostare">⠿</span><label><input type="checkbox" ${accesa ? "checked" : ""}> <span></span></label>
         <input type="text" class="nome">
-        <button type="button" class="su" title="Su">▲</button>
-        <button type="button" class="giu" title="Giù">▼</button>`;
-      riga.querySelector("span").textContent = voce.nome;
+        `;
+      riga.querySelector("label span").textContent = voce.nome;
       // il nome che si vede sulla scheda: vuoto = quello di serie
       const nome = riga.querySelector(".nome");
       nome.placeholder = voce.etichetta;
@@ -136,24 +136,47 @@ export class CasaEnergiaEditor extends HTMLElement {
         if (!Object.keys(nomi).length) delete this._config.nomi_righe;
         this._emetti();
       });
-      const su = riga.querySelector(".su");
-      const giu = riga.querySelector(".giu");
-      su.disabled = !accesa || pos === 0;
-      giu.disabled = !accesa || pos === scelte.length - 1;
+      riga.dataset.id = id;
+      if (accesa) riga.classList.add("accesa");
       riga.querySelector("input").addEventListener("change", (e) => {
         const n = scelte.filter((x) => x !== id);
         if (e.target.checked) n.push(id);
         this._scriviRighe(n);
       });
-      su.addEventListener("click", () => {
-        const n = [...scelte];
-        [n[pos - 1], n[pos]] = [n[pos], n[pos - 1]];
-        this._scriviRighe(n);
-      });
-      giu.addEventListener("click", () => {
-        const n = [...scelte];
-        [n[pos + 1], n[pos]] = [n[pos], n[pos + 1]];
-        this._scriviRighe(n);
+      // SI SPOSTA TRASCINANDO LA MANIGLIA, col mouse o col dito (pointer
+      // events: il drag and drop nativo sul telefono non funziona). La riga
+      // si sposta mentre trascini; l'ordine si scrive quando lasci.
+      const maniglia = riga.querySelector(".maniglia");
+      if (!accesa) maniglia.style.visibility = "hidden";
+      maniglia.addEventListener("pointerdown", (e) => {
+        if (!accesa) return;
+        e.preventDefault();
+        try { maniglia.setPointerCapture(e.pointerId); } catch (err) { /* pazienza */ }
+        riga.classList.add("trascino");
+        const muovi = (ev) => {
+          const altre = [...box.querySelectorAll(".ce-riga.accesa")].filter((r) => r !== riga);
+          const prima = altre.find((r) => {
+            const q = r.getBoundingClientRect();
+            return ev.clientY < q.top + q.height / 2;
+          });
+          if (prima) box.insertBefore(riga, prima);
+          else {
+            // in fondo alle accese, prima delle spente
+            const spenta = box.querySelector(".ce-riga.spenta");
+            box.insertBefore(riga, spenta || null);
+          }
+        };
+        const lascia = () => {
+          window.removeEventListener("pointermove", muovi);
+          window.removeEventListener("pointerup", lascia);
+          window.removeEventListener("pointercancel", lascia);
+          riga.classList.remove("trascino");
+          const nuovo = [...box.querySelectorAll(".ce-riga.accesa")].map((r) => r.dataset.id);
+          if (nuovo.join() !== scelte.join()) this._scriviRighe(nuovo);
+        };
+        window.addEventListener("pointermove", muovi);
+        window.addEventListener("pointerup", lascia);
+        window.addEventListener("pointercancel", lascia);
       });
       box.appendChild(riga);
     });
@@ -194,7 +217,7 @@ export class CasaEnergiaEditor extends HTMLElement {
       this.innerHTML = `<style>${STILE}</style><div class="ce-form"></div>
         <div class="ce-sez">
           <div class="ce-tit">Righe del riquadro «Oggi»</div>
-          <div class="ce-aiuto">Spunta quelle da vedere, mettile in ordine con le frecce e, se vuoi,
+          <div class="ce-aiuto">Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi,
             scrivi il nome che preferisci (vuoto = quello di serie).</div>
           <div class="ce-righe"></div>
         </div>
