@@ -352,3 +352,20 @@ template:
     state: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{% set c = this.state | int(0) %}{{ 0 if nuovo_mese else (c + 1 if trigger.id == 'inizio' else c) }}"
     attributes:
       last_period: "{% set ini = this.attributes.get('inizio', '') %}{% set fine_t = now() - timedelta(minutes=10) %}{% set chiude = trigger.id == 'fine' and ini not in ['', none, 'None'] %}{% set d = ((fine_t - as_datetime(ini)).total_seconds() / 60) | round(0) | int if chiude else 0 %}{% set nuovo_mese = trigger.id == 'mezzanotte' and now().day == 1 %}{% set cc = (((states('sensor.lavatrice_energia')|float(0)) - (this.attributes.get('energia_inizio', 0)|float(0))) * states('input_number.prezzo_energia')|float(0)) | round(4) if chiude else 0 %}{{ (this.state | int(0)) if nuovo_mese else this.attributes.get('last_period', 0) }}"
+
+# --- Facoltativo: UNA PRESA PER DUE MACCHINE ---------------------------------
+# Se la presa della lavatrice alimenta anche l'asciugatrice, togli i # qui sotto:
+# i W della lavatrice sono quelli della presa quando l'asciugatrice e' ferma.
+# NIENTE device_class: se no il "top consumo" conta la presa due volte.
+# Nella scheda della lavatrice: power_entity: sensor.lavatrice_potenza_netta e
+# live.state_entity: binary_sensor.lavatrice_in_funzione (vedi README).
+# E nella soglia della lavatrice aggiungi:
+#   and not is_state('binary_sensor.asciugatrice_in_funzione', 'on')
+#- sensor:
+#  - name: Lavatrice potenza netta
+#    unique_id: luce_lavatrice_potenza_netta
+#    unit_of_measurement: W
+#    state_class: measurement
+#    state: >-
+#      {{ 0 if is_state('binary_sensor.asciugatrice_in_funzione', 'on')
+#         else (states('sensor.lavatrice_potenza') | float(0)) | round(1) }}

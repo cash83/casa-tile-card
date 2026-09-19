@@ -154,9 +154,30 @@ change name, plug and threshold: the name must match the tile's, because the
 card looks for `sensor.<name>_ciclo`.
 
 **One plug for two machines?** If one plug measures two appliances (say washer
-and dryer), start the washer's cycle only while the other one is idle
-(`… > 10 and not is_state('binary_sensor.asciugatrice_in_funzione', 'on')`) and
-give the dryer the same plug's kWh while it runs.
+and dryer):
+
+1. start the washer's cycle only while the other one is idle
+   (`… > 10 and not is_state('binary_sensor.asciugatrice_in_funzione', 'on')`)
+   and give the dryer the same plug's kWh while it runs;
+2. create a **"washer net power"** sensor = the plug's Watts while the dryer is
+   idle, 0 while it runs (it's already at the end of
+   [`luce.yaml`](esempi/luce/luce.yaml), commented out). **No
+   `device_class`**, or the top consumer counts the plug twice;
+3. in the washer card use that sensor as the plug and the real cycle state,
+   so with only the dryer running the washer says "off" and 0 W:
+
+   ```yaml
+   power_entity: sensor.lavatrice_potenza_netta
+   live:
+     state_entity: binary_sensor.lavatrice_in_funzione
+   state_map:
+     "on": { mode: running, label: RUNNING }
+     "off": { mode: "off", label: "OFF" }
+   ```
+
+**Dryers that go "paused"** (LG and others): count the pause as running
+(`states(...) in ['Running', 'Paused']`), or a few-second pause splits the
+cycle in two.
 
 ### casa-energia options
 

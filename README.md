@@ -155,9 +155,31 @@ Per un secondo elettrodomestico copia il blocco della lavatrice in fondo a
 alla casella, perché la scheda cerca `sensor.<nome>_ciclo`.
 
 **Una presa per due macchine?** Se una presa sola misura due macchine (per
-esempio lavatrice e asciugatrice), fai partire il ciclo della lavatrice solo
-quando l'altra è ferma (`… > 10 and not is_state('binary_sensor.asciugatrice_in_funzione', 'on')`)
-e dai all'asciugatrice i kWh della stessa presa mentre è in funzione.
+esempio lavatrice e asciugatrice):
+
+1. fai partire il ciclo della lavatrice solo quando l'altra è ferma
+   (`… > 10 and not is_state('binary_sensor.asciugatrice_in_funzione', 'on')`)
+   e dai all'asciugatrice i kWh della stessa presa mentre è in funzione;
+2. crea un sensore **«Lavatrice potenza netta»** = i W della presa quando
+   l'asciugatrice è ferma, 0 quando asciuga (in fondo a
+   [`luce.yaml`](esempi/luce/luce.yaml) c'è già, commentato). **Senza
+   `device_class`**, se no il top consumo conta la presa due volte;
+3. nella scheda della lavatrice usa quel sensore come presa e lo stato vero
+   del ciclo, così con la sola asciugatrice accesa la lavatrice dice «SPENTA»
+   e 0 W:
+
+   ```yaml
+   power_entity: sensor.lavatrice_potenza_netta
+   live:
+     state_entity: binary_sensor.lavatrice_in_funzione
+   state_map:
+     "on": { mode: running, label: IN FUNZIONE }
+     "off": { mode: "off", label: SPENTA }
+   ```
+
+**Asciugatrici che vanno «in pausa»** (LG e altre): conta la pausa come
+«in funzione» (`states(...) in ['In funzione', 'In pausa']`), se no una pausa
+di pochi secondi spezza il ciclo in due.
 
 ### Le opzioni di casa-energia
 
