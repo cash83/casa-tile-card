@@ -386,8 +386,31 @@ export class CasaElettrodomestico extends HTMLElement {
       liveHtml += this._row(row.label, `<span class="dm-ap-row-val">${esc(val)}</span>`);
     });
 
+    // Se l'apparecchio non racconta niente di se' (nessuna integrazione sua,
+    // solo la presa che misura), invece di una finestra muta dico quello che
+    // so davvero: i Watt di adesso e se sta lavorando.
+    const suoi = !!liveHtml;   // l'apparecchio racconta qualcosa di se'?
+    if (!liveHtml) {
+      const cfg = this._config;
+      const st = cfg.power_entity ? hass.states[cfg.power_entity] : null;
+      if (st) {
+        const unita = cfg.power_unit || st.attributes.unit_of_measurement || "W";
+        liveHtml += this._row(cfg.power_label || "Potenza attuale",
+          `<span class="dm-ap-row-val">${esc(st.state)} ${esc(unita)}</span>`);
+        const n = Number(st.state);
+        const soglia = Number(cfg.threshold_run);
+        if (Number.isFinite(n) && Number.isFinite(soglia)) {
+          liveHtml += this._row("Sta lavorando",
+            `<span class="dm-ap-row-val">${n > soglia ? "Sì" : "No"} (sopra ${soglia} ${esc(unita)})</span>`);
+        }
+      }
+    }
+
     this._openDialog("Stato", `
-      ${liveHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">In tempo reale</div>${liveHtml}</div>` : `<div class="dm-ap-row-val">Nessuna informazione disponibile</div>`}
+      ${liveHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">In tempo reale</div>${liveHtml}</div>` : ""}
+      ${suoi ? "" : `<div class="dm-ap-reset-note">Programma, tempo residuo, porta: compaiono
+        solo se l'apparecchio è collegato con la sua integrazione. Misurato solo dalla presa,
+        Home Assistant ne conosce i Watt e basta.</div>`}
     `);
   }
 

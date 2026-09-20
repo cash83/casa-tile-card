@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.28.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.28.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -253,6 +253,8 @@ entity tracking the total costs"** and pick:
 The full bill, line by line, stays in the casa-energia card.
 
 ## What's new in 2.28
+
+- **The "Status" dialog is no longer blank** for appliances you only know through their plug: it shows the current Watts and whether it is working, and explains that program, remaining time and door only come from the appliance's own integration.
 
 - **The pop-up chart talks now.** Hover it with the mouse (or press and drag with
   a finger) and a crosshair shows **the time and the Watts** at that point. It was

@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.28.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.28.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -255,6 +255,8 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
 
 ## Novità della 2.28
+
+- **La finestra «Stato» non è più muta** per gli apparecchi che conosci solo dalla presa: mostra i Watt di adesso e se sta lavorando, e spiega che programma, tempo residuo e porta arrivano solo dall'integrazione dell'apparecchio.
 
 - **Il grafico del pop-up adesso parla.** Passandoci sopra col mouse (o tenendo
   premuto col dito e trascinando) compare il mirino con **l'ora e i Watt** di
