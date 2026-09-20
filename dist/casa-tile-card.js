@@ -8255,7 +8255,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.22.0";
+const VERSIONE = "2.23.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -18555,13 +18555,26 @@ function entitaDellaVoce(reg, idVoce) {
   return v ? v.entity_id : null;
 }
 
-// apre un flusso di configurazione e lo porta fino in fondo
-async function flusso(hass, handler, passi) {
+// Apre un flusso di configurazione e lo porta fino in fondo.
+// A ogni passo Home Assistant dice quali campi vuole (data_schema): gli mando
+// solo quelli, presi da `dati`. Cosi' il giorno che un passo cambia, la scheda
+// non si rompe. `menu` e' la voce da scegliere quando il flusso parte da un
+// menu (il template chiede prima che tipo di entita' vuoi).
+async function flusso(hass, handler, dati, menu) {
   let r = await hass.callApi("POST", "config/config_entries/flow",
     { handler, show_advanced_options: true });
-  for (const dati of passi) {
+  for (let giro = 0; giro < 8; giro++) {
     if (r.type === "create_entry" || r.type === "abort") break;
-    r = await hass.callApi("POST", "config/config_entries/flow/" + r.flow_id, dati);
+    let invio;
+    if (r.type === "menu" || (r.menu_options && !r.data_schema)) {
+      invio = { next_step_id: menu };
+    } else {
+      invio = {};
+      (r.data_schema || []).forEach((campo) => {
+        if (campo && campo.name && dati[campo.name] !== undefined) invio[campo.name] = dati[campo.name];
+      });
+    }
+    r = await hass.callApi("POST", "config/config_entries/flow/" + r.flow_id, invio);
   }
   if (r.type !== "create_entry") {
     const perche = (r.errors && JSON.stringify(r.errors)) || r.reason || r.type || "?";
@@ -18571,19 +18584,44 @@ async function flusso(hass, handler, passi) {
 }
 
 async function creaContatore(hass, nome, sorgente, ciclo) {
-  return flusso(hass, "utility_meter", [{
+  return flusso(hass, "utility_meter", {
     name: nome, source: sorgente, cycle: ciclo, offset: 0, tariffs: [],
     net_consumption: false, delta_values: false, periodically_resetting: true,
     always_available: true,
-  }]);
+  });
 }
 
 async function creaCosto(hass, nome, stato) {
   // il flusso dei template parte da un menu: prima dico che voglio un sensore
-  return flusso(hass, "template", [
-    { next_step_id: "sensor" },
-    { name: nome, state: stato, unit_of_measurement: "€", device_class: "monetary", state_class: "total" },
-  ]);
+  return flusso(hass, "template", {
+    name: nome, state: stato, unit_of_measurement: "€",
+    device_class: "monetary", state_class: "total",
+  }, "sensor");
+}
+
+// il prezzo in euro al kWh: quello che c'e', o uno nuovo
+async function prezzoDelKWh(hass, opzioni, dillo, conto) {
+  const gia = Object.keys(hass.states).find((id) => id.startsWith("input_number.")
+    && String(hass.states[id].attributes.unit_of_measurement || "").replace(/\s/g, "") === "€/kWh");
+  if (gia) {
+    dillo("Prezzo: uso quello che c'era gia' (" + gia + ").");
+    conto.riusati++;
+    return gia;
+  }
+  dillo("Creo il prezzo in €/kWh...");
+  await hass.callWS({
+    type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.001,
+    mode: "box", unit_of_measurement: "€/kWh", icon: "mdi:currency-eur",
+  });
+  conto.creati++;
+  const v = Number(opzioni.prezzo);
+  if (Number.isFinite(v) && v > 0) {
+    try {
+      await hass.callService("input_number", "set_value",
+        { entity_id: "input_number.prezzo_energia", value: v });
+    } catch (e) { dillo("Il prezzo lo scrivi tu nel pop-up della scheda."); }
+  }
+  return "input_number.prezzo_energia";
 }
 
 /**
@@ -18606,26 +18644,7 @@ async function creaSensoriBase(hass, opzioni, dillo) {
   };
 
   // 1. il prezzo in euro al kWh
-  let prezzo = Object.keys(hass.states).find((id) => id.startsWith("input_number.")
-    && String(hass.states[id].attributes.unit_of_measurement || "").replace(/\s/g, "") === "€/kWh");
-  if (prezzo) {
-    dillo("Prezzo: uso quello che c'era gia' (" + prezzo + ").");
-    conto.riusati++;
-  } else {
-    dillo("Creo il prezzo in €/kWh...");
-    await hass.callWS({
-      type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.001,
-      mode: "box", unit_of_measurement: "€/kWh", icon: "mdi:currency-eur",
-    });
-    prezzo = "input_number.prezzo_energia";
-    conto.creati++;
-    const v = Number(opzioni.prezzo);
-    if (Number.isFinite(v) && v > 0) {
-      try {
-        await hass.callService("input_number", "set_value", { entity_id: prezzo, value: v });
-      } catch (e) { dillo("Il prezzo lo scrivi tu nel pop-up della scheda."); }
-    }
-  }
+  const prezzo = await prezzoDelKWh(hass, opzioni, dillo, conto);
 
   // 2. i contatori: uno per periodo
   const contatori = {};
@@ -18702,6 +18721,138 @@ async function creaSensoriBase(hass, opzioni, dillo) {
     if (costi.ieri) ieri.cost = costi.ieri;
     patch.periods_prev = [ieri];
   }
+  patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
+  dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'.");
+  return patch;
+}
+
+// ---------------------------------------------------------------------------
+// Gli elettrodomestici.
+//
+// Il riquadro "Ultimo ciclo" nasce da un sensore template A TRIGGER, che
+// dall'interfaccia di Home Assistant non si puo' creare: quello resta
+// nell'esempio (esempi/luce). Quello che si puo' fare senza YAML sono le
+// STATISTICHE: quante volte e' partito, quanto ha lavorato e quanto e'
+// costato, oggi e questo mese. Servono quattro helper normali:
+//   soglia (threshold)   -> "sta lavorando" (binary_sensor)
+//   tempo (history_stats) -> quanto e' stato acceso
+//   cicli (history_stats) -> quante volte si e' acceso
+//   kWh: il sensore della presa, oppure un integrale (Riemann) dai Watt
+//   contatore + costo   -> i kWh e gli euro del periodo
+const FINESTRE = [
+  ["oggi", "today", "{{ today_at() }}", "daily"],
+  ["mese", "month", "{{ now().replace(day=1, hour=0, minute=0, second=0, microsecond=0) }}", "monthly"],
+];
+
+async function creaSoglia(hass, nome, potenza, soglia) {
+  return flusso(hass, "threshold", {
+    name: nome, entity_id: potenza, upper: soglia, hysteresis: 0,
+  });
+}
+
+async function creaStorico(hass, nome, acceso, tipo, inizio) {
+  return flusso(hass, "history_stats", {
+    name: nome, entity_id: acceso, type: tipo, state: ["on"],
+    start: inizio, end: "{{ now() }}",
+  });
+}
+
+async function creaIntegrale(hass, nome, potenza) {
+  return flusso(hass, "integration", {
+    name: nome, source: potenza, unit_prefix: "k", unit_time: "h",
+    method: "left", round: 3, max_sub_interval: { hours: 0, minutes: 5, seconds: 0 },
+  });
+}
+
+/**
+ * Crea (o ritrova) gli helper delle statistiche di un elettrodomestico.
+ * Torna il pezzo di configurazione da mettere nella scheda.
+ */
+async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
+  const potenza = opzioni.potenza;
+  if (!potenza || !hass.states[potenza]) throw new Error("Scegli la presa che misura i Watt.");
+  const base = (opzioni.nome || nomeSorgente(hass, potenza)).trim();
+  const soglia = Number(opzioni.soglia) > 0 ? Number(opzioni.soglia) : 10;
+  const conto = { creati: 0, riusati: 0 };
+
+  let voci = await vociDiConfigurazione(hass);
+  let reg = await registro(hass);
+  const nuovi = [];
+  // cerca la voce gia' fatta; se non c'e' la crea e segna che va risolta
+  const trovaOCrea = async (dominio, nome, fai, dove) => {
+    const v = voci.find((x) => x.domain === dominio
+      && String(x.title || "").toLowerCase() === nome.toLowerCase());
+    if (v) {
+      const e = entitaDellaVoce(reg, v.entry_id);
+      conto.riusati++;
+      if (e) dove(e);
+      return e;
+    }
+    dillo("Creo: " + nome + "...");
+    conto.creati++;
+    nuovi.push([await fai(), dove]);
+    return null;
+  };
+  const risolvi = async () => {
+    if (!nuovi.length) return;
+    reg = await registro(hass);
+    voci = await vociDiConfigurazione(hass);
+    nuovi.splice(0).forEach(([id, dove]) => {
+      const e = entitaDellaVoce(reg, id);
+      if (e) dove(e);
+    });
+  };
+
+  // 1. "sta lavorando"
+  let acceso = null;
+  await trovaOCrea("threshold", base + " in funzione",
+    () => creaSoglia(hass, base + " in funzione", potenza, soglia), (e) => { acceso = e; });
+  await risolvi();
+  if (!acceso) throw new Error("Non trovo l'entita' della soglia appena creata.");
+
+  // 2. i kWh: quelli della presa se ci sono, se no li calcolo dai Watt
+  let kwh = opzioni.energia || null;
+  if (!kwh) {
+    await trovaOCrea("integration", base + " energia",
+      () => creaIntegrale(hass, base + " energia", potenza), (e) => { kwh = e; });
+    await risolvi();
+  } else {
+    dillo("kWh: uso il sensore della presa (" + kwh + ").");
+  }
+
+  // 3. tempo, cicli, contatori e costi, per oggi e per il mese
+  const prezzo = await prezzoDelKWh(hass, opzioni, dillo, conto);
+  const periodi = {};
+  const cicli = {};
+  for (const [chiave, periodo, inizio, ciclo] of FINESTRE) {
+    periodi[periodo] = {};
+    await trovaOCrea("history_stats", base + " tempo " + chiave,
+      () => creaStorico(hass, base + " tempo " + chiave, acceso, "time", inizio),
+      (e) => { periodi[periodo].time = e; });
+    await trovaOCrea("history_stats", base + " cicli " + chiave,
+      () => creaStorico(hass, base + " cicli " + chiave, acceso, "count", inizio),
+      (e) => { cicli[chiave] = e; });
+    if (kwh) {
+      await trovaOCrea("utility_meter", base + " energia " + chiave,
+        () => creaContatore(hass, base + " energia " + chiave, kwh, ciclo),
+        (e) => { periodi[periodo].energy = e; });
+    }
+  }
+  await risolvi();
+  // i costi vengono dopo: hanno bisogno dei contatori gia' risolti
+  for (const [chiave, periodo] of FINESTRE.map((f) => [f[0], f[1]])) {
+    const contatore = periodi[periodo].energy;
+    if (!contatore) continue;
+    const nome = "Costo " + base.toLowerCase() + " " + chiave;
+    await trovaOCrea("template", nome, () => creaCosto(hass, nome,
+      "{{ (states('" + contatore + "') | float(0) * states('" + prezzo + "') | float(0)) | round(2) }}"),
+      (e) => { periodi[periodo].cost = e; });
+  }
+  await risolvi();
+
+  const patch = { period_entities: periodi, stats: { ...(opzioni.stats || {}) } };
+  if (cicli.oggi) patch.stats.cycles_today = cicli.oggi;
+  if (cicli.mese) patch.stats.cycles_month = cicli.mese;
   patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
   dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'.");
   return patch;
@@ -19228,6 +19379,19 @@ class CasaElettrodomestico extends HTMLElement {
     return st ? st.attributes?.[cfg.cycle_attrs[key]] : null;
   }
 
+  // Il tempo: dal sensore "history_stats" sono ore con la virgola (1.25),
+  // dagli attributi dell'esempio e' gia' una scritta ("1h 15m"). Qui le porto
+  // tutte e due alla stessa faccia.
+  _tempoLeggibile(st) {
+    if (!st) return "\u2014";
+    const n = Number(st.state);
+    if (!Number.isFinite(n)) return st.state || "\u2014";
+    const unita = String(st.attributes.unit_of_measurement || "h").toLowerCase();
+    const minuti = Math.round(unita.startsWith("min") ? n : n * 60);
+    if (minuti < 60) return minuti + " min";
+    return Math.floor(minuti / 60) + "h " + String(minuti % 60).padStart(2, "0") + "m";
+  }
+
   _renderPeriodRow(hass, periodKey) {
     const cfg = this._config;
     const st = cfg.cycle_sensor ? hass.states[cfg.cycle_sensor] : null;
@@ -19248,8 +19412,13 @@ class CasaElettrodomestico extends HTMLElement {
     const [cyclesEnt, cyclesAttr] = CYCLE_SOURCE[periodKey] || [null, null];
     const cyclesSt = cyclesEnt ? hass.states[cyclesEnt] : null;
     const cycles = cyclesSt ? (cyclesAttr ? (cyclesSt.attributes?.[cyclesAttr] ?? "\u2014") : cyclesSt.state) : "\u2014";
-    const time = pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014";
-    const cost = pAttrs.cost ? attrs[pAttrs.cost] : null;
+    // se la scheda ha entita' sue per questo periodo (tempo, costo), comandano
+    // quelle: sono gli helper che crea il tasto "Crea i sensori base"
+    const pEnt = cfg.period_entities?.[periodKey] || {};
+    const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time])
+      : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
+    const cost = pEnt.cost ? hass.states[pEnt.cost]?.state
+      : (pAttrs.cost ? attrs[pAttrs.cost] : null);
     const costTxt = Number.isFinite(Number(cost)) ? `${Number(cost).toFixed(2)} \u20ac` : "\u2014";
     const label = cfg.period_labels[periodKey] || periodKey;
     return `<div class="dm-ap-week-row">
@@ -19351,7 +19520,8 @@ class CasaElettrodomestico extends HTMLElement {
 
   _openWeek() {
     const hass = this._hass;
-    const periods = Object.keys(this._config.period_attrs || {});
+    const periods = Object.keys({ ...(this._config.period_attrs || {}),
+      ...(this._config.period_entities || {}) });
     const periodRows = periods.map((p) => this._renderPeriodRow(hass, p)).join("");
 
     const rows = this._orderedWeekRows();
@@ -19784,6 +19954,75 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     });
   }
 
+  _nomeDi(eid) {
+    const st = this._hass && this._hass.states[eid];
+    return st ? String(st.attributes.friendly_name || eid) : eid;
+  }
+
+  // i sensori in kWh che potrebbero essere di questo elettrodomestico
+  _kWhPossibili() {
+    const st = (this._hass && this._hass.states) || {};
+    return Object.keys(st).filter((id) => {
+      if (!id.startsWith("sensor.")) return false;
+      const a = st[id].attributes || {};
+      return a.device_class === "energy" && String(a.unit_of_measurement || "").toLowerCase() === "kwh";
+    }).sort();
+  }
+
+  _disegnaKwh() {
+    const sel = this.querySelector(".ce-kwh");
+    if (!sel) return;
+    const scelto = sel.value;
+    sel.innerHTML = "<option value=''>\u2014 calcolalo dai Watt \u2014</option>";
+    this._kWhPossibili().forEach((id) => {
+      const o = document.createElement("option");
+      o.value = id;
+      o.textContent = this._nomeDi(id);
+      sel.appendChild(o);
+    });
+    if (scelto) sel.value = scelto;
+    const soglia = this.querySelector(".ce-soglia");
+    if (soglia && !soglia.dataset.tocco && this._config.threshold_run) {
+      soglia.value = this._config.threshold_run;
+    }
+  }
+
+  async _creaSensori() {
+    const tasto = this.querySelector(".ce-crea");
+    const potenza = this._config.power_entity;
+    if (!potenza) { this._dillo("Prima scegli la presa che misura i Watt.", true); return; }
+    const kwh = (this.querySelector(".ce-kwh") || {}).value;
+    if (!window.confirm("Creo in Home Assistant gli helper delle statistiche di "
+      + (this._config.name || "questo elettrodomestico") + "." + "\n"
+      + "Quelli che ci sono gia' li riuso. Vado?")) return;
+    tasto.disabled = true;
+    this._esito.hidden = false;
+    this._esito.classList.remove("male");
+    this._esito.textContent = "";
+    try {
+      const patch = await creaSensoriElettrodomestico(this._hass, {
+        potenza, energia: kwh || null, nome: this._config.name,
+        soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+        prezzo: Number((this.querySelector(".ce-prezzo") || {}).value),
+        stats: this._config.stats,
+      }, (t) => this._dillo(t));
+      this._config = { ...this._config, ...patch };
+      this._emetti();
+      this._form.data = this._datiForm();
+      this._dillo("Le statistiche sono agganciate. Salva e chiudi.");
+    } catch (e) {
+      this._dillo("Non ce l'ho fatta: " + (e && e.message ? e.message : e), true);
+    }
+    tasto.disabled = false;
+  }
+
+  _dillo(testo, male) {
+    if (!this._esito) return;
+    this._esito.hidden = false;
+    if (male) this._esito.classList.add("male");
+    this._esito.textContent += (this._esito.textContent ? "\n" : "") + testo;
+  }
+
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
@@ -19793,6 +20032,18 @@ class CasaElettrodomesticoEditor extends HTMLElement {
           <div class="ce-aiuto">Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle
             in ordine e, se vuoi, scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).</div>
           <div class="ce-righe"></div>
+        </div>
+        <div class="ce-sez">
+          <div class="ce-tit">Crea i sensori base</div>
+          <div class="ce-aiuto">Creo io gli helper di Home Assistant per le <b>statistiche</b>:
+            quante volte e' partito, quanto ha lavorato e quanto e' costato, oggi e questo mese.
+            Il riquadro <i>Ultimo ciclo</i> non si fa da qui: quello vuole un sensore template a
+            trigger, che sta nella guida (<i>esempi/luce</i>).</div>
+          <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
+          <div class="ce-riga"><span class="ent">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> W</div>
+          <div class="ce-riga"><span class="ent">Prezzo (&euro;/kWh)</span><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.242"></div>
+          <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
+          <div class="ce-esito" hidden></div>
         </div>
         <div class="ce-sez">
           <div class="ce-tit">Prepara da solo</div>
@@ -19811,6 +20062,8 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       this.querySelector(".ce-form").appendChild(form);
       this._form = form;
       this._righe = this.querySelector(".ce-righe");
+      this._esito = this.querySelector(".ce-esito");
+      this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
       this.querySelector(".ce-prepara").addEventListener("click", () => {
         const c0 = this._config;
         const entita = (c0.live && c0.live.state_entity) || c0.power_entity;
@@ -19826,6 +20079,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       });
     }
     if (this._hass) this._form.hass = this._hass;
+    this._disegnaKwh();
     this._form.data = this._datiForm();
     this._disegnaRighe();
   }

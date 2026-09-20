@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.22.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.23.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -154,6 +154,15 @@ volte non fa danni. Il resto (conto voce per voce, risparmio del fotovoltaico,
 cicli degli elettrodomestici) vuole i template a trigger e le macro: quello si
 copia dall'esempio qui sotto.
 
+**E per gli elettrodomestici.** Anche l'editor di `casa-elettrodomestico` ha il
+suo tasto **«Crea statistiche e costi»**: sceglie una soglia in Watt per dire
+quando l'apparecchio *sta lavorando*, e da lì costruisce **quante volte è
+partito**, **quanto ha lavorato** e **quanto è costato**, oggi e questo mese
+(soglia + due `history_stats` + contatori + costi; se la presa non dà i kWh, li
+ricava dai Watt con un integrale). Il riquadro **Ultimo ciclo**, invece, nasce
+da un sensore template *a trigger* che dall'interfaccia non si può creare:
+quello resta nell'esempio qui sotto.
+
 **È tutto pronto in [`esempi/luce/`](esempi/luce/):**
 
 1. copia [`luce.yaml`](esempi/luce/luce.yaml) in `/config/packages/`
@@ -244,6 +253,15 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.23
+
+- **«Crea statistiche e costi» anche per gli elettrodomestici.** Dall'editor:
+  una soglia in Watt dice quando l'apparecchio lavora, e la scheda crea da sola
+  gli helper per cicli, tempo e costo di oggi e del mese. I kWh, se la presa non
+  li dà, se li calcola dai Watt.
+- Nel pop-up delle statistiche, **tempo e costo si possono leggere da entità
+  proprie** (`period_entities`) e non solo dagli attributi del sensore del ciclo.
 
 ## Novità della 2.22
 

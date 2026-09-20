@@ -6,6 +6,7 @@
 import { RIGHE_CICLO } from './elettro-elettrodomestico.js';
 import { preparaElettrodomestico } from './elettro-prepara.js';
 import { STILE_EDITOR, disegnaRighe } from './elettro-righe-editor.js';
+import { creaSensoriElettrodomestico } from './elettro-crea.js';
 
 const DISEGNI = [
   ["washer", "Lavatrice"], ["dishwasher", "Lavastoviglie"], ["dryer", "Asciugatrice"],
@@ -116,6 +117,75 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
     });
   }
 
+  _nomeDi(eid) {
+    const st = this._hass && this._hass.states[eid];
+    return st ? String(st.attributes.friendly_name || eid) : eid;
+  }
+
+  // i sensori in kWh che potrebbero essere di questo elettrodomestico
+  _kWhPossibili() {
+    const st = (this._hass && this._hass.states) || {};
+    return Object.keys(st).filter((id) => {
+      if (!id.startsWith("sensor.")) return false;
+      const a = st[id].attributes || {};
+      return a.device_class === "energy" && String(a.unit_of_measurement || "").toLowerCase() === "kwh";
+    }).sort();
+  }
+
+  _disegnaKwh() {
+    const sel = this.querySelector(".ce-kwh");
+    if (!sel) return;
+    const scelto = sel.value;
+    sel.innerHTML = "<option value=''>\u2014 calcolalo dai Watt \u2014</option>";
+    this._kWhPossibili().forEach((id) => {
+      const o = document.createElement("option");
+      o.value = id;
+      o.textContent = this._nomeDi(id);
+      sel.appendChild(o);
+    });
+    if (scelto) sel.value = scelto;
+    const soglia = this.querySelector(".ce-soglia");
+    if (soglia && !soglia.dataset.tocco && this._config.threshold_run) {
+      soglia.value = this._config.threshold_run;
+    }
+  }
+
+  async _creaSensori() {
+    const tasto = this.querySelector(".ce-crea");
+    const potenza = this._config.power_entity;
+    if (!potenza) { this._dillo("Prima scegli la presa che misura i Watt.", true); return; }
+    const kwh = (this.querySelector(".ce-kwh") || {}).value;
+    if (!window.confirm("Creo in Home Assistant gli helper delle statistiche di "
+      + (this._config.name || "questo elettrodomestico") + "." + "\n"
+      + "Quelli che ci sono gia' li riuso. Vado?")) return;
+    tasto.disabled = true;
+    this._esito.hidden = false;
+    this._esito.classList.remove("male");
+    this._esito.textContent = "";
+    try {
+      const patch = await creaSensoriElettrodomestico(this._hass, {
+        potenza, energia: kwh || null, nome: this._config.name,
+        soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+        prezzo: Number((this.querySelector(".ce-prezzo") || {}).value),
+        stats: this._config.stats,
+      }, (t) => this._dillo(t));
+      this._config = { ...this._config, ...patch };
+      this._emetti();
+      this._form.data = this._datiForm();
+      this._dillo("Le statistiche sono agganciate. Salva e chiudi.");
+    } catch (e) {
+      this._dillo("Non ce l'ho fatta: " + (e && e.message ? e.message : e), true);
+    }
+    tasto.disabled = false;
+  }
+
+  _dillo(testo, male) {
+    if (!this._esito) return;
+    this._esito.hidden = false;
+    if (male) this._esito.classList.add("male");
+    this._esito.textContent += (this._esito.textContent ? "\n" : "") + testo;
+  }
+
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
@@ -125,6 +195,18 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
           <div class="ce-aiuto">Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle
             in ordine e, se vuoi, scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).</div>
           <div class="ce-righe"></div>
+        </div>
+        <div class="ce-sez">
+          <div class="ce-tit">Crea i sensori base</div>
+          <div class="ce-aiuto">Creo io gli helper di Home Assistant per le <b>statistiche</b>:
+            quante volte e' partito, quanto ha lavorato e quanto e' costato, oggi e questo mese.
+            Il riquadro <i>Ultimo ciclo</i> non si fa da qui: quello vuole un sensore template a
+            trigger, che sta nella guida (<i>esempi/luce</i>).</div>
+          <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
+          <div class="ce-riga"><span class="ent">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> W</div>
+          <div class="ce-riga"><span class="ent">Prezzo (&euro;/kWh)</span><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.242"></div>
+          <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
+          <div class="ce-esito" hidden></div>
         </div>
         <div class="ce-sez">
           <div class="ce-tit">Prepara da solo</div>
@@ -143,6 +225,8 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
       this.querySelector(".ce-form").appendChild(form);
       this._form = form;
       this._righe = this.querySelector(".ce-righe");
+      this._esito = this.querySelector(".ce-esito");
+      this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
       this.querySelector(".ce-prepara").addEventListener("click", () => {
         const c0 = this._config;
         const entita = (c0.live && c0.live.state_entity) || c0.power_entity;
@@ -158,6 +242,7 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
       });
     }
     if (this._hass) this._form.hass = this._hass;
+    this._disegnaKwh();
     this._form.data = this._datiForm();
     this._disegnaRighe();
   }

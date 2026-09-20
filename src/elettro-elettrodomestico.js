@@ -265,6 +265,19 @@ export class CasaElettrodomestico extends HTMLElement {
     return st ? st.attributes?.[cfg.cycle_attrs[key]] : null;
   }
 
+  // Il tempo: dal sensore "history_stats" sono ore con la virgola (1.25),
+  // dagli attributi dell'esempio e' gia' una scritta ("1h 15m"). Qui le porto
+  // tutte e due alla stessa faccia.
+  _tempoLeggibile(st) {
+    if (!st) return "\u2014";
+    const n = Number(st.state);
+    if (!Number.isFinite(n)) return st.state || "\u2014";
+    const unita = String(st.attributes.unit_of_measurement || "h").toLowerCase();
+    const minuti = Math.round(unita.startsWith("min") ? n : n * 60);
+    if (minuti < 60) return minuti + " min";
+    return Math.floor(minuti / 60) + "h " + String(minuti % 60).padStart(2, "0") + "m";
+  }
+
   _renderPeriodRow(hass, periodKey) {
     const cfg = this._config;
     const st = cfg.cycle_sensor ? hass.states[cfg.cycle_sensor] : null;
@@ -285,8 +298,13 @@ export class CasaElettrodomestico extends HTMLElement {
     const [cyclesEnt, cyclesAttr] = CYCLE_SOURCE[periodKey] || [null, null];
     const cyclesSt = cyclesEnt ? hass.states[cyclesEnt] : null;
     const cycles = cyclesSt ? (cyclesAttr ? (cyclesSt.attributes?.[cyclesAttr] ?? "\u2014") : cyclesSt.state) : "\u2014";
-    const time = pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014";
-    const cost = pAttrs.cost ? attrs[pAttrs.cost] : null;
+    // se la scheda ha entita' sue per questo periodo (tempo, costo), comandano
+    // quelle: sono gli helper che crea il tasto "Crea i sensori base"
+    const pEnt = cfg.period_entities?.[periodKey] || {};
+    const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time])
+      : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
+    const cost = pEnt.cost ? hass.states[pEnt.cost]?.state
+      : (pAttrs.cost ? attrs[pAttrs.cost] : null);
     const costTxt = Number.isFinite(Number(cost)) ? `${Number(cost).toFixed(2)} \u20ac` : "\u2014";
     const label = cfg.period_labels[periodKey] || periodKey;
     return `<div class="dm-ap-week-row">
@@ -388,7 +406,8 @@ export class CasaElettrodomestico extends HTMLElement {
 
   _openWeek() {
     const hass = this._hass;
-    const periods = Object.keys(this._config.period_attrs || {});
+    const periods = Object.keys({ ...(this._config.period_attrs || {}),
+      ...(this._config.period_entities || {}) });
     const periodRows = periods.map((p) => this._renderPeriodRow(hass, p)).join("");
 
     const rows = this._orderedWeekRows();

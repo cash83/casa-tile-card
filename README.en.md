@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.22.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.23.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -155,6 +155,15 @@ pressing it twice does no harm. The rest (the bill line by line, solar savings,
 appliance cycles) needs trigger templates and macros: copy that from the
 example below.
 
+**And for appliances.** The `casa-elettrodomestico` editor has its own
+**"Create statistics and costs"** button: you set a threshold in Watts that says
+when the appliance *is working*, and from that it builds **how many times it
+ran**, **how long it worked** and **how much it cost**, today and this month
+(threshold + two `history_stats` + meters + costs; if the plug gives no kWh, it
+derives them from Watts with a Riemann integral). The **Last cycle** box comes
+from a *trigger* template sensor, which the UI cannot create: that one stays in
+the example below.
+
 **Everything is ready in [`esempi/luce/`](esempi/luce/):**
 
 1. copy [`luce.yaml`](esempi/luce/luce.yaml) into `/config/packages/`
@@ -242,6 +251,15 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.23
+
+- **"Create statistics and costs" for appliances too.** From the editor: a
+  threshold in Watts says when the appliance is working, and the card creates the
+  helpers for cycles, time and cost of today and this month by itself. If the plug
+  gives no kWh, it works them out from Watts.
+- In the statistics pop-up, **time and cost can come from their own entities**
+  (`period_entities`), not only from the cycle sensor's attributes.
 
 ## What's new in 2.22
 
