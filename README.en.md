@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.30.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.30.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -253,6 +253,8 @@ entity tracking the total costs"** and pick:
 The full bill, line by line, stays in the casa-energia card.
 
 ## What's new in 2.30
+
+- **"Create the basic sensors" no longer picks the kWh sensor at random.** The dropdown defaulted to the first one alphabetically (which at home can be a battery: pressing the button would build the meters on the wrong device). Now the first entry is empty and the suggestion comes from the card's own plug (`..._power` → `..._energy`). The price is a dropdown here too, with the values next to it.
 
 - **Yesterday shows up right away** in the week, without waiting for the next midnight: until it lands in the attribute it is read from the "_ieri" fields, the same numbers as the Yesterday row above. And today's cycles come from the counter, not the internal tally: the same dialog used to say 1 above and 0 below.
 

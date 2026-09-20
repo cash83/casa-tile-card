@@ -8354,7 +8354,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.30.1";
+const VERSIONE = "2.30.2";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -19169,24 +19169,27 @@ class CasaEnergiaEditor extends HTMLElement {
 
   // la tendina con i sensori dei kWh (energia) che ci sono in casa
   // il prezzo in €/kWh che c'e' gia' in casa: e' lui che comanda
-  _prezzoDiCasa() {
-    // il totale (energia + tasse) viene per primo: e' quello che serve alla casa
-    return prezziDelKWh(this._hass)[0];
-  }
-
+  // la tendina dei prezzi in \u20ac/kWh che hai in casa (il totale per primo:
+  // la casa paga tutto compreso, gli elettrodomestici di solito no)
   _disegnaPrezzo() {
+    const sel = this.querySelector(".ce-prezzo-ent");
     const campo = this.querySelector(".ce-prezzo");
-    if (!campo || campo.dataset.tocco) return;
-    const gia = this._prezzoDiCasa();
-    if (gia) {
-      const st = this._hass.states[gia];
-      campo.value = st.state;
-      campo.disabled = true;
-      campo.title = "Il prezzo ce l'hai gi\u00e0 (" + gia + "): si cambia da l\u00ec.";
-    } else {
-      campo.disabled = false;
-      campo.title = "Lo scrivo nel prezzo nuovo che creo: guarda la bolletta.";
-    }
+    if (!sel || !campo) return;
+    const elenco = prezziDelKWh(this._hass);
+    const scelto = sel.value;
+    sel.hidden = !elenco.length;
+    campo.hidden = !!elenco.length;
+    sel.innerHTML = "";
+    elenco.forEach((id) => {
+      const st = this._hass.states[id];
+      const o = document.createElement("option");
+      o.value = id;
+      o.textContent = (st.attributes.friendly_name || id) + " \u2014 " + st.state + " \u20ac/kWh";
+      sel.appendChild(o);
+    });
+    const mio = this._config.prezzo_entita;
+    if (scelto && elenco.includes(scelto)) sel.value = scelto;
+    else if (mio && elenco.includes(mio)) sel.value = mio;
   }
 
   _kWhPossibili() {
@@ -19204,21 +19207,27 @@ class CasaEnergiaEditor extends HTMLElement {
     if (!sel) return;
     const elenco = this._kWhPossibili();
     const scelto = sel.value;
-    sel.innerHTML = elenco.length ? "" : "<option value=''>nessun sensore in kWh trovato</option>";
+    // PRIMA VOCE VUOTA, apposta: se la tendina si sceglie da sola il primo
+    // della lista (in ordine alfabetico finisce per essere una batteria) uno
+    // preme il tasto e si ritrova i contatori sull'apparecchio sbagliato.
+    sel.innerHTML = elenco.length
+      ? "<option value=''>\u2014 scegli il sensore \u2014</option>"
+      : "<option value=''>nessun sensore in kWh trovato</option>";
     elenco.forEach((id) => {
       const o = document.createElement("option");
       o.value = id;
       o.textContent = this._nomeDi(id);
       sel.appendChild(o);
     });
-    // se c'e' un contatore gia' agganciato, parto dalla sua sorgente
-    const primo = (this._config.periods || [])[0];
-    const sorg = primo && this._hass && this._hass.states[primo.energy]
-      && this._hass.states[primo.energy].attributes.source;
+    // il suggerimento buono: i kWh dello stesso apparecchio che da' i Watt
+    // (sensor.casa_totale_power -> sensor.casa_totale_energy). I contatori non
+    // dicono piu' da quale sensore nascono, quindi da li' non si risale.
+    const dallaPresa = String(this._config.power_entity || "")
+      .replace(/_power$/, "_energy").replace(/_potenza$/, "_energia");
     const mio = this._config.energia_kwh;
     if (scelto && elenco.includes(scelto)) sel.value = scelto;
     else if (mio && elenco.includes(mio)) sel.value = mio;
-    else if (sorg && elenco.includes(sorg)) sel.value = sorg;
+    else if (elenco.includes(dallaPresa)) sel.value = dallaPresa;
   }
 
   async _creaSensori() {
@@ -19233,7 +19242,9 @@ class CasaEnergiaEditor extends HTMLElement {
     this._esito.textContent = "";
     try {
       const patch = await creaSensoriBase(this._hass, {
-        sorgente, prezzo: Number((this.querySelector(".ce-prezzo") || {}).value),
+        sorgente,
+        prezzo_entita: (this.querySelector(".ce-prezzo-ent") || {}).value || this._config.prezzo_entita,
+        prezzo: Number((this.querySelector(".ce-prezzo") || {}).value),
       }, (t) => this._dillo(t));
       this._config = { ...this._config, ...patch };
       this._emetti();
@@ -19275,7 +19286,7 @@ class CasaEnergiaEditor extends HTMLElement {
             degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: quelli stanno
             nella guida, in <i>esempi/luce</i>.</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
-          <div class="ce-riga"><span class="ent">Prezzo (&euro;/kWh)</span><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25"></div>
+          <div class="ce-riga"><span class="ent">Prezzo da usare</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <div class="ce-esito" hidden></div>
         </div>
@@ -19301,6 +19312,8 @@ class CasaEnergiaEditor extends HTMLElement {
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
       this.querySelector(".ce-kwh").addEventListener("change", (e) =>
         this._scriviScelta("energia_kwh", e.target.value));
+      this.querySelector(".ce-prezzo-ent").addEventListener("change", (e) =>
+        this._scriviScelta("prezzo_entita", e.target.value));
       this.querySelector(".ce-prepara").addEventListener("click", () => {
         const pronta = preparaEnergia(this._hass, { entity: this._config.power_entity, name: this._config.name });
         const c = { ...this._config };
