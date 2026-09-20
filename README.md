@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.23.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.24.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -253,6 +253,13 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.24
+
+- **L'elettrodomestico può restare «solo attuale».** Se nell'editor togli la
+  spunta a tutte le righe dell'«Ultimo ciclo», adesso sparisce tutto il riquadro:
+  restano il disegno, lo stato e la potenza del momento. Prima la colonna
+  restava lì vuota col titolo, e togliendo l'ultima spunta tornavano tutte.
 
 ## Novità della 2.23
 

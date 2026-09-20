@@ -27,7 +27,9 @@ export const STILE_EDITOR = `
 // ordine delle righe accese e quelle spente, dalla configurazione
 export function ordineRighe(config, elenco) {
   const tutte = elenco.map((r) => r.id);
-  const scelte = Array.isArray(config.righe) && config.righe.length
+  // un elenco scritto comanda anche quando e' VUOTO: vuol dire "nessuna riga",
+  // e il riquadro sparisce. Senza elenco, invece, si vedono tutte.
+  const scelte = Array.isArray(config.righe)
     ? config.righe.filter((id) => tutte.includes(id)) : tutte;
   return { scelte, spente: tutte.filter((id) => !scelte.includes(id)) };
 }

@@ -82,6 +82,9 @@ export class CasaElettrodomestico extends HTMLElement {
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "dw" + Math.random().toString(36).slice(2, 8);
     const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.dishwasher)(this._heroId);
+    // niente righe accese = niente riquadro: resta solo l'attuale
+    const righe = this._righeCiclo();
+
     const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.dishwasher;
     this._root.innerHTML = `<style>${STYLE}</style>
       <article class="dm-ap-card">
@@ -101,12 +104,12 @@ export class CasaElettrodomestico extends HTMLElement {
         </div>
         <div class="dm-ap-top-row">
           <div class="dm-ap-hero">${hero}</div>
-          <div class="dm-ap-cycle-side">
+          ${righe ? `<div class="dm-ap-cycle-side">
             <span class="dm-ap-cycle-cap">Ultimo ciclo</span>
             <div class="dm-ap-cycle-list">
-              ${this._righeCiclo()}
+              ${righe}
             </div>
-          </div>
+          </div>` : ""}
         </div>
         <div class="dm-ap-warn" hidden></div>
         <div class="dm-ap-panel dm-ap-power-open" role="button" tabindex="0">

@@ -8305,7 +8305,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.23.2";
+const VERSIONE = "2.24.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -17823,7 +17823,9 @@ const STILE_EDITOR = `
 // ordine delle righe accese e quelle spente, dalla configurazione
 function ordineRighe(config, elenco) {
   const tutte = elenco.map((r) => r.id);
-  const scelte = Array.isArray(config.righe) && config.righe.length
+  // un elenco scritto comanda anche quando e' VUOTO: vuol dire "nessuna riga",
+  // e il riquadro sparisce. Senza elenco, invece, si vedono tutte.
+  const scelte = Array.isArray(config.righe)
     ? config.righe.filter((id) => tutte.includes(id)) : tutte;
   return { scelte, spente: tutte.filter((id) => !scelte.includes(id)) };
 }
@@ -19276,6 +19278,9 @@ class CasaElettrodomestico extends HTMLElement {
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "dw" + Math.random().toString(36).slice(2, 8);
     const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.dishwasher)(this._heroId);
+    // niente righe accese = niente riquadro: resta solo l'attuale
+    const righe = this._righeCiclo();
+
     const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.dishwasher;
     this._root.innerHTML = `<style>${STYLE}</style>
       <article class="dm-ap-card">
@@ -19295,12 +19300,12 @@ class CasaElettrodomestico extends HTMLElement {
         </div>
         <div class="dm-ap-top-row">
           <div class="dm-ap-hero">${hero}</div>
-          <div class="dm-ap-cycle-side">
+          ${righe ? `<div class="dm-ap-cycle-side">
             <span class="dm-ap-cycle-cap">Ultimo ciclo</span>
             <div class="dm-ap-cycle-list">
-              ${this._righeCiclo()}
+              ${righe}
             </div>
-          </div>
+          </div>` : ""}
         </div>
         <div class="dm-ap-warn" hidden></div>
         <div class="dm-ap-panel dm-ap-power-open" role="button" tabindex="0">
