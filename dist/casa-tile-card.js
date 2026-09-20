@@ -8354,7 +8354,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.29.0";
+const VERSIONE = "2.30.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -19722,6 +19722,43 @@ class CasaElettrodomestico extends HTMLElement {
   // cosi' l'elenco corrisponde davvero agli ultimi 7 giorni di calendario
   // (se oggi e' venerdi: giovedi, mercoledi, ... venerdi scorso), con la
   // data accanto per togliere ogni ambiguita'.
+  // I SETTE GIORNI, presi dall'attributo `giorni` del sensore del ciclo:
+  // {"0": {c: cicli, m: minuti, e: euro}, ...} con 0 = lunedi. Il giorno di
+  // oggi non e' ancora dentro (ci va a mezzanotte): lo leggo dal vivo.
+  _settimanaDaAttributo(hass) {
+    const cfg = this._config;
+    const st = cfg.cycle_sensor ? hass.states[cfg.cycle_sensor] : null;
+    if (!st) return "";
+    const giorni = st.attributes?.[cfg.week_attr || "giorni"] || {};
+    const min2txt = (v) => {
+      const n = Math.round(Number(v) || 0);
+      if (!n) return "0 min";
+      return n < 60 ? n + " min" : Math.floor(n / 60) + "h " + String(n % 60).padStart(2, "0") + "m";
+    };
+    const oggi = new Date();
+    const righe = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(oggi);
+      d.setDate(d.getDate() - i);
+      const lun0 = (d.getDay() + 6) % 7;          // 0 = lunedi, come in Python
+      const dato = i === 0
+        ? { c: st.attributes?.cicli_oggi, m: st.attributes?.min_oggi, e: st.attributes?.costo_oggi }
+        : giorni[String(lun0)];
+      const etichetta = `${WEEKDAY_ABBR_IT[d.getDay()]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const vuoto = !dato || (dato.c === undefined && dato.m === undefined && dato.e === undefined);
+      const costo = Number(dato?.e);
+      righe.push(`<div class="dm-ap-week-row">
+        <div class="dm-ap-week-day">${esc(etichetta)}${i === 0 ? " (oggi)" : ""}</div>
+        <div class="dm-ap-week-stats cols3">
+          <div class="dm-ap-week-stat"><small>Cicli</small><b>${vuoto ? "\u2014" : esc(String(Number(dato.c) || 0))}</b></div>
+          <div class="dm-ap-week-stat"><small>Tempo</small><b>${vuoto ? "\u2014" : esc(min2txt(dato.m))}</b></div>
+          <div class="dm-ap-week-stat"><small>Costo</small><b>${vuoto || !Number.isFinite(costo) ? "\u2014" : costo.toFixed(2) + " \u20ac"}</b></div>
+        </div>
+      </div>`);
+    }
+    return righe.join("");
+  }
+
   _orderedWeekRows() {
     const rows = this._config.week_rows || [];
     const byDay = {};
@@ -19749,6 +19786,7 @@ class CasaElettrodomestico extends HTMLElement {
       ...(this._config.period_entities || {}) });
     const periodRows = periods.map((p) => this._renderPeriodRow(hass, p)).join("");
 
+    const daAttributo = this._settimanaDaAttributo(hass);
     const rows = this._orderedWeekRows();
     const body = rows
       .map((row) => {
@@ -19774,7 +19812,7 @@ class CasaElettrodomestico extends HTMLElement {
       ${periodRows ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div><div class="dm-ap-week-list">${periodRows}</div></div>` : ""}
       <div class="dm-ap-sec">
         <div class="dm-ap-sec-cap">Ultimi 7 giorni</div>
-        <div class="dm-ap-week-list">${body || `<div class="dm-ap-row-val">Nessun dato configurato</div>`}</div>
+        <div class="dm-ap-week-list">${daAttributo || body || `<div class="dm-ap-row-val">Nessun dato configurato</div>`}</div>
       </div>
     `);
   }

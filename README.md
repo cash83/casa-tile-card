@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.29.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.30.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -253,6 +253,20 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.30
+
+- **La settimana completa, giorno per giorno**, nelle statistiche
+  dell'elettrodomestico: sette righe (oggi e i sei giorni prima) con cicli,
+  tempo e costo. Non vuole 28 entità come nella card di partenza: legge un
+  attributo solo del sensore del ciclo (`giorni`, chiave 0 = lunedì), scritto a
+  mezzanotte col conto del giorno appena finito. L'esempio in `esempi/luce` lo crea.
+- **L'«Ultimo ciclo» si svuota quando ne comincia uno nuovo**, invece di tenere
+  i numeri del lavaggio prima mentre l'apparecchio lavora. Lo storico resta
+  nelle statistiche.
+- **Tasto «Reset contatori»**: con uno script legato a `reset_script`, l'ingranaggio
+  azzera ultimo ciclo, cicli, tempi e costi di quell'apparecchio (l'esempio manda
+  l'evento `casa_tile_azzera` e ricalibra i contatori).
 
 ## Novità della 2.29
 

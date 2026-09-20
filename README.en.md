@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.29.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.30.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -251,6 +251,19 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.30
+
+- **The full week, day by day**, in the appliance statistics: seven rows (today
+  and the six days before) with cycles, time and cost. It does not need 28
+  entities like the card it came from: it reads a single attribute of the cycle
+  sensor (`giorni`, key 0 = Monday), written at midnight with the day that just
+  ended. The `esempi/luce` example creates it.
+- **"Last cycle" clears when a new one starts**, instead of keeping the previous
+  wash's numbers while the appliance is running. The history stays in the statistics.
+- **"Reset counters" button**: with a script wired to `reset_script`, the gear
+  zeroes last cycle, cycles, times and costs of that appliance (the example fires
+  the `casa_tile_azzera` event and recalibrates the meters).
 
 ## What's new in 2.29
 
