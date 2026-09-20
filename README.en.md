@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.25.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.25.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -253,6 +253,8 @@ entity tracking the total costs"** and pick:
 The full bill, line by line, stays in the casa-energia card.
 
 ## What's new in 2.25
+
+- **The "PV + taxes" row is now called "You pay".** The "PV" only told it apart from the "Energy + taxes (without solar)" row; on its own it meant nothing. Same number: everything included, with solar already deducted.
 
 - **The "Create the basic sensors" fields are saved now.** They were only inputs for the button: changing them did not touch the config, so Home Assistant kept the Save button greyed out and the choice was lost on reopening. The kWh sensor, the Watt threshold and the price to use are ordinary settings now.
 
