@@ -106,31 +106,42 @@ automation:
 # --- I contatori per periodo -------------------------------------------------
 # I nomi "casa_totale_casa_rete_*" sono quelli che la scheda cerca da sola.
 utility_meter:
+  # always_available: il contatore continua a contare anche se il sensore
+  # sparisce per qualche minuto (stacco di corrente, riavvio). Senza, i kWh
+  # consumati durante il buco vanno persi per sempre.
   casa_totale_casa_rete_ora:
     source: sensor.mio_contatore_rete_kwh
     cycle: hourly
+    always_available: true
   casa_totale_casa_rete_oggi:
     source: sensor.mio_contatore_rete_kwh
     cycle: daily
+    always_available: true
   casa_totale_casa_rete_settimana:
     source: sensor.mio_contatore_rete_kwh
     cycle: weekly
+    always_available: true
   casa_totale_casa_rete_mese:
     source: sensor.mio_contatore_rete_kwh
     cycle: monthly
+    always_available: true
   lavatrice_energia_oggi:
     source: sensor.lavatrice_energia
     cycle: daily
+    always_available: true
   lavatrice_energia_mese:
     source: sensor.lavatrice_energia
     cycle: monthly
+    always_available: true
   risparmio_fotovoltaico_oggi:
     source: sensor.risparmio_fotovoltaico
     cycle: daily
+    always_available: true
     net_consumption: true
   risparmio_fotovoltaico_mese:
     source: sensor.risparmio_fotovoltaico
     cycle: monthly
+    always_available: true
     net_consumption: true
 
 template:

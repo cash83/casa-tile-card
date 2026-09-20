@@ -129,12 +129,19 @@ Senza sensori si vedono lo stesso i Watt; il resto compare man mano che li crei.
 | Valore sulla scheda | Da dove arriva | Come si crea |
 |---|---|---|
 | Watt adesso, barre dei circuiti, top consumo | sensori di potenza (W) delle prese | ci sono già (Shelly, Tuya, Zigbee…) |
-| Consumo di oggi / periodi | `sensor.casa_totale_casa_rete_ora` · `_oggi` · `_settimana` · `_mese` | contatori di utenza (`utility_meter`) sul contatore generale in kWh |
+| Consumo di oggi / periodi | `sensor.casa_totale_casa_rete_ora` · `_oggi` · `_settimana` · `_mese` | contatori di utenza (`utility_meter`) sul contatore generale in kWh, con **`always_available: true`** |
 | Costo + tasse, Mese + tasse | `sensor.costo_energia_ora` · `_oggi` · `_ieri` · `_settimana` · `_mese` | sensori template: kWh × prezzo + quota fissa |
 | Solo energia, conto voce per voce | `sensor.costi_luce_oggi`, `sensor.costi_luce_mese` (attributi `kwh`, `energia`, `rete_e_oneri`, `accise`, `quota_fissa`, `iva`, `risparmio_fotovoltaico`, `risparmio_fotovoltaico_energia`) — da qui anche la riga «Senza FV» | sensori template + macro `luce.jinja` |
 | Risparmio FV | `sensor.risparmio_fotovoltaico` + contatori `_oggi` / `_mese` | sensore trigger + `utility_meter` con `net_consumption: true` |
 | Il prezzo | `input_number.prezzo_luce_energia`, `…_rete_e_oneri`, `…_accise`, `input_number.iva_luce`, `input_number.quota_fissa_energia_giorno` → `input_number.prezzo_energia` (totale) | aiutanti + un'automazione che ricalcola il totale |
 | Ultimo ciclo, cicli, tempi e costi di un elettrodomestico | `sensor.<nome>_ciclo`, `sensor.<nome>_cicli_oggi`, `sensor.<nome>_cicli_mese` (+ contatori `<nome>_energia_oggi` / `_mese`) | sensori trigger che guardano i W della presa |
+
+**I contatori vogliono `always_available: true`.** Se il sensore di partenza
+sparisce per qualche minuto (stacco di corrente, riavvio del dispositivo), un
+contatore senza quell'opzione riparte dal valore nuovo e **perde i kWh del
+buco**, mentre i sensori dei costi qui sotto li recuperano: i due numeri poi
+non tornano. Per rimetterli in pari: `utility_meter.calibrate` col valore vero,
+che si legge dalle statistiche del sensore di partenza.
 
 **È tutto pronto in [`esempi/luce/`](esempi/luce/):**
 

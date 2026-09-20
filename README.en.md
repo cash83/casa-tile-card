@@ -130,12 +130,19 @@ create them.
 | Value on the card | Comes from | How to create it |
 |---|---|---|
 | Watts now, circuit bars, top consumer | power sensors (W) of your plugs | you already have them (Shelly, Tuya, Zigbee…) |
-| Today's usage / periods | `sensor.casa_totale_casa_rete_ora` · `_oggi` · `_settimana` · `_mese` | `utility_meter` on your main grid meter in kWh |
+| Today's usage / periods | `sensor.casa_totale_casa_rete_ora` · `_oggi` · `_settimana` · `_mese` | `utility_meter` on your main grid meter in kWh, with **`always_available: true`** |
 | Cost incl. taxes, month incl. taxes | `sensor.costo_energia_ora` · `_oggi` · `_ieri` · `_settimana` · `_mese` | template sensors: kWh × price + daily fixed fee |
 | Energy only, bill line by line | `sensor.costi_luce_oggi`, `sensor.costi_luce_mese` (attributes `kwh`, `energia`, `rete_e_oneri`, `accise`, `quota_fissa`, `iva`, `risparmio_fotovoltaico`, `risparmio_fotovoltaico_energia`) — also used for the "Without solar" row | template sensors + the `luce.jinja` macro |
 | Solar savings | `sensor.risparmio_fotovoltaico` + `_oggi` / `_mese` meters | trigger sensor + `utility_meter` with `net_consumption: true` |
 | The price | `input_number.prezzo_luce_energia`, `…_rete_e_oneri`, `…_accise`, `input_number.iva_luce`, `input_number.quota_fissa_energia_giorno` → `input_number.prezzo_energia` (total) | helpers + one automation that recomputes the total |
 | Last cycle, cycles, time and cost of an appliance | `sensor.<name>_ciclo`, `sensor.<name>_cicli_oggi`, `sensor.<name>_cicli_mese` (+ `<name>_energia_oggi` / `_mese` meters) | trigger sensors watching the plug's Watts |
+
+**Meters need `always_available: true`.** If the source sensor disappears for a
+few minutes (power cut, device reboot), a meter without that option restarts
+from the new value and **loses the kWh of the gap**, while the cost sensors
+below do recover them — and the two stop matching. To realign one:
+`utility_meter.calibrate` with the true value, read from the source sensor's
+statistics.
 
 **Everything is ready in [`esempi/luce/`](esempi/luce/):**
 
