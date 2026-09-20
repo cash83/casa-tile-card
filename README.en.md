@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.30.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.30.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -253,6 +253,8 @@ entity tracking the total costs"** and pick:
 The full bill, line by line, stays in the casa-energia card.
 
 ## What's new in 2.30
+
+- **Yesterday shows up right away** in the week, without waiting for the next midnight: until it lands in the attribute it is read from the "_ieri" fields, the same numbers as the Yesterday row above. And today's cycles come from the counter, not the internal tally: the same dialog used to say 1 above and 0 below.
 
 - **The full week, day by day**, in the appliance statistics: seven rows (today
   and the six days before) with cycles, time and cost. It does not need 28

@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.30.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.30.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -255,6 +255,8 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
 
 ## Novità della 2.30
+
+- **Ieri compare subito** nella settimana, senza aspettare la prossima mezzanotte: finché non è finito nell'attributo lo leggo dai campi «_ieri», cioè gli stessi numeri della riga Ieri qui sopra. E i cicli di oggi li prendo dal contatore, non dal conteggio interno: prima la stessa finestra diceva 1 sopra e 0 sotto.
 
 - **La settimana completa, giorno per giorno**, nelle statistiche
   dell'elettrodomestico: sette righe (oggi e i sei giorni prima) con cicli,

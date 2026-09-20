@@ -8354,7 +8354,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.30.0";
+const VERSIONE = "2.30.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -19741,9 +19741,22 @@ class CasaElettrodomestico extends HTMLElement {
       const d = new Date(oggi);
       d.setDate(d.getDate() - i);
       const lun0 = (d.getDay() + 6) % 7;          // 0 = lunedi, come in Python
-      const dato = i === 0
-        ? { c: st.attributes?.cicli_oggi, m: st.attributes?.min_oggi, e: st.attributes?.costo_oggi }
-        : giorni[String(lun0)];
+      // oggi dal vivo; ieri, finche' non e' ancora finito nell'attributo, lo
+      // prendo dai campi "_ieri" (sono gli stessi numeri della riga Ieri qui
+      // sopra: se no la stessa finestra direbbe due cose diverse)
+      const contaOggi = cfg.stats && cfg.stats.cycles_today
+        ? hass.states[cfg.stats.cycles_today] : null;
+      let dato;
+      if (i === 0) {
+        dato = { c: contaOggi ? contaOggi.state : st.attributes?.cicli_oggi,
+          m: st.attributes?.min_oggi, e: st.attributes?.costo_oggi };
+      } else {
+        dato = giorni[String(lun0)];
+        if (!dato && i === 1 && st.attributes?.min_ieri !== undefined) {
+          dato = { c: contaOggi ? contaOggi.attributes?.last_period : undefined,
+            m: st.attributes.min_ieri, e: st.attributes.costo_ieri };
+        }
+      }
       const etichetta = `${WEEKDAY_ABBR_IT[d.getDay()]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
       const vuoto = !dato || (dato.c === undefined && dato.m === undefined && dato.e === undefined);
       const costo = Number(dato?.e);
