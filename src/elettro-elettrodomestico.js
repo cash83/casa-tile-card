@@ -3,6 +3,7 @@
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
 // da un secondo file. Da qui in poi e' codice nostro.
 
+import { mirinoGrafico } from './elettro-comune.js';
 import {
   HERO_BUILDERS,
   CHIP_SVGS,
@@ -31,6 +32,8 @@ export const RIGHE_CICLO = [
   { id: "consumo", nome: "Consumo del ciclo (kWh)", etichetta: "Consumo", colore: "#3fb4ea" },
   { id: "costo", nome: "Costo del ciclo", etichetta: "Costo", colore: "#e2ad1c" },
 ];
+
+const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
 
 export class CasaElettrodomestico extends HTMLElement {
   // Le righe dell'Ultimo ciclo, nell'ordine e coi nomi della configurazione.
@@ -233,7 +236,16 @@ export class CasaElettrodomestico extends HTMLElement {
          </div>`
       : "";
 
-    const overlay = this._openDialog("Impostazioni", `${sections}${resetBtn}`);
+    // il prezzo scelto per i costi: e' l'unica impostazione che questa scheda
+    // ha sempre, e senza di lei l'ingranaggio apriva una finestra vuota
+    const prezzo = this._config.prezzo_entita && hass.states[this._config.prezzo_entita]
+      ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Prezzo dei costi</div>`
+        + this._settingsRowHtml(hass, { entity: this._config.prezzo_entita,
+          label: hass.states[this._config.prezzo_entita].attributes.friendly_name || "Prezzo (\u20ac/kWh)" })
+        + `</div>`
+      : "";
+    const dentro = `${sections}${prezzo}${resetBtn}`;
+    const overlay = this._openDialog("Impostazioni", dentro.trim() ? dentro : VUOTO);
 
     overlay.querySelectorAll("[data-entity]").forEach((btn) => {
       btn.addEventListener("click", (e) => {
@@ -591,6 +603,8 @@ export class CasaElettrodomestico extends HTMLElement {
           // vicino allo zero e un consumo vero si vede comunque bene, senza
           // nascondere il dato reale come faceva l'azzeramento.
           el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", cfg.max_power)}${labels}</div>`;
+          mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
+            (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
         })
         .catch(() => {
           const el = slot("24h");

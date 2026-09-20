@@ -3,6 +3,7 @@
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
 // da un secondo file. Da qui in poi e' codice nostro.
 
+import { mirinoGrafico } from './elettro-comune.js';
 import {
   HERO_BUILDERS,
   CHIP_SVGS,
@@ -34,6 +35,8 @@ export const RIGHE_OGGI = [
   { id: "bolletta", nome: "Bolletta (il bimestre, kWh e €)", etichetta: "Bolletta", colore: "#e07b39" },
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
+
+const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
 
 export class CasaEnergia extends HTMLElement {
   // Le righe del riquadro Oggi, nell'ordine della configurazione (`righe`).
@@ -245,9 +248,10 @@ export class CasaEnergia extends HTMLElement {
          </div>`
       : "";
 
+    const dentro = `${sections}${switchesHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Interruttori</div>${switchesHtml}</div>` : ""}${actionsHtml}`;
     const overlay = this._openDialog(
       "Impostazioni",
-      `${sections}${switchesHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Interruttori</div>${switchesHtml}</div>` : ""}${actionsHtml}`,
+      dentro.trim() ? dentro : VUOTO,
     );
 
     overlay.querySelectorAll("[data-entity]").forEach((btn) => {
@@ -430,6 +434,8 @@ export class CasaEnergia extends HTMLElement {
         if (!el) return;
         const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }));
         el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", this._config.max_power)}${labels}</div>`;
+        mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
+          (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
       })
       .catch(() => {
         if (slot) slot.textContent = "Errore caricamento dati";

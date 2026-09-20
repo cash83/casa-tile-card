@@ -3434,6 +3434,11 @@ const STYLE = `
 .dm-ap-chart-svg{width:100%;height:100px;display:block}
 .dm-ap-chart-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
 .dm-ap-chart-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-ap-mirino-box{position:relative;touch-action:none}
+.dm-ap-mirino{position:absolute;top:0;bottom:0;width:0;pointer-events:none;opacity:0;transition:opacity .08s}
+.dm-ap-mirino.si{opacity:1}
+.dm-ap-mirino i{position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--dm-dim,#94a3b8);opacity:.6}
+.dm-ap-mirino b{position:absolute;top:2px;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:800;padding:2px 6px;border-radius:7px;background:var(--dm-finestra,var(--dm-card,#fff));color:var(--dm-finestra-testo,var(--dm-text,#0f172a));border:1px solid var(--dm-border,#cbd5e1);box-shadow:0 4px 14px rgba(15,23,42,.18)}
 .dm-ap-chart-empty{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-chart-loading{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-warn{display:flex;align-items:center;gap:6px;margin:0 13px 12px;padding:9px 12px;border-radius:13px;background:#fee2e2;color:#b91c1c;font-size:13px;font-weight:800}
@@ -3497,6 +3502,50 @@ const STYLE = `
 // COME SI VESTE IL POP-UP. Tinta e trasparenza della finestra, e quanto il
 // velo dietro scurisce e sfoca. Tutto attraverso variabili di stile, cosi'
 // non tocco il foglio: se un'opzione non c'e' resta il vestito di serie.
+// IL MIRINO DEL GRAFICO DEL POP-UP. `box` e' il riquadro che contiene l'svg,
+// `punti` i dati disegnati, `scrivi(punto)` la scritta del cartellino.
+// L'svg ha viewBox 0 0 300 90 e preserveAspectRatio="none", quindi la x in
+// punti-svg e' la stessa frazione della larghezza vera: i dati cominciano dopo
+// l'asse (24 su 300) e arrivano in fondo. Col mouse basta passarci sopra, col
+// dito si tiene premuto e si trascina (touch-action: none), e alzandolo va via.
+function mirinoGrafico(box, punti, scrivi) {
+  if (!box || !punti || punti.length < 2) return;
+  box.classList.add("dm-ap-mirino-box");
+  const mirino = document.createElement("div");
+  mirino.className = "dm-ap-mirino";
+  mirino.innerHTML = "<i></i><b></b>";
+  box.appendChild(mirino);
+  const cartellino = mirino.querySelector("b");
+  const ASSE = 24 / 300;
+
+  const muovi = (ev) => {
+    const q = box.getBoundingClientRect();
+    if (!q.width) return;
+    const frazione = Math.min(1, Math.max(0, ((ev.clientX - q.left) / q.width - ASSE) / (1 - ASSE)));
+    const i = Math.min(punti.length - 1, Math.max(0, Math.round(frazione * (punti.length - 1))));
+    mirino.style.left = ((ASSE + (i / (punti.length - 1)) * (1 - ASSE)) * q.width) + "px";
+    cartellino.textContent = scrivi(punti[i], i);
+    // il cartellino non deve uscire dal riquadro
+    cartellino.style.transform = "translateX(-50%)";
+    const b = cartellino.getBoundingClientRect();
+    if (b.left < q.left) cartellino.style.transform = "translateX(0)";
+    else if (b.right > q.right) cartellino.style.transform = "translateX(-100%)";
+    mirino.classList.add("si");
+  };
+  const via = () => mirino.classList.remove("si");
+
+  box.addEventListener("pointerdown", (ev) => {
+    try { box.setPointerCapture(ev.pointerId); } catch (e) { /* pazienza */ }
+    muovi(ev);
+  });
+  box.addEventListener("pointermove", (ev) => {
+    if (ev.pointerType === "mouse" || ev.buttons || ev.pressure > 0) muovi(ev);
+  });
+  box.addEventListener("pointerup", via);
+  box.addEventListener("pointercancel", via);
+  box.addEventListener("pointerleave", via);
+}
+
 function vestiFinestra(host, cfg) {
   const c = cfg || {};
   const metti = (nome, valore) => {
@@ -8305,7 +8354,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.27.1";
+const VERSIONE = "2.28.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -17951,6 +18000,8 @@ const RIGHE_OGGI = [
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
 
+const VUOTO$1 = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
+
 class CasaEnergia extends HTMLElement {
   // Le righe del riquadro Oggi, nell'ordine della configurazione (`righe`).
   // Una riga che non e' nell'elenco non si vede.
@@ -18161,9 +18212,10 @@ class CasaEnergia extends HTMLElement {
          </div>`
       : "";
 
+    const dentro = `${sections}${switchesHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Interruttori</div>${switchesHtml}</div>` : ""}${actionsHtml}`;
     const overlay = this._openDialog(
       "Impostazioni",
-      `${sections}${switchesHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Interruttori</div>${switchesHtml}</div>` : ""}${actionsHtml}`,
+      dentro.trim() ? dentro : VUOTO$1,
     );
 
     overlay.querySelectorAll("[data-entity]").forEach((btn) => {
@@ -18346,6 +18398,8 @@ class CasaEnergia extends HTMLElement {
         if (!el) return;
         const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }));
         el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", this._config.max_power)}${labels}</div>`;
+        mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
+          (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
       })
       .catch(() => {
         if (slot) slot.textContent = "Errore caricamento dati";
@@ -19276,6 +19330,8 @@ const RIGHE_CICLO = [
   { id: "costo", nome: "Costo del ciclo", etichetta: "Costo", colore: "#e2ad1c" },
 ];
 
+const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
+
 class CasaElettrodomestico extends HTMLElement {
   // Le righe dell'Ultimo ciclo, nell'ordine e coi nomi della configurazione.
   _righeCiclo() {
@@ -19477,7 +19533,16 @@ class CasaElettrodomestico extends HTMLElement {
          </div>`
       : "";
 
-    const overlay = this._openDialog("Impostazioni", `${sections}${resetBtn}`);
+    // il prezzo scelto per i costi: e' l'unica impostazione che questa scheda
+    // ha sempre, e senza di lei l'ingranaggio apriva una finestra vuota
+    const prezzo = this._config.prezzo_entita && hass.states[this._config.prezzo_entita]
+      ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Prezzo dei costi</div>`
+        + this._settingsRowHtml(hass, { entity: this._config.prezzo_entita,
+          label: hass.states[this._config.prezzo_entita].attributes.friendly_name || "Prezzo (\u20ac/kWh)" })
+        + `</div>`
+      : "";
+    const dentro = `${sections}${prezzo}${resetBtn}`;
+    const overlay = this._openDialog("Impostazioni", dentro.trim() ? dentro : VUOTO);
 
     overlay.querySelectorAll("[data-entity]").forEach((btn) => {
       btn.addEventListener("click", (e) => {
@@ -19835,6 +19900,8 @@ class CasaElettrodomestico extends HTMLElement {
           // vicino allo zero e un consumo vero si vede comunque bene, senza
           // nascondere il dato reale come faceva l'azzeramento.
           el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", cfg.max_power)}${labels}</div>`;
+          mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
+            (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
         })
         .catch(() => {
           const el = slot("24h");

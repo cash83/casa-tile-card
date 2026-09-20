@@ -413,6 +413,11 @@ const STYLE = `
 .dm-ap-chart-svg{width:100%;height:100px;display:block}
 .dm-ap-chart-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
 .dm-ap-chart-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-ap-mirino-box{position:relative;touch-action:none}
+.dm-ap-mirino{position:absolute;top:0;bottom:0;width:0;pointer-events:none;opacity:0;transition:opacity .08s}
+.dm-ap-mirino.si{opacity:1}
+.dm-ap-mirino i{position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--dm-dim,#94a3b8);opacity:.6}
+.dm-ap-mirino b{position:absolute;top:2px;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:800;padding:2px 6px;border-radius:7px;background:var(--dm-finestra,var(--dm-card,#fff));color:var(--dm-finestra-testo,var(--dm-text,#0f172a));border:1px solid var(--dm-border,#cbd5e1);box-shadow:0 4px 14px rgba(15,23,42,.18)}
 .dm-ap-chart-empty{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-chart-loading{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-warn{display:flex;align-items:center;gap:6px;margin:0 13px 12px;padding:9px 12px;border-radius:13px;background:#fee2e2;color:#b91c1c;font-size:13px;font-weight:800}
@@ -476,6 +481,50 @@ const STYLE = `
 // COME SI VESTE IL POP-UP. Tinta e trasparenza della finestra, e quanto il
 // velo dietro scurisce e sfoca. Tutto attraverso variabili di stile, cosi'
 // non tocco il foglio: se un'opzione non c'e' resta il vestito di serie.
+// IL MIRINO DEL GRAFICO DEL POP-UP. `box` e' il riquadro che contiene l'svg,
+// `punti` i dati disegnati, `scrivi(punto)` la scritta del cartellino.
+// L'svg ha viewBox 0 0 300 90 e preserveAspectRatio="none", quindi la x in
+// punti-svg e' la stessa frazione della larghezza vera: i dati cominciano dopo
+// l'asse (24 su 300) e arrivano in fondo. Col mouse basta passarci sopra, col
+// dito si tiene premuto e si trascina (touch-action: none), e alzandolo va via.
+export function mirinoGrafico(box, punti, scrivi) {
+  if (!box || !punti || punti.length < 2) return;
+  box.classList.add("dm-ap-mirino-box");
+  const mirino = document.createElement("div");
+  mirino.className = "dm-ap-mirino";
+  mirino.innerHTML = "<i></i><b></b>";
+  box.appendChild(mirino);
+  const cartellino = mirino.querySelector("b");
+  const ASSE = 24 / 300;
+
+  const muovi = (ev) => {
+    const q = box.getBoundingClientRect();
+    if (!q.width) return;
+    const frazione = Math.min(1, Math.max(0, ((ev.clientX - q.left) / q.width - ASSE) / (1 - ASSE)));
+    const i = Math.min(punti.length - 1, Math.max(0, Math.round(frazione * (punti.length - 1))));
+    mirino.style.left = ((ASSE + (i / (punti.length - 1)) * (1 - ASSE)) * q.width) + "px";
+    cartellino.textContent = scrivi(punti[i], i);
+    // il cartellino non deve uscire dal riquadro
+    cartellino.style.transform = "translateX(-50%)";
+    const b = cartellino.getBoundingClientRect();
+    if (b.left < q.left) cartellino.style.transform = "translateX(0)";
+    else if (b.right > q.right) cartellino.style.transform = "translateX(-100%)";
+    mirino.classList.add("si");
+  };
+  const via = () => mirino.classList.remove("si");
+
+  box.addEventListener("pointerdown", (ev) => {
+    try { box.setPointerCapture(ev.pointerId); } catch (e) { /* pazienza */ }
+    muovi(ev);
+  });
+  box.addEventListener("pointermove", (ev) => {
+    if (ev.pointerType === "mouse" || ev.buttons || ev.pressure > 0) muovi(ev);
+  });
+  box.addEventListener("pointerup", via);
+  box.addEventListener("pointercancel", via);
+  box.addEventListener("pointerleave", via);
+}
+
 export function vestiFinestra(host, cfg) {
   const c = cfg || {};
   const metti = (nome, valore) => {

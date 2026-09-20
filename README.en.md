@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.27.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.28.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -251,6 +251,15 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.28
+
+- **The pop-up chart talks now.** Hover it with the mouse (or press and drag with
+  a finger) and a crosshair shows **the time and the Watts** at that point. It was
+  a mute drawing before.
+- **The gear no longer opens an empty dialog.** If the card has a chosen price it
+  shows it (tap to change); if there is nothing at all, it says so and explains
+  where those things are picked, instead of staying blank.
 
 ## What's new in 2.27
 
