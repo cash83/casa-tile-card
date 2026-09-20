@@ -31,6 +31,7 @@ export const RIGHE_OGGI = [
   { id: "pv_tasse", nome: "Quello che paghi (tutto compreso)", etichetta: "Paghi", colore: "#e2ad1c" },
   { id: "energia", nome: "Energia attuale (senza tasse)", etichetta: "Energia attuale", colore: "#2fbfb0" },
   { id: "mese", nome: "Mese (+ tasse)", etichetta: "Mese (+ tasse)", colore: "#a283f2" },
+  { id: "bolletta", nome: "Bolletta (il bimestre, kWh e €)", etichetta: "Bolletta", colore: "#e07b39" },
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
 
@@ -46,6 +47,7 @@ export class CasaEnergia extends HTMLElement {
       pv_tasse: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore dm-forte" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Paghi</small></span><b class="dm-e-today-cost">\u2014</b></div>`,
       energia: `${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}`,
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>`,
+      bolletta: `${this._config.bolletta_energia || this._config.bolletta_costo ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e07b39"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Bolletta</small></span><b class="dm-e-bolletta">\u2014</b></div>` : ""}`,
       top: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>`,
     };
     return righeInOrdine(this._config, RIGHE_OGGI, R, esc);
@@ -600,6 +602,16 @@ export class CasaEnergia extends HTMLElement {
     if (cfg.periods?.[3]) {
       { const x = this._root.querySelector(".dm-e-month-cost"); if (x) x.textContent = this._val(hass, cfg.periods[3].cost, 2); }
       { const x = this._root.querySelector(".dm-e-month-kwh"); if (x) x.textContent = this._val(hass, cfg.periods[3].energy, 2); }
+    }
+    {
+      // la riga della bolletta: il bimestre, kWh e euro insieme
+      const x = this._root.querySelector(".dm-e-bolletta");
+      if (x) {
+        const kwh = cfg.bolletta_energia ? this._val(hass, cfg.bolletta_energia, 1) : "";
+        // il contatore degli euro si chiama "EUR": lo scrivo col simbolo
+        const euro = cfg.bolletta_costo ? this._euro(hass.states[cfg.bolletta_costo]?.state) : "";
+        x.textContent = [kwh, euro].filter(Boolean).join(" \u00b7 ") || "\u2014";
+      }
     }
     { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
     const fvEl = this._root.querySelector(".dm-e-fv");

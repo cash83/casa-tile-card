@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.26.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.27.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -251,6 +251,14 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.27
+
+- **New row: "Bill".** The kWh and the euros of the **billing period**, which is
+  not the calendar month: if you are billed every two months, the month tells you
+  nothing. It needs two `utility_meter` helpers with the **bimonthly** cycle, one
+  on the kWh and one on the cost, picked in the editor. They reset when the new
+  period starts — not when you pay, which Home Assistant knows nothing about.
 
 ## What's new in 2.26
 
