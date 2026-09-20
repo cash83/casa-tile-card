@@ -7,7 +7,7 @@
 import { RIGHE_OGGI } from './elettro-energia.js';
 import { preparaEnergia } from './elettro-prepara.js';
 import { STILE_EDITOR, disegnaRighe } from './elettro-righe-editor.js';
-import { creaSensoriBase } from './elettro-crea.js';
+import { creaSensoriBase, prezziDelKWh } from './elettro-crea.js';
 
 const ETICHETTE = {
   name: "Nome della scheda",
@@ -152,9 +152,8 @@ export class CasaEnergiaEditor extends HTMLElement {
   // la tendina con i sensori dei kWh (energia) che ci sono in casa
   // il prezzo in €/kWh che c'e' gia' in casa: e' lui che comanda
   _prezzoDiCasa() {
-    const st = (this._hass && this._hass.states) || {};
-    return Object.keys(st).find((id) => id.startsWith("input_number.")
-      && String((st[id].attributes || {}).unit_of_measurement || "").replace(/\s/g, "") === "€/kWh");
+    // il totale (energia + tasse) viene per primo: e' quello che serve alla casa
+    return prezziDelKWh(this._hass)[0];
   }
 
   _disegnaPrezzo() {

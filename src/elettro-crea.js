@@ -91,10 +91,25 @@ async function creaCosto(hass, nome, stato) {
   }, "sensor");
 }
 
-// il prezzo in euro al kWh: quello che c'e', o uno nuovo
+// tutti gli aiutanti che sono un prezzo in euro al kWh
+export function prezziDelKWh(hass) {
+  const st = (hass && hass.states) || {};
+  const suo = (id) => String((st[id].attributes || {}).unit_of_measurement || "").replace(/\s/g, "");
+  return Object.keys(st).filter((id) => id.startsWith("input_number.") && suo(id) === "€/kWh")
+    // il totale per primo: e' quello che serve alla scheda della casa
+    .sort((a, b) => (a === "input_number.prezzo_energia" ? -1 : 0)
+      - (b === "input_number.prezzo_energia" ? -1 : 0) || a.localeCompare(b));
+}
+
+// il prezzo in euro al kWh: quello scelto, quello che c'e', o uno nuovo
 async function prezzoDelKWh(hass, opzioni, dillo, conto) {
-  const gia = Object.keys(hass.states).find((id) => id.startsWith("input_number.")
-    && String(hass.states[id].attributes.unit_of_measurement || "").replace(/\s/g, "") === "€/kWh");
+  if (opzioni.prezzo_entita && hass.states[opzioni.prezzo_entita]) {
+    dillo("Prezzo: " + opzioni.prezzo_entita + " ("
+      + hass.states[opzioni.prezzo_entita].state + " €/kWh).");
+    conto.riusati++;
+    return opzioni.prezzo_entita;
+  }
+  const gia = prezziDelKWh(hass)[0];
   if (gia) {
     dillo("Prezzo: uso quello che c'era gia' (" + gia + ").");
     conto.riusati++;

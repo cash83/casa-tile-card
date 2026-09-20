@@ -6,7 +6,7 @@
 import { RIGHE_CICLO } from './elettro-elettrodomestico.js';
 import { preparaElettrodomestico } from './elettro-prepara.js';
 import { STILE_EDITOR, disegnaRighe } from './elettro-righe-editor.js';
-import { creaSensoriElettrodomestico } from './elettro-crea.js';
+import { creaSensoriElettrodomestico, prezziDelKWh } from './elettro-crea.js';
 
 const DISEGNI = [
   ["washer", "Lavatrice"], ["dishwasher", "Lavastoviglie"], ["dryer", "Asciugatrice"],
@@ -123,26 +123,24 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
   }
 
   // i sensori in kWh che potrebbero essere di questo elettrodomestico
-  // il prezzo in €/kWh che c'e' gia' in casa: e' lui che comanda
-  _prezzoDiCasa() {
-    const st = (this._hass && this._hass.states) || {};
-    return Object.keys(st).find((id) => id.startsWith("input_number.")
-      && String((st[id].attributes || {}).unit_of_measurement || "").replace(/\s/g, "") === "€/kWh");
-  }
-
+  // la tendina dei prezzi: uno per ogni aiutante in \u20ac/kWh che hai in casa
   _disegnaPrezzo() {
+    const sel = this.querySelector(".ce-prezzo-ent");
     const campo = this.querySelector(".ce-prezzo");
-    if (!campo || campo.dataset.tocco) return;
-    const gia = this._prezzoDiCasa();
-    if (gia) {
-      const st = this._hass.states[gia];
-      campo.value = st.state;
-      campo.disabled = true;
-      campo.title = "Il prezzo ce l'hai gi\u00e0 (" + gia + "): si cambia da l\u00ec.";
-    } else {
-      campo.disabled = false;
-      campo.title = "Lo scrivo nel prezzo nuovo che creo: guarda la bolletta.";
-    }
+    if (!sel || !campo) return;
+    const elenco = prezziDelKWh(this._hass);
+    const scelto = sel.value;
+    sel.hidden = !elenco.length;
+    campo.hidden = !!elenco.length;
+    sel.innerHTML = "";
+    elenco.forEach((id) => {
+      const st = this._hass.states[id];
+      const o = document.createElement("option");
+      o.value = id;
+      o.textContent = (st.attributes.friendly_name || id) + " \u2014 " + st.state + " \u20ac/kWh";
+      sel.appendChild(o);
+    });
+    if (scelto && elenco.includes(scelto)) sel.value = scelto;
   }
 
   _kWhPossibili() {
@@ -188,6 +186,7 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
       const patch = await creaSensoriElettrodomestico(this._hass, {
         potenza, energia: kwh || null, nome: this._config.name,
         soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+        prezzo_entita: (this.querySelector(".ce-prezzo-ent") || {}).value,
         prezzo: Number((this.querySelector(".ce-prezzo") || {}).value),
         stats: this._config.stats,
       }, (t) => this._dillo(t));
@@ -222,11 +221,11 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
           <div class="ce-tit">Crea i sensori base</div>
           <div class="ce-aiuto">Creo io gli helper di Home Assistant per le <b>statistiche</b>:
             quante volte e' partito, quanto ha lavorato e quanto e' costato, oggi e questo mese.
-            Il riquadro <i>Ultimo ciclo</i> non si fa da qui: quello vuole un sensore template a
+            Per il costo scegli <b>con quale prezzo</b>: di solito qui si vuole la sola energia, senza tasse, e il conto completo si guarda nella scheda della casa. Il riquadro <i>Ultimo ciclo</i> non si fa da qui: quello vuole un sensore template a
             trigger, che sta nella guida (<i>esempi/luce</i>).</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
           <div class="ce-riga"><span class="ent">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> W</div>
-          <div class="ce-riga"><span class="ent">Prezzo (&euro;/kWh)</span><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25"></div>
+          <div class="ce-riga"><span class="ent">Prezzo da usare</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
           <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
           <div class="ce-esito" hidden></div>
         </div>

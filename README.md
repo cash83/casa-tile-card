@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.24.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.25.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -253,6 +253,14 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.25
+
+- **Il prezzo con cui si calcolano i costi adesso si sceglie.** Nell'editor
+  dell'elettrodomestico c'è una tendina con tutti gli aiutanti in €/kWh che hai
+  in casa, ognuno col suo valore scritto accanto: di solito qui si vuole la
+  **sola energia, senza tasse**, e il conto completo si guarda nella scheda della
+  casa. Prima sceglievo io, e sceglievo sempre il prezzo pieno.
 
 ## Novità della 2.24
 
