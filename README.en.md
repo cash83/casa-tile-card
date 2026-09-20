@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.23.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.23.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -253,6 +253,8 @@ entity tracking the total costs"** and pick:
 The full bill, line by line, stays in the casa-energia card.
 
 ## What's new in 2.23
+
+- **The price box no longer makes up numbers.** If the €/kWh price already exists, the box shows the real one (and it is changed from there); if not, it keeps a placeholder to correct against your bill.
 
 - **The pop-up cards no longer open in YAML mode.** The pixel size is my own key: inside a Home Assistant card (a grid, a tile) it made the editor say "the casa_misura key is not supported" and forced YAML. Now cards that are not mine get the size in their own language (`grid_options`: columns and rows), and existing ones are translated as soon as you open the settings.
 

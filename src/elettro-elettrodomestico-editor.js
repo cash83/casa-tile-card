@@ -123,6 +123,28 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
   }
 
   // i sensori in kWh che potrebbero essere di questo elettrodomestico
+  // il prezzo in €/kWh che c'e' gia' in casa: e' lui che comanda
+  _prezzoDiCasa() {
+    const st = (this._hass && this._hass.states) || {};
+    return Object.keys(st).find((id) => id.startsWith("input_number.")
+      && String((st[id].attributes || {}).unit_of_measurement || "").replace(/\s/g, "") === "€/kWh");
+  }
+
+  _disegnaPrezzo() {
+    const campo = this.querySelector(".ce-prezzo");
+    if (!campo || campo.dataset.tocco) return;
+    const gia = this._prezzoDiCasa();
+    if (gia) {
+      const st = this._hass.states[gia];
+      campo.value = st.state;
+      campo.disabled = true;
+      campo.title = "Il prezzo ce l'hai gi\u00e0 (" + gia + "): si cambia da l\u00ec.";
+    } else {
+      campo.disabled = false;
+      campo.title = "Lo scrivo nel prezzo nuovo che creo: guarda la bolletta.";
+    }
+  }
+
   _kWhPossibili() {
     const st = (this._hass && this._hass.states) || {};
     return Object.keys(st).filter((id) => {
@@ -204,7 +226,7 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
             trigger, che sta nella guida (<i>esempi/luce</i>).</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
           <div class="ce-riga"><span class="ent">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> W</div>
-          <div class="ce-riga"><span class="ent">Prezzo (&euro;/kWh)</span><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.242"></div>
+          <div class="ce-riga"><span class="ent">Prezzo (&euro;/kWh)</span><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25"></div>
           <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
           <div class="ce-esito" hidden></div>
         </div>
@@ -243,6 +265,7 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
     }
     if (this._hass) this._form.hass = this._hass;
     this._disegnaKwh();
+    this._disegnaPrezzo();
     this._form.data = this._datiForm();
     this._disegnaRighe();
   }
