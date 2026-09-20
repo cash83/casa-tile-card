@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.20.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.20.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -234,7 +234,7 @@ The full bill, line by line, stays in the casa-energia card.
 
 ## What's new in 2.20.1
 
-- **The chart crosshair now works with a finger.** On phones the value appeared and vanished at once and could not be dragged, because the browser took the gesture for a page scroll. Now the chart has its own touch area, the crosshair follows your finger while you hold it, the label stays for another 2.5 seconds, and dragging on the chart no longer triggers the tile's tap action (a plain tap still does).
+- **The chart crosshair now works with a finger.** On phones the value appeared and vanished at once and could not be dragged, because the browser took the gesture for a page scroll. Now the chart has its own touch area, the crosshair follows your finger while you hold it, the label disappears as soon as you lift your finger, and dragging on the chart no longer triggers the tile's tap action (a plain tap still does).
 
 ## What's new in 2.20
 

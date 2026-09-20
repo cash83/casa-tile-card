@@ -703,10 +703,9 @@ export const ConGrafici = (Base) => class extends Base {
       // se hai trascinato, il clic che arriva subito dopo non deve fare
       // l'azione della casella (accendere, aprire il pop-up...)
       if (this._mirinoMosso) this._premutoLungo = true;
-      // e il cartellino resta ancora un momento, il tempo di leggerlo
+      // appena alzi il dito sparisce (scelta sua: aspettare dava fastidio)
       clearTimeout(this._mirinoVia);
-      this._mirinoVia = setTimeout(() => this._nascondiMirino(),
-        e.pointerType === "touch" ? 2500 : 0);
+      this._nascondiMirino();
     };
     ["pointerup", "pointercancel"].forEach((ev) => zona.addEventListener(ev, lascia));
   }
