@@ -7,6 +7,7 @@
 import { RIGHE_OGGI } from './elettro-energia.js';
 import { preparaEnergia } from './elettro-prepara.js';
 import { STILE_EDITOR, disegnaRighe } from './elettro-righe-editor.js';
+import { creaSensoriBase } from './elettro-crea.js';
 
 const ETICHETTE = {
   name: "Nome della scheda",
@@ -148,6 +149,68 @@ export class CasaEnergiaEditor extends HTMLElement {
     });
   }
 
+  // la tendina con i sensori dei kWh (energia) che ci sono in casa
+  _kWhPossibili() {
+    const st = (this._hass && this._hass.states) || {};
+    return Object.keys(st).filter((id) => {
+      if (!id.startsWith("sensor.")) return false;
+      const a = st[id].attributes || {};
+      return a.device_class === "energy" && String(a.unit_of_measurement || "").toLowerCase() === "kwh"
+        && (a.state_class === "total" || a.state_class === "total_increasing");
+    }).sort();
+  }
+
+  _disegnaKwh() {
+    const sel = this.querySelector(".ce-kwh");
+    if (!sel) return;
+    const elenco = this._kWhPossibili();
+    const scelto = sel.value;
+    sel.innerHTML = elenco.length ? "" : "<option value=''>nessun sensore in kWh trovato</option>";
+    elenco.forEach((id) => {
+      const o = document.createElement("option");
+      o.value = id;
+      o.textContent = this._nomeDi(id);
+      sel.appendChild(o);
+    });
+    // se c'e' un contatore gia' agganciato, parto dalla sua sorgente
+    const primo = (this._config.periods || [])[0];
+    const sorg = primo && this._hass && this._hass.states[primo.energy]
+      && this._hass.states[primo.energy].attributes.source;
+    if (scelto && elenco.includes(scelto)) sel.value = scelto;
+    else if (sorg && elenco.includes(sorg)) sel.value = sorg;
+  }
+
+  async _creaSensori() {
+    const tasto = this.querySelector(".ce-crea");
+    const sorgente = (this.querySelector(".ce-kwh") || {}).value;
+    if (!sorgente) { this._dillo("Scegli il sensore dei kWh.", true); return; }
+    if (!window.confirm("Creo in Home Assistant i contatori (ora, oggi, settimana, mese) e i costi "
+      + "sopra a " + this._nomeDi(sorgente) + "." + "\n" + "Quelli che ci sono gia' li riuso. Vado?")) return;
+    tasto.disabled = true;
+    this._esito.hidden = false;
+    this._esito.classList.remove("male");
+    this._esito.textContent = "";
+    try {
+      const patch = await creaSensoriBase(this._hass, {
+        sorgente, prezzo: Number((this.querySelector(".ce-prezzo") || {}).value),
+      }, (t) => this._dillo(t));
+      this._config = { ...this._config, ...patch };
+      this._emetti();
+      this._form.data = this._datiForm();
+      this._dillo("La scheda e' agganciata ai sensori nuovi. Salva e chiudi.");
+    } catch (e) {
+      this._dillo("Non ce l'ho fatta: " + (e && e.message ? e.message : e), true);
+    }
+    tasto.disabled = false;
+  }
+
+  _dillo(testo, male) {
+    if (!this._esito) return;
+    this._esito.hidden = false;
+    if (male) this._esito.classList.add("male");
+    this._esito.textContent += (this._esito.textContent ? "\n" : "") + testo;
+  }
+
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
@@ -162,6 +225,18 @@ export class CasaEnergiaEditor extends HTMLElement {
           <div class="ce-tit">Nomi dei circuiti</div>
           <div class="ce-aiuto">Il nome e il fondo scala (W) di ogni barra.</div>
           <div class="ce-circuiti"></div>
+        </div>
+        <div class="ce-sez">
+          <div class="ce-tit">Crea i sensori base</div>
+          <div class="ce-aiuto">Non hai ancora i contatori? Scegli il sensore dei <b>kWh</b> della casa
+            e il prezzo: creo io gli helper di Home Assistant per ora, oggi, settimana, mese e ieri,
+            con il costo di ogni periodo, e li aggancio alla scheda. Il conto voce per voce, i cicli
+            degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: quelli stanno
+            nella guida, in <i>esempi/luce</i>.</div>
+          <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
+          <div class="ce-riga"><span class="ent">Prezzo (&euro;/kWh)</span><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.242"></div>
+          <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
+          <div class="ce-esito" hidden></div>
         </div>
         <div class="ce-sez">
           <div class="ce-tit">Periodi e costi</div>
@@ -181,6 +256,8 @@ export class CasaEnergiaEditor extends HTMLElement {
       this._form = form;
       this._righe = this.querySelector(".ce-righe");
       this._circuiti = this.querySelector(".ce-circuiti");
+      this._esito = this.querySelector(".ce-esito");
+      this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
       this.querySelector(".ce-prepara").addEventListener("click", () => {
         const pronta = preparaEnergia(this._hass, { entity: this._config.power_entity, name: this._config.name });
         const c = { ...this._config };
@@ -193,6 +270,7 @@ export class CasaEnergiaEditor extends HTMLElement {
       });
     }
     if (this._hass) this._form.hass = this._hass;
+    this._disegnaKwh();
     this._form.data = this._datiForm();
     this._disegnaRighe();
   }

@@ -18,6 +18,9 @@ export const STILE_EDITOR = `
   .ce-riga input.max{width:72px;padding:5px 6px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
   .ce-riga .maniglia{cursor:grab;touch-action:none;user-select:none;font-size:18px;line-height:1;padding:2px 4px;color:var(--secondary-text-color)}
   .ce-riga.trascino{outline:2px solid var(--primary-color);opacity:.85}
+  .ce-esito{margin-top:10px;font-size:12.5px;white-space:pre-wrap;color:var(--secondary-text-color)}
+  .ce-esito.male{color:var(--error-color,#e46)}
+  .ce-riga select{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
   .ce-prepara{margin-top:10px;border:1px solid var(--primary-color);background:none;color:var(--primary-color);border-radius:9px;padding:7px 12px;cursor:pointer}
 `;
 

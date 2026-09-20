@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.21.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.22.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -144,6 +144,17 @@ below do recover them — and the two stop matching. To realign one:
 `utility_meter.calibrate` with the true value, read from the source sensor's
 statistics.
 
+**The shortcut: the "Create the basic sensors" button.** In the
+`casa-energia` editor pick your house **kWh** sensor and the price, press the
+button, and the card creates the **hour, today, week, month** meters for you
+(with `always_available` already on), the **cost** of each period and of
+**yesterday**, and the price in euro per kWh. They are ordinary helpers: you
+find them under *Settings > Devices & services > Helpers*, they go into the
+backup and are deleted from there. Anything already there is reused, so
+pressing it twice does no harm. The rest (the bill line by line, solar savings,
+appliance cycles) needs trigger templates and macros: copy that from the
+example below.
+
 **Everything is ready in [`esempi/luce/`](esempi/luce/):**
 
 1. copy [`luce.yaml`](esempi/luce/luce.yaml) into `/config/packages/`
@@ -231,6 +242,13 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.22
+
+- **"Create the basic sensors".** A button in the `casa-energia` editor: pick
+  the kWh sensor and the price, and it creates the hour/today/week/month meters
+  in Home Assistant by itself, the cost of each period and of yesterday, and the
+  price in €/kWh. Then it wires them to the card. Anything already there is reused.
 
 ## What's new in 2.21
 

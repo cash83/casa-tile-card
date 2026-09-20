@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.21.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.22.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -143,6 +143,17 @@ buco**, mentre i sensori dei costi qui sotto li recuperano: i due numeri poi
 non tornano. Per rimetterli in pari: `utility_meter.calibrate` col valore vero,
 che si legge dalle statistiche del sensore di partenza.
 
+**La scorciatoia: il tasto «Crea i sensori base».** Nell'editor di
+`casa-energia` scegli il sensore dei **kWh** della casa e il prezzo, premi il
+tasto, e la scheda crea da sola in Home Assistant i contatori di **ora, oggi,
+settimana, mese** (con `always_available` già acceso), il **costo** di ogni
+periodo e di **ieri**, e il prezzo in euro al kWh. Sono normali helper: li
+ritrovi in *Impostazioni > Dispositivi e servizi > Helper*, entrano nel backup
+e da lì si cancellano. Quelli che ci sono già li riusa, quindi premerlo due
+volte non fa danni. Il resto (conto voce per voce, risparmio del fotovoltaico,
+cicli degli elettrodomestici) vuole i template a trigger e le macro: quello si
+copia dall'esempio qui sotto.
+
 **È tutto pronto in [`esempi/luce/`](esempi/luce/):**
 
 1. copia [`luce.yaml`](esempi/luce/luce.yaml) in `/config/packages/`
@@ -233,6 +244,13 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.22
+
+- **«Crea i sensori base».** Un tasto nell'editor di `casa-energia`: scegli il
+  sensore dei kWh e il prezzo, e crea da solo in Home Assistant i contatori di
+  ora/oggi/settimana/mese, il costo di ogni periodo e di ieri, e il prezzo in
+  €/kWh. Poi si aggancia tutto da solo alla scheda. Chi c'è già lo riusa.
 
 ## Novità della 2.21
 
