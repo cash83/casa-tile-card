@@ -287,7 +287,7 @@ export class CasaEnergiaEditor extends HTMLElement {
             degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: quelli stanno
             nella guida, in <i>esempi/luce</i>.</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
-          <div class="ce-riga"><span class="ent">Prezzo da usare</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
+          <div class="ce-riga"><span class="ent">Prezzo dei sensori che creo</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <div class="ce-esito" hidden></div>
         </div>

@@ -8354,7 +8354,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.30.2";
+const VERSIONE = "2.30.3";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -19286,7 +19286,7 @@ class CasaEnergiaEditor extends HTMLElement {
             degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: quelli stanno
             nella guida, in <i>esempi/luce</i>.</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
-          <div class="ce-riga"><span class="ent">Prezzo da usare</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
+          <div class="ce-riga"><span class="ent">Prezzo dei sensori che creo</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <div class="ce-esito" hidden></div>
         </div>
@@ -20368,7 +20368,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
             trigger, che sta nella guida (<i>esempi/luce</i>).</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
           <div class="ce-riga"><span class="ent">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> W</div>
-          <div class="ce-riga"><span class="ent">Prezzo da usare</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
+          <div class="ce-riga"><span class="ent">Prezzo dei sensori che creo</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
           <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
           <div class="ce-esito" hidden></div>
         </div>

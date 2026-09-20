@@ -240,7 +240,7 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
             trigger, che sta nella guida (<i>esempi/luce</i>).</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
           <div class="ce-riga"><span class="ent">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> W</div>
-          <div class="ce-riga"><span class="ent">Prezzo da usare</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
+          <div class="ce-riga"><span class="ent">Prezzo dei sensori che creo</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
           <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
           <div class="ce-esito" hidden></div>
         </div>
