@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.20.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.20.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -233,6 +233,10 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.20.1
+
+- **Il mirino del grafico ora funziona col dito.** Sul telefono il valore compariva e spariva subito e non si poteva trascinare: il browser prendeva il gesto per uno scorrimento della pagina. Adesso sopra al grafico c'è una zona sua, il mirino resta agganciato al dito finché lo tieni giù, il cartellino resta ancora due secondi e mezzo dopo, e trascinare sul grafico non fa più partire l'azione della casella (un tocco secco invece sì, come prima).
 
 ## Novità della 2.20
 

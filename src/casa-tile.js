@@ -267,6 +267,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
           <path class="pieno"></path><path class="riga"></path>
         </svg>
         <div class="mirino" hidden><i class="mira"></i><b class="palla"></b></div>
+        <div class="tocco-grafico" hidden></div>
         <div class="cartellino" hidden></div>
         <div class="tempo" hidden>
           <div class="binario"><i></i></div>
@@ -359,13 +360,11 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     this._firmaChips = null;
     this._andamento = root.querySelector(".andamento");
     this._mirino = root.querySelector(".mirino");
+    this._toccoGrafico = root.querySelector(".tocco-grafico");
     this._scala = root.querySelector(".andamento .scala");
     this._cartellino = root.querySelector(".cartellino");
     const card0 = root.querySelector("ha-card");
-    ["pointermove", "pointerdown"].forEach((ev) =>
-      card0.addEventListener(ev, (e) => this._muoviMirino(e)));
-    ["pointerleave", "pointercancel", "pointerup"].forEach((ev) =>
-      card0.addEventListener(ev, () => this._nascondiMirino()));
+    this._ascoltaMirino(card0);
     this._tempo = root.querySelector(".tempo");
     this._binario = root.querySelector(".tempo .binario i");
     this._fatta = root.querySelector(".ondabox path.fatta");

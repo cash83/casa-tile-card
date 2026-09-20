@@ -956,6 +956,13 @@ svg.icona, .iconaHa, .iconaFoto { opacity: var(--icona-opaca, 1); }
 .mirino { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
   min-height: 24px; max-height: 72px; z-index: 2; pointer-events: none; }
 .mirino[hidden] { display: none !important; }
+/* la zona che si prende il dito sopra al grafico: sta sopra al disegno ma
+   sotto a barre, tasti e riquadri, che restano comandabili */
+.tocco-grafico { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+  min-height: 24px; max-height: 72px; z-index: 1; touch-action: none; }
+.tocco-grafico[hidden] { display: none !important; }
+:host([trascinabile]) .tocco-grafico, :host([solo-casella]) .tocco-grafico {
+  display: none !important; }
 .mirino .mira { position: absolute; top: 0; bottom: 0; width: 1px;
   background: color-mix(in srgb, var(--c) 70%, transparent); }
 .mirino .palla { position: absolute; width: 8px; height: 8px; border-radius: 50%;

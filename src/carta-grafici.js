@@ -490,6 +490,7 @@ export const ConGrafici = (Base) => class extends Base {
     // attenzione: su un <svg> la proprieta' .hidden non si riflette
     // sull'attributo, quindi va messo e tolto a mano
     box.toggleAttribute("hidden", !vuole);
+    if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", !vuole);
     // col grafico dietro le scritte si confondono: lo dico al foglio di
     // stile, che gli mette un'ombra e un velo scuro sotto
     this.toggleAttribute("congrafico", vuole);
@@ -609,8 +610,13 @@ export const ConGrafici = (Base) => class extends Base {
     // niente copia dell'array: con lo storico lungo era il conto piu' caro
     // di tutto il disegno
     const punti = adesso ? storia.concat([adesso]) : storia;
-    if (punti.length < 2) { box.toggleAttribute("hidden", true); return; }
+    if (punti.length < 2) {
+      box.toggleAttribute("hidden", true);
+      if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", true);
+      return;
+    }
     box.toggleAttribute("hidden", false);
+    if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", false);
     // ne bastano un centinaio: se sono di piu' li assottiglio
     const max = 120;
     const scelti = punti.length <= max ? punti
@@ -659,6 +665,50 @@ export const ConGrafici = (Base) => class extends Base {
     box.title = "Ultime " + (Number(this._config.grafico_ore) > 0
       ? Number(this._config.grafico_ore) : 24) + " ore: da "
       + (Math.round(basso * 10) / 10) + " a " + (Math.round(alto * 10) / 10);
+  }
+
+  // CHI MUOVE IL MIRINO. Col mouse basta passare sopra la casella. Col dito
+  // no: il browser prende il gesto per uno scorrimento della pagina e dopo un
+  // attimo lo annulla (pointercancel), e il mirino spariva. Percio' sopra al
+  // grafico c'e' una zona sua con touch-action:none, che si prende il dito
+  // (setPointerCapture) e lo tiene finche' non lo alzi.
+  _ascoltaMirino(card0) {
+    ["pointermove", "pointerdown"].forEach((ev) => card0.addEventListener(ev, (e) => {
+      if (e.pointerType !== "touch") this._muoviMirino(e);
+    }));
+    ["pointerleave", "pointercancel", "pointerup"].forEach((ev) =>
+      card0.addEventListener(ev, (e) => {
+        if (e && e.pointerType === "touch") return;
+        this._nascondiMirino();
+      }));
+
+    const zona = this._toccoGrafico;
+    if (!zona) return;
+    zona.addEventListener("pointerdown", (e) => {
+      clearTimeout(this._mirinoVia);
+      this._muoviMirino(e);
+      if (!this._mirino || this._mirino.hidden) return;
+      this._ditoMirino = e.pointerId;
+      this._mirinoMosso = false;
+      try { zona.setPointerCapture(e.pointerId); } catch (err) { /* pazienza */ }
+    });
+    zona.addEventListener("pointermove", (e) => {
+      if (this._ditoMirino !== e.pointerId) return;
+      this._mirinoMosso = true;
+      this._muoviMirino(e);
+    });
+    const lascia = (e) => {
+      if (this._ditoMirino !== e.pointerId) return;
+      this._ditoMirino = null;
+      // se hai trascinato, il clic che arriva subito dopo non deve fare
+      // l'azione della casella (accendere, aprire il pop-up...)
+      if (this._mirinoMosso) this._premutoLungo = true;
+      // e il cartellino resta ancora un momento, il tempo di leggerlo
+      clearTimeout(this._mirinoVia);
+      this._mirinoVia = setTimeout(() => this._nascondiMirino(),
+        e.pointerType === "touch" ? 2500 : 0);
+    };
+    ["pointerup", "pointercancel"].forEach((ev) => zona.addEventListener(ev, lascia));
   }
 
   // il mirino segue il dito o il mouse sopra al grafico

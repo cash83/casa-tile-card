@@ -8225,7 +8225,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.20.0";
+const VERSIONE = "2.20.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -10633,6 +10633,7 @@ const ConGrafici = (Base) => class extends Base {
     // attenzione: su un <svg> la proprieta' .hidden non si riflette
     // sull'attributo, quindi va messo e tolto a mano
     box.toggleAttribute("hidden", !vuole);
+    if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", !vuole);
     // col grafico dietro le scritte si confondono: lo dico al foglio di
     // stile, che gli mette un'ombra e un velo scuro sotto
     this.toggleAttribute("congrafico", vuole);
@@ -10752,8 +10753,13 @@ const ConGrafici = (Base) => class extends Base {
     // niente copia dell'array: con lo storico lungo era il conto piu' caro
     // di tutto il disegno
     const punti = adesso ? storia.concat([adesso]) : storia;
-    if (punti.length < 2) { box.toggleAttribute("hidden", true); return; }
+    if (punti.length < 2) {
+      box.toggleAttribute("hidden", true);
+      if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", true);
+      return;
+    }
     box.toggleAttribute("hidden", false);
+    if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", false);
     // ne bastano un centinaio: se sono di piu' li assottiglio
     const max = 120;
     const scelti = punti.length <= max ? punti
@@ -10802,6 +10808,50 @@ const ConGrafici = (Base) => class extends Base {
     box.title = "Ultime " + (Number(this._config.grafico_ore) > 0
       ? Number(this._config.grafico_ore) : 24) + " ore: da "
       + (Math.round(basso * 10) / 10) + " a " + (Math.round(alto * 10) / 10);
+  }
+
+  // CHI MUOVE IL MIRINO. Col mouse basta passare sopra la casella. Col dito
+  // no: il browser prende il gesto per uno scorrimento della pagina e dopo un
+  // attimo lo annulla (pointercancel), e il mirino spariva. Percio' sopra al
+  // grafico c'e' una zona sua con touch-action:none, che si prende il dito
+  // (setPointerCapture) e lo tiene finche' non lo alzi.
+  _ascoltaMirino(card0) {
+    ["pointermove", "pointerdown"].forEach((ev) => card0.addEventListener(ev, (e) => {
+      if (e.pointerType !== "touch") this._muoviMirino(e);
+    }));
+    ["pointerleave", "pointercancel", "pointerup"].forEach((ev) =>
+      card0.addEventListener(ev, (e) => {
+        if (e && e.pointerType === "touch") return;
+        this._nascondiMirino();
+      }));
+
+    const zona = this._toccoGrafico;
+    if (!zona) return;
+    zona.addEventListener("pointerdown", (e) => {
+      clearTimeout(this._mirinoVia);
+      this._muoviMirino(e);
+      if (!this._mirino || this._mirino.hidden) return;
+      this._ditoMirino = e.pointerId;
+      this._mirinoMosso = false;
+      try { zona.setPointerCapture(e.pointerId); } catch (err) { /* pazienza */ }
+    });
+    zona.addEventListener("pointermove", (e) => {
+      if (this._ditoMirino !== e.pointerId) return;
+      this._mirinoMosso = true;
+      this._muoviMirino(e);
+    });
+    const lascia = (e) => {
+      if (this._ditoMirino !== e.pointerId) return;
+      this._ditoMirino = null;
+      // se hai trascinato, il clic che arriva subito dopo non deve fare
+      // l'azione della casella (accendere, aprire il pop-up...)
+      if (this._mirinoMosso) this._premutoLungo = true;
+      // e il cartellino resta ancora un momento, il tempo di leggerlo
+      clearTimeout(this._mirinoVia);
+      this._mirinoVia = setTimeout(() => this._nascondiMirino(),
+        e.pointerType === "touch" ? 2500 : 0);
+    };
+    ["pointerup", "pointercancel"].forEach((ev) => zona.addEventListener(ev, lascia));
   }
 
   // il mirino segue il dito o il mouse sopra al grafico
@@ -14743,6 +14793,13 @@ svg.icona, .iconaHa, .iconaFoto { opacity: var(--icona-opaca, 1); }
 .mirino { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
   min-height: 24px; max-height: 72px; z-index: 2; pointer-events: none; }
 .mirino[hidden] { display: none !important; }
+/* la zona che si prende il dito sopra al grafico: sta sopra al disegno ma
+   sotto a barre, tasti e riquadri, che restano comandabili */
+.tocco-grafico { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+  min-height: 24px; max-height: 72px; z-index: 1; touch-action: none; }
+.tocco-grafico[hidden] { display: none !important; }
+:host([trascinabile]) .tocco-grafico, :host([solo-casella]) .tocco-grafico {
+  display: none !important; }
 .mirino .mira { position: absolute; top: 0; bottom: 0; width: 1px;
   background: color-mix(in srgb, var(--c) 70%, transparent); }
 .mirino .palla { position: absolute; width: 8px; height: 8px; border-radius: 50%;
@@ -16031,6 +16088,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
           <path class="pieno"></path><path class="riga"></path>
         </svg>
         <div class="mirino" hidden><i class="mira"></i><b class="palla"></b></div>
+        <div class="tocco-grafico" hidden></div>
         <div class="cartellino" hidden></div>
         <div class="tempo" hidden>
           <div class="binario"><i></i></div>
@@ -16123,13 +16181,11 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     this._firmaChips = null;
     this._andamento = root.querySelector(".andamento");
     this._mirino = root.querySelector(".mirino");
+    this._toccoGrafico = root.querySelector(".tocco-grafico");
     this._scala = root.querySelector(".andamento .scala");
     this._cartellino = root.querySelector(".cartellino");
     const card0 = root.querySelector("ha-card");
-    ["pointermove", "pointerdown"].forEach((ev) =>
-      card0.addEventListener(ev, (e) => this._muoviMirino(e)));
-    ["pointerleave", "pointercancel", "pointerup"].forEach((ev) =>
-      card0.addEventListener(ev, () => this._nascondiMirino()));
+    this._ascoltaMirino(card0);
     this._tempo = root.querySelector(".tempo");
     this._binario = root.querySelector(".tempo .binario i");
     this._fatta = root.querySelector(".ondabox path.fatta");
