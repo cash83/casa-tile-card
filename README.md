@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.25.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.25.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -255,6 +255,8 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
 
 ## Novità della 2.25
+
+- **Le caselle di «Crea i sensori base» adesso si salvano.** Erano solo comandi per il tasto: cambiarle non toccava la configurazione, quindi Home Assistant teneva spento il tasto Salva e la scelta si perdeva riaprendo. Ora il sensore dei kWh, la soglia in Watt e il prezzo da usare sono impostazioni come le altre.
 
 - **Il prezzo con cui si calcolano i costi adesso si sceglie.** Nell'editor
   dell'elettrodomestico c'è una tendina con tutti gli aiutanti in €/kWh che hai

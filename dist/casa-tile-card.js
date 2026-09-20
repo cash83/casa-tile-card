@@ -8305,7 +8305,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.25.0";
+const VERSIONE = "2.25.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -19001,6 +19001,17 @@ class CasaEnergiaEditor extends HTMLElement {
       circuiti: (c.circuits || []).map((x) => x && x.entity).filter(Boolean) };
   }
 
+  // le scelte del riquadro "Crea i sensori base" sono configurazione: le scrivo
+  // subito, se no Home Assistant non accende il tasto Salva
+  _scriviScelta(chiave, valore) {
+    const c = { ...this._config };
+    if (valore === "" || valore === undefined || valore === null || (typeof valore === "number" && !isFinite(valore))) {
+      delete c[chiave];
+    } else c[chiave] = valore;
+    this._config = c;
+    this._emetti();
+  }
+
   _nomeDi(eid) {
     const st = this._hass && this._hass.states[eid];
     const n = st ? String(st.attributes.friendly_name || eid) : eid;
@@ -19127,13 +19138,15 @@ class CasaEnergiaEditor extends HTMLElement {
     const primo = (this._config.periods || [])[0];
     const sorg = primo && this._hass && this._hass.states[primo.energy]
       && this._hass.states[primo.energy].attributes.source;
+    const mio = this._config.energia_kwh;
     if (scelto && elenco.includes(scelto)) sel.value = scelto;
+    else if (mio && elenco.includes(mio)) sel.value = mio;
     else if (sorg && elenco.includes(sorg)) sel.value = sorg;
   }
 
   async _creaSensori() {
     const tasto = this.querySelector(".ce-crea");
-    const sorgente = (this.querySelector(".ce-kwh") || {}).value;
+    const sorgente = (this.querySelector(".ce-kwh") || {}).value || this._config.energia_kwh;
     if (!sorgente) { this._dillo("Scegli il sensore dei kWh.", true); return; }
     if (!window.confirm("Creo in Home Assistant i contatori (ora, oggi, settimana, mese) e i costi "
       + "sopra a " + this._nomeDi(sorgente) + "." + "\n" + "Quelli che ci sono gia' li riuso. Vado?")) return;
@@ -19209,6 +19222,8 @@ class CasaEnergiaEditor extends HTMLElement {
       this._circuiti = this.querySelector(".ce-circuiti");
       this._esito = this.querySelector(".ce-esito");
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
+      this.querySelector(".ce-kwh").addEventListener("change", (e) =>
+        this._scriviScelta("energia_kwh", e.target.value));
       this.querySelector(".ce-prepara").addEventListener("click", () => {
         const pronta = preparaEnergia(this._hass, { entity: this._config.power_entity, name: this._config.name });
         const c = { ...this._config };
@@ -20053,6 +20068,17 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     });
   }
 
+  // le scelte del riquadro "Crea i sensori base" sono configurazione: le scrivo
+  // subito, se no Home Assistant non accende il tasto Salva
+  _scriviScelta(chiave, valore) {
+    const c = { ...this._config };
+    if (valore === "" || valore === undefined || valore === null || (typeof valore === "number" && !isFinite(valore))) {
+      delete c[chiave];
+    } else c[chiave] = valore;
+    this._config = c;
+    this._emetti();
+  }
+
   _nomeDi(eid) {
     const st = this._hass && this._hass.states[eid];
     return st ? String(st.attributes.friendly_name || eid) : eid;
@@ -20076,7 +20102,9 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       o.textContent = (st.attributes.friendly_name || id) + " \u2014 " + st.state + " \u20ac/kWh";
       sel.appendChild(o);
     });
+    const mio = this._config.prezzo_entita;
     if (scelto && elenco.includes(scelto)) sel.value = scelto;
+    else if (mio && elenco.includes(mio)) sel.value = mio;
   }
 
   _kWhPossibili() {
@@ -20099,7 +20127,9 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       o.textContent = this._nomeDi(id);
       sel.appendChild(o);
     });
+    const mio = this._config.energia_kwh;
     if (scelto) sel.value = scelto;
+    else if (mio && this._kWhPossibili().includes(mio)) sel.value = mio;
     const soglia = this.querySelector(".ce-soglia");
     if (soglia && !soglia.dataset.tocco && this._config.threshold_run) {
       soglia.value = this._config.threshold_run;
@@ -20110,7 +20140,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     const tasto = this.querySelector(".ce-crea");
     const potenza = this._config.power_entity;
     if (!potenza) { this._dillo("Prima scegli la presa che misura i Watt.", true); return; }
-    const kwh = (this.querySelector(".ce-kwh") || {}).value;
+    const kwh = (this.querySelector(".ce-kwh") || {}).value || this._config.energia_kwh;
     if (!window.confirm("Creo in Home Assistant gli helper delle statistiche di "
       + (this._config.name || "questo elettrodomestico") + "." + "\n"
       + "Quelli che ci sono gia' li riuso. Vado?")) return;
@@ -20122,7 +20152,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       const patch = await creaSensoriElettrodomestico(this._hass, {
         potenza, energia: kwh || null, nome: this._config.name,
         soglia: Number((this.querySelector(".ce-soglia") || {}).value),
-        prezzo_entita: (this.querySelector(".ce-prezzo-ent") || {}).value,
+        prezzo_entita: (this.querySelector(".ce-prezzo-ent") || {}).value || this._config.prezzo_entita,
         prezzo: Number((this.querySelector(".ce-prezzo") || {}).value),
         stats: this._config.stats,
       }, (t) => this._dillo(t));
@@ -20184,6 +20214,14 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       this._righe = this.querySelector(".ce-righe");
       this._esito = this.querySelector(".ce-esito");
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
+      this.querySelector(".ce-kwh").addEventListener("change", (e) =>
+        this._scriviScelta("energia_kwh", e.target.value));
+      this.querySelector(".ce-prezzo-ent").addEventListener("change", (e) =>
+        this._scriviScelta("prezzo_entita", e.target.value));
+      this.querySelector(".ce-soglia").addEventListener("change", (e) => {
+        this._scriviScelta("threshold_run", Number(e.target.value));
+        this._form.data = this._datiForm();
+      });
       this.querySelector(".ce-prepara").addEventListener("click", () => {
         const c0 = this._config;
         const entita = (c0.live && c0.live.state_entity) || c0.power_entity;

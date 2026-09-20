@@ -71,6 +71,17 @@ export class CasaEnergiaEditor extends HTMLElement {
       circuiti: (c.circuits || []).map((x) => x && x.entity).filter(Boolean) };
   }
 
+  // le scelte del riquadro "Crea i sensori base" sono configurazione: le scrivo
+  // subito, se no Home Assistant non accende il tasto Salva
+  _scriviScelta(chiave, valore) {
+    const c = { ...this._config };
+    if (valore === "" || valore === undefined || valore === null || (typeof valore === "number" && !isFinite(valore))) {
+      delete c[chiave];
+    } else c[chiave] = valore;
+    this._config = c;
+    this._emetti();
+  }
+
   _nomeDi(eid) {
     const st = this._hass && this._hass.states[eid];
     const n = st ? String(st.attributes.friendly_name || eid) : eid;
@@ -197,13 +208,15 @@ export class CasaEnergiaEditor extends HTMLElement {
     const primo = (this._config.periods || [])[0];
     const sorg = primo && this._hass && this._hass.states[primo.energy]
       && this._hass.states[primo.energy].attributes.source;
+    const mio = this._config.energia_kwh;
     if (scelto && elenco.includes(scelto)) sel.value = scelto;
+    else if (mio && elenco.includes(mio)) sel.value = mio;
     else if (sorg && elenco.includes(sorg)) sel.value = sorg;
   }
 
   async _creaSensori() {
     const tasto = this.querySelector(".ce-crea");
-    const sorgente = (this.querySelector(".ce-kwh") || {}).value;
+    const sorgente = (this.querySelector(".ce-kwh") || {}).value || this._config.energia_kwh;
     if (!sorgente) { this._dillo("Scegli il sensore dei kWh.", true); return; }
     if (!window.confirm("Creo in Home Assistant i contatori (ora, oggi, settimana, mese) e i costi "
       + "sopra a " + this._nomeDi(sorgente) + "." + "\n" + "Quelli che ci sono gia' li riuso. Vado?")) return;
@@ -279,6 +292,8 @@ export class CasaEnergiaEditor extends HTMLElement {
       this._circuiti = this.querySelector(".ce-circuiti");
       this._esito = this.querySelector(".ce-esito");
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
+      this.querySelector(".ce-kwh").addEventListener("change", (e) =>
+        this._scriviScelta("energia_kwh", e.target.value));
       this.querySelector(".ce-prepara").addEventListener("click", () => {
         const pronta = preparaEnergia(this._hass, { entity: this._config.power_entity, name: this._config.name });
         const c = { ...this._config };
