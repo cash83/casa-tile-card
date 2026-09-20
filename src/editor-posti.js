@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // Dove va ogni pezzo: la pista, le maniglie, i numeri, lo YAML.
 
+import { miaScheda, misuraStandard } from './editor-schede.js';
 import { T, TH } from './lingua.js';
 import { nomeAttrezzo } from './aiuti.js';
 import { metti, nomeTasto, segno } from './segni.js';
@@ -2192,7 +2193,10 @@ export const ConPosti = (Base) => class extends Base {
     // La misura "normale", quella che non serve scrivere: tutta la riga
     // fuori, una colonna sola dentro a una griglia. Se ci si torna, il
     // valore va cancellato invece che scritto uguale al normale.
-    const metti = (carta, normale) => {
+    const metti = (carta, base) => {
+      // la scheda di un altro parla la lingua di Home Assistant
+      if (!miaScheda(carta)) return misuraStandard(carta, largo, alto, base);
+      const normale = base === 12 ? 100 : 100 / base;
       const c2 = { ...(carta || {}) };
       const m = { ...(c2.casa_misura || {}) };
       if (largo > 0 && Math.abs(largo - normale) > 0.8) {
@@ -2211,7 +2215,7 @@ export const ConPosti = (Base) => class extends Base {
     };
 
     if (parti.length === 1) {
-      l[i] = metti(l[i], 100);
+      l[i] = metti(l[i], 12);
     } else {
       const k = Number(parti[1]);
       const madre = { ...l[i] };
@@ -2220,7 +2224,7 @@ export const ConPosti = (Base) => class extends Base {
       const q = Number(quante) >= 1 ? Number(quante)
         : Math.max(1, Math.min(12, Math.round(
           Number(madre.columns) > 0 ? Number(madre.columns) : 3)));
-      figli[k] = metti(figli[k], 100 / q);
+      figli[k] = metti(figli[k], q);
       madre.cards = figli;
       l[i] = madre;
     }

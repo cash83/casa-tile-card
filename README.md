@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.23.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.23.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -255,6 +255,8 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
 
 ## Novità della 2.23
+
+- **L'editor visuale delle schede del pop-up non si apre più in YAML.** La misura in punti è roba mia: dentro a una scheda di Home Assistant (una griglia, una tile) faceva dire «la chiave casa_misura non è prevista» e costringeva a lavorare in YAML. Adesso per le schede che non sono mie la misura si scrive nella loro lingua (`grid_options`: colonne e righe), e quelle già fatte si traducono da sole appena apri le impostazioni.
 
 - **«Crea statistiche e costi» anche per gli elettrodomestici.** Dall'editor:
   una soglia in Watt dice quando l'apparecchio lavora, e la scheda crea da sola

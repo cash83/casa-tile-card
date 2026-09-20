@@ -7,6 +7,53 @@ import { SCHEDA_MANO, SCHEDE_ALTRE, SCHEDE_PRONTE, SEZIONI, nomeScheda } from '.
 import { segno } from './segni.js';
 import { aYaml, daYaml } from './yaml.js';
 
+// UNA SCHEDA MIA O DI UN ALTRO? La misura in punti ("casa_misura") e' roba
+// mia: dentro a una scheda di Home Assistant il suo editor visuale si rifiuta
+// di aprirla ("la chiave non e' prevista") e costringe a lavorare in YAML.
+// Per le schede degli altri la misura va detta nella loro lingua: grid_options,
+// cioe' quante colonne e quante righe (una riga = 56 punti, 8 di stacco).
+export function miaScheda(carta) {
+  return String((carta || {}).type || "").indexOf("custom:casa-") === 0;
+}
+
+export function misuraStandard(carta, largo, alto, base) {
+  const b = Number(base) >= 1 ? Number(base) : 12;
+  const c = { ...(carta || {}) };
+  const g = { ...(c.grid_options || {}) };
+  const normale = b === 12 ? 100 : 100 / b;
+  if (largo > 0 && Math.abs(largo - normale) > 0.8) {
+    g.columns = Math.max(1, Math.min(b, Math.round((largo / 100) * b)));
+  } else delete g.columns;
+  if (alto > 0) g.rows = Math.max(1, Math.round((Number(alto) + 8) / 64));
+  else if (alto !== undefined) delete g.rows;
+  delete c.casa_misura;
+  if (Object.keys(g).length) c.grid_options = g; else delete c.grid_options;
+  return c;
+}
+
+// le schede degli altri che si portano dietro la mia chiave: le traduco.
+// Torna la lista nuova, oppure null se non c'era niente da cambiare.
+export function svecchiaMisure(lista) {
+  let cambiato = false;
+  const traduci = (carta, base) => {
+    if (miaScheda(carta) || !carta || !carta.casa_misura) return carta;
+    cambiato = true;
+    const m = carta.casa_misura || {};
+    return misuraStandard(carta, Number(m.largo) || 0, Number(m.alto) || 0, base);
+  };
+  const fuori = (lista || []).map((carta) => {
+    let c = traduci(carta, 12);
+    if (Array.isArray(c.cards) && c.cards.length) {
+      const q = Math.max(1, Math.min(12, Math.round(
+        Number(c.columns) > 0 ? Number(c.columns) : 3)));
+      const figli = c.cards.map((f) => traduci(f, q));
+      if (figli.some((f, i) => f !== c.cards[i])) c = { ...c, cards: figli };
+    }
+    return c;
+  });
+  return cambiato ? fuori : null;
+}
+
 export const ConSchede = (Base) => class extends Base {
   _schede() {
     const c = this._config;

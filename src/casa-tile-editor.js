@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
 
+import { svecchiaMisure } from './editor-schede.js';
 import { ConColori } from './editor-colori.js';
 import { inFinestra } from './elettro-prepara.js';
 import { ConIcone } from './editor-icone.js';
@@ -24,6 +25,13 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
     scegliLingua(this._hass);
     this._config = { ...config };
     this._ascoltaMisure();
+    // le misure mie finite dentro alle schede degli altri: le traduco in
+    // grid_options, se no il loro editor visuale non si apre
+    const svecchiate = svecchiaMisure(this._config.finestra_cards);
+    if (svecchiate) {
+      this._config = { ...this._config, finestra_cards: svecchiate };
+      setTimeout(() => this._emetti(), 0);
+    }
     // dalla v2.3.8 le entita' che decidono l'accensione sono un elenco: se
     // trovo la vecchia forma a testo la converto, se no il campo a scelta
     // multipla non riesce a disegnarsi e sparisce dalle impostazioni
