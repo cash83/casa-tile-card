@@ -8305,7 +8305,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.27.0";
+const VERSIONE = "2.27.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -18398,7 +18398,7 @@ class CasaEnergia extends HTMLElement {
       .join("");
 
     const prevHtml = (cfg.periods_prev || [])
-      .map((p) => this._statRow2(p.label, val(p.energy, 2, p.energy_attr), val(p.cost, 2)))
+      .map((p) => this._statRow2(p.label, val(p.energy, 2, p.energy_attr), val(p.cost, 2, p.cost_attr)))
       .join("");
 
     const weekEntries = Object.entries(cfg.weekdays || {});

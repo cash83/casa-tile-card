@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.27.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.27.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -253,6 +253,8 @@ entity tracking the total costs"** and pick:
 The full bill, line by line, stays in the casa-energia card.
 
 ## What's new in 2.27
+
+- **The "previous period" can show the closed period's cost too** (`cost_attr`, usually `last_period`): the bill arrives when the meter has already started over.
 
 - **New row: "Bill".** The kWh and the euros of the **billing period**, which is
   not the calendar month: if you are billed every two months, the month tells you

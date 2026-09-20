@@ -482,7 +482,7 @@ export class CasaEnergia extends HTMLElement {
       .join("");
 
     const prevHtml = (cfg.periods_prev || [])
-      .map((p) => this._statRow2(p.label, val(p.energy, 2, p.energy_attr), val(p.cost, 2)))
+      .map((p) => this._statRow2(p.label, val(p.energy, 2, p.energy_attr), val(p.cost, 2, p.cost_attr)))
       .join("");
 
     const weekEntries = Object.entries(cfg.weekdays || {});

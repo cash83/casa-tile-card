@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.27.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.27.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -255,6 +255,8 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
 
 ## Novità della 2.27
+
+- **Il «periodo precedente» sa mostrare anche il costo del periodo chiuso** (`cost_attr`, di solito `last_period`): serve alla bolletta, che arriva quando il contatore è già ripartito.
 
 - **Riga nuova: «Bolletta».** I kWh e gli euro del **periodo della bolletta**, che
   non è il mese solare: chi paga ogni due mesi il mese non gli dice niente.
