@@ -122,3 +122,18 @@ Create the folders if they don't exist (File editor, Studio Code Server or Samba
 
 For another appliance, copy the washer block at the end of `luce.yaml`, rename
 `lavatrice` to the tile's name and add its two `utility_meter` entries.
+
+### Costi degli elettrodomestici: con o senza tasse
+
+Nell'esempio i costi dei cicli usano `input_number.prezzo_energia`, cioè il
+prezzo **tutto compreso** (energia + rete e oneri + accise + IVA): è quello che
+paghi davvero. Se invece nei singoli elettrodomestici vuoi vedere **solo
+l'energia** — lasciando il conto completo alla scheda `casa-energia` — sostituisci
+in `luce.yaml` `input_number.prezzo_energia` con `input_number.prezzo_luce_energia`
+nelle righe dei cicli (non in quelle di `costo_rete_bolletta`, che deve restare
+come la bolletta).
+
+Attenzione a una cosa: i totali *già accumulati* non si riscrivono da soli.
+Quelli che si calcolano da un contatore (oggi, mese) cambiano al primo
+aggiornamento; quelli che si sommano ciclo per ciclo restano misti fino al
+cambio di giorno o di mese.
