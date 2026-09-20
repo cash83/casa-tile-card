@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.28.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.29.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -253,6 +253,13 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.29
+
+- **Le prese del «Top consumo» si scelgono a clic.** Due voci nuove nell'editor:
+  *Prese da contare sempre* (`top_include`, anche se il loro nome finirebbe negli
+  esclusi) e *Parole che fanno escludere un sensore* (`top_exclude`). Prima si
+  potevano cambiare solo scrivendo il YAML a mano.
 
 ## Novità della 2.28
 

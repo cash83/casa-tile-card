@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.28.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.29.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -251,6 +251,13 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.29
+
+- **The "Top consumer" plugs are picked by clicking.** Two new editor fields:
+  *Always count these* (`top_include`, even when their name would be excluded)
+  and *Words that exclude a sensor* (`top_exclude`). Before, those could only be
+  changed by hand in YAML.
 
 ## What's new in 2.28
 
