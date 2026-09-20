@@ -20,15 +20,16 @@ import {
   DEFAULT_STATE_MAP,
   STYLE,
   esc,
+  vestiFinestra,
 } from './elettro-comune.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
 
 // Le righe dell'Ultimo ciclo, col nome che si vede nell'editor.
 export const RIGHE_CICLO = [
-  { id: "fine", nome: "Fine del ciclo (data e ora)", etichetta: "Fine" },
-  { id: "durata", nome: "Durata del ciclo", etichetta: "Durata" },
-  { id: "consumo", nome: "Consumo del ciclo (kWh)", etichetta: "Consumo" },
-  { id: "costo", nome: "Costo del ciclo", etichetta: "Costo" },
+  { id: "fine", nome: "Fine del ciclo (data e ora)", etichetta: "Fine", colore: "#a283f2" },
+  { id: "durata", nome: "Durata del ciclo", etichetta: "Durata", colore: "#2fbfb0" },
+  { id: "consumo", nome: "Consumo del ciclo (kWh)", etichetta: "Consumo", colore: "#3fb4ea" },
+  { id: "costo", nome: "Costo del ciclo", etichetta: "Costo", colore: "#e2ad1c" },
 ];
 
 export class CasaElettrodomestico extends HTMLElement {
@@ -77,6 +78,7 @@ export class CasaElettrodomestico extends HTMLElement {
       ...config,
     };
     this._activePeriod = "today";
+    vestiFinestra(this, this._config);
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "dw" + Math.random().toString(36).slice(2, 8);
     const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.dishwasher)(this._heroId);

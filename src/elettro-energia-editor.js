@@ -19,6 +19,11 @@ const ETICHETTE = {
   bill_today: "Conto di oggi voce per voce (es. sensor.costi_luce_oggi)",
   bill_month: "Conto del mese voce per voce (es. sensor.costi_luce_mese)",
   notification_path: "Pagina delle notifiche (facoltativa, es. /lovelace/notifiche)",
+  finestra_sfondo: "Tinta della finestra del pop-up",
+  finestra_trasparenza: "Trasparenza della finestra",
+  finestra_scritta: "Colore delle scritte nella finestra",
+  velo_scuro: "Quanto scurisce quello che c'e' dietro",
+  velo_sfoca: "Quanto sfoca quello che c'e' dietro",
 };
 
 const SCHEMA = [
@@ -32,6 +37,11 @@ const SCHEMA = [
   { name: "bill_today", selector: { entity: { domain: "sensor" } } },
   { name: "bill_month", selector: { entity: { domain: "sensor" } } },
   { name: "notification_path", selector: { text: {} } },
+  { name: "finestra_sfondo", selector: { color_rgb: {} } },
+  { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+  { name: "finestra_scritta", selector: { color_rgb: {} } },
+  { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+  { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
 ];
 
 
@@ -54,7 +64,9 @@ export class CasaEnergiaEditor extends HTMLElement {
 
   _datiForm() {
     const c = this._config;
-    return { ...c, top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false,
+    return { ...c,
+      finestra_sfondo: this._versoRgb(c.finestra_sfondo),
+      finestra_scritta: this._versoRgb(c.finestra_scritta), top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false,
       circuiti: (c.circuits || []).map((x) => x && x.entity).filter(Boolean) };
   }
 
@@ -64,7 +76,25 @@ export class CasaEnergiaEditor extends HTMLElement {
     return n.replace(/\s+(potenza|power)\s*$/i, "").replace(/\s{2,}/g, " ").trim();
   }
 
+  // i colori si scrivono in esadecimale (#1b2430), il selettore di Home
+  // Assistant invece parla in tre numeri: qui li traduco avanti e indietro
+  _versoHex(v) {
+    if (!Array.isArray(v) || v.length < 3) return v || "";
+    return "#" + v.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, "0")).join("");
+  }
+
+  _versoRgb(v) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(v || ""));
+    if (!m) return undefined;
+    const n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+
   _cambiatoForm(v) {
+    // le terne del selettore tornano esadecimali
+    ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
+      if (k in v) v[k] = this._versoHex(v[k]);
+    });
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
       if (k === "circuiti") return;
@@ -125,7 +155,7 @@ export class CasaEnergiaEditor extends HTMLElement {
         <div class="ce-sez">
           <div class="ce-tit">Righe del riquadro «Oggi»</div>
           <div class="ce-aiuto">Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi,
-            scrivi il nome che preferisci (vuoto = quello di serie).</div>
+            scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).</div>
           <div class="ce-righe"></div>
         </div>
         <div class="ce-sez">

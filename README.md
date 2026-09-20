@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.20.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.21.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -233,6 +233,17 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.21
+
+- **Il pop-up si veste come vuoi tu.** Nell'editor di `casa-energia` e
+  `casa-elettrodomestico` ci sono cinque cose nuove: **tinta della finestra**,
+  **quanto è trasparente**, **colore delle scritte**, **quanto scurisce** e
+  **quanto sfoca** quello che sta dietro. Vuoi la finestra di vetro sulla foto
+  della plancia? Tinta scura, trasparenza 30, sfocatura 12.
+- **Il colore di ogni riga lo scegli tu.** Accanto al nome della riga, nella
+  lista che gia' si trascinava, c'e' la casellina del colore e il tasto **↺**
+  per rimettere quello di serie (`colori_righe`).
 
 ## Novità della 2.20.1
 

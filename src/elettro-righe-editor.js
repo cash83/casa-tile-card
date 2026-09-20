@@ -13,6 +13,8 @@ export const STILE_EDITOR = `
   .ce-riga label{flex:1 1 45%;min-width:0;display:flex;align-items:center;gap:8px;cursor:pointer}
   .ce-riga .ent{flex:1 1 35%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
   .ce-riga input.nome{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
+  .ce-riga input.tinta{width:34px;height:28px;padding:0;border:1px solid var(--divider-color,#555);border-radius:7px;background:none;cursor:pointer}
+  .ce-riga .pulisci{border:1px solid var(--divider-color,#555);background:none;color:inherit;border-radius:7px;width:28px;height:28px;cursor:pointer;line-height:1}
   .ce-riga input.max{width:72px;padding:5px 6px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
   .ce-riga .maniglia{cursor:grab;touch-action:none;user-select:none;font-size:18px;line-height:1;padding:2px 4px;color:var(--secondary-text-color)}
   .ce-riga.trascino{outline:2px solid var(--primary-color);opacity:.85}
@@ -39,7 +41,8 @@ export function disegnaRighe(box, elenco, config, scrivi) {
     riga.dataset.id = id;
     riga.innerHTML = `<span class="maniglia" title="Trascina per spostare">⠿</span>`
       + `<label><input type="checkbox" ${accesa ? "checked" : ""}> <span></span></label>`
-      + `<input type="text" class="nome">`;
+      + `<input type="text" class="nome"><input type="color" class="tinta" title="Colore della riga">`
+      + `<button type="button" class="pulisci" title="Rimetti il colore di serie">↺</button>`;
     riga.querySelector("label span").textContent = voce.nome;
 
     // il nome che si vede sulla scheda: vuoto = quello di serie
@@ -55,6 +58,19 @@ export function disegnaRighe(box, elenco, config, scrivi) {
       if (!Object.keys(nomi).length) delete c.nomi_righe;
       scrivi(c);
     });
+
+    // il colore della riga: senza scelta resta quello di serie
+    const tinta = riga.querySelector(".tinta");
+    tinta.value = (config.colori_righe || {})[id] || voce.colore || "#888888";
+    const scriviColore = (valore) => {
+      const colori = { ...(config.colori_righe || {}) };
+      if (valore) colori[id] = valore; else delete colori[id];
+      const c2 = { ...config, colori_righe: colori };
+      if (!Object.keys(colori).length) delete c2.colori_righe;
+      scrivi(c2);
+    };
+    tinta.addEventListener("change", () => scriviColore(tinta.value));
+    riga.querySelector(".pulisci").addEventListener("click", () => scriviColore(null));
 
     riga.querySelector("input[type=checkbox]").addEventListener("change", (e) => {
       const n = scelte.filter((x) => x !== id);
@@ -103,8 +119,13 @@ export function disegnaRighe(box, elenco, config, scrivi) {
 export function righeInOrdine(config, elenco, R, esc) {
   const { scelte } = ordineRighe(config, elenco);
   const nomi = config.nomi_righe || {};
+  const colori = config.colori_righe || {};
   return scelte.filter((id) => R[id] !== undefined).map((id) => {
+    let html = R[id];
     const nome = nomi[id] && String(nomi[id]).trim();
-    return nome ? R[id].replace(/<small>[^<]*<\/small>/, `<small>${esc(nome)}</small>`) : R[id];
+    if (nome) html = html.replace(/<small>[^<]*<\/small>/, `<small>${esc(nome)}</small>`);
+    // il colore scelto a mano prende il posto di quello di serie
+    if (colori[id]) html = html.replace(/style="--c:[^"]*"/, `style="--c:${esc(colori[id])}"`);
+    return html;
   }).join("\n              ");
 }

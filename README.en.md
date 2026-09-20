@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.20.2-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.21.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -231,6 +231,17 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.21
+
+- **The pop-up dresses the way you want.** The `casa-energia` and
+  `casa-elettrodomestico` editors got five new settings: **window tint**, **how
+  transparent it is**, **text colour**, **how much it darkens** and **how much
+  it blurs** what sits behind. Want a glass window over the dashboard photo?
+  Dark tint, transparency 30, blur 12.
+- **You pick the colour of every row.** Next to the row name, in the list you
+  could already drag, there is a colour box and a **↺** button that puts the
+  original colour back (`colori_righe`).
 
 ## What's new in 2.20.1
 

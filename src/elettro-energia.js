@@ -16,6 +16,7 @@ import {
   STYLE,
   esc,
   meterSeverityColor,
+  vestiFinestra,
 } from './elettro-comune.js';
 const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 import { ESCLUSI_DI_SERIE } from './elettro-prepara.js';
@@ -23,13 +24,13 @@ import { righeInOrdine } from './elettro-righe-editor.js';
 
 // Le righe che puo' avere il riquadro Oggi, con il nome che si vede nell'editor.
 export const RIGHE_OGGI = [
-  { id: "consumo", nome: "Consumo (kWh presi dalla rete)", etichetta: "Consumo" },
-  { id: "energia_tasse", nome: "Energia + tasse (senza pannelli)", etichetta: "Energia + tasse" },
-  { id: "risparmio", nome: "Risparmio pannelli (oggi e mese)", etichetta: "Risparmio pannelli" },
-  { id: "pv_tasse", nome: "PV + tasse (quello che paghi)", etichetta: "PV + tasse" },
-  { id: "energia", nome: "Energia attuale (senza tasse)", etichetta: "Energia attuale" },
-  { id: "mese", nome: "Mese (+ tasse)", etichetta: "Mese (+ tasse)" },
-  { id: "top", nome: "Top consumo", etichetta: "Top consumo" },
+  { id: "consumo", nome: "Consumo (kWh presi dalla rete)", etichetta: "Consumo", colore: "#3fb4ea" },
+  { id: "energia_tasse", nome: "Energia + tasse (senza pannelli)", etichetta: "Energia + tasse", colore: "#f28c3c" },
+  { id: "risparmio", nome: "Risparmio pannelli (oggi e mese)", etichetta: "Risparmio pannelli", colore: "#43b86a" },
+  { id: "pv_tasse", nome: "PV + tasse (quello che paghi)", etichetta: "PV + tasse", colore: "#e2ad1c" },
+  { id: "energia", nome: "Energia attuale (senza tasse)", etichetta: "Energia attuale", colore: "#2fbfb0" },
+  { id: "mese", nome: "Mese (+ tasse)", etichetta: "Mese (+ tasse)", colore: "#a283f2" },
+  { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
 
 export class CasaEnergia extends HTMLElement {
@@ -74,6 +75,7 @@ export class CasaEnergia extends HTMLElement {
       settings_sections: [],
       ...config,
     };
+    vestiFinestra(this, this._config);
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "en" + Math.random().toString(36).slice(2, 8);
     const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.energy)(this._heroId);

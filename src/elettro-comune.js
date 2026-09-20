@@ -419,10 +419,10 @@ const STYLE = `
 .dm-ap-warn[hidden]{display:none}
 .dm-test-flag{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#0369a1;background:rgba(14,165,233,.14);border-radius:8px;padding:4px 8px}
 
-.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(6px)}
+.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:var(--dm-velo,rgba(15,23,42,.55));display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,6px))}
 .dm-ap-overlay[hidden]{display:none}
-.dm-ap-dialog{width:min(440px,100%);max-height:min(84vh,720px);overflow:auto;background:var(--dm-card);color:var(--dm-text);border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.3)}
-.dm-ap-dialog-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 10px;background:var(--dm-card);border-bottom:1px solid var(--dm-border);z-index:1}
+.dm-ap-dialog{width:min(440px,100%);max-height:min(84vh,720px);overflow:auto;background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.3)}
+.dm-ap-dialog-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 10px;background:var(--dm-finestra,var(--dm-card));border-bottom:1px solid var(--dm-border);z-index:1}
 .dm-ap-dialog-head h3{margin:0;font-size:17px;font-weight:900}
 .dm-ap-dialog-close{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border:0;border-radius:10px;background:var(--dm-soft);color:var(--dm-dim);cursor:pointer}
 .dm-ap-dialog-body{padding:12px 16px 18px;display:flex;flex-direction:column;gap:16px}
@@ -467,11 +467,41 @@ const STYLE = `
 .dm-ap-reset-note{font-size:12px;color:var(--dm-dim);text-align:center;margin-top:4px}
 
 @media (max-width:600px){
-  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(4px)}
+  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(var(--dm-velo-sfoca,4px))}
   .dm-ap-dialog{width:100%;max-width:100%;height:94vh;max-height:94vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column}
   .dm-ap-dialog-body{flex:1}
 }
 `;
+
+// COME SI VESTE IL POP-UP. Tinta e trasparenza della finestra, e quanto il
+// velo dietro scurisce e sfoca. Tutto attraverso variabili di stile, cosi'
+// non tocco il foglio: se un'opzione non c'e' resta il vestito di serie.
+export function vestiFinestra(host, cfg) {
+  const c = cfg || {};
+  const metti = (nome, valore) => {
+    if (valore === null || valore === undefined || valore === "") host.style.removeProperty(nome);
+    else host.style.setProperty(nome, valore);
+  };
+  const quanta = (v, difetto) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : difetto;
+  };
+  // la finestra: tinta scelta, resa trasparente quanto dice finestra_trasparenza
+  if (c.finestra_sfondo) {
+    const t = quanta(c.finestra_trasparenza, 0);
+    metti("--dm-finestra", t > 0
+      ? `color-mix(in srgb, ${c.finestra_sfondo} ${100 - t}%, transparent)`
+      : c.finestra_sfondo);
+  } else metti("--dm-finestra", null);
+  metti("--dm-finestra-testo", c.finestra_scritta || null);
+  // il velo dietro: nero quanto dice velo_scuro (0 = niente velo)
+  if (c.velo_scuro !== undefined && c.velo_scuro !== null && c.velo_scuro !== "") {
+    metti("--dm-velo", `rgba(15,23,42,${quanta(c.velo_scuro, 55) / 100})`);
+  } else metti("--dm-velo", null);
+  if (c.velo_sfoca !== undefined && c.velo_sfoca !== null && c.velo_sfoca !== "") {
+    metti("--dm-velo-sfoca", `${Math.min(30, Math.max(0, Number(c.velo_sfoca) || 0))}px`);
+  } else metti("--dm-velo-sfoca", null);
+}
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

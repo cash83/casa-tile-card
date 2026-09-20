@@ -2436,10 +2436,10 @@ const STYLE = `
 .dm-ap-warn[hidden]{display:none}
 .dm-test-flag{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#0369a1;background:rgba(14,165,233,.14);border-radius:8px;padding:4px 8px}
 
-.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(6px)}
+.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:var(--dm-velo,rgba(15,23,42,.55));display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,6px))}
 .dm-ap-overlay[hidden]{display:none}
-.dm-ap-dialog{width:min(440px,100%);max-height:min(84vh,720px);overflow:auto;background:var(--dm-card);color:var(--dm-text);border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.3)}
-.dm-ap-dialog-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 10px;background:var(--dm-card);border-bottom:1px solid var(--dm-border);z-index:1}
+.dm-ap-dialog{width:min(440px,100%);max-height:min(84vh,720px);overflow:auto;background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.3)}
+.dm-ap-dialog-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 10px;background:var(--dm-finestra,var(--dm-card));border-bottom:1px solid var(--dm-border);z-index:1}
 .dm-ap-dialog-head h3{margin:0;font-size:17px;font-weight:900}
 .dm-ap-dialog-close{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border:0;border-radius:10px;background:var(--dm-soft);color:var(--dm-dim);cursor:pointer}
 .dm-ap-dialog-body{padding:12px 16px 18px;display:flex;flex-direction:column;gap:16px}
@@ -2484,11 +2484,41 @@ const STYLE = `
 .dm-ap-reset-note{font-size:12px;color:var(--dm-dim);text-align:center;margin-top:4px}
 
 @media (max-width:600px){
-  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(4px)}
+  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(var(--dm-velo-sfoca,4px))}
   .dm-ap-dialog{width:100%;max-width:100%;height:94vh;max-height:94vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column}
   .dm-ap-dialog-body{flex:1}
 }
 `;
+
+// COME SI VESTE IL POP-UP. Tinta e trasparenza della finestra, e quanto il
+// velo dietro scurisce e sfoca. Tutto attraverso variabili di stile, cosi'
+// non tocco il foglio: se un'opzione non c'e' resta il vestito di serie.
+function vestiFinestra(host, cfg) {
+  const c = cfg || {};
+  const metti = (nome, valore) => {
+    if (valore === null || valore === undefined || valore === "") host.style.removeProperty(nome);
+    else host.style.setProperty(nome, valore);
+  };
+  const quanta = (v, difetto) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : difetto;
+  };
+  // la finestra: tinta scelta, resa trasparente quanto dice finestra_trasparenza
+  if (c.finestra_sfondo) {
+    const t = quanta(c.finestra_trasparenza, 0);
+    metti("--dm-finestra", t > 0
+      ? `color-mix(in srgb, ${c.finestra_sfondo} ${100 - t}%, transparent)`
+      : c.finestra_sfondo);
+  } else metti("--dm-finestra", null);
+  metti("--dm-finestra-testo", c.finestra_scritta || null);
+  // il velo dietro: nero quanto dice velo_scuro (0 = niente velo)
+  if (c.velo_scuro !== undefined && c.velo_scuro !== null && c.velo_scuro !== "") {
+    metti("--dm-velo", `rgba(15,23,42,${quanta(c.velo_scuro, 55) / 100})`);
+  } else metti("--dm-velo", null);
+  if (c.velo_sfoca !== undefined && c.velo_sfoca !== null && c.velo_sfoca !== "") {
+    metti("--dm-velo-sfoca", `${Math.min(30, Math.max(0, Number(c.velo_sfoca) || 0))}px`);
+  } else metti("--dm-velo-sfoca", null);
+}
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -8225,7 +8255,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.20.2";
+const VERSIONE = "2.21.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -17722,6 +17752,8 @@ const STILE_EDITOR = `
   .ce-riga label{flex:1 1 45%;min-width:0;display:flex;align-items:center;gap:8px;cursor:pointer}
   .ce-riga .ent{flex:1 1 35%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
   .ce-riga input.nome{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
+  .ce-riga input.tinta{width:34px;height:28px;padding:0;border:1px solid var(--divider-color,#555);border-radius:7px;background:none;cursor:pointer}
+  .ce-riga .pulisci{border:1px solid var(--divider-color,#555);background:none;color:inherit;border-radius:7px;width:28px;height:28px;cursor:pointer;line-height:1}
   .ce-riga input.max{width:72px;padding:5px 6px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
   .ce-riga .maniglia{cursor:grab;touch-action:none;user-select:none;font-size:18px;line-height:1;padding:2px 4px;color:var(--secondary-text-color)}
   .ce-riga.trascino{outline:2px solid var(--primary-color);opacity:.85}
@@ -17748,7 +17780,8 @@ function disegnaRighe(box, elenco, config, scrivi) {
     riga.dataset.id = id;
     riga.innerHTML = `<span class="maniglia" title="Trascina per spostare">⠿</span>`
       + `<label><input type="checkbox" ${accesa ? "checked" : ""}> <span></span></label>`
-      + `<input type="text" class="nome">`;
+      + `<input type="text" class="nome"><input type="color" class="tinta" title="Colore della riga">`
+      + `<button type="button" class="pulisci" title="Rimetti il colore di serie">↺</button>`;
     riga.querySelector("label span").textContent = voce.nome;
 
     // il nome che si vede sulla scheda: vuoto = quello di serie
@@ -17764,6 +17797,19 @@ function disegnaRighe(box, elenco, config, scrivi) {
       if (!Object.keys(nomi).length) delete c.nomi_righe;
       scrivi(c);
     });
+
+    // il colore della riga: senza scelta resta quello di serie
+    const tinta = riga.querySelector(".tinta");
+    tinta.value = (config.colori_righe || {})[id] || voce.colore || "#888888";
+    const scriviColore = (valore) => {
+      const colori = { ...(config.colori_righe || {}) };
+      if (valore) colori[id] = valore; else delete colori[id];
+      const c2 = { ...config, colori_righe: colori };
+      if (!Object.keys(colori).length) delete c2.colori_righe;
+      scrivi(c2);
+    };
+    tinta.addEventListener("change", () => scriviColore(tinta.value));
+    riga.querySelector(".pulisci").addEventListener("click", () => scriviColore(null));
 
     riga.querySelector("input[type=checkbox]").addEventListener("change", (e) => {
       const n = scelte.filter((x) => x !== id);
@@ -17812,9 +17858,14 @@ function disegnaRighe(box, elenco, config, scrivi) {
 function righeInOrdine(config, elenco, R, esc) {
   const { scelte } = ordineRighe(config, elenco);
   const nomi = config.nomi_righe || {};
+  const colori = config.colori_righe || {};
   return scelte.filter((id) => R[id] !== undefined).map((id) => {
+    let html = R[id];
     const nome = nomi[id] && String(nomi[id]).trim();
-    return nome ? R[id].replace(/<small>[^<]*<\/small>/, `<small>${esc(nome)}</small>`) : R[id];
+    if (nome) html = html.replace(/<small>[^<]*<\/small>/, `<small>${esc(nome)}</small>`);
+    // il colore scelto a mano prende il posto di quello di serie
+    if (colori[id]) html = html.replace(/style="--c:[^"]*"/, `style="--c:${esc(colori[id])}"`);
+    return html;
   }).join("\n              ");
 }
 
@@ -17827,13 +17878,13 @@ const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" s
 
 // Le righe che puo' avere il riquadro Oggi, con il nome che si vede nell'editor.
 const RIGHE_OGGI = [
-  { id: "consumo", nome: "Consumo (kWh presi dalla rete)", etichetta: "Consumo" },
-  { id: "energia_tasse", nome: "Energia + tasse (senza pannelli)", etichetta: "Energia + tasse" },
-  { id: "risparmio", nome: "Risparmio pannelli (oggi e mese)", etichetta: "Risparmio pannelli" },
-  { id: "pv_tasse", nome: "PV + tasse (quello che paghi)", etichetta: "PV + tasse" },
-  { id: "energia", nome: "Energia attuale (senza tasse)", etichetta: "Energia attuale" },
-  { id: "mese", nome: "Mese (+ tasse)", etichetta: "Mese (+ tasse)" },
-  { id: "top", nome: "Top consumo", etichetta: "Top consumo" },
+  { id: "consumo", nome: "Consumo (kWh presi dalla rete)", etichetta: "Consumo", colore: "#3fb4ea" },
+  { id: "energia_tasse", nome: "Energia + tasse (senza pannelli)", etichetta: "Energia + tasse", colore: "#f28c3c" },
+  { id: "risparmio", nome: "Risparmio pannelli (oggi e mese)", etichetta: "Risparmio pannelli", colore: "#43b86a" },
+  { id: "pv_tasse", nome: "PV + tasse (quello che paghi)", etichetta: "PV + tasse", colore: "#e2ad1c" },
+  { id: "energia", nome: "Energia attuale (senza tasse)", etichetta: "Energia attuale", colore: "#2fbfb0" },
+  { id: "mese", nome: "Mese (+ tasse)", etichetta: "Mese (+ tasse)", colore: "#a283f2" },
+  { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
 
 class CasaEnergia extends HTMLElement {
@@ -17878,6 +17929,7 @@ class CasaEnergia extends HTMLElement {
       settings_sections: [],
       ...config,
     };
+    vestiFinestra(this, this._config);
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "en" + Math.random().toString(36).slice(2, 8);
     const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.energy)(this._heroId);
@@ -18469,6 +18521,11 @@ const ETICHETTE$1 = {
   bill_today: "Conto di oggi voce per voce (es. sensor.costi_luce_oggi)",
   bill_month: "Conto del mese voce per voce (es. sensor.costi_luce_mese)",
   notification_path: "Pagina delle notifiche (facoltativa, es. /lovelace/notifiche)",
+  finestra_sfondo: "Tinta della finestra del pop-up",
+  finestra_trasparenza: "Trasparenza della finestra",
+  finestra_scritta: "Colore delle scritte nella finestra",
+  velo_scuro: "Quanto scurisce quello che c'e' dietro",
+  velo_sfoca: "Quanto sfoca quello che c'e' dietro",
 };
 
 const SCHEMA$1 = [
@@ -18482,6 +18539,11 @@ const SCHEMA$1 = [
   { name: "bill_today", selector: { entity: { domain: "sensor" } } },
   { name: "bill_month", selector: { entity: { domain: "sensor" } } },
   { name: "notification_path", selector: { text: {} } },
+  { name: "finestra_sfondo", selector: { color_rgb: {} } },
+  { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+  { name: "finestra_scritta", selector: { color_rgb: {} } },
+  { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+  { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
 ];
 
 
@@ -18504,7 +18566,9 @@ class CasaEnergiaEditor extends HTMLElement {
 
   _datiForm() {
     const c = this._config;
-    return { ...c, top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false,
+    return { ...c,
+      finestra_sfondo: this._versoRgb(c.finestra_sfondo),
+      finestra_scritta: this._versoRgb(c.finestra_scritta), top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false,
       circuiti: (c.circuits || []).map((x) => x && x.entity).filter(Boolean) };
   }
 
@@ -18514,7 +18578,25 @@ class CasaEnergiaEditor extends HTMLElement {
     return n.replace(/\s+(potenza|power)\s*$/i, "").replace(/\s{2,}/g, " ").trim();
   }
 
+  // i colori si scrivono in esadecimale (#1b2430), il selettore di Home
+  // Assistant invece parla in tre numeri: qui li traduco avanti e indietro
+  _versoHex(v) {
+    if (!Array.isArray(v) || v.length < 3) return v || "";
+    return "#" + v.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, "0")).join("");
+  }
+
+  _versoRgb(v) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(v || ""));
+    if (!m) return undefined;
+    const n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+
   _cambiatoForm(v) {
+    // le terne del selettore tornano esadecimali
+    ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
+      if (k in v) v[k] = this._versoHex(v[k]);
+    });
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
       if (k === "circuiti") return;
@@ -18575,7 +18657,7 @@ class CasaEnergiaEditor extends HTMLElement {
         <div class="ce-sez">
           <div class="ce-tit">Righe del riquadro «Oggi»</div>
           <div class="ce-aiuto">Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi,
-            scrivi il nome che preferisci (vuoto = quello di serie).</div>
+            scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).</div>
           <div class="ce-righe"></div>
         </div>
         <div class="ce-sez">
@@ -18626,10 +18708,10 @@ class CasaEnergiaEditor extends HTMLElement {
 
 // Le righe dell'Ultimo ciclo, col nome che si vede nell'editor.
 const RIGHE_CICLO = [
-  { id: "fine", nome: "Fine del ciclo (data e ora)", etichetta: "Fine" },
-  { id: "durata", nome: "Durata del ciclo", etichetta: "Durata" },
-  { id: "consumo", nome: "Consumo del ciclo (kWh)", etichetta: "Consumo" },
-  { id: "costo", nome: "Costo del ciclo", etichetta: "Costo" },
+  { id: "fine", nome: "Fine del ciclo (data e ora)", etichetta: "Fine", colore: "#a283f2" },
+  { id: "durata", nome: "Durata del ciclo", etichetta: "Durata", colore: "#2fbfb0" },
+  { id: "consumo", nome: "Consumo del ciclo (kWh)", etichetta: "Consumo", colore: "#3fb4ea" },
+  { id: "costo", nome: "Costo del ciclo", etichetta: "Costo", colore: "#e2ad1c" },
 ];
 
 class CasaElettrodomestico extends HTMLElement {
@@ -18678,6 +18760,7 @@ class CasaElettrodomestico extends HTMLElement {
       ...config,
     };
     this._activePeriod = "today";
+    vestiFinestra(this, this._config);
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "dw" + Math.random().toString(36).slice(2, 8);
     const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.dishwasher)(this._heroId);
@@ -19328,6 +19411,11 @@ const ETICHETTE = {
   stato: "Stato vero dell'apparecchio (facoltativo: integrazioni LG, Bosch...)",
   cycle_sensor: "Sensore dell'ultimo ciclo (es. sensor.lavatrice_ciclo)",
   notification_path: "Pagina delle notifiche (facoltativa)",
+  finestra_sfondo: "Tinta della finestra del pop-up",
+  finestra_trasparenza: "Trasparenza della finestra",
+  finestra_scritta: "Colore delle scritte nella finestra",
+  velo_scuro: "Quanto scurisce quello che c'e' dietro",
+  velo_sfoca: "Quanto sfoca quello che c'e' dietro",
 };
 
 const SCHEMA = [
@@ -19342,6 +19430,11 @@ const SCHEMA = [
   { name: "stato", selector: { entity: {} } },
   { name: "cycle_sensor", selector: { entity: { domain: "sensor" } } },
   { name: "notification_path", selector: { text: {} } },
+  { name: "finestra_sfondo", selector: { color_rgb: {} } },
+  { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+  { name: "finestra_scritta", selector: { color_rgb: {} } },
+  { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+  { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
 ];
 
 class CasaElettrodomesticoEditor extends HTMLElement {
@@ -19364,10 +19457,30 @@ class CasaElettrodomesticoEditor extends HTMLElement {
   // "stato" nel modulo e' live.state_entity nella configurazione
   _datiForm() {
     const c = this._config;
-    return { ...c, stato: (c.live && c.live.state_entity) || "" };
+    return { ...c,
+      finestra_sfondo: this._versoRgb(c.finestra_sfondo),
+      finestra_scritta: this._versoRgb(c.finestra_scritta), stato: (c.live && c.live.state_entity) || "" };
+  }
+
+  // i colori si scrivono in esadecimale (#1b2430), il selettore di Home
+  // Assistant invece parla in tre numeri: qui li traduco avanti e indietro
+  _versoHex(v) {
+    if (!Array.isArray(v) || v.length < 3) return v || "";
+    return "#" + v.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, "0")).join("");
+  }
+
+  _versoRgb(v) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(String(v || ""));
+    if (!m) return undefined;
+    const n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   }
 
   _cambiatoForm(v) {
+    // le terne del selettore tornano esadecimali
+    ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
+      if (k in v) v[k] = this._versoHex(v[k]);
+    });
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
       if (k === "stato") return;
@@ -19397,7 +19510,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
         <div class="ce-sez">
           <div class="ce-tit">Righe dell'«Ultimo ciclo»</div>
           <div class="ce-aiuto">Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle
-            in ordine e, se vuoi, scrivi il nome che preferisci (vuoto = quello di serie).</div>
+            in ordine e, se vuoi, scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).</div>
           <div class="ce-righe"></div>
         </div>
         <div class="ce-sez">
