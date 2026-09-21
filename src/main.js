@@ -1,7 +1,7 @@
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.4.55
+ * (la versione vera sta in versione.js)
  */
 
 

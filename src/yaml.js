@@ -120,7 +120,19 @@ export function yamlRighe(testo) {
       const c = pulita[i];
       if (virg) { if (c === virg) virg = null; continue; }
       if (c === '"' || c === "'") { virg = c; continue; }
-      if (c === "#" && i > 0 && /\s/.test(pulita[i - 1])) { pulita = pulita.slice(0, i); break; }
+      if (c === "#" && i > 0 && /\s/.test(pulita[i - 1])) {
+        // Un colore scritto a mano senza virgolette (colore: #ff0000) per il
+        // YAML e' un commento, e il valore diventerebbe vuoto: il colore
+        // sparirebbe in silenzio. Qui le schede sono piene di colori, quindi
+        // se quello che segue il # e' proprio un colore lo tengo.
+        const resto = pulita.slice(i).trim();
+        const prima = pulita.slice(0, i).trim();
+        if (prima.endsWith(":") && /^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$|^#[0-9a-fA-F]{8}$/.test(resto)) {
+          continue;
+        }
+        pulita = pulita.slice(0, i);
+        break;
+      }
     }
     if (!pulita.trim()) return;
     fuori.push({ testo: pulita.trim(), rientro: pulita.match(/^\s*/)[0].length, grezza: pulita });

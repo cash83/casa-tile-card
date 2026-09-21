@@ -358,6 +358,8 @@ export async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   await risolvi();
 
   const patch = { period_entities: periodi, stats: { ...(opzioni.stats || {}) } };
+  // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"
+  if (kwh) patch.energy_stat_entity = kwh;
   if (cicli.oggi) patch.stats.cycles_today = cicli.oggi;
   if (cicli.mese) patch.stats.cycles_month = cicli.mese;
   patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];

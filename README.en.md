@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.30.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.31.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -63,7 +63,7 @@ Add a card to the dashboard and look for **Casa · animated tile**. Everything a
 | **Controls** | the bar inside the tile, the quick buttons (blinds, locks, vacuums), the colour strip |
 | **Graph** | history graph, how many hours, area or line, minimum and maximum |
 | **Music** | controls, cover as background, speakers and sources, look of the speaker panel |
-| **People** | distance from home and route sensor |
+| **People** | distance from home and route sensor (with the **Person** layout) |
 | **Tap** | what happens when you tap it: toggle, more-info, your pop-up, map, web address, service |
 
 Tabs that make no sense for that entity disappear on their own: on a sensor you will see neither Music nor Controls, on a person you will see no Graph.
@@ -251,6 +251,41 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.31
+
+A pass over the whole card, **setting by setting**: each one actually tried, by
+drawing the tile without it and with it and looking at whether anything changes.
+124 settings across the tile and the two energy cards. Whatever did not add up is
+fixed here.
+
+- **Text is readable in light theme too.** Name and value took Home Assistant's
+  theme colour, which in light theme is dark: dark on a dark tile. The tile now
+  picks the colour only when the theme's own would not stand out enough; otherwise
+  it leaves it to the theme.
+- **Numbers in your language**: 1,234.5 or 1.234,5 as your locale writes them, and
+  the currency symbol instead of the code. This covers `casa-energia` and
+  `casa-elettrodomestico` as well.
+- **Distance from home** (and the route sensor) is only ever written by the
+  **Person layout**: those two settings now show up only there, instead of sitting
+  in the editor doing nothing.
+- **The chart** is no longer offered where it cannot work (lights, thermostats):
+  their state is not a number.
+- **The weather sky**: strength and entity show only when the sky is on, like every
+  other switch -> detail pair.
+- **A colour typed into YAML** (`colore: #ff0000`, unquoted) no longer disappears:
+  to YAML that `#` is a comment, so the value came out empty.
+- **CSS colour names** (tomato, gold...) no longer turn black when the tile darkens
+  them or makes them translucent.
+- **The energy alarm threshold** never fired when the sensor was unavailable.
+- **The two energy cards**: they tell Home Assistant how tall they are (the Layout
+  slider in sections views), they follow Home Assistant's language, and they redraw
+  once instead of on every state change in the house.
+- **The Consumption dialog warns you** when the plugs add up to more than the house
+  total: usually it means one plug is counted twice.
+- Small ones: the background-photo preview opened the icon gallery; a pop-up opened
+  again left an Esc listener attached to the document forever; in masonry views the
+  music tile claimed to be half as tall as it is.
 
 ## What's new in 2.30
 

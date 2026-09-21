@@ -3,7 +3,8 @@
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
 // da un secondo file. Da qui in poi e' codice nostro.
 
-import { mirinoGrafico } from './elettro-comune.js';
+import { mirinoGrafico, numero, unitaBella } from './elettro-comune.js';
+import { scegliLingua } from './lingua.js';
 import {
   HERO_BUILDERS,
   CHIP_SVGS,
@@ -210,7 +211,7 @@ export class CasaEnergia extends HTMLElement {
         `<button type="button" class="dm-ap-switch${on ? " on" : ""}" data-entity="${esc(row.entity)}" aria-pressed="${on}"></button>`,
       );
     }
-    const unit = st.attributes?.unit_of_measurement || "";
+    const unit = unitaBella(st.attributes?.unit_of_measurement);
     return `<div class="dm-ap-row" data-open-entity="${esc(row.entity)}" style="cursor:pointer">
       <span class="dm-ap-row-label">${esc(row.label)}</span>
       <span class="dm-ap-row-val">${esc(st.state)}${unit ? " " + esc(unit) : ""}</span>
@@ -305,8 +306,11 @@ export class CasaEnergia extends HTMLElement {
     if (!st) return "\u2014";
     const raw = attr ? st.attributes?.[attr] : st.state;
     const n = Number(raw);
-    const unit = st.attributes?.unit_of_measurement || "";
-    const num = Number.isFinite(n) && digits != null ? n.toFixed(digits) : raw;
+    const unit = unitaBella(st.attributes?.unit_of_measurement);
+    // se l'attributo non c'e' ancora (contatore appena creato) meglio una
+    // lineetta che la scritta "undefined"
+    if (raw === undefined || raw === null || raw === "") return "\u2014";
+    const num = Number.isFinite(n) && digits != null ? (numero(n, digits) ?? n.toFixed(digits)) : raw;
     return `${num}${unit ? " " + unit : ""}`;
   }
 
@@ -445,7 +449,7 @@ export class CasaEnergia extends HTMLElement {
   // --- Il conto voce per voce (aggiunta cash83) ------------------------
   _euro(v) {
     const n = Number(v);
-    return Number.isFinite(n) ? `${n.toFixed(2)} €` : "—";
+    return Number.isFinite(n) ? `${numero(n, 2)} €` : "—";
   }
 
   _contoHtml() {
@@ -456,8 +460,8 @@ export class CasaEnergia extends HTMLElement {
     const mese = a(cfg.bill_month);
     const tot = (id) => this._euro(id ? hass.states[id]?.state : null);
     const riga = (label, k, euro = true, colore = null, forte = false) => this._statRow2c(colore, forte, label,
-      euro ? this._euro(oggi[k]) : `${Number(oggi[k] ?? 0).toFixed(2)} kWh`,
-      euro ? this._euro(mese[k]) : `${Number(mese[k] ?? 0).toFixed(2)} kWh`);
+      euro ? this._euro(oggi[k]) : `${numero(oggi[k] ?? 0, 2)} kWh`,
+      euro ? this._euro(mese[k]) : `${numero(mese[k] ?? 0, 2)} kWh`);
     return `
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Il conto, voce per voce &nbsp;(oggi &middot; mese)</div>
         ${riga("kWh presi dalla rete", "kwh", false, "#3fb4ea")}
@@ -544,7 +548,12 @@ export class CasaEnergia extends HTMLElement {
     const tot = Number(hass.states[cfg.power_entity]?.state);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
     const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;
-    return { loads, non, tot };
+    // Se le prese sommate superano la casa, da qualche parte c'e' un doppione:
+    // quasi sempre un sensore che e' il TOTALE di altri gia' contati. Non posso
+    // saperlo da solo (nessuno me lo dice), ma posso dirlo invece di far finta
+    // che il non misurato sia zero.
+    const doppione = Number.isFinite(tot) && misurato > tot + Math.max(20, tot * 0.05);
+    return { loads, non, tot, doppione, misurato };
   }
 
   _topText(hass) {
@@ -563,14 +572,23 @@ export class CasaEnergia extends HTMLElement {
     const cfg = this._config;
     if (!cfg.top_auto) return this._openConsumiOriginale();
     const hass = this._hass;
-    const { loads, non, tot } = this._autoLoads(hass);
+    const { loads, non, tot, doppione, misurato } = this._autoLoads(hass);
     const righe = loads.slice();
     if (non !== null) righe.push({ label: cfg.unmeasured_label || "Non misurato", live: non, non: true });
     righe.sort((x, y) => y.live - x.live);
-    const rows = righe.map((c) => this._statRow(c.label, `${c.live.toFixed(0)} W`)).join("");
+    const rows = righe.map((c) => this._statRow(c.label, `${numero(c.live, 0)} W`)).join("");
+    // se le prese sommate superano la casa c'e' un doppione (di solito un
+    // sensore che e' gia' la somma di altri): dirlo, invece di mostrare un
+    // "Non misurato" schiacciato a zero che sembra giusto e non lo e'
+    const avviso = doppione
+      ? `<div class="dm-ap-reset-note">Le prese sommate fanno ${Math.round(misurato)} W ma la casa
+         ne misura ${Math.round(tot)}: qualcuna è contata due volte, di solito un sensore che
+         è già la somma di altri. Si toglie dall'editor, in
+         «Parole che fanno escludere un sensore».</div>`
+      : "";
     this._openDialog("Consumi", `
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">In evidenza</div>${this._statRow("Top consumo", this._topText(hass))}${Number.isFinite(tot) ? this._statRow("Totale casa", `${tot.toFixed(0)} W`) : ""}</div>
-      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Tutte le prese e i sensori (live)</div>${rows}</div>
+      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Tutte le prese e i sensori (live)</div>${rows}${avviso}</div>
     `);
   }
   // --- fine aggiunta ----------------------------------------------------
@@ -582,7 +600,7 @@ export class CasaEnergia extends HTMLElement {
       .map((c) => ({ ...c, live: Number(hass.states[c.entity]?.state) || 0 }))
       .sort((a, b) => b.live - a.live);
 
-    const rows = circuits.map((c) => this._statRow(c.label, `${c.live.toFixed(0)} W`)).join("");
+    const rows = circuits.map((c) => this._statRow(c.label, `${numero(c.live, 0)} W`)).join("");
     const topSt = cfg.top_entity ? hass.states[cfg.top_entity]?.state : null;
 
     this._openDialog("Circuiti", `
@@ -593,21 +611,46 @@ export class CasaEnergia extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    scegliLingua(hass);
     if (!this._config) return;
+    // Home Assistant passa di qui a ogni cambio di stato di TUTTA la casa.
+    // Invece di rifare tutto il disegno per ognuno, i cambi che arrivano
+    // insieme li raggruppo: disegno una volta sola, con l'ultimo valore.
+    const adesso = Date.now();
+    if (this._ultimoGiro && adesso - this._ultimoGiro < 150) {
+      if (!this._giroDopo) {
+        this._giroDopo = setTimeout(() => {
+          this._giroDopo = 0;
+          if (this.isConnected || this._root) this.hass = this._hass;
+        }, 150);
+      }
+      return;
+    }
+    this._ultimoGiro = adesso;
+
     const cfg = this._config;
 
     const watt = Number(hass.states[cfg.power_entity]?.state);
     const wattVal = Number.isFinite(watt) ? Math.max(0, watt) : 0;
     const wattText = this._root.querySelector(".dm-e-watt");
-    if (wattText) wattText.textContent = wattVal.toFixed(0);
+    if (wattText) wattText.textContent = numero(wattVal, 0);
 
-    if (cfg.periods?.[1]) {
-      { const x = this._root.querySelector(".dm-e-today-kwh"); if (x) x.textContent = this._val(hass, cfg.periods[1].energy, 2); }
-      { const x = this._root.querySelector(".dm-e-today-cost"); if (x) x.textContent = this._val(hass, cfg.periods[1].cost, 2); }
+    // I periodi si cercano per NOME: se l'elenco ne ha meno di quattro (un
+    // contatore cancellato, uno non creato) le posizioni slittano e la
+    // casella mostrerebbe la settimana chiamandola "oggi".
+    const periodo = (nome, posto) => {
+      const l = cfg.periods || [];
+      return l.find((p) => String(p.label || "").trim().toLowerCase() === nome) || l[posto];
+    };
+    const pOggi = periodo("oggi", 1);
+    const pMese = periodo("mese", 3);
+    if (pOggi) {
+      { const x = this._root.querySelector(".dm-e-today-kwh"); if (x) x.textContent = this._val(hass, pOggi.energy, 2); }
+      { const x = this._root.querySelector(".dm-e-today-cost"); if (x) x.textContent = this._val(hass, pOggi.cost, 2); }
     }
-    if (cfg.periods?.[3]) {
-      { const x = this._root.querySelector(".dm-e-month-cost"); if (x) x.textContent = this._val(hass, cfg.periods[3].cost, 2); }
-      { const x = this._root.querySelector(".dm-e-month-kwh"); if (x) x.textContent = this._val(hass, cfg.periods[3].energy, 2); }
+    if (pMese) {
+      { const x = this._root.querySelector(".dm-e-month-cost"); if (x) x.textContent = this._val(hass, pMese.cost, 2); }
+      { const x = this._root.querySelector(".dm-e-month-kwh"); if (x) x.textContent = this._val(hass, pMese.energy, 2); }
     }
     {
       // la riga della bolletta: il bimestre, kWh e euro insieme
@@ -645,7 +688,7 @@ export class CasaEnergia extends HTMLElement {
       if (!el) return;
       const v = Number(hass.states[c.entity]?.state);
       const vVal = Number.isFinite(v) ? Math.max(0, v) : 0;
-      el.querySelector(".dm-e-c-val").textContent = `${vVal.toFixed(0)} W`;
+      el.querySelector(".dm-e-c-val").textContent = `${numero(vVal, 0)} W`;
       const pct = c.max ? Math.min(100, (vVal / c.max) * 100) : 0;
       const bar = el.querySelector(".dm-e-c-bar");
       bar.style.width = `${pct}%`;
@@ -655,14 +698,23 @@ export class CasaEnergia extends HTMLElement {
     const warnEl = this._root.querySelector(".dm-ap-warn");
     const soglia = cfg.soglia_entity ? Number(hass.states[cfg.soglia_entity]?.state) : null;
     const card = this._root.querySelector(".dm-ap-card");
-    if (soglia != null && wattVal > soglia) {
+    // un sensore non disponibile da' NaN: "NaN != null" e' vero e il
+    // confronto sotto e' sempre falso, cosi' l'avviso non sarebbe mai scattato
+    if (Number.isFinite(soglia) && wattVal > soglia) {
       warnEl.hidden = false;
-      warnEl.textContent = `\u26a0 Soglia superata: ${wattVal.toFixed(0)} W (limite ${soglia.toFixed(0)} W)`;
+      warnEl.textContent = `\u26a0 Soglia superata: ${numero(wattVal, 0)} W (limite ${numero(soglia, 0)} W)`;
       card.classList.add("has-alarm");
     } else {
       warnEl.hidden = true;
       card.classList.remove("has-alarm");
     }
+  }
+
+  // Quanto spazio chiede nella griglia delle viste a sezioni. Senza questo
+  // Home Assistant decide da solo e il cursore del Layout si comporta a modo
+  // suo: la casella e' alta, va detto.
+  getGridOptions() {
+    return { columns: 12, rows: 7, min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
   }
 
   getCardSize() {

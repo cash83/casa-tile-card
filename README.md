@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.30.3-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.31.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -63,7 +63,7 @@ Aggiungi una scheda alla dashboard e cerca **Casa · casella animata**. Poi tutt
 | **Comandi** | la barra dentro la casella, i tasti rapidi (tapparelle, serrature, aspirapolvere), la striscia del colore |
 | **Grafico** | grafico dell'andamento, quante ore, area o linea, minimo e massimo |
 | **Musica** | comandi, copertina come sfondo, casse e sorgenti, aspetto del riquadro delle casse |
-| **Persone** | distanza da casa e sensore del percorso |
+| **Persone** | distanza da casa e sensore del percorso (con la disposizione **Persona**) |
 | **Tocco** | cosa fa quando la tocchi: accendi/spegni, dettagli, pop-up tuo, mappa, indirizzo web, servizio |
 
 Le schede che non servono a quell'entità spariscono da sole: su un sensore non vedrai Musica né Comandi, su una persona non vedrai Grafico.
@@ -253,6 +253,43 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.31
+
+Un giro di controlli su tutta la scheda, **impostazione per impostazione**: ognuna
+provata davvero, disegnando la casella senza e con, e guardando se cambia
+qualcosa. 124 impostazioni fra la casella e le due schede dei consumi. Quello che
+non tornava è corretto qui.
+
+- **Le scritte si leggono anche in tema chiaro.** Nome e valore prendevano il
+  colore del tema di Home Assistant, che in tema chiaro è scuro: veniva scuro su
+  fondo scuro. Adesso la casella sceglie il colore solo quando quello del tema non
+  staccherebbe abbastanza dal fondo; per il resto lascia fare al tema.
+- **I numeri nella tua lingua**: 1.234,5 invece di 1234.5, e il simbolo della
+  valuta (EUR -> euro, USD -> dollaro) al posto della sigla. Vale anche per
+  `casa-energia` e `casa-elettrodomestico`.
+- **I chilometri delle persone** (distanza da casa e sensore del percorso) li
+  scrive **solo la disposizione Persona**: adesso le due impostazioni compaiono
+  soltanto lì, invece di restare in mezzo senza fare niente.
+- **Il grafico** non viene più proposto dove non può funzionare (luci,
+  termostati): lì lo stato non è un numero.
+- **Il cielo del meteo**: forza e entità compaiono solo se il cielo è acceso,
+  come tutte le altre coppie interruttore -> dettaglio.
+- **Un colore scritto a mano nello YAML** (`colore: #ff0000`, senza virgolette)
+  non sparisce più: per lo YAML quel `#` è un commento e il valore restava vuoto.
+- **I nomi dei colori CSS** (tomato, gold...) non diventano più neri quando la
+  casella li scurisce o li rende trasparenti.
+- **La soglia d'allarme dei consumi** non scattava mai se il sensore era non
+  disponibile.
+- **Le due schede dei consumi**: dicono a Home Assistant quanto sono alte (il
+  cursore del Layout nelle viste a sezioni), seguono la lingua di Home Assistant, e
+  si ridisegnano una volta sola invece che a ogni cambio di stato della casa.
+- **La finestra Consumi avvisa** quando le prese sommate danno più del totale
+  della casa: di solito vuol dire una presa contata due volte.
+- Piccole: l'anteprima della foto di sfondo apriva la galleria dell'icona; il
+  pop-up riaperto lasciava attaccato per sempre un ascolto del tasto Esc; nelle
+  viste vecchie (masonry) la casella del lettore musicale diceva di essere alta
+  la metà di quello che è.
 
 ## Novità della 2.30
 

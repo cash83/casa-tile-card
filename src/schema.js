@@ -302,11 +302,23 @@ export const DIPENDE = {
   yt_attrezzi: (c) => c.disposizione === "ytmusic",
   yt_cuore: (c) => c.disposizione === "ytmusic",
   grafico_stile: (c) => !!c.grafico,
-  distanza_entita: (c) => !!c.mostra_distanza,
+  // I chilometri li scrive SOLO la disposizione "Persona" (casa-tile.js,
+  // ramo comePersona): con la disposizione classica queste due non
+  // facevano niente e restavano li' a far credere il contrario.
+  mostra_distanza: (c) => c.disposizione === "persona",
+  distanza_entita: (c) => c.disposizione === "persona" && c.mostra_distanza !== false,
+  // i due dettagli del cielo si vedono solo se il cielo c'e', come tutte
+  // le altre coppie interruttore -> dettaglio
+  meteo_forza: (c) => (c.sfondo_meteo === undefined
+    ? String(c.entity || "").split(".")[0] === "weather" : !!c.sfondo_meteo),
+  meteo_entita: (c) => (c.sfondo_meteo === undefined
+    ? String(c.entity || "").split(".")[0] === "weather" : !!c.sfondo_meteo),
   info_nomi_auto: (c) => (c.info_entita || []).length > 0,
   segui_attivo: (c) => (c.lettori || []).length > 0 || c.multiroom !== false,
-  soglia: (c) => c.acceso_se === "sopra" || c.acceso_se === "sotto"
-    || (Array.isArray(c.acceso_entita) ? c.acceso_entita.length : !!c.acceso_entita),
+  // la soglia serve a QUALSIASI casella con un numero (casa-tile.js,
+  // _accesoNormale): il vecchio confronto con "sopra"/"sotto" non poteva
+  // essere vero e la teneva nascosta a chi non usa acceso_entita
+  soglia: () => true,
 };
 
 export const SOLO_AZIONE = {
@@ -341,10 +353,10 @@ export const SOLO_PER = {
   pannello_trasparenza: ["media_player"],
   riquadri_trasparenza: ["media_player"],
   comandi_rapidi: ["cover", "lock", "vacuum"],
-  grafico: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_colore: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_ore: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_stile: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  grafico: ["sensor", "number", "input_number", "counter"],
+  grafico_colore: ["sensor", "number", "input_number", "counter"],
+  grafico_ore: ["sensor", "number", "input_number", "counter"],
+  grafico_stile: ["sensor", "number", "input_number", "counter"],
   gira_copertina: ["media_player"],
   coda: ["media_player"], yt_attrezzi: ["media_player"],
   yt_cuore: ["media_player"],
@@ -370,7 +382,7 @@ export const ETICHETTE = {
   scarica_entita: "Quali entita vogliono dire che STA DANDO CORRENTE (di solito non serve: basta chiamare scarica una misura)",
   disposizione: "Come e disposta la casella",
   azione: "Cosa fa quando la tocchi",
-  tieni_premuto: "Cosa fa quando la tieni premuta", anima: "Quando si muove l'icona",
+  tieni_premuto: "Cosa fa quando la tieni premuta",
   effetto: "Effetto della casella", intensita: "Intensita del colore (%)",
   anima: "Quando si muove (icona ed effetti)",
   coda: "Elenco In coda (serve Music Assistant)",

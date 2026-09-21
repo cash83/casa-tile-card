@@ -12,6 +12,9 @@ import { creaSensoriBase, prezziDelKWh } from './elettro-crea.js';
 const ETICHETTE = {
   name: "Nome della scheda",
   power_entity: "Potenza della casa (W) - obbligatoria",
+  artwork: "Disegno",
+  soglia_entity: "Entit\u00e0 con la soglia d'allarme (facoltativa)",
+  switches: "Interruttori da mettere nelle impostazioni",
   max_power: "Fondo scala della barra (W, es. 3300 con 3 kW)",
   circuiti: "Circuiti da mostrare con la barra (prese o sensori in W)",
   top_auto: "Top consumo automatico (cerca da solo tutte le prese che misurano)",
@@ -34,6 +37,17 @@ const ETICHETTE = {
 const SCHEMA = [
   { name: "name", selector: { text: {} } },
   { name: "power_entity", required: true, selector: { entity: { domain: "sensor", device_class: "power" } } },
+  // i nomi veri dei disegni (HERO_BUILDERS in elettro-comune.js): uno che non
+  // esiste non darebbe errore, tornerebbe in silenzio al contatore della luce
+  { name: "artwork", selector: { select: { mode: "dropdown", options: [
+    { value: "energy", label: "Contatore della luce" },
+    { value: "ups", label: "Gruppo di continuità" },
+    { value: "server", label: "Server" },
+    { value: "nas", label: "NAS" },
+    { value: "fritzbox", label: "Router" },
+    { value: "proxmox", label: "Proxmox" }] } } },
+  { name: "soglia_entity", selector: { entity: {} } },
+  { name: "switches", selector: { entity: { multiple: true } } },
   { name: "max_power", selector: { number: { min: 500, max: 30000, step: 100, mode: "box", unit_of_measurement: "W" } } },
   { name: "circuiti", selector: { entity: { multiple: true, domain: "sensor", device_class: "power" } } },
   { name: "top_auto", selector: { boolean: {} } },
@@ -76,6 +90,7 @@ export class CasaEnergiaEditor extends HTMLElement {
     return { ...c,
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
       finestra_scritta: this._versoRgb(c.finestra_scritta), top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false,
+      switches: (c.switches || []).map((x) => x && x.entity).filter(Boolean),
       circuiti: (c.circuits || []).map((x) => x && x.entity).filter(Boolean) };
   }
 
@@ -117,7 +132,7 @@ export class CasaEnergiaEditor extends HTMLElement {
     });
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
-      if (k === "circuiti") return;
+      if (k === "circuiti" || k === "switches") return;
       if (v[k] === "" || v[k] === undefined || v[k] === null) delete c[k];
       else c[k] = v[k];
     });
@@ -126,6 +141,12 @@ export class CasaEnergiaEditor extends HTMLElement {
     const prima = {};
     (this._config.circuits || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x; });
     c.circuits = (v.circuiti || []).map((eid) => prima[eid] || { label: this._nomeDi(eid), entity: eid, max: 2500 });
+    // gli interruttori del pop-up: la scheda li vuole come {entity, label}
+    const primaSw = {};
+    (this._config.switches || []).forEach((x) => { if (x && x.entity) primaSw[x.entity] = x; });
+    if (v.switches && v.switches.length) {
+      c.switches = v.switches.map((eid) => primaSw[eid] || { label: this._nomeDi(eid), entity: eid });
+    } else delete c.switches;
     this._config = c;
     this._emetti();
   }

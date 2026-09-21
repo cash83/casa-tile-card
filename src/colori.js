@@ -83,22 +83,53 @@ export function daRgb(rgb) {
     .join("");
 }
 
+// Un colore esadecimale a sei cifre, o niente. Serve perche' "red" e
+// "orange" sono lunghi 3 e 6 caratteri come un esadecimale: presi per tali
+// davano "#000000" (parseInt fallisce in silenzio) invece del colore giusto.
+function esadecimale(colore) {
+  const h = String(colore || "").trim().replace(/^#/, "");
+  if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(h)) return null;
+  return h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
+}
+
+// Quanto e' chiaro un colore, da 0 (nero) a 1 (bianco). Serve a decidere se
+// sopra ci va scritto chiaro o scuro. Capisce "#rgb", "#rrggbb" e "rgb(r,g,b)";
+// per tutto il resto (nomi CSS, var(--...)) torna null: non so giudicare.
+export function chiarezza(colore) {
+  const t = String(colore || "").trim();
+  let r, g, b;
+  const rgb = t.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+  if (rgb) {
+    [r, g, b] = [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
+  } else {
+    const h = t.replace(/^#/, "");
+    const pieno = /^[0-9a-fA-F]{3}$/.test(h) ? h.split("").map((x) => x + x).join("") : h;
+    if (!/^[0-9a-fA-F]{6}$/.test(pieno)) return null;
+    const n = parseInt(pieno, 16);
+    [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  // pesi del canale come li vede l'occhio
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
 // lo stesso colore, ma piu' scuro (quanto: 1 = uguale, 0 = nero)
 export function scurisci(colore, quanto) {
-  const h = String(colore || "").replace("#", "");
-  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
-  if (pieno.length !== 6) return colore;
+  const pieno = esadecimale(colore);
+  if (!pieno) return colore;
+  // fuori da 0-1 uscivano colori impossibili: "#-ff-5f-5f" con un numero
+  // negativo, o nove cifre con un numero grande
+  const q = Math.max(0, Math.min(1, Number(quanto)));
+  if (!Number.isFinite(q)) return colore;
   const n = parseInt(pieno, 16);
-  const r = Math.round(((n >> 16) & 255) * quanto);
-  const g = Math.round(((n >> 8) & 255) * quanto);
-  const b = Math.round((n & 255) * quanto);
+  const r = Math.round(((n >> 16) & 255) * q);
+  const g = Math.round(((n >> 8) & 255) * q);
+  const b = Math.round((n & 255) * q);
   return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
 export function conAlfa(colore, a) {
-  const h = String(colore || "").replace("#", "");
-  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
-  if (pieno.length !== 6) return colore;
+  const pieno = esadecimale(colore);
+  if (!pieno) return colore;
   const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
   return "#" + pieno + alfa;
 }

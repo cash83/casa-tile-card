@@ -226,6 +226,9 @@ export const ConFinestra = (Base) => class extends Base {
     this.removeAttribute("chiude");
     this._velo.toggleAttribute("aperto", true);
     this._faiNascere();
+    // se la finestra si riapre senza essere stata chiusa, il vecchio
+    // ascolto resterebbe attaccato al documento per sempre
+    if (this._esc) document.removeEventListener("keydown", this._esc);
     document.addEventListener("keydown", this._esc = (e) => {
       if (e.key === "Escape") this._chiudiFinestra();
     });

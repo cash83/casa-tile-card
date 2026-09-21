@@ -1,3 +1,4 @@
+import { laLocale } from './lingua.js';
 // Pezzi comuni delle schede energia/elettrodomestico: disegni, icone, stile.
 // Nata dalle schede di Simonz82 (github.com/Simonz82/smart-home-cards),
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
@@ -523,6 +524,28 @@ export function mirinoGrafico(box, punti, scrivi) {
   box.addEventListener("pointerup", via);
   box.addEventListener("pointercancel", via);
   box.addEventListener("pointerleave", via);
+}
+
+// Un numero scritto come lo scrive Home Assistant nella lingua di chi guarda:
+// in italiano la virgola decimale. Le due schede dei consumi usavano toFixed,
+// che mette sempre il punto, e sulla stessa plancia si leggeva "1,2 kW" da una
+// parte e "0.29 €" dall'altra.
+// Il simbolo al posto del codice della moneta, come fa Home Assistant.
+const SIMBOLI = { EUR: "\u20ac", USD: "$", GBP: "\u00a3", CHF: "CHF" };
+export function unitaBella(u) {
+  const t = String(u || "").trim();
+  return SIMBOLI[t.toUpperCase()] || t;
+}
+
+export function numero(v, decimali) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return null;
+  const d = Number.isFinite(Number(decimali)) ? Number(decimali) : 0;
+  try {
+    return n.toLocaleString(laLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
+  } catch (e) {
+    return n.toFixed(d);
+  }
 }
 
 export function vestiFinestra(host, cfg) {

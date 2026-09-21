@@ -3,7 +3,8 @@
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
 // da un secondo file. Da qui in poi e' codice nostro.
 
-import { mirinoGrafico } from './elettro-comune.js';
+import { mirinoGrafico, numero, unitaBella } from './elettro-comune.js';
+import { scegliLingua } from './lingua.js';
 import {
   HERO_BUILDERS,
   CHIP_SVGS,
@@ -270,7 +271,7 @@ export class CasaElettrodomestico extends HTMLElement {
 
   _fmtNum(v, digits = 1) {
     const n = Number(v);
-    return Number.isFinite(n) ? n.toFixed(digits) : "\u2014";
+    return Number.isFinite(n) ? (numero(n, digits) ?? n.toFixed(digits)) : "\u2014";
   }
 
   _cycleAttr(hass, key) {
@@ -320,7 +321,7 @@ export class CasaElettrodomestico extends HTMLElement {
       : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
     const cost = pEnt.cost ? hass.states[pEnt.cost]?.state
       : (pAttrs.cost ? attrs[pAttrs.cost] : null);
-    const costTxt = Number.isFinite(Number(cost)) ? `${Number(cost).toFixed(2)} \u20ac` : "\u2014";
+    const costTxt = Number.isFinite(Number(cost)) ? `${numero(cost, 2)} \u20ac` : "\u2014";
     const label = cfg.period_labels[periodKey] || periodKey;
     return `<div class="dm-ap-week-row">
       <div class="dm-ap-week-day">${esc(label)}</div>
@@ -394,7 +395,7 @@ export class CasaElettrodomestico extends HTMLElement {
       const cfg = this._config;
       const st = cfg.power_entity ? hass.states[cfg.power_entity] : null;
       if (st) {
-        const unita = cfg.power_unit || st.attributes.unit_of_measurement || "W";
+        const unita = cfg.power_unit || unitaBella(st.attributes.unit_of_measurement) || "W";
         liveHtml += this._row(cfg.power_label || "Potenza attuale",
           `<span class="dm-ap-row-val">${esc(st.state)} ${esc(unita)}</span>`);
         const n = Number(st.state);
@@ -464,7 +465,7 @@ export class CasaElettrodomestico extends HTMLElement {
         <div class="dm-ap-week-stats cols3">
           <div class="dm-ap-week-stat"><small>Cicli</small><b>${vuoto ? "\u2014" : esc(String(Number(dato.c) || 0))}</b></div>
           <div class="dm-ap-week-stat"><small>Tempo</small><b>${vuoto ? "\u2014" : esc(min2txt(dato.m))}</b></div>
-          <div class="dm-ap-week-stat"><small>Costo</small><b>${vuoto || !Number.isFinite(costo) ? "\u2014" : costo.toFixed(2) + " \u20ac"}</b></div>
+          <div class="dm-ap-week-stat"><small>Costo</small><b>${vuoto || !Number.isFinite(costo) ? "\u2014" : numero(costo, 2) + " \u20ac"}</b></div>
         </div>
       </div>`);
     }
@@ -505,9 +506,9 @@ export class CasaElettrodomestico extends HTMLElement {
         const cicli = hass.states[row.cicli]?.state ?? "\u2014";
         const tempo = hass.states[row.tempo]?.state ?? "\u2014";
         const consumoNum = Number(hass.states[row.consumo]?.state);
-        const consumo = Number.isFinite(consumoNum) ? `${consumoNum.toFixed(2)} kWh` : "\u2014";
+        const consumo = Number.isFinite(consumoNum) ? `${numero(consumoNum, 2)} kWh` : "\u2014";
         const costoNum = Number(hass.states[row.costo]?.state);
-        const costo = Number.isFinite(costoNum) ? `${costoNum.toFixed(2)} \u20ac` : "\u2014";
+        const costo = Number.isFinite(costoNum) ? `${numero(costoNum, 2)} \u20ac` : "\u2014";
         return `<div class="dm-ap-week-row">
           <div class="dm-ap-week-day">${esc(row._label)}</div>
           <div class="dm-ap-week-stats">
@@ -721,7 +722,23 @@ export class CasaElettrodomestico extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    scegliLingua(hass);
     if (!this._config) return;
+    // Home Assistant passa di qui a ogni cambio di stato di TUTTA la casa.
+    // Invece di rifare tutto il disegno per ognuno, i cambi che arrivano
+    // insieme li raggruppo: disegno una volta sola, con l'ultimo valore.
+    const adesso = Date.now();
+    if (this._ultimoGiro && adesso - this._ultimoGiro < 150) {
+      if (!this._giroDopo) {
+        this._giroDopo = setTimeout(() => {
+          this._giroDopo = 0;
+          if (this.isConnected || this._root) this.hass = this._hass;
+        }, 150);
+      }
+      return;
+    }
+    this._ultimoGiro = adesso;
+
     const cfg = this._config;
 
     const powerState = hass.states[cfg.power_entity];
@@ -758,12 +775,21 @@ export class CasaElettrodomestico extends HTMLElement {
 
     const powerVal = Number.isFinite(watts) ? Math.max(0, watts) : 0;
     const powerUnit = cfg.power_unit || "W";
-    if (powerUnit === "W") {
+    // Se l'entita' della barra non e' un numero (e' lo STATO: "in funzione",
+    // "finito"...) scrivere "0 W" e' peggio che non scrivere niente: diceva
+    // zero watt accanto a un badge acceso. Meglio la parola che c'e' davvero.
+    const nonNumerica = powerState && !Number.isFinite(watts) && !powerUnavailable;
+    if (nonNumerica) {
+      const scritta = (cfg.state_map && cfg.state_map[powerState.state] || {}).label
+        || powerState.state;
+      // textContent non interpreta l'HTML: passarci esc() farebbe vedere "&amp;"
+      this._root.querySelector(".dm-ap-power-val").textContent = String(scritta);
+    } else if (powerUnit === "W") {
       this._root.querySelector(".dm-ap-power-val").textContent =
-        powerVal >= 1000 ? `${(powerVal / 1000).toFixed(1)} kW` : `${Math.round(powerVal)} W`;
+        powerVal >= 1000 ? `${numero(powerVal / 1000, 1)} kW` : `${numero(powerVal, 0)} W`;
     } else {
       const powerDecimals = cfg.power_decimals ?? 1;
-      this._root.querySelector(".dm-ap-power-val").textContent = `${powerVal.toFixed(powerDecimals)} ${powerUnit}`;
+      this._root.querySelector(".dm-ap-power-val").textContent = `${numero(powerVal, powerDecimals)} ${powerUnit}`;
     }
     this._root.querySelector(".dm-ap-bar i").style.width =
       `${Math.min(100, Math.round((powerVal / cfg.max_power) * 100))}%`;
@@ -809,6 +835,13 @@ export class CasaElettrodomestico extends HTMLElement {
     } else {
       warnEl.hidden = true;
     }
+  }
+
+  // Quanto spazio chiede nella griglia delle viste a sezioni. Senza questo
+  // Home Assistant decide da solo e il cursore del Layout si comporta a modo
+  // suo: la casella e' alta, va detto.
+  getGridOptions() {
+    return { columns: 12, rows: 7, min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
   }
 
   getCardSize() {

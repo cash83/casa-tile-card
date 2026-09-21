@@ -9,7 +9,7 @@ import { ConGrafici } from './carta-grafici.js';
 import { ConMusica } from './carta-musica.js';
 import { ConPezzi } from './carta-pezzi.js';
 import { ONDA_D, PANNELLI_APERTI, SPENTI, daQuanto, fotoDi, soloDalPallino } from './aiuti.js';
-import { CIELI, COLORI, METEO, coloreDaGradi, coloreLampada, coloreTemperatura, conAlfa, daRgb, scurisci } from './colori.js';
+import { CIELI, COLORI, METEO, chiarezza, coloreDaGradi, coloreLampada, coloreTemperatura, conAlfa, daRgb, scurisci } from './colori.js';
 import { indirizzoFoto, tagliaTapparella } from './icone.js';
 import { metti, nomeArtista, segno } from './segni.js';
 import { STILE } from './stile.js';
@@ -189,7 +189,16 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
   // impostazioni ne ha molti meno. Disegno il contenuto alla larghezza VERA
   // e poi rimpicciolisco tutto insieme, cosi' le schede stanno come
   // staranno davvero invece di stringersi e andare a capo per conto loro.
-  getCardSize() { return this._config && this._config.grande ? 3 : 2; }
+  // Nelle viste vecchie (masonry) Home Assistant usa questo numero per
+  // bilanciare le colonne: deve dire il vero anche per il lettore musicale,
+  // che e' alto come sette-otto righe (vedi getGridOptions qui sotto).
+  getCardSize() {
+    const c = this._config || {};
+    const dominio = c.entity ? c.entity.split(".")[0] : "";
+    const modo = c.disposizione || (dominio === "media_player" ? "vinile" : "");
+    if (modo === "vinile" || modo === "ytmusic") return c.grande ? 8 : 7;
+    return c.grande ? 3 : 2;
+  }
   // CHI COMANDA L'ALTEZZA. Home Assistant, quando la casella dichiara un
   // NUMERO di righe, mette al contenitore un'altezza precisa
   //   height: calc(righe * (altezza_riga + spazio) - spazio)
@@ -867,6 +876,13 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     this._disegnoHass = 0;
     // la scorciatoia dell'Esc restava attaccata al documento
     if (this._esc) { document.removeEventListener("keydown", this._esc); this._esc = null; }
+    // lo schermo pieno del lettore: se la casella sparisce mentre e' aperto,
+    // la pagina resta bloccata (overflow hidden) e non scorre piu'
+    if (this._viaDaPieno) { document.removeEventListener("keydown", this._viaDaPieno); this._viaDaPieno = null; }
+    if (this.hasAttribute("pienoschermo")) {
+      try { document.body.style.overflow = this._scorrimentoPrima || ""; } catch (e) { /* pazienza */ }
+    }
+    if (this._fuori) { document.removeEventListener("pointerdown", this._fuori, true); this._fuori = null; }
     this._fermaOrologio();
     this._fermaDiretta();
     this._fermaOrologioTappa();
@@ -1410,6 +1426,24 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     });
   }
 
+  // vedi sopra: sceglie chiaro o scuro solo quando serve davvero
+  _testoLeggibile(fondo) {
+    const suoFondo = chiarezza(fondo);
+    let delTema = null;
+    try {
+      delTema = chiarezza(getComputedStyle(this).getPropertyValue("--primary-text-color"));
+    } catch (e) { /* pazienza */ }
+    if (suoFondo !== null && delTema !== null && Math.abs(suoFondo - delTema) >= 0.35) {
+      // il tema ci si legge: e' roba sua, non mi intrometto
+      this.style.removeProperty("--testo");
+      this.style.removeProperty("--testo2");
+      return;
+    }
+    const chiaro = (suoFondo === null ? 0 : suoFondo) > 0.55 ? "#16202e" : "#eaf1fb";
+    this.style.setProperty("--testo", chiaro);
+    this.style.setProperty("--testo2", conAlfa(chiaro, 0.72));
+  }
+
   _accesoNormale(st, quale) {
     const c = this._config;
     const eid = quale || c.entity;
@@ -1587,6 +1621,12 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       : (suoDominio === "weather" ? st : null);
     const cieloVoluto = c.sfondo_meteo === undefined
       ? suoDominio === "weather" : !!c.sfondo_meteo;
+    // IL TESTO DEVE LEGGERSI. Il fondo della casella e' scuro di suo, ma le
+    // scritte ricadevano sul colore di Home Assistant: in tema chiaro e'
+    // scuro, e veniva nero su nero. Se il colore del tema non stacca
+    // abbastanza dal fondo, lo scelgo io; se stacca, lascio fare al tema.
+    if (!scritta) this._testoLeggibile(tinta || "#111a27");
+
     const conCielo = cieloVoluto && !!meteoSt && !c.sfondo_immagine;
     if (conCielo) {
       const cielo = CIELI[meteoSt.state] || CIELI.cloudy;

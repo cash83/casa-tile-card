@@ -527,7 +527,12 @@ export const ConIcone = (Base) => class extends Base {
       img.alt = "";
       img.title = T("Tocca per scegliere un'altra foto");
       img.style.cursor = "pointer";
-      img.addEventListener("click", () => this.querySelector("input[type=file]").click());
+      // l'input di QUESTA riga, non il primo del modulo: se no si apre la
+      // galleria dell'icona e la foto scelta finisce nel posto sbagliato
+      img.addEventListener("click", () => {
+        const suo = riga.querySelector("input[type=file]");
+        if (suo) suo.click();
+      });
       riga.appendChild(img);
     }
 
@@ -565,10 +570,7 @@ export const ConIcone = (Base) => class extends Base {
     }
     box.appendChild(riga);
 
-    const tinte = document.createElement("div");
-    tinte.className = "foto-riga";
     // i tastini per togliere non servono piu': ogni riga del colore ha la sua X
-    if (tinte.children.length) box.appendChild(tinte);
     // in fondo alla scheda Sfondo, che e' dove uno li va a cercare
 
     this._notaFoto = document.createElement("div");

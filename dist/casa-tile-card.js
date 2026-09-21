@@ -736,22 +736,53 @@ function daRgb(rgb) {
     .join("");
 }
 
+// Un colore esadecimale a sei cifre, o niente. Serve perche' "red" e
+// "orange" sono lunghi 3 e 6 caratteri come un esadecimale: presi per tali
+// davano "#000000" (parseInt fallisce in silenzio) invece del colore giusto.
+function esadecimale(colore) {
+  const h = String(colore || "").trim().replace(/^#/, "");
+  if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(h)) return null;
+  return h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
+}
+
+// Quanto e' chiaro un colore, da 0 (nero) a 1 (bianco). Serve a decidere se
+// sopra ci va scritto chiaro o scuro. Capisce "#rgb", "#rrggbb" e "rgb(r,g,b)";
+// per tutto il resto (nomi CSS, var(--...)) torna null: non so giudicare.
+function chiarezza(colore) {
+  const t = String(colore || "").trim();
+  let r, g, b;
+  const rgb = t.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+  if (rgb) {
+    [r, g, b] = [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
+  } else {
+    const h = t.replace(/^#/, "");
+    const pieno = /^[0-9a-fA-F]{3}$/.test(h) ? h.split("").map((x) => x + x).join("") : h;
+    if (!/^[0-9a-fA-F]{6}$/.test(pieno)) return null;
+    const n = parseInt(pieno, 16);
+    [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  // pesi del canale come li vede l'occhio
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
 // lo stesso colore, ma piu' scuro (quanto: 1 = uguale, 0 = nero)
 function scurisci(colore, quanto) {
-  const h = String(colore || "").replace("#", "");
-  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
-  if (pieno.length !== 6) return colore;
+  const pieno = esadecimale(colore);
+  if (!pieno) return colore;
+  // fuori da 0-1 uscivano colori impossibili: "#-ff-5f-5f" con un numero
+  // negativo, o nove cifre con un numero grande
+  const q = Math.max(0, Math.min(1, Number(quanto)));
+  if (!Number.isFinite(q)) return colore;
   const n = parseInt(pieno, 16);
-  const r = Math.round(((n >> 16) & 255) * quanto);
-  const g = Math.round(((n >> 8) & 255) * quanto);
-  const b = Math.round((n & 255) * quanto);
+  const r = Math.round(((n >> 16) & 255) * q);
+  const g = Math.round(((n >> 8) & 255) * q);
+  const b = Math.round((n & 255) * q);
   return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
 function conAlfa(colore, a) {
-  const h = String(colore || "").replace("#", "");
-  const pieno = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
-  if (pieno.length !== 6) return colore;
+  const pieno = esadecimale(colore);
+  if (!pieno) return colore;
   const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
   return "#" + pieno + alfa;
 }
@@ -1570,11 +1601,23 @@ const DIPENDE = {
   yt_attrezzi: (c) => c.disposizione === "ytmusic",
   yt_cuore: (c) => c.disposizione === "ytmusic",
   grafico_stile: (c) => !!c.grafico,
-  distanza_entita: (c) => !!c.mostra_distanza,
+  // I chilometri li scrive SOLO la disposizione "Persona" (casa-tile.js,
+  // ramo comePersona): con la disposizione classica queste due non
+  // facevano niente e restavano li' a far credere il contrario.
+  mostra_distanza: (c) => c.disposizione === "persona",
+  distanza_entita: (c) => c.disposizione === "persona" && c.mostra_distanza !== false,
+  // i due dettagli del cielo si vedono solo se il cielo c'e', come tutte
+  // le altre coppie interruttore -> dettaglio
+  meteo_forza: (c) => (c.sfondo_meteo === undefined
+    ? String(c.entity || "").split(".")[0] === "weather" : !!c.sfondo_meteo),
+  meteo_entita: (c) => (c.sfondo_meteo === undefined
+    ? String(c.entity || "").split(".")[0] === "weather" : !!c.sfondo_meteo),
   info_nomi_auto: (c) => (c.info_entita || []).length > 0,
   segui_attivo: (c) => (c.lettori || []).length > 0 || c.multiroom !== false,
-  soglia: (c) => c.acceso_se === "sopra" || c.acceso_se === "sotto"
-    || (Array.isArray(c.acceso_entita) ? c.acceso_entita.length : !!c.acceso_entita),
+  // la soglia serve a QUALSIASI casella con un numero (casa-tile.js,
+  // _accesoNormale): il vecchio confronto con "sopra"/"sotto" non poteva
+  // essere vero e la teneva nascosta a chi non usa acceso_entita
+  soglia: () => true,
 };
 
 const SOLO_AZIONE = {
@@ -1609,10 +1652,10 @@ const SOLO_PER = {
   pannello_trasparenza: ["media_player"],
   riquadri_trasparenza: ["media_player"],
   comandi_rapidi: ["cover", "lock", "vacuum"],
-  grafico: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_colore: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_ore: ["sensor", "number", "input_number", "counter", "climate", "light"],
-  grafico_stile: ["sensor", "number", "input_number", "counter", "climate", "light"],
+  grafico: ["sensor", "number", "input_number", "counter"],
+  grafico_colore: ["sensor", "number", "input_number", "counter"],
+  grafico_ore: ["sensor", "number", "input_number", "counter"],
+  grafico_stile: ["sensor", "number", "input_number", "counter"],
   gira_copertina: ["media_player"],
   coda: ["media_player"], yt_attrezzi: ["media_player"],
   yt_cuore: ["media_player"],
@@ -1638,7 +1681,7 @@ const ETICHETTE$2 = {
   scarica_entita: "Quali entita vogliono dire che STA DANDO CORRENTE (di solito non serve: basta chiamare scarica una misura)",
   disposizione: "Come e disposta la casella",
   azione: "Cosa fa quando la tocchi",
-  tieni_premuto: "Cosa fa quando la tieni premuta", anima: "Quando si muove l'icona",
+  tieni_premuto: "Cosa fa quando la tieni premuta",
   effetto: "Effetto della casella", intensita: "Intensita del colore (%)",
   anima: "Quando si muove (icona ed effetti)",
   coda: "Elenco In coda (serve Music Assistant)",
@@ -1912,7 +1955,19 @@ function yamlRighe(testo) {
       const c = pulita[i];
       if (virg) { if (c === virg) virg = null; continue; }
       if (c === '"' || c === "'") { virg = c; continue; }
-      if (c === "#" && i > 0 && /\s/.test(pulita[i - 1])) { pulita = pulita.slice(0, i); break; }
+      if (c === "#" && i > 0 && /\s/.test(pulita[i - 1])) {
+        // Un colore scritto a mano senza virgolette (colore: #ff0000) per il
+        // YAML e' un commento, e il valore diventerebbe vuoto: il colore
+        // sparirebbe in silenzio. Qui le schede sono piene di colori, quindi
+        // se quello che segue il # e' proprio un colore lo tengo.
+        const resto = pulita.slice(i).trim();
+        const prima = pulita.slice(0, i).trim();
+        if (prima.endsWith(":") && /^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$|^#[0-9a-fA-F]{8}$/.test(resto)) {
+          continue;
+        }
+        pulita = pulita.slice(0, i);
+        break;
+      }
     }
     if (!pulita.trim()) return;
     fuori.push({ testo: pulita.trim(), rientro: pulita.match(/^\s*/)[0].length, grezza: pulita });
@@ -3544,6 +3599,28 @@ function mirinoGrafico(box, punti, scrivi) {
   box.addEventListener("pointerup", via);
   box.addEventListener("pointercancel", via);
   box.addEventListener("pointerleave", via);
+}
+
+// Un numero scritto come lo scrive Home Assistant nella lingua di chi guarda:
+// in italiano la virgola decimale. Le due schede dei consumi usavano toFixed,
+// che mette sempre il punto, e sulla stessa plancia si leggeva "1,2 kW" da una
+// parte e "0.29 €" dall'altra.
+// Il simbolo al posto del codice della moneta, come fa Home Assistant.
+const SIMBOLI = { EUR: "\u20ac", USD: "$", GBP: "\u00a3", CHF: "CHF" };
+function unitaBella(u) {
+  const t = String(u || "").trim();
+  return SIMBOLI[t.toUpperCase()] || t;
+}
+
+function numero(v, decimali) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return null;
+  const d = Number.isFinite(Number(decimali)) ? Number(decimali) : 0;
+  try {
+    return n.toLocaleString(laLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
+  } catch (e) {
+    return n.toFixed(d);
+  }
 }
 
 function vestiFinestra(host, cfg) {
@@ -5597,7 +5674,12 @@ const ConIcone = (Base) => class extends Base {
       img.alt = "";
       img.title = T("Tocca per scegliere un'altra foto");
       img.style.cursor = "pointer";
-      img.addEventListener("click", () => this.querySelector("input[type=file]").click());
+      // l'input di QUESTA riga, non il primo del modulo: se no si apre la
+      // galleria dell'icona e la foto scelta finisce nel posto sbagliato
+      img.addEventListener("click", () => {
+        const suo = riga.querySelector("input[type=file]");
+        if (suo) suo.click();
+      });
       riga.appendChild(img);
     }
 
@@ -5635,10 +5717,7 @@ const ConIcone = (Base) => class extends Base {
     }
     box.appendChild(riga);
 
-    const tinte = document.createElement("div");
-    tinte.className = "foto-riga";
     // i tastini per togliere non servono piu': ogni riga del colore ha la sua X
-    if (tinte.children.length) box.appendChild(tinte);
     // in fondo alla scheda Sfondo, che e' dove uno li va a cercare
 
     this._notaFoto = document.createElement("div");
@@ -8354,7 +8433,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.30.3";
+const VERSIONE = "2.31.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -9965,6 +10044,9 @@ const ConFinestra = (Base) => class extends Base {
     this.removeAttribute("chiude");
     this._velo.toggleAttribute("aperto", true);
     this._faiNascere();
+    // se la finestra si riapre senza essere stata chiusa, il vecchio
+    // ascolto resterebbe attaccato al documento per sempre
+    if (this._esc) document.removeEventListener("keydown", this._esc);
     document.addEventListener("keydown", this._esc = (e) => {
       if (e.key === "Escape") this._chiudiFinestra();
     });
@@ -16145,7 +16227,16 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
   // impostazioni ne ha molti meno. Disegno il contenuto alla larghezza VERA
   // e poi rimpicciolisco tutto insieme, cosi' le schede stanno come
   // staranno davvero invece di stringersi e andare a capo per conto loro.
-  getCardSize() { return this._config && this._config.grande ? 3 : 2; }
+  // Nelle viste vecchie (masonry) Home Assistant usa questo numero per
+  // bilanciare le colonne: deve dire il vero anche per il lettore musicale,
+  // che e' alto come sette-otto righe (vedi getGridOptions qui sotto).
+  getCardSize() {
+    const c = this._config || {};
+    const dominio = c.entity ? c.entity.split(".")[0] : "";
+    const modo = c.disposizione || (dominio === "media_player" ? "vinile" : "");
+    if (modo === "vinile" || modo === "ytmusic") return c.grande ? 8 : 7;
+    return c.grande ? 3 : 2;
+  }
   // CHI COMANDA L'ALTEZZA. Home Assistant, quando la casella dichiara un
   // NUMERO di righe, mette al contenitore un'altezza precisa
   //   height: calc(righe * (altezza_riga + spazio) - spazio)
@@ -16823,6 +16914,13 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     this._disegnoHass = 0;
     // la scorciatoia dell'Esc restava attaccata al documento
     if (this._esc) { document.removeEventListener("keydown", this._esc); this._esc = null; }
+    // lo schermo pieno del lettore: se la casella sparisce mentre e' aperto,
+    // la pagina resta bloccata (overflow hidden) e non scorre piu'
+    if (this._viaDaPieno) { document.removeEventListener("keydown", this._viaDaPieno); this._viaDaPieno = null; }
+    if (this.hasAttribute("pienoschermo")) {
+      try { document.body.style.overflow = this._scorrimentoPrima || ""; } catch (e) { /* pazienza */ }
+    }
+    if (this._fuori) { document.removeEventListener("pointerdown", this._fuori, true); this._fuori = null; }
     this._fermaOrologio();
     this._fermaDiretta();
     this._fermaOrologioTappa();
@@ -17366,6 +17464,24 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     });
   }
 
+  // vedi sopra: sceglie chiaro o scuro solo quando serve davvero
+  _testoLeggibile(fondo) {
+    const suoFondo = chiarezza(fondo);
+    let delTema = null;
+    try {
+      delTema = chiarezza(getComputedStyle(this).getPropertyValue("--primary-text-color"));
+    } catch (e) { /* pazienza */ }
+    if (suoFondo !== null && delTema !== null && Math.abs(suoFondo - delTema) >= 0.35) {
+      // il tema ci si legge: e' roba sua, non mi intrometto
+      this.style.removeProperty("--testo");
+      this.style.removeProperty("--testo2");
+      return;
+    }
+    const chiaro = (suoFondo === null ? 0 : suoFondo) > 0.55 ? "#16202e" : "#eaf1fb";
+    this.style.setProperty("--testo", chiaro);
+    this.style.setProperty("--testo2", conAlfa(chiaro, 0.72));
+  }
+
   _accesoNormale(st, quale) {
     const c = this._config;
     const eid = quale || c.entity;
@@ -17543,6 +17659,12 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
       : (suoDominio === "weather" ? st : null);
     const cieloVoluto = c.sfondo_meteo === undefined
       ? suoDominio === "weather" : !!c.sfondo_meteo;
+    // IL TESTO DEVE LEGGERSI. Il fondo della casella e' scuro di suo, ma le
+    // scritte ricadevano sul colore di Home Assistant: in tema chiaro e'
+    // scuro, e veniva nero su nero. Se il colore del tema non stacca
+    // abbastanza dal fondo, lo scelgo io; se stacca, lascio fare al tema.
+    if (!scritta) this._testoLeggibile(tinta || "#111a27");
+
     const conCielo = cieloVoluto && !!meteoSt && !c.sfondo_immagine;
     if (conCielo) {
       const cielo = CIELI[meteoSt.state] || CIELI.cloudy;
@@ -18174,7 +18296,7 @@ class CasaEnergia extends HTMLElement {
         `<button type="button" class="dm-ap-switch${on ? " on" : ""}" data-entity="${esc(row.entity)}" aria-pressed="${on}"></button>`,
       );
     }
-    const unit = st.attributes?.unit_of_measurement || "";
+    const unit = unitaBella(st.attributes?.unit_of_measurement);
     return `<div class="dm-ap-row" data-open-entity="${esc(row.entity)}" style="cursor:pointer">
       <span class="dm-ap-row-label">${esc(row.label)}</span>
       <span class="dm-ap-row-val">${esc(st.state)}${unit ? " " + esc(unit) : ""}</span>
@@ -18269,8 +18391,11 @@ class CasaEnergia extends HTMLElement {
     if (!st) return "\u2014";
     const raw = attr ? st.attributes?.[attr] : st.state;
     const n = Number(raw);
-    const unit = st.attributes?.unit_of_measurement || "";
-    const num = Number.isFinite(n) && digits != null ? n.toFixed(digits) : raw;
+    const unit = unitaBella(st.attributes?.unit_of_measurement);
+    // se l'attributo non c'e' ancora (contatore appena creato) meglio una
+    // lineetta che la scritta "undefined"
+    if (raw === undefined || raw === null || raw === "") return "\u2014";
+    const num = Number.isFinite(n) && digits != null ? (numero(n, digits) ?? n.toFixed(digits)) : raw;
     return `${num}${unit ? " " + unit : ""}`;
   }
 
@@ -18409,7 +18534,7 @@ class CasaEnergia extends HTMLElement {
   // --- Il conto voce per voce (aggiunta cash83) ------------------------
   _euro(v) {
     const n = Number(v);
-    return Number.isFinite(n) ? `${n.toFixed(2)} €` : "—";
+    return Number.isFinite(n) ? `${numero(n, 2)} €` : "—";
   }
 
   _contoHtml() {
@@ -18420,8 +18545,8 @@ class CasaEnergia extends HTMLElement {
     const mese = a(cfg.bill_month);
     const tot = (id) => this._euro(id ? hass.states[id]?.state : null);
     const riga = (label, k, euro = true, colore = null, forte = false) => this._statRow2c(colore, forte, label,
-      euro ? this._euro(oggi[k]) : `${Number(oggi[k] ?? 0).toFixed(2)} kWh`,
-      euro ? this._euro(mese[k]) : `${Number(mese[k] ?? 0).toFixed(2)} kWh`);
+      euro ? this._euro(oggi[k]) : `${numero(oggi[k] ?? 0, 2)} kWh`,
+      euro ? this._euro(mese[k]) : `${numero(mese[k] ?? 0, 2)} kWh`);
     return `
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Il conto, voce per voce &nbsp;(oggi &middot; mese)</div>
         ${riga("kWh presi dalla rete", "kwh", false, "#3fb4ea")}
@@ -18508,7 +18633,12 @@ class CasaEnergia extends HTMLElement {
     const tot = Number(hass.states[cfg.power_entity]?.state);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
     const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;
-    return { loads, non, tot };
+    // Se le prese sommate superano la casa, da qualche parte c'e' un doppione:
+    // quasi sempre un sensore che e' il TOTALE di altri gia' contati. Non posso
+    // saperlo da solo (nessuno me lo dice), ma posso dirlo invece di far finta
+    // che il non misurato sia zero.
+    const doppione = Number.isFinite(tot) && misurato > tot + Math.max(20, tot * 0.05);
+    return { loads, non, tot, doppione, misurato };
   }
 
   _topText(hass) {
@@ -18527,14 +18657,23 @@ class CasaEnergia extends HTMLElement {
     const cfg = this._config;
     if (!cfg.top_auto) return this._openConsumiOriginale();
     const hass = this._hass;
-    const { loads, non, tot } = this._autoLoads(hass);
+    const { loads, non, tot, doppione, misurato } = this._autoLoads(hass);
     const righe = loads.slice();
     if (non !== null) righe.push({ label: cfg.unmeasured_label || "Non misurato", live: non, non: true });
     righe.sort((x, y) => y.live - x.live);
-    const rows = righe.map((c) => this._statRow(c.label, `${c.live.toFixed(0)} W`)).join("");
+    const rows = righe.map((c) => this._statRow(c.label, `${numero(c.live, 0)} W`)).join("");
+    // se le prese sommate superano la casa c'e' un doppione (di solito un
+    // sensore che e' gia' la somma di altri): dirlo, invece di mostrare un
+    // "Non misurato" schiacciato a zero che sembra giusto e non lo e'
+    const avviso = doppione
+      ? `<div class="dm-ap-reset-note">Le prese sommate fanno ${Math.round(misurato)} W ma la casa
+         ne misura ${Math.round(tot)}: qualcuna è contata due volte, di solito un sensore che
+         è già la somma di altri. Si toglie dall'editor, in
+         «Parole che fanno escludere un sensore».</div>`
+      : "";
     this._openDialog("Consumi", `
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">In evidenza</div>${this._statRow("Top consumo", this._topText(hass))}${Number.isFinite(tot) ? this._statRow("Totale casa", `${tot.toFixed(0)} W`) : ""}</div>
-      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Tutte le prese e i sensori (live)</div>${rows}</div>
+      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Tutte le prese e i sensori (live)</div>${rows}${avviso}</div>
     `);
   }
   // --- fine aggiunta ----------------------------------------------------
@@ -18546,7 +18685,7 @@ class CasaEnergia extends HTMLElement {
       .map((c) => ({ ...c, live: Number(hass.states[c.entity]?.state) || 0 }))
       .sort((a, b) => b.live - a.live);
 
-    const rows = circuits.map((c) => this._statRow(c.label, `${c.live.toFixed(0)} W`)).join("");
+    const rows = circuits.map((c) => this._statRow(c.label, `${numero(c.live, 0)} W`)).join("");
     const topSt = cfg.top_entity ? hass.states[cfg.top_entity]?.state : null;
 
     this._openDialog("Circuiti", `
@@ -18557,21 +18696,46 @@ class CasaEnergia extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    scegliLingua(hass);
     if (!this._config) return;
+    // Home Assistant passa di qui a ogni cambio di stato di TUTTA la casa.
+    // Invece di rifare tutto il disegno per ognuno, i cambi che arrivano
+    // insieme li raggruppo: disegno una volta sola, con l'ultimo valore.
+    const adesso = Date.now();
+    if (this._ultimoGiro && adesso - this._ultimoGiro < 150) {
+      if (!this._giroDopo) {
+        this._giroDopo = setTimeout(() => {
+          this._giroDopo = 0;
+          if (this.isConnected || this._root) this.hass = this._hass;
+        }, 150);
+      }
+      return;
+    }
+    this._ultimoGiro = adesso;
+
     const cfg = this._config;
 
     const watt = Number(hass.states[cfg.power_entity]?.state);
     const wattVal = Number.isFinite(watt) ? Math.max(0, watt) : 0;
     const wattText = this._root.querySelector(".dm-e-watt");
-    if (wattText) wattText.textContent = wattVal.toFixed(0);
+    if (wattText) wattText.textContent = numero(wattVal, 0);
 
-    if (cfg.periods?.[1]) {
-      { const x = this._root.querySelector(".dm-e-today-kwh"); if (x) x.textContent = this._val(hass, cfg.periods[1].energy, 2); }
-      { const x = this._root.querySelector(".dm-e-today-cost"); if (x) x.textContent = this._val(hass, cfg.periods[1].cost, 2); }
+    // I periodi si cercano per NOME: se l'elenco ne ha meno di quattro (un
+    // contatore cancellato, uno non creato) le posizioni slittano e la
+    // casella mostrerebbe la settimana chiamandola "oggi".
+    const periodo = (nome, posto) => {
+      const l = cfg.periods || [];
+      return l.find((p) => String(p.label || "").trim().toLowerCase() === nome) || l[posto];
+    };
+    const pOggi = periodo("oggi", 1);
+    const pMese = periodo("mese", 3);
+    if (pOggi) {
+      { const x = this._root.querySelector(".dm-e-today-kwh"); if (x) x.textContent = this._val(hass, pOggi.energy, 2); }
+      { const x = this._root.querySelector(".dm-e-today-cost"); if (x) x.textContent = this._val(hass, pOggi.cost, 2); }
     }
-    if (cfg.periods?.[3]) {
-      { const x = this._root.querySelector(".dm-e-month-cost"); if (x) x.textContent = this._val(hass, cfg.periods[3].cost, 2); }
-      { const x = this._root.querySelector(".dm-e-month-kwh"); if (x) x.textContent = this._val(hass, cfg.periods[3].energy, 2); }
+    if (pMese) {
+      { const x = this._root.querySelector(".dm-e-month-cost"); if (x) x.textContent = this._val(hass, pMese.cost, 2); }
+      { const x = this._root.querySelector(".dm-e-month-kwh"); if (x) x.textContent = this._val(hass, pMese.energy, 2); }
     }
     {
       // la riga della bolletta: il bimestre, kWh e euro insieme
@@ -18609,7 +18773,7 @@ class CasaEnergia extends HTMLElement {
       if (!el) return;
       const v = Number(hass.states[c.entity]?.state);
       const vVal = Number.isFinite(v) ? Math.max(0, v) : 0;
-      el.querySelector(".dm-e-c-val").textContent = `${vVal.toFixed(0)} W`;
+      el.querySelector(".dm-e-c-val").textContent = `${numero(vVal, 0)} W`;
       const pct = c.max ? Math.min(100, (vVal / c.max) * 100) : 0;
       const bar = el.querySelector(".dm-e-c-bar");
       bar.style.width = `${pct}%`;
@@ -18619,14 +18783,23 @@ class CasaEnergia extends HTMLElement {
     const warnEl = this._root.querySelector(".dm-ap-warn");
     const soglia = cfg.soglia_entity ? Number(hass.states[cfg.soglia_entity]?.state) : null;
     const card = this._root.querySelector(".dm-ap-card");
-    if (soglia != null && wattVal > soglia) {
+    // un sensore non disponibile da' NaN: "NaN != null" e' vero e il
+    // confronto sotto e' sempre falso, cosi' l'avviso non sarebbe mai scattato
+    if (Number.isFinite(soglia) && wattVal > soglia) {
       warnEl.hidden = false;
-      warnEl.textContent = `\u26a0 Soglia superata: ${wattVal.toFixed(0)} W (limite ${soglia.toFixed(0)} W)`;
+      warnEl.textContent = `\u26a0 Soglia superata: ${numero(wattVal, 0)} W (limite ${numero(soglia, 0)} W)`;
       card.classList.add("has-alarm");
     } else {
       warnEl.hidden = true;
       card.classList.remove("has-alarm");
     }
+  }
+
+  // Quanto spazio chiede nella griglia delle viste a sezioni. Senza questo
+  // Home Assistant decide da solo e il cursore del Layout si comporta a modo
+  // suo: la casella e' alta, va detto.
+  getGridOptions() {
+    return { columns: 12, rows: 7, min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
   }
 
   getCardSize() {
@@ -18994,6 +19167,8 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   await risolvi();
 
   const patch = { period_entities: periodi, stats: { ...(opzioni.stats || {}) } };
+  // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"
+  if (kwh) patch.energy_stat_entity = kwh;
   if (cicli.oggi) patch.stats.cycles_today = cicli.oggi;
   if (cicli.mese) patch.stats.cycles_month = cicli.mese;
   patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
@@ -19011,6 +19186,9 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
 const ETICHETTE$1 = {
   name: "Nome della scheda",
   power_entity: "Potenza della casa (W) - obbligatoria",
+  artwork: "Disegno",
+  soglia_entity: "Entit\u00e0 con la soglia d'allarme (facoltativa)",
+  switches: "Interruttori da mettere nelle impostazioni",
   max_power: "Fondo scala della barra (W, es. 3300 con 3 kW)",
   circuiti: "Circuiti da mostrare con la barra (prese o sensori in W)",
   top_auto: "Top consumo automatico (cerca da solo tutte le prese che misurano)",
@@ -19033,6 +19211,17 @@ const ETICHETTE$1 = {
 const SCHEMA$1 = [
   { name: "name", selector: { text: {} } },
   { name: "power_entity", required: true, selector: { entity: { domain: "sensor", device_class: "power" } } },
+  // i nomi veri dei disegni (HERO_BUILDERS in elettro-comune.js): uno che non
+  // esiste non darebbe errore, tornerebbe in silenzio al contatore della luce
+  { name: "artwork", selector: { select: { mode: "dropdown", options: [
+    { value: "energy", label: "Contatore della luce" },
+    { value: "ups", label: "Gruppo di continuità" },
+    { value: "server", label: "Server" },
+    { value: "nas", label: "NAS" },
+    { value: "fritzbox", label: "Router" },
+    { value: "proxmox", label: "Proxmox" }] } } },
+  { name: "soglia_entity", selector: { entity: {} } },
+  { name: "switches", selector: { entity: { multiple: true } } },
   { name: "max_power", selector: { number: { min: 500, max: 30000, step: 100, mode: "box", unit_of_measurement: "W" } } },
   { name: "circuiti", selector: { entity: { multiple: true, domain: "sensor", device_class: "power" } } },
   { name: "top_auto", selector: { boolean: {} } },
@@ -19075,6 +19264,7 @@ class CasaEnergiaEditor extends HTMLElement {
     return { ...c,
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
       finestra_scritta: this._versoRgb(c.finestra_scritta), top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false,
+      switches: (c.switches || []).map((x) => x && x.entity).filter(Boolean),
       circuiti: (c.circuits || []).map((x) => x && x.entity).filter(Boolean) };
   }
 
@@ -19116,7 +19306,7 @@ class CasaEnergiaEditor extends HTMLElement {
     });
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
-      if (k === "circuiti") return;
+      if (k === "circuiti" || k === "switches") return;
       if (v[k] === "" || v[k] === undefined || v[k] === null) delete c[k];
       else c[k] = v[k];
     });
@@ -19125,6 +19315,12 @@ class CasaEnergiaEditor extends HTMLElement {
     const prima = {};
     (this._config.circuits || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x; });
     c.circuits = (v.circuiti || []).map((eid) => prima[eid] || { label: this._nomeDi(eid), entity: eid, max: 2500 });
+    // gli interruttori del pop-up: la scheda li vuole come {entity, label}
+    const primaSw = {};
+    (this._config.switches || []).forEach((x) => { if (x && x.entity) primaSw[x.entity] = x; });
+    if (v.switches && v.switches.length) {
+      c.switches = v.switches.map((eid) => primaSw[eid] || { label: this._nomeDi(eid), entity: eid });
+    } else delete c.switches;
     this._config = c;
     this._emetti();
   }
@@ -19584,7 +19780,7 @@ class CasaElettrodomestico extends HTMLElement {
 
   _fmtNum(v, digits = 1) {
     const n = Number(v);
-    return Number.isFinite(n) ? n.toFixed(digits) : "\u2014";
+    return Number.isFinite(n) ? (numero(n, digits) ?? n.toFixed(digits)) : "\u2014";
   }
 
   _cycleAttr(hass, key) {
@@ -19634,7 +19830,7 @@ class CasaElettrodomestico extends HTMLElement {
       : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
     const cost = pEnt.cost ? hass.states[pEnt.cost]?.state
       : (pAttrs.cost ? attrs[pAttrs.cost] : null);
-    const costTxt = Number.isFinite(Number(cost)) ? `${Number(cost).toFixed(2)} \u20ac` : "\u2014";
+    const costTxt = Number.isFinite(Number(cost)) ? `${numero(cost, 2)} \u20ac` : "\u2014";
     const label = cfg.period_labels[periodKey] || periodKey;
     return `<div class="dm-ap-week-row">
       <div class="dm-ap-week-day">${esc(label)}</div>
@@ -19708,7 +19904,7 @@ class CasaElettrodomestico extends HTMLElement {
       const cfg = this._config;
       const st = cfg.power_entity ? hass.states[cfg.power_entity] : null;
       if (st) {
-        const unita = cfg.power_unit || st.attributes.unit_of_measurement || "W";
+        const unita = cfg.power_unit || unitaBella(st.attributes.unit_of_measurement) || "W";
         liveHtml += this._row(cfg.power_label || "Potenza attuale",
           `<span class="dm-ap-row-val">${esc(st.state)} ${esc(unita)}</span>`);
         const n = Number(st.state);
@@ -19778,7 +19974,7 @@ class CasaElettrodomestico extends HTMLElement {
         <div class="dm-ap-week-stats cols3">
           <div class="dm-ap-week-stat"><small>Cicli</small><b>${vuoto ? "\u2014" : esc(String(Number(dato.c) || 0))}</b></div>
           <div class="dm-ap-week-stat"><small>Tempo</small><b>${vuoto ? "\u2014" : esc(min2txt(dato.m))}</b></div>
-          <div class="dm-ap-week-stat"><small>Costo</small><b>${vuoto || !Number.isFinite(costo) ? "\u2014" : costo.toFixed(2) + " \u20ac"}</b></div>
+          <div class="dm-ap-week-stat"><small>Costo</small><b>${vuoto || !Number.isFinite(costo) ? "\u2014" : numero(costo, 2) + " \u20ac"}</b></div>
         </div>
       </div>`);
     }
@@ -19819,9 +20015,9 @@ class CasaElettrodomestico extends HTMLElement {
         const cicli = hass.states[row.cicli]?.state ?? "\u2014";
         const tempo = hass.states[row.tempo]?.state ?? "\u2014";
         const consumoNum = Number(hass.states[row.consumo]?.state);
-        const consumo = Number.isFinite(consumoNum) ? `${consumoNum.toFixed(2)} kWh` : "\u2014";
+        const consumo = Number.isFinite(consumoNum) ? `${numero(consumoNum, 2)} kWh` : "\u2014";
         const costoNum = Number(hass.states[row.costo]?.state);
-        const costo = Number.isFinite(costoNum) ? `${costoNum.toFixed(2)} \u20ac` : "\u2014";
+        const costo = Number.isFinite(costoNum) ? `${numero(costoNum, 2)} \u20ac` : "\u2014";
         return `<div class="dm-ap-week-row">
           <div class="dm-ap-week-day">${esc(row._label)}</div>
           <div class="dm-ap-week-stats">
@@ -20035,7 +20231,23 @@ class CasaElettrodomestico extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    scegliLingua(hass);
     if (!this._config) return;
+    // Home Assistant passa di qui a ogni cambio di stato di TUTTA la casa.
+    // Invece di rifare tutto il disegno per ognuno, i cambi che arrivano
+    // insieme li raggruppo: disegno una volta sola, con l'ultimo valore.
+    const adesso = Date.now();
+    if (this._ultimoGiro && adesso - this._ultimoGiro < 150) {
+      if (!this._giroDopo) {
+        this._giroDopo = setTimeout(() => {
+          this._giroDopo = 0;
+          if (this.isConnected || this._root) this.hass = this._hass;
+        }, 150);
+      }
+      return;
+    }
+    this._ultimoGiro = adesso;
+
     const cfg = this._config;
 
     const powerState = hass.states[cfg.power_entity];
@@ -20072,12 +20284,21 @@ class CasaElettrodomestico extends HTMLElement {
 
     const powerVal = Number.isFinite(watts) ? Math.max(0, watts) : 0;
     const powerUnit = cfg.power_unit || "W";
-    if (powerUnit === "W") {
+    // Se l'entita' della barra non e' un numero (e' lo STATO: "in funzione",
+    // "finito"...) scrivere "0 W" e' peggio che non scrivere niente: diceva
+    // zero watt accanto a un badge acceso. Meglio la parola che c'e' davvero.
+    const nonNumerica = powerState && !Number.isFinite(watts) && !powerUnavailable;
+    if (nonNumerica) {
+      const scritta = (cfg.state_map && cfg.state_map[powerState.state] || {}).label
+        || powerState.state;
+      // textContent non interpreta l'HTML: passarci esc() farebbe vedere "&amp;"
+      this._root.querySelector(".dm-ap-power-val").textContent = String(scritta);
+    } else if (powerUnit === "W") {
       this._root.querySelector(".dm-ap-power-val").textContent =
-        powerVal >= 1000 ? `${(powerVal / 1000).toFixed(1)} kW` : `${Math.round(powerVal)} W`;
+        powerVal >= 1000 ? `${numero(powerVal / 1000, 1)} kW` : `${numero(powerVal, 0)} W`;
     } else {
       const powerDecimals = cfg.power_decimals ?? 1;
-      this._root.querySelector(".dm-ap-power-val").textContent = `${powerVal.toFixed(powerDecimals)} ${powerUnit}`;
+      this._root.querySelector(".dm-ap-power-val").textContent = `${numero(powerVal, powerDecimals)} ${powerUnit}`;
     }
     this._root.querySelector(".dm-ap-bar i").style.width =
       `${Math.min(100, Math.round((powerVal / cfg.max_power) * 100))}%`;
@@ -20123,6 +20344,13 @@ class CasaElettrodomestico extends HTMLElement {
     } else {
       warnEl.hidden = true;
     }
+  }
+
+  // Quanto spazio chiede nella griglia delle viste a sezioni. Senza questo
+  // Home Assistant decide da solo e il cursore del Layout si comporta a modo
+  // suo: la casella e' alta, va detto.
+  getGridOptions() {
+    return { columns: 12, rows: 7, min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
   }
 
   getCardSize() {
@@ -20424,7 +20652,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
 /*!
  * Casa · casella animata — scheda Lovelace personalizzata
  * Icone SVG animate + editor visuale: si configura a clic, senza scrivere YAML.
- * v2.4.55
+ * (la versione vera sta in versione.js)
  */
 
 
