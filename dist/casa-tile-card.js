@@ -3260,6 +3260,291 @@ const HERO_BUILDERS = {
     <ellipse cx="120" cy="222" rx="70" ry="9" fill="#0f172a" opacity=".14" filter="url(#dmh-blur-${id})"/>
     <image href="/local/foto-pkg/synology-ds925.png" x="-1" y="-7" width="242" height="242" preserveAspectRatio="xMidYMid meet"/>
   </svg>`,
+  // Mini PC: il computerino che tiene acceso Home Assistant. Sul frontale il
+  // logo di casa (lo stesso disegno dell'icona mdi:home-assistant) e accanto
+  // il displayino con i watt di adesso, che la scheda riscrive da sola.
+  // Presa smart: la vede di faccia, con i due fori, il tastino e il displayino
+  // dei watt in basso (lo riscrive la scheda). Per le prese che misurano.
+  // Torre del PC: griglia d'aria in alto, tasto d'accensione che pulsa e il
+  // displayino dei watt sul frontale.
+  // Luce: la lampadina che si accende davvero quando l'entita' e' accesa.
+  luce: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <filter id="dmh-luce-${id}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="16"/></filter>
+      <linearGradient id="dmh-vetro-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6d8"/><stop offset="1" stop-color="#ffd27a"/></linearGradient>
+      <linearGradient id="dmh-met3-${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9fadbc"/><stop offset=".35" stop-color="#e8eef6"/><stop offset="1" stop-color="#8fa0b3"/></linearGradient>
+    </defs>
+    <g transform="translate(0,4.0)">
+    <ellipse cx="120" cy="214" rx="52" ry="9" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
+    <ellipse class="dmh-glow" cx="120" cy="96" rx="62" ry="60" fill="#ffd98a" opacity=".5" filter="url(#dmh-luce-${id})"/>
+    <path d="M120 24a52 52 0 0 1 32 93c-6 5-9 11-9 18h-46c0-7-3-13-9-18a52 52 0 0 1 32-93z" fill="url(#dmh-vetro-${id})"/>
+    <path d="M100 132c-4-9-11-13-17-20a38 38 0 1 1 74 0c-6 7-13 11-17 20z" fill="#fffaf0" opacity=".45"/>
+    <path d="M106 92l8 18 6-26 6 26 8-18" fill="none" stroke="#e0932f" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="96" y="140" width="48" height="12" rx="4" fill="url(#dmh-met3-${id})"/>
+    <rect x="99" y="153" width="42" height="9" rx="3" fill="#b9c5d2"/>
+    <rect x="102" y="163" width="36" height="9" rx="3" fill="#9fadbc"/>
+    <rect x="86" y="180" width="68" height="30" rx="9" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
+    <text class="dm-e-watt" x="112" y="201" text-anchor="middle" font-size="18" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="140" y="201" text-anchor="middle" font-size="9.5" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
+  </g>
+  </svg>`,
+  // Condizionatore: lo split a muro, con l'aria che esce quando lavora.
+  condizionatore: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-split-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e6ecf4"/><stop offset="1" stop-color="#b9c5d2"/></linearGradient>
+    </defs>
+    <g transform="translate(0,-6.0)">
+    <ellipse cx="120" cy="212" rx="60" ry="9" fill="#0f172a" opacity=".14" filter="url(#dmh-blur-${id})"/>
+    <rect x="30" y="46" width="180" height="68" rx="18" fill="url(#dmh-split-${id})" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.4"/>
+    <rect x="44" y="96" width="152" height="12" rx="6" fill="#0b1526" opacity=".85"/>
+    <circle cx="186" cy="62" r="3.4" fill="#22c55e" class="dmh-glow"/>
+    <rect x="128" y="56" width="58" height="22" rx="7" fill="#061020"/>
+    <text class="dm-e-watt" x="150" y="72" text-anchor="middle" font-size="15" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="173" y="72" text-anchor="middle" font-size="8.5" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
+    <g class="dmh-aria" fill="none" stroke="#38bdf8" stroke-width="5" stroke-linecap="round" opacity=".75">
+      <path d="M74 132c14 10 28 10 42 0"/>
+      <path d="M86 156c12 9 24 9 36 0"/>
+      <path d="M98 180c10 8 20 8 30 0"/>
+    </g>
+  </g>
+  </svg>`,
+  // Frigorifero: due porte, maniglie e il displayino.
+  frigorifero: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-frigo-${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cfd8e3"/><stop offset=".25" stop-color="#f4f7fb"/><stop offset="1" stop-color="#aab6c5"/></linearGradient>
+    </defs>
+    <g transform="translate(0,5.0)">
+    <ellipse cx="120" cy="216" rx="56" ry="9" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
+    <rect x="58" y="20" width="124" height="192" rx="16" fill="url(#dmh-frigo-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <path d="M58 92h124" stroke="#8fa0b3" stroke-opacity=".7" stroke-width="2.4"/>
+    <rect x="150" y="40" width="7" height="34" rx="3.5" fill="#8fa0b3"/>
+    <rect x="150" y="110" width="7" height="46" rx="3.5" fill="#8fa0b3"/>
+    <rect x="72" y="36" width="54" height="24" rx="8" fill="#061020"/>
+    <text class="dm-e-watt" x="92" y="53" text-anchor="middle" font-size="15" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="115" y="53" text-anchor="middle" font-size="8.5" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
+    <g fill="#bcd7ea" opacity=".8">
+      <rect x="74" y="112" width="60" height="7" rx="3.5"/>
+      <rect x="74" y="130" width="46" height="7" rx="3.5"/>
+      <rect x="74" y="148" width="54" height="7" rx="3.5"/>
+    </g>
+    <circle cx="70" cy="30" r="3.2" fill="#22c55e" class="dmh-glow"/>
+  </g>
+  </svg>`,
+  // Ventilatore: le pale girano solo mentre lavora.
+  ventilatore: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-vent-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef3f8"/><stop offset="1" stop-color="#a9b6c4"/></linearGradient>
+    </defs>
+    <g transform="translate(0,-2.0)">
+    <ellipse cx="120" cy="214" rx="52" ry="9" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
+    <rect x="114" y="132" width="12" height="52" rx="6" fill="url(#dmh-vent-${id})"/>
+    <ellipse cx="120" cy="188" rx="42" ry="11" fill="url(#dmh-vent-${id})"/>
+    <circle cx="120" cy="98" r="62" fill="#0b1526" opacity=".08"/>
+    <circle cx="120" cy="98" r="60" fill="none" stroke="#9fb4c9" stroke-opacity=".7" stroke-width="3"/>
+    <circle cx="120" cy="98" r="44" fill="none" stroke="#9fb4c9" stroke-opacity=".45" stroke-width="2"/>
+    <g class="dmh-spin-pala" opacity=".9">
+      <path d="M120 98c0-26 10-40 26-40 10 0 16 8 16 18 0 14-16 22-42 22z" fill="#8fd5f5"/>
+      <path d="M120 98c22 14 26 30 18 44-5 9-15 10-23 5-12-7-9-25 5-49z" fill="#6cc6ee"/>
+      <path d="M120 98c-22-14-40-12-48 2-5 9 0 18 9 23 12 7 25-5 39-25z" fill="#a6e0f8"/>
+    </g>
+    <circle cx="120" cy="98" r="9" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.4"/>
+    <rect x="86" y="156" width="68" height="26" rx="8" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
+    <text class="dm-e-watt" x="112" y="175" text-anchor="middle" font-size="16" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="138" y="175" text-anchor="middle" font-size="9" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
+  </g>
+  </svg>`,
+  // Microonde: sportello, tastierino e il piatto che gira.
+  microonde: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-micro-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f8fb"/><stop offset=".5" stop-color="#dde4ec"/><stop offset="1" stop-color="#aab6c5"/></linearGradient>
+    </defs>
+    <g transform="translate(0,-4.5)">
+    <ellipse cx="120" cy="196" rx="76" ry="10" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
+    <rect x="28" y="58" width="184" height="128" rx="16" fill="url(#dmh-micro-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="42" y="72" width="112" height="100" rx="10" fill="#0b1526"/>
+    <rect x="50" y="80" width="96" height="84" rx="7" fill="#12233a"/>
+    <circle cx="98" cy="122" r="30" fill="none" stroke="#38bdf8" stroke-opacity=".35" stroke-width="2"/>
+    <ellipse cx="98" cy="126" rx="22" ry="8" fill="#8fd5f5" opacity=".55"/>
+    <rect x="164" y="76" width="36" height="24" rx="7" fill="#061020"/>
+    <text class="dm-e-watt" x="182" y="93" text-anchor="middle" font-size="14" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <g fill="#9fadbc" opacity=".85">
+      <rect x="164" y="110" width="14" height="10" rx="3"/><rect x="186" y="110" width="14" height="10" rx="3"/>
+      <rect x="164" y="126" width="14" height="10" rx="3"/><rect x="186" y="126" width="14" height="10" rx="3"/>
+      <rect x="164" y="142" width="36" height="12" rx="4" fill="#38bdf8" opacity=".9"/>
+    </g>
+    <circle cx="36" cy="66" r="3" fill="#22c55e" class="dmh-glow"/>
+  </g>
+  </svg>`,
+  // Ciabatta: la multipresa con quattro prese e l'interruttore.
+  ciabatta: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-cia-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f9fc"/><stop offset=".55" stop-color="#e2e8f0"/><stop offset="1" stop-color="#a9b6c4"/></linearGradient>
+    </defs>
+    <g transform="translate(8.0,-3.5)">
+    <ellipse cx="120" cy="188" rx="80" ry="10" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
+    <path d="M28 120c-10 0-16-8-16-18s6-18 16-18" fill="none" stroke="#9fadbc" stroke-width="7" stroke-linecap="round"/>
+    <rect x="28" y="64" width="184" height="112" rx="22" fill="url(#dmh-cia-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <g>
+      <circle cx="72" cy="104" r="19" fill="#eef2f7" stroke="#9fb0c2" stroke-opacity=".6" stroke-width="1.4"/>
+      <rect x="64" y="96" width="5" height="14" rx="2.5" fill="#16243a"/><rect x="75" y="96" width="5" height="14" rx="2.5" fill="#16243a"/>
+      <circle cx="122" cy="104" r="19" fill="#eef2f7" stroke="#9fb0c2" stroke-opacity=".6" stroke-width="1.4"/>
+      <rect x="114" y="96" width="5" height="14" rx="2.5" fill="#16243a"/><rect x="125" y="96" width="5" height="14" rx="2.5" fill="#16243a"/>
+      <circle cx="172" cy="104" r="19" fill="#eef2f7" stroke="#9fb0c2" stroke-opacity=".6" stroke-width="1.4"/>
+      <rect x="164" y="96" width="5" height="14" rx="2.5" fill="#16243a"/><rect x="175" y="96" width="5" height="14" rx="2.5" fill="#16243a"/>
+    </g>
+    <rect x="44" y="136" width="60" height="26" rx="8" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
+    <text class="dm-e-watt" x="68" y="155" text-anchor="middle" font-size="16" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="92" y="155" text-anchor="middle" font-size="9" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
+    <rect x="132" y="136" width="64" height="26" rx="9" fill="#dfe6ee" stroke="#9fb0c2" stroke-opacity=".6" stroke-width="1.2"/>
+    <rect x="136" y="140" width="28" height="18" rx="6" fill="#22c55e" class="dmh-glow"/>
+  </g>
+  </svg>`,
+  pc_torre: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-tor-${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2b3545"/><stop offset=".22" stop-color="#3d4a5e"/><stop offset="1" stop-color="#151c27"/></linearGradient>
+    </defs>
+    <g transform="translate(0,4.0)">
+    <ellipse cx="120" cy="214" rx="58" ry="9" fill="#0f172a" opacity=".18" filter="url(#dmh-blur-${id})"/>
+    <rect x="74" y="24" width="92" height="184" rx="12" fill="url(#dmh-tor-${id})" stroke="#0b1220" stroke-opacity=".6" stroke-width="1.2"/>
+    <rect x="86" y="36" width="68" height="46" rx="6" fill="#0b1220"/>
+    <g fill="#4b5c73" opacity=".8">
+      <rect x="92" y="42" width="56" height="3" rx="1.5"/><rect x="92" y="50" width="56" height="3" rx="1.5"/>
+      <rect x="92" y="58" width="56" height="3" rx="1.5"/><rect x="92" y="66" width="56" height="3" rx="1.5"/>
+    </g>
+    <circle cx="120" cy="96" r="9" fill="none" stroke="#38bdf8" stroke-opacity=".7" stroke-width="2.4" class="dmh-glow"/>
+    <rect x="118.8" y="89" width="2.4" height="9" rx="1.2" fill="#38bdf8" class="dmh-glow"/>
+    <rect x="86" y="118" width="68" height="40" rx="9" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
+    <text class="dm-e-watt" x="120" y="141" text-anchor="middle" font-size="22" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="120" y="152" text-anchor="middle" font-size="8" font-weight="800" fill="#7f9bb5" letter-spacing="1.2" font-family="Roboto, sans-serif">WATT</text>
+    <g fill="#8fa0b3" opacity=".55"><rect x="92" y="170" width="24" height="5" rx="2.5"/><rect x="124" y="170" width="24" height="5" rx="2.5"/></g>
+    <g fill="#0b1220" opacity=".8"><rect x="82" y="208" width="14" height="7" rx="3"/><rect x="144" y="208" width="14" height="7" rx="3"/></g>
+  </g>
+  </svg>`,
+  // Monitor da scrivania: i watt SONO quello che c'e' scritto sullo schermo.
+  pc_monitor: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-sch-${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d2137"/><stop offset="1" stop-color="#061020"/></linearGradient>
+      <linearGradient id="dmh-met-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8eef6"/><stop offset="1" stop-color="#a9b6c4"/></linearGradient>
+    </defs>
+    <g transform="translate(0,-3.0)">
+    <ellipse cx="120" cy="216" rx="68" ry="9" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
+    <rect x="30" y="36" width="180" height="120" rx="12" fill="url(#dmh-met-${id})" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.4"/>
+    <rect x="40" y="46" width="160" height="94" rx="7" fill="url(#dmh-sch-${id})"/>
+    <text class="dm-e-watt" x="120" y="102" text-anchor="middle" font-size="42" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="120" y="119" text-anchor="middle" font-size="10" font-weight="800" fill="#7f9bb5" letter-spacing="2" font-family="Roboto, sans-serif">WATT</text>
+    <circle cx="120" cy="150" r="2.6" fill="#22c55e" class="dmh-glow"/>
+    <path d="M104 156h32l6 30h-44z" fill="#c3ccd8"/>
+    <rect x="86" y="186" width="68" height="7" rx="3.5" fill="#b3bfcd"/>
+    <rect x="62" y="198" width="116" height="14" rx="5" fill="url(#dmh-met-${id})" stroke="#8fa0b3" stroke-opacity=".45" stroke-width="1"/>
+    <rect x="70" y="203" width="100" height="2.4" rx="1.2" fill="#8fa0b3" opacity=".55"/>
+  </g>
+  </svg>`,
+  // Lampada del comodino: quando lavora, si accende davvero.
+  lampada: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <filter id="dmh-luce-${id}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="14"/></filter>
+      <linearGradient id="dmh-pal-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9b8"/><stop offset="1" stop-color="#f0b352"/></linearGradient>
+      <linearGradient id="dmh-met2-${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b9c5d2"/><stop offset=".3" stop-color="#eef3f8"/><stop offset="1" stop-color="#93a2b3"/></linearGradient>
+    </defs>
+    <g transform="translate(0,-9.5)">
+    <ellipse cx="120" cy="212" rx="56" ry="9" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
+    <ellipse class="dmh-glow" cx="120" cy="120" rx="66" ry="56" fill="#ffd27a" opacity=".5" filter="url(#dmh-luce-${id})"/>
+    <path d="M78 96l16-52h52l16 52z" fill="url(#dmh-pal-${id})" stroke="#e0a648" stroke-opacity=".6" stroke-width="1.2"/>
+    <rect x="76" y="94" width="88" height="7" rx="3.5" fill="#e8b45e"/>
+    <rect x="116" y="101" width="8" height="78" rx="4" fill="url(#dmh-met2-${id})"/>
+    <ellipse cx="120" cy="182" rx="40" ry="10" fill="url(#dmh-met2-${id})"/>
+    <ellipse cx="120" cy="178" rx="40" ry="10" fill="#dee6ef"/>
+    <rect x="86" y="199" width="68" height="26" rx="8" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
+    <text class="dm-e-watt" x="112" y="218" text-anchor="middle" font-size="17" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="140" y="218" text-anchor="middle" font-size="9" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
+  </g>
+  </svg>`,
+  // Powerstation: la scatola con la maniglia, il display e le prese davanti.
+  powerstation: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-box-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3c4758"/><stop offset=".5" stop-color="#27303e"/><stop offset="1" stop-color="#151c27"/></linearGradient>
+    </defs>
+    <g transform="translate(0,2.5)">
+    <ellipse cx="120" cy="208" rx="74" ry="10" fill="#0f172a" opacity=".18" filter="url(#dmh-blur-${id})"/>
+    <path d="M92 52v-6c0-9 12-14 28-14s28 5 28 14v6" fill="none" stroke="#9fadbc" stroke-width="7" stroke-linecap="round"/>
+    <rect x="44" y="52" width="152" height="148" rx="18" fill="url(#dmh-box-${id})" stroke="#0b1220" stroke-opacity=".55" stroke-width="1.4"/>
+    <rect x="58" y="66" width="124" height="52" rx="10" fill="#061020" stroke="#38bdf8" stroke-opacity=".45" stroke-width="1.2"/>
+    <text class="dm-e-watt" x="120" y="98" text-anchor="middle" font-size="27" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="120" y="110" text-anchor="middle" font-size="8.5" font-weight="800" fill="#7f9bb5" letter-spacing="1.4" font-family="Roboto, sans-serif">WATT</text>
+    <g fill="none" stroke="#9fadbc" stroke-opacity=".75" stroke-width="2.2">
+      <circle cx="82" cy="150" r="17"/><circle cx="128" cy="150" r="17"/>
+    </g>
+    <g fill="#9fadbc" opacity=".85">
+      <rect x="78" y="144" width="3.4" height="9" rx="1.7"/><rect x="85" y="144" width="3.4" height="9" rx="1.7"/>
+      <rect x="124" y="144" width="3.4" height="9" rx="1.7"/><rect x="131" y="144" width="3.4" height="9" rx="1.7"/>
+    </g>
+    <rect x="154" y="140" width="28" height="9" rx="3" fill="#0b1220"/>
+    <rect x="154" y="154" width="28" height="9" rx="3" fill="#0b1220"/>
+    <circle cx="168" cy="176" r="3.4" fill="#22c55e" class="dmh-glow"/>
+    <rect x="58" y="176" width="72" height="7" rx="3.5" fill="#0b1220"/>
+    <rect x="58" y="176" width="46" height="7" rx="3.5" fill="#22c55e" opacity=".8"/>
+  </g>
+  </svg>`,
+  presa: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-steel-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfcfe"/><stop offset=".5" stop-color="#e4eaf1"/><stop offset="1" stop-color="#a9b6c4"/></linearGradient>
+      <radialGradient id="dmh-faccia-${id}" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dce3ec"/></radialGradient>
+    </defs>
+    <g transform="translate(0,2.5)">
+    <ellipse cx="120" cy="214" rx="66" ry="10" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
+    <rect x="52" y="26" width="136" height="180" rx="32" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <circle cx="120" cy="96" r="46" fill="url(#dmh-faccia-${id})" stroke="#9fb0c2" stroke-opacity=".5" stroke-width="1.2"/>
+    <circle cx="120" cy="96" r="34" fill="none" stroke="#9fb0c2" stroke-opacity=".35" stroke-width="1"/>
+    <rect x="101" y="80" width="9" height="24" rx="4.5" fill="#16243a"/>
+    <rect x="130" y="80" width="9" height="24" rx="4.5" fill="#16243a"/>
+    <rect x="113" y="118" width="14" height="6" rx="3" fill="#16243a" opacity=".65"/>
+    <circle cx="166" cy="46" r="3.6" fill="#22c55e" class="dmh-glow"/>
+    <rect x="70" y="152" width="100" height="40" rx="11" fill="#061020" stroke="#38bdf8" stroke-opacity=".45" stroke-width="1.2"/>
+    <text class="dm-e-watt" x="120" y="176" text-anchor="middle" font-size="23" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="120" y="187" text-anchor="middle" font-size="8.5" font-weight="800" fill="#7f9bb5" letter-spacing="1.2" font-family="Roboto, sans-serif">WATT</text>
+  </g>
+  </svg>`,
+  minipc: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-steel-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f9fc"/><stop offset=".45" stop-color="#dde4ec"/><stop offset="1" stop-color="#9fadbd"/></linearGradient>
+      <linearGradient id="dmh-cielo-${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4fc3f7"/><stop offset="1" stop-color="#0288d1"/></linearGradient>
+    </defs>
+    <g transform="translate(0,-13.0)">
+    <ellipse cx="120" cy="206" rx="74" ry="11" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
+    <path d="M40 86l26-22h108l26 22z" fill="#eef2f7" opacity=".9"/>
+    <rect x="40" y="86" width="160" height="106" rx="16" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="52" y="98" width="136" height="82" rx="11" fill="#0b1526"/>
+    <circle cx="90" cy="139" r="27" fill="url(#dmh-cielo-${id})" opacity=".16"/>
+    <g class="dmh-logo-ha" transform="translate(90 139) scale(1.9) translate(-12 -12)">
+      <path d="M21.8,13H20V21H13V17.67L15.79,14.88L16.5,15C17.66,15 18.6,14.06 18.6,12.9C18.6,11.74 17.66,10.8 16.5,10.8A2.1,2.1 0 0,0 14.4,12.9L14.5,13.61L13,15.13V9.65C13.66,9.29 14.1,8.6 14.1,7.8A2.1,2.1 0 0,0 12,5.7A2.1,2.1 0 0,0 9.9,7.8C9.9,8.6 10.34,9.29 11,9.65V15.13L9.5,13.61L9.6,12.9A2.1,2.1 0 0,0 7.5,10.8A2.1,2.1 0 0,0 5.4,12.9A2.1,2.1 0 0,0 7.5,15L8.21,14.88L11,17.67V21H4V13H2.25C1.83,13 1.42,13 1.42,12.79C1.43,12.57 1.85,12.15 2.28,11.72L11,3C11.33,2.67 11.67,2.33 12,2.33C12.33,2.33 12.67,2.67 13,3L17,7V6H19V9L21.78,11.78C22.18,12.18 22.59,12.59 22.6,12.8C22.6,13 22.2,13 21.8,13M7.5,12A0.9,0.9 0 0,1 8.4,12.9A0.9,0.9 0 0,1 7.5,13.8A0.9,0.9 0 0,1 6.6,12.9A0.9,0.9 0 0,1 7.5,12M16.5,12C17,12 17.4,12.4 17.4,12.9C17.4,13.4 17,13.8 16.5,13.8A0.9,0.9 0 0,1 15.6,12.9A0.9,0.9 0 0,1 16.5,12M12,6.9C12.5,6.9 12.9,7.3 12.9,7.8C12.9,8.3 12.5,8.7 12,8.7C11.5,8.7 11.1,8.3 11.1,7.8C11.1,7.3 11.5,6.9 12,6.9Z" fill="url(#dmh-cielo-${id})"/>
+    </g>
+    <rect x="126" y="118" width="52" height="42" rx="9" fill="#061020" stroke="#38bdf8" stroke-opacity=".45" stroke-width="1.2"/>
+    <text class="dm-e-watt" x="152" y="141" text-anchor="middle" font-size="22" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="152" y="153" text-anchor="middle" font-size="8.5" font-weight="800" fill="#7f9bb5" letter-spacing="1.1" font-family="Roboto, sans-serif">WATT</text>
+    <circle cx="61" cy="79" r="3.2" fill="#22c55e" class="dmh-glow"/>
+    <g fill="#8c9cad" opacity=".85">
+      <rect x="126" y="168" width="18" height="7" rx="2"/>
+      <rect x="150" y="168" width="18" height="7" rx="2"/>
+      <rect x="60" y="168" width="52" height="4" rx="2" opacity=".6"/>
+    </g>
+    <g fill="#9fadbc">
+      <rect x="54" y="192" width="16" height="9" rx="4"/>
+      <rect x="170" y="192" width="16" height="9" rx="4"/>
+    </g>
+  </g>
+  </svg>`,
   energy: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
     <defs>
       <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
@@ -3298,6 +3583,7 @@ const HERO_BUILDERS = {
       <linearGradient id="dmh-acqua-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#0284c7"/></linearGradient>
       <clipPath id="dmh-tanica-${id}"><rect x="74" y="150" width="92" height="48" rx="8"/></clipPath>
     </defs>
+    <g transform="translate(0,3.5)">
     <ellipse cx="120" cy="222" rx="62" ry="10" fill="#0f172a" opacity=".14" filter="url(#dmh-blur-${id})"/>
     <rect x="56" y="16" width="128" height="200" rx="18" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
     <rect x="68" y="26" width="104" height="18" rx="7" fill="#eef2f7" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
@@ -3330,6 +3616,7 @@ const HERO_BUILDERS = {
     <rect x="104" y="156" width="32" height="5" rx="2.5" fill="#94a3b8" opacity=".8"/>
     <rect x="66" y="206" width="12" height="12" rx="4" fill="#9fadbc"/>
     <rect x="162" y="206" width="12" height="12" rx="4" fill="#9fadbc"/>
+  </g>
   </svg>`,
   boiler: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
     <defs>
@@ -3379,6 +3666,30 @@ const CHIP_SVGS = {
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><rect x="20" y="16" width="56" height="16" rx="4" fill="#0b1526"/><circle cx="28" cy="24" r="2.6" fill="#22c55e"/><circle cx="36" cy="24" r="2.6" fill="#38bdf8"/><rect x="44" y="21.5" width="26" height="5" rx="2.5" fill="#38bdf8" opacity=".6"/><rect x="20" y="36" width="56" height="16" rx="4" fill="#0b1526"/><circle cx="28" cy="44" r="2.6" fill="#22c55e"/><circle cx="36" cy="44" r="2.6" fill="#38bdf8"/><rect x="44" y="41.5" width="26" height="5" rx="2.5" fill="#38bdf8" opacity=".6"/><rect x="20" y="56" width="56" height="16" rx="4" fill="#0b1526"/><circle cx="28" cy="64" r="2.6" fill="#22c55e"/><circle cx="36" cy="64" r="2.6" fill="#38bdf8"/><rect x="44" y="61.5" width="26" height="5" rx="2.5" fill="#38bdf8" opacity=".6"/></svg>',
   nas:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="30" y="8" width="36" height="80" rx="6" fill="#0f2942"/><rect x="36" y="16" width="24" height="10" rx="2" fill="#0b1526"/><circle cx="42" cy="21" r="2" fill="#22c55e"/><rect x="36" y="30" width="24" height="10" rx="2" fill="#0b1526"/><circle cx="42" cy="35" r="2" fill="#38bdf8"/><rect x="36" y="44" width="24" height="10" rx="2" fill="#0b1526"/><circle cx="42" cy="49" r="2" fill="#38bdf8"/><rect x="36" y="58" width="24" height="10" rx="2" fill="#0b1526"/><circle cx="42" cy="63" r="2" fill="#38bdf8"/></svg>',
+  luce:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M48 20a20 20 0 0 1 12 36c-2 2-3 4-3 6H39c0-2-1-4-3-6a20 20 0 0 1 12-36z" fill="#f8fafc"/><path d="M41 38l4 8 3-12 3 12 4-8" fill="none" stroke="#0f2942" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="40" y="64" width="16" height="5" rx="2.5" fill="#8be2ff"/><rect x="38" y="72" width="20" height="8" rx="3" fill="#38bdf8"/></svg>',
+  condizionatore:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><g transform="translate(0,-2.9)"><rect x="8" y="20" width="80" height="34" rx="10" fill="#0f2942"/><rect x="15" y="27" width="66" height="12" rx="4" fill="#f8fafc"/><rect x="15" y="44" width="66" height="5" rx="2.5" fill="#8be2ff"/><g fill="none" stroke="#38bdf8" stroke-width="5" stroke-linecap="round"><path d="M28 64c7 6 14 6 21 0"/><path d="M36 78c6 5 12 5 18 0"/></g></g></svg>',
+  frigorifero:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="22" y="8" width="52" height="80" rx="10" fill="#0f2942"/><rect x="28" y="14" width="40" height="22" rx="5" fill="#f8fafc"/><rect x="28" y="42" width="40" height="40" rx="5" fill="#f8fafc"/><rect x="58" y="20" width="4" height="10" rx="2" fill="#0f2942"/><rect x="58" y="48" width="4" height="14" rx="2" fill="#0f2942"/><rect x="33" y="66" width="22" height="5" rx="2.5" fill="#38bdf8"/></svg>',
+  ventilatore:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><circle cx="48" cy="40" r="24" fill="#f8fafc"/><path d="M48 40c0-11 4-17 11-17 4 0 7 3 7 7 0 6-7 10-18 10z" fill="#38bdf8"/><path d="M48 40c9 6 11 13 8 19-2 4-7 4-10 2-5-3-4-11 2-21z" fill="#0ea5e9"/><path d="M48 40c-9-6-17-5-20 1-2 4 0 8 4 10 5 3 11-2 16-11z" fill="#8be2ff"/><circle cx="48" cy="40" r="4" fill="#0f2942"/><rect x="38" y="70" width="20" height="8" rx="3" fill="#38bdf8"/></svg>',
+  microonde:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="8" y="22" width="80" height="52" rx="9" fill="#0f2942"/><rect x="15" y="29" width="46" height="38" rx="5" fill="#f8fafc"/><ellipse cx="38" cy="50" rx="14" ry="6" fill="#8be2ff"/><rect x="66" y="29" width="15" height="10" rx="3" fill="#38bdf8"/><g fill="#f8fafc"><rect x="66" y="44" width="6" height="5" rx="2"/><rect x="75" y="44" width="6" height="5" rx="2"/><rect x="66" y="53" width="6" height="5" rx="2"/><rect x="75" y="53" width="6" height="5" rx="2"/></g></svg>',
+  ciabatta:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="8" y="30" width="80" height="36" rx="14" fill="#0f2942"/><circle cx="30" cy="48" r="9" fill="#f8fafc"/><rect x="26" y="44" width="3" height="8" rx="1.5" fill="#0f2942"/><rect x="31" y="44" width="3" height="8" rx="1.5" fill="#0f2942"/><circle cx="54" cy="48" r="9" fill="#f8fafc"/><rect x="50" y="44" width="3" height="8" rx="1.5" fill="#0f2942"/><rect x="55" y="44" width="3" height="8" rx="1.5" fill="#0f2942"/><rect x="68" y="40" width="14" height="16" rx="5" fill="#38bdf8"/></svg>',
+  pc_torre:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="24" y="8" width="48" height="80" rx="10" fill="#0f2942"/><rect x="30" y="15" width="36" height="22" rx="5" fill="#f8fafc"/><path fill="none" stroke="#0f2942" stroke-width="3" stroke-linecap="round" d="M36 21h24M36 27h24M36 33h24"/><circle cx="48" cy="46" r="6" fill="none" stroke="#8be2ff" stroke-width="3"/><rect x="30" y="58" width="36" height="20" rx="5" fill="#38bdf8"/></svg>',
+  pc_monitor:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="8" y="14" width="80" height="56" rx="10" fill="#0f2942"/><rect x="15" y="21" width="66" height="42" rx="5" fill="#f8fafc"/><rect x="23" y="31" width="50" height="8" rx="4" fill="#38bdf8"/><rect x="23" y="45" width="32" height="8" rx="4" fill="#8be2ff"/><rect x="40" y="70" width="16" height="8" fill="#0f2942"/><rect x="26" y="78" width="44" height="8" rx="4" fill="#0f2942"/></svg>',
+  lampada:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M28 44 37 20h22l9 24z" fill="#f8fafc"/><rect x="26" y="44" width="44" height="6" rx="3" fill="#8be2ff"/><rect x="45" y="50" width="6" height="22" rx="3" fill="#f8fafc"/><rect x="30" y="72" width="36" height="8" rx="4" fill="#38bdf8"/></svg>',
+  powerstation:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><path d="M36 22v-3c0-5 5-8 12-8s12 3 12 8v3" fill="none" stroke="#0f2942" stroke-width="6" stroke-linecap="round"/><rect x="14" y="22" width="68" height="64" rx="10" fill="#0f2942"/><rect x="21" y="29" width="54" height="22" rx="5" fill="#f8fafc"/><rect x="27" y="36" width="42" height="8" rx="4" fill="#38bdf8"/><circle cx="34" cy="66" r="9" fill="#f8fafc"/><circle cx="34" cy="66" r="4" fill="#0f2942"/><circle cx="58" cy="66" r="9" fill="#f8fafc"/><circle cx="58" cy="66" r="4" fill="#0f2942"/><rect x="70" y="60" width="8" height="12" rx="3" fill="#8be2ff"/></svg>',
+  presa:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="18" y="8" width="60" height="80" rx="16" fill="#0f2942"/><circle cx="48" cy="38" r="21" fill="#f8fafc"/><rect x="39" y="30" width="6" height="15" rx="3" fill="#0f2942"/><rect x="51" y="30" width="6" height="15" rx="3" fill="#0f2942"/><rect x="42" y="50" width="12" height="4" rx="2" fill="#0f2942"/><rect x="28" y="66" width="40" height="16" rx="5" fill="#38bdf8"/></svg>',
+  minipc:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><g transform="translate(0,-6.5)"><rect x="10" y="26" width="76" height="48" rx="9" fill="#0f2942"/><g transform="translate(48 50) scale(1.55) translate(-12 -12)"><path d="M21.8,13H20V21H13V17.67L15.79,14.88L16.5,15C17.66,15 18.6,14.06 18.6,12.9C18.6,11.74 17.66,10.8 16.5,10.8A2.1,2.1 0 0,0 14.4,12.9L14.5,13.61L13,15.13V9.65C13.66,9.29 14.1,8.6 14.1,7.8A2.1,2.1 0 0,0 12,5.7A2.1,2.1 0 0,0 9.9,7.8C9.9,8.6 10.34,9.29 11,9.65V15.13L9.5,13.61L9.6,12.9A2.1,2.1 0 0,0 7.5,10.8A2.1,2.1 0 0,0 5.4,12.9A2.1,2.1 0 0,0 7.5,15L8.21,14.88L11,17.67V21H4V13H2.25C1.83,13 1.42,13 1.42,12.79C1.43,12.57 1.85,12.15 2.28,11.72L11,3C11.33,2.67 11.67,2.33 12,2.33C12.33,2.33 12.67,2.67 13,3L17,7V6H19V9L21.78,11.78C22.18,12.18 22.59,12.59 22.6,12.8C22.6,13 22.2,13 21.8,13M7.5,12A0.9,0.9 0 0,1 8.4,12.9A0.9,0.9 0 0,1 7.5,13.8A0.9,0.9 0 0,1 6.6,12.9A0.9,0.9 0 0,1 7.5,12M16.5,12C17,12 17.4,12.4 17.4,12.9C17.4,13.4 17,13.8 16.5,13.8A0.9,0.9 0 0,1 15.6,12.9A0.9,0.9 0 0,1 16.5,12M12,6.9C12.5,6.9 12.9,7.3 12.9,7.8C12.9,8.3 12.5,8.7 12,8.7C11.5,8.7 11.1,8.3 11.1,7.8C11.1,7.3 11.5,6.9 12,6.9Z" fill="#38bdf8"/></g><rect x="22" y="78" width="52" height="5" rx="2.5" fill="#0f2942" opacity=".55"/></g></svg>',
   energy:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M52 22 30 54h14l-2 20 26-34H54l-2-18z" fill="#38bdf8"/></svg>',
   ups:
@@ -3387,6 +3698,10 @@ const CHIP_SVGS = {
 
 const ICON_GEAR =
   '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+const ICON_POWER =
+  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>';
+const ICON_USB =
+  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="20" r="1.6"/><path d="M12 18.4V4"/><path d="M9 7l3-3 3 3"/><path d="M12 12l4-2.5v-2"/><circle cx="16" cy="7" r="1.4"/><path d="M12 14.5 8 12V9.5"/><rect x="6.6" y="7.6" width="2.8" height="2.4" rx=".6"/></svg>';
 const ICON_CHART =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="9"/></svg>';
 const ICON_CLOSE =
@@ -3488,6 +3803,7 @@ const STYLE = `
 .dm-ap-tool{width:37px;height:37px;display:grid;place-items:center;border:1px solid var(--dm-border);border-radius:11px;background:var(--dm-card);color:var(--dm-dim);cursor:pointer}
 .dm-ap-tool svg{width:19px;height:19px}
 .dm-ap-tool:hover{border-color:#bae6fd;color:var(--dm-blue-deep)}
+.dm-ap-tool.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.12)}
 .dm-ap-top-row{display:flex;align-items:stretch;gap:10px;margin:0 13px}
 .dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
 .dm-ap-card.is-run .dm-ap-hero{background:radial-gradient(120% 90% at 50% 8%,rgba(186,230,253,.85),rgba(224,242,254,.35) 62%,transparent)}
@@ -3506,7 +3822,11 @@ const STYLE = `
 .dmh-spin-fan{transform-box:view-box;transform-origin:120px 100px}
 .dmh-goccia{opacity:0}
 .dm-ap-card.is-run .dmh-spin-fan{animation:dmh-spin 1.6s linear infinite}
+.dmh-spin-pala{transform-box:view-box;transform-origin:120px 98px}
+.dm-ap-card.is-run .dmh-spin-pala{animation:dmh-spin 1.1s linear infinite}
+.dm-ap-card.is-run .dmh-aria{animation:dmh-glow 2.2s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-goccia{animation:dmh-drip 1.9s linear infinite}
+.dm-ap-card.is-run .dmh-logo-ha{animation:dmh-glow 2.6s ease-in-out infinite;transform-box:view-box}
 .dm-ap-card.is-run .dmh-goccia2{animation-delay:.6s}
 .dm-ap-card.is-run .dmh-goccia3{animation-delay:1.2s}
 .dm-ap-card.is-run .dmh-onda{animation:dmh-onda 3.4s ease-in-out infinite}
@@ -3562,6 +3882,11 @@ const STYLE = `
 .dm-ap-dialog-head h3{margin:0;font-size:17px;font-weight:900}
 .dm-ap-dialog-close{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border:0;border-radius:10px;background:var(--dm-soft);color:var(--dm-dim);cursor:pointer}
 .dm-ap-dialog-body{padding:12px 16px 18px;display:flex;flex-direction:column;gap:16px}
+details.dm-ap-sec-chiusa>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
+details.dm-ap-sec-chiusa>summary::-webkit-details-marker{display:none}
+details.dm-ap-sec-chiusa>summary:after{content:'▸';margin-left:auto;opacity:.6}
+details.dm-ap-sec-chiusa[open]>summary:after{content:'▾'}
+details.dm-ap-sec-chiusa>summary b{color:var(--dm-text);font-weight:800}
 .dm-ap-sec-cap{font-size:11.5px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--dm-blue-deep);margin:0 0 8px;padding-bottom:5px;border-bottom:2px solid var(--dm-border)}
 .dm-ap-sec{display:flex;flex-direction:column;gap:6px}
 .dm-ap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:13px;background:var(--dm-soft)}
@@ -3766,6 +4091,19 @@ const DISEGNI$1 = [
   ["oven", ["forno", "oven", "fornell"]],
   ["tv", ["tv", "televisor"]],
   ["boiler", ["boiler", "scaldabagn", "caldaia"]],
+  ["condizionatore", ["condizionator", "clima", "split", "aria_condizionata", "conditioner"]],
+  ["frigorifero", ["frigo", "fridge", "congelator", "freezer", "pozzetto"]],
+  ["ventilatore", ["ventilator", "ventola", "fan", "aspirator"]],
+  ["microonde", ["microond", "microwave"]],
+  ["dehumidifier", ["deumidificator", "umidificator", "dehumid"]],
+  ["lampada", ["abat", "lampada", "comodino", "piantana"]],
+  ["luce", ["luce", "luci", "light", "lampadin", "faretto", "plafonier"]],
+  ["pc_monitor", ["monitor", "schermo", "scrivania"]],
+  ["pc_torre", ["pc", "computer", "desktop", "torre", "nuc"]],
+  ["minipc", ["home_assistant", "homeassistant", "raspberry", "hass"]],
+  ["powerstation", ["powerstation", "power_station", "landbook", "ecoflow", "jackery"]],
+  ["ciabatta", ["ciabatta", "multipresa", "presa_multipla", "power_strip"]],
+  ["presa", ["presa", "spina", "plug", "socket", "outlet"]],
 ];
 
 const pulisci = (s) => String(s || "").toLowerCase()
@@ -3817,6 +4155,50 @@ function cicloDi(hass, cfg) {
   return null;
 }
 
+
+// Dal disegno alle entita': cerco in casa chi si chiama come quell'apparecchio
+// e restituisco i candidati, il migliore per primo. Un candidato vale di piu'
+// se il suo dispositivo ha anche un sensore in Watt: vuol dire che con quello
+// la scheda si riempie davvero, non solo a meta'.
+function trovaPerDisegno(hass, disegno) {
+  const parole = (DISEGNI$1.find(([d]) => d === disegno) || [null, []])[1];
+  if (!parole.length) return [];
+  const st = (hass && hass.states) || {};
+  const reg = (hass && hass.entities) || {};
+  const buoni = ["switch.", "sensor.", "light.", "fan.", "humidifier.", "climate.", "binary_sensor."];
+  const punti = [];
+  Object.keys(st).forEach((eid) => {
+    if (!buoni.some((d) => eid.startsWith(d))) return;
+    if (ESCLUSI_DI_SERIE.some((x) => eid.includes(x))) return;
+    const testo = pulisci(eid + " " + ((st[eid].attributes || {}).friendly_name || ""));
+    if (!parole.some((x) => testo.includes(x))) return;
+    let p = 1;
+    // meglio un interruttore o una presa che misura: da li' si capisce tutto
+    if (eid.startsWith("switch.")) p += 3;
+    if ((st[eid].attributes || {}).device_class === "power") p += 4;
+    // e ancora meglio se il dispositivo ha davvero un sensore in Watt
+    const dev = reg[eid] && reg[eid].device_id;
+    if (dev) {
+      const fratelliW = Object.keys(reg).filter((k) => reg[k].device_id === dev
+        && k.startsWith("sensor.") && ((st[k] || {}).attributes || {}).device_class === "power");
+      if (fratelliW.length) p += 5;
+      p += 1;
+    }
+    punti.push({ eid, p });
+  });
+  punti.sort((a, b) => b.p - a.p);
+  // uno solo per dispositivo: le altre entita' le trova poi da sola
+  const visti = new Set();
+  const fuori = [];
+  punti.forEach(({ eid }) => {
+    const dev = (reg[eid] && reg[eid].device_id) || eid;
+    if (visti.has(dev)) return;
+    visti.add(dev);
+    fuori.push(eid);
+  });
+  return fuori;
+}
+
 function preparaElettrodomestico(hass, cfg) {
   const scheda = {
     type: "custom:casa-elettrodomestico",
@@ -3846,6 +4228,54 @@ function preparaElettrodomestico(hass, cfg) {
       scheda.power_entity = cfg.entity;
     }
   }
+  // gli interruttori del dispositivo: quello grande e, se c'e', quello USB
+  const sw = fratelli(hass, cfg.entity).filter((x) => x.startsWith("switch."));
+  const usb = sw.find((x) => /usb/.test(x));
+  const grande = sw.find((x) => x !== usb && !/protection|overcharge|blocco|lock|child/.test(x));
+  if (grande) scheda.interruttore = grande;
+  else if (/^(switch|light|fan|humidifier)\./.test(cfg.entity || "")) scheda.interruttore = cfg.entity;
+  if (usb) scheda.interruttore_usb = usb;
+
+  // il "ciclo in corso": energia, minuti fatti, minuti che mancano, programma,
+  // fase. Sono nomi che le integrazioni usano quasi sempre allo stesso modo.
+  const sensori = fratelli(hass, cfg.entity).filter((x) => x.startsWith("sensor."));
+  const cerca = (re) => sensori.find((x) => re.test(x));
+  const vivo = {};
+  const coppie = [
+    ["energy_entity", /energia_ciclo|cycle_energy|energy_cycle/],
+    ["elapsed_entity", /tempo_trascorso|elapsed|trascors/],
+    ["remaining_entity", /tempo_residuo|remain|residu|rimanent/],
+    ["program_entity", /programma|program|course/],
+    ["phase_entity", /fase|phase|stato_ciclo|run_state/],
+  ];
+  coppie.forEach(([chiave, re_]) => { const t = cerca(re_); if (t) vivo[chiave] = t; });
+  if (Object.keys(vivo).length >= 2) scheda.ciclo_live = vivo;
+
+  // se il dispositivo (o un contatore che si chiama come lui) espone GIA' i
+  // kWh di oggi e del mese, li uso: non c'e' bisogno di crearli di nuovo
+  const tuttiSensori = Object.keys((hass && hass.states) || {}).filter((x) => x.startsWith("sensor."));
+  // le parole con cui cercare: sia dal nome della scheda sia dall'entita'
+  // (una scheda appena nata si chiama "Nuova", e cercare "nuova" non trova
+  // niente: il nome buono sta nell'entita')
+  const radici = [];
+  pulisci(cfg.name || "").split("_").forEach((x) => { if (x.length > 3) radici.push(x); });
+  (String(cfg.entity || "").split(".")[1] || "").split("_").forEach((x) => { if (x.length > 3) radici.push(x); });
+  radici.sort((x, y) => y.length - x.length);
+  const suoi = tuttiSensori.filter((x) => radici.some((r) => x.includes(r)));
+  const classeDi = (x) => ((hass.states[x] || {}).attributes || {}).device_class;
+  const unita = (x) => String(((hass.states[x] || {}).attributes || {}).unit_of_measurement || "");
+  const trova = (quando, tipo) => suoi.find((x) => quando.test(x)
+    && (tipo === "energia" ? (classeDi(x) === "energy" || /kwh/i.test(unita(x)))
+                           : (classeDi(x) === "monetary" || /eur|€/i.test(unita(x)))));
+  const oggiE = trova(/_oggi|_today|_daily|_giorno/, "energia");
+  const meseE = trova(/_mese|_month/, "energia");
+  const oggiC = trova(/costo.*(oggi|today)|(oggi|today).*costo|cost.*(today|daily)/, "soldi");
+  const meseC = trova(/costo.*mese|mese.*costo|cost.*month/, "soldi");
+  if (oggiE) scheda.oggi_energia = oggiE;
+  if (meseE) scheda.mese_energia = meseE;
+  if (oggiC) scheda.oggi_costo = oggiC;
+  if (meseC) scheda.mese_costo = meseC;
+
   const k = cicloDi(hass, cfg);
   if (k) {
     scheda.cycle_sensor = `sensor.${k}_ciclo`;
@@ -8488,7 +8918,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.34.0";
+const VERSIONE = "2.88.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -18027,6 +18457,18 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
 // ({id: "nome"}; vuoto = nome di serie).
 
 const STILE_EDITOR = `
+.ce-scelta{margin-top:8px;border:1px solid var(--divider-color);border-radius:10px;padding:8px}
+.ce-scelta label{display:flex;gap:8px;align-items:center;padding:3px 2px;font-size:13px}
+.ce-scelta .dett{color:var(--secondary-text-color);font-size:11px;margin-left:auto}
+.ce-scelta .barra{display:flex;gap:8px;margin-top:8px;align-items:center}
+.ce-scelta .tutti{font-size:12px;color:var(--primary-color);cursor:pointer;text-decoration:underline}
+
+.ce-presa{cursor:grab;opacity:.55;font-size:16px;line-height:1;padding:0 2px;user-select:none}
+.ce-presa:active{cursor:grabbing}
+.ce-presa-su{opacity:.5;outline:1px dashed var(--primary-color);border-radius:8px}
+.ce-via{background:none;border:0;color:var(--secondary-text-color);font-size:18px;cursor:pointer;line-height:1;padding:0 4px}
+.ce-via:hover{color:var(--error-color,#e05b5b)}
+
   .ce-sez{margin-top:18px;padding:12px;border-radius:12px;border:1px solid var(--divider-color,#444)}
   .ce-tit{font-weight:600;margin-bottom:4px}
   .ce-aiuto{font-size:12.5px;color:var(--secondary-text-color);margin-bottom:10px}
@@ -18040,6 +18482,12 @@ const STILE_EDITOR = `
   .ce-riga input.max{width:72px;padding:5px 6px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
   .ce-riga .maniglia{cursor:grab;touch-action:none;user-select:none;font-size:18px;line-height:1;padding:2px 4px;color:var(--secondary-text-color)}
   .ce-riga.trascino{outline:2px solid var(--primary-color);opacity:.85}
+  .ce-versione{font-size:11px;opacity:.55;letter-spacing:.3px;margin:2px 0 8px}
+  .ce-tutto-riga{cursor:pointer;margin:6px 0 10px;gap:10px;font-size:13px}
+  details.ce-sez>summary{cursor:pointer;list-style:none}
+  details.ce-sez>summary::-webkit-details-marker{display:none}
+  details.ce-sez>summary:before{content:'\\25b8 ';opacity:.6}
+  details.ce-sez[open]>summary:before{content:'\\25be ';opacity:.6}
   .ce-esito{margin-top:10px;font-size:12.5px;white-space:pre-wrap;color:var(--secondary-text-color)}
   .ce-esito.male{color:var(--error-color,#e46)}
   .ce-riga select{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
@@ -18157,6 +18605,42 @@ function righeInOrdine(config, elenco, R, esc) {
   }).join("\n              ");
 }
 
+
+/**
+ * Fa scegliere QUALI aiutanti cancellare, invece di prendere o lasciare.
+ * `elenco` sono {entity, entry_id, titolo}; chiama `poi(scelti)` col sottoinsieme.
+ */
+function quali_cancellare(box, elenco, hass, poi) {
+  const valore = (e) => {
+    const st = hass && hass.states[e];
+    if (!st || ["unknown", "unavailable"].includes(st.state)) return "";
+    const u = st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : "";
+    return st.state + u;
+  };
+  box.innerHTML = `<div class="ce-scelta">
+    <div class="ce-aiuto">Spunta quelli da buttare. Lo storico che hanno raccolto si perde;
+      la presa e i sensori del dispositivo non si toccano.</div>
+    ${elenco.map((a, i) => `<label><input type="checkbox" data-i="${i}" checked>
+      <span>${a.titolo}</span><span class="dett">${valore(a.entity)}</span></label>`).join("")}
+    <div class="barra">
+      <span class="tutti" data-tutti="1">tutti</span>
+      <span class="tutti" data-tutti="0">nessuno</span>
+      <button type="button" class="ce-prepara ce-fai-cancella">Cancella i selezionati</button>
+      <button type="button" class="ce-prepara ce-lascia">Lascia stare</button>
+    </div>
+  </div>`;
+  const spunte = [...box.querySelectorAll("input[type=checkbox]")];
+  box.querySelectorAll("[data-tutti]").forEach((t) => t.addEventListener("click", () => {
+    spunte.forEach((x) => { x.checked = t.dataset.tutti === "1"; });
+  }));
+  box.querySelector(".ce-lascia").addEventListener("click", () => { box.innerHTML = ""; });
+  box.querySelector(".ce-fai-cancella").addEventListener("click", () => {
+    const scelti = spunte.filter((x) => x.checked).map((x) => elenco[Number(x.dataset.i)]);
+    box.innerHTML = "";
+    if (scelti.length) poi(scelti);
+  });
+}
+
 // custom:casa-energia - consumo della casa, costi, circuiti, top consumo automatico.
 // Nata dalle schede di Simonz82 (github.com/Simonz82/smart-home-cards),
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
@@ -18174,6 +18658,8 @@ const RIGHE_OGGI = [
   { id: "energia", nome: "Energia attuale (senza tasse)", etichetta: "Energia attuale", colore: "#2fbfb0" },
   { id: "mese", nome: "Mese (+ tasse)", etichetta: "Mese (+ tasse)", colore: "#a283f2" },
   { id: "bolletta", nome: "Bolletta (il bimestre, kWh e €)", etichetta: "Bolletta", colore: "#e07b39" },
+  { id: "pannelli", nome: "kWh dai pannelli (oggi e mese)", etichetta: "Dai pannelli", colore: "#f2c53c" },
+  { id: "batteria", nome: "kWh dalla batteria (oggi e mese)", etichetta: "Dalla batteria", colore: "#7ecf6a" },
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
 
@@ -18186,12 +18672,14 @@ class CasaEnergia extends HTMLElement {
     const R = {
       consumo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-e-today-kwh">\u2014</b></div>`,
       consumo_mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3f8fea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo mese</small></span><b class="dm-e-month-kwh">—</b></div>`,
-      energia_tasse: `${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f28c3c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Energia + tasse</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}`,
-      risparmio: `${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#43b86a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio pannelli</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}`,
+      energia_tasse: `${this._config.bill_today || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f28c3c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Energia + tasse</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}`,
+      risparmio: `${this._config.bill_today || this._config.risparmio_oggi || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#43b86a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio pannelli</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}`,
       pv_tasse: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore dm-forte" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Paghi</small></span><b class="dm-e-today-cost">\u2014</b></div>`,
-      energia: `${this._config.bill_today ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}`,
+      energia: `${this._config.bill_today || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}`,
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>`,
       bolletta: `${this._config.bolletta_energia || this._config.bolletta_costo ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e07b39"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Bolletta</small></span><b class="dm-e-bolletta">\u2014</b></div>` : ""}`,
+      pannelli: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f2c53c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Dai pannelli</small></span><b class="dm-e-pannelli">\u2014</b></div>`}`,
+      batteria: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#7ecf6a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Dalla batteria</small></span><b class="dm-e-batteria">\u2014</b></div>`}`,
       top: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>`,
     };
     return righeInOrdine(this._config, RIGHE_OGGI, R, esc);
@@ -18238,6 +18726,8 @@ class CasaEnergia extends HTMLElement {
           <span class="dm-ap-badge run"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label">ONLINE</span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
+            ${this._config.interruttore ? `<button type="button" class="dm-ap-tool dm-ap-power" title="Accendi / spegni">${ICON_POWER}</button>` : ""}
+            ${this._config.interruttore_usb ? `<button type="button" class="dm-ap-tool dm-ap-usb" title="USB">${ICON_USB}</button>` : ""}
             <button type="button" class="dm-ap-tool dm-ap-settings" title="Impostazioni">${ICON_GEAR}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
             <button type="button" class="dm-ap-tool dm-ap-consumi" title="Circuiti">${ICON_BOLT}</button>
@@ -18264,15 +18754,17 @@ class CasaEnergia extends HTMLElement {
     // il resto compare solo nel popup Circuiti - stesso split usato per
     // Volume1/Volume2/USB sulla card NAS.
     const metersEl = this._root.querySelector(".dm-ap-meters");
-    (this._config.circuits || []).slice(0, 4).forEach((c, i) => {
+    (this._config.circuits || []).forEach((c, i) => {
       const div = document.createElement("div");
       div.className = "dm-ap-meter dm-c-meter-clickable";
       div.dataset.circuitIndex = i;
-      div.innerHTML = `<div class="dm-ap-meter-row"><span>${esc(c.label)}</span><strong class="dm-e-c-val">0 W</strong></div>
+      div.innerHTML = `<div class="dm-ap-meter-row"><span class="dm-e-c-name">${esc(c.label)}</span><strong class="dm-e-c-val">0 W</strong></div>
         <div class="dm-ap-bar"><i class="dm-e-c-bar" style="width:0%"></i></div>`;
       div.addEventListener("click", (e) => {
         e.stopPropagation();
-        this._openMeterChart(c.entity, c.label, "#38bdf8");
+        // quale barra sia questa lo dico al momento del clic: l'ordine cambia
+        const q = div._circuito || c;
+        this._openMeterChart(q.entity, q.label, "#38bdf8");
       });
       metersEl.appendChild(div);
     });
@@ -18281,6 +18773,14 @@ class CasaEnergia extends HTMLElement {
       e.stopPropagation();
       history.pushState(null, "", this._config.notification_path);
       window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
+    });
+    // i due interruttori della presa: quello grande e quello delle USB
+    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
+      this._root.querySelector(sel)?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const eid = this._config[chiave];
+        this._hass?.callService(eid.split(".")[0], "toggle", { entity_id: eid });
+      });
     });
     this._root.querySelector(".dm-ap-settings").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -18369,12 +18869,20 @@ class CasaEnergia extends HTMLElement {
   _openSettings() {
     const hass = this._hass;
     const sections = (this._config.settings_sections || [])
-      .map(
-        (sec) => `<div class="dm-ap-sec">
-          <div class="dm-ap-sec-cap">${esc(sec.title)}</div>
-          ${sec.rows.map((row) => this._settingsRowHtml(hass, row)).join("")}
-        </div>`,
-      )
+      .map((sec) => {
+        const righe = (sec.rows || []).map((row) => this._settingsRowHtml(hass, row)).join("");
+        if ((sec.rows || []).length <= 3 && !sec.chiuso) {
+          return `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">${esc(sec.title)}</div>${righe}</div>`;
+        }
+        // il numero da mettere nel titolo: l'ultima riga (di solito il totale)
+        const ultima = sec.rows[sec.rows.length - 1];
+        const st = ultima && hass.states[ultima.entity];
+        const valore = st ? `${st.state}${st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : ""}` : "";
+        return `<details class="dm-ap-sec dm-ap-sec-chiusa">
+          <summary class="dm-ap-sec-cap">${esc(sec.title)}${valore ? ` \u00b7 <b>${esc(valore)}</b>` : ""}</summary>
+          ${righe}
+        </details>`;
+      })
       .join("");
 
     const switchesHtml = (this._config.switches || [])
@@ -18696,6 +19204,50 @@ class CasaEnergia extends HTMLElement {
     return { loads, non, tot, doppione, misurato };
   }
 
+  // Quali barre far vedere adesso: o quelle scritte nell'editor, o - se hai
+  // scelto "le piu' accese" - le prime della casa in questo momento.
+  // le scatole delle barre, quante ne servono
+  _rifaiBarre(quante) {
+    const metersEl = this._root.querySelector(".dm-ap-meters");
+    if (!metersEl) return;
+    metersEl.innerHTML = "";
+    for (let i = 0; i < quante; i++) {
+      const div = document.createElement("div");
+      div.className = "dm-ap-meter dm-c-meter-clickable";
+      div.dataset.circuitIndex = i;
+      div.innerHTML = `<div class="dm-ap-meter-row"><span class="dm-e-c-name"></span><strong class="dm-e-c-val">0 W</strong></div>
+        <div class="dm-ap-bar"><i class="dm-e-c-bar" style="width:0%"></i></div>`;
+      div.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const q = div._circuito;
+        if (q) this._openMeterChart(q.entity, q.label, "#38bdf8");
+      });
+      metersEl.appendChild(div);
+    }
+  }
+
+  _barre(hass) {
+    const cfg = this._config;
+    if (cfg.barre_vive) {
+      const quante = Number(cfg.barre_quante) || 6;
+      const { loads } = this._autoLoads(hass);
+      const scala = (w) => Math.min(3500, Math.max(500, Math.ceil((w || 0) * 1.3 / 500) * 500));
+      // il fondo scala me lo ricordo: se no la barra si riscala mentre guardi
+      this._scale = this._scale || {};
+      return loads.slice(0, quante).map((l, ordine) => {
+        const m = Math.max(this._scale[l.entity] || 0, scala(l.live));
+        this._scale[l.entity] = m;
+        return { c: { label: l.label, entity: l.entity, max: m }, ordine, live: l.live };
+      });
+    }
+    const lista = (cfg.circuits || []).map((c, ordine) => {
+      const v = Number(hass.states[c.entity]?.state);
+      return { c, ordine, live: Number.isFinite(v) ? Math.max(0, v) : 0 };
+    });
+    if (cfg.barre_in_ordine !== false) lista.sort((a, b) => b.live - a.live || a.ordine - b.ordine);
+    return lista;
+  }
+
   _topText(hass) {
     const cfg = this._config;
     if (!cfg.top_auto) return cfg.top_entity ? (hass.states[cfg.top_entity]?.state ?? "—") : "—";
@@ -18772,6 +19324,16 @@ class CasaEnergia extends HTMLElement {
 
     const watt = Number(hass.states[cfg.power_entity]?.state);
     const wattVal = Number.isFinite(watt) ? Math.max(0, watt) : 0;
+    // La tariffa: gli aiutanti hanno un nome fisso, li creo io dal riquadro
+    // "La tua tariffa". Servono a fare i conti qui, senza sensori in mezzo.
+    const tariffa = (() => {
+      const n = (id) => Number((hass.states[id] || {}).state);
+      return {
+        energia: n("input_number.prezzo_luce_energia"),
+        totale: n("input_number.prezzo_energia"),
+        quota: n("input_number.quota_fissa_energia_giorno"),
+      };
+    })();
     const wattText = this._root.querySelector(".dm-e-watt");
     if (wattText) wattText.textContent = numero(wattVal, 0);
 
@@ -18786,10 +19348,22 @@ class CasaEnergia extends HTMLElement {
     const pMese = periodo("mese", 3);
     if (pOggi) {
       { const x = this._root.querySelector(".dm-e-today-kwh"); if (x) x.textContent = this._val(hass, pOggi.energy, 2); }
-      { const x = this._root.querySelector(".dm-e-today-cost"); if (x) x.textContent = this._val(hass, pOggi.cost, 2); }
+      { const x = this._root.querySelector(".dm-e-today-cost");
+        if (x) {
+          const k = Number((hass.states[pOggi.energy] || {}).state);
+          x.textContent = hass.states[pOggi.cost] ? this._val(hass, pOggi.cost, 2)
+            : (Number.isFinite(k) && tariffa.totale > 0
+              ? this._euro(k * tariffa.totale + (tariffa.quota || 0)) : "\u2014");
+        } }
     }
     if (pMese) {
-      { const x = this._root.querySelector(".dm-e-month-cost"); if (x) x.textContent = this._val(hass, pMese.cost, 2); }
+      { const x = this._root.querySelector(".dm-e-month-cost");
+        if (x) {
+          const k = Number((hass.states[pMese.energy] || {}).state);
+          x.textContent = hass.states[pMese.cost] ? this._val(hass, pMese.cost, 2)
+            : (Number.isFinite(k) && tariffa.totale > 0
+              ? this._euro(k * tariffa.totale + (tariffa.quota || 0) * new Date().getDate()) : "\u2014");
+        } }
       { const x = this._root.querySelector(".dm-e-month-kwh"); if (x) x.textContent = this._val(hass, pMese.energy, 2); }
     }
     {
@@ -18798,41 +19372,97 @@ class CasaEnergia extends HTMLElement {
       if (x) {
         const kwh = cfg.bolletta_energia ? this._val(hass, cfg.bolletta_energia, 1) : "";
         // il contatore degli euro si chiama "EUR": lo scrivo col simbolo
-        const euro = cfg.bolletta_costo ? this._euro(hass.states[cfg.bolletta_costo]?.state) : "";
+        let euro = cfg.bolletta_costo && hass.states[cfg.bolletta_costo]
+          ? this._euro(hass.states[cfg.bolletta_costo].state) : "";
+        if (!euro && cfg.bolletta_energia && tariffa.totale > 0) {
+          const st = hass.states[cfg.bolletta_energia];
+          const k = Number(st?.state);
+          const da = st?.attributes?.last_reset ? new Date(st.attributes.last_reset) : null;
+          const gg = da ? Math.max(1, Math.floor((Date.now() - da.getTime()) / 86400000) + 1) : 1;
+          if (Number.isFinite(k)) euro = this._euro(k * tariffa.totale + (tariffa.quota || 0) * gg);
+        }
         x.textContent = [kwh, euro].filter(Boolean).join(" \u00b7 ") || "\u2014";
       }
     }
     { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
+    // i kWh arrivati dai pannelli e dalla batteria: oggi / mese, come il risparmio
+    // oggi / settimana / mese: faccio vedere i periodi che esistono davvero
+    [[".dm-e-pannelli", "pannelli"], [".dm-e-batteria", "batteria"]].forEach(([sel, chi]) => {
+      const x = this._root.querySelector(sel);
+      if (!x) return;
+      const n = (e) => {
+        const st = e ? hass.states[e] : null;
+        const v = st ? Number(st.state) : NaN;
+        return Number.isFinite(v) ? numero(v, 2) : null;
+      };
+      const quali = [["oggi", n(cfg[chi + "_oggi"])], ["settimana", n(cfg[chi + "_settimana"])],
+        ["mese", n(cfg[chi + "_mese"])]].filter(([, v]) => v !== null);
+      x.textContent = quali.length ? quali.map(([, v]) => v).join(" / ") + " kWh" : "\u2014";
+      x.title = quali.map(([k]) => k).join(" / ");
+    });
     const fvEl = this._root.querySelector(".dm-e-fv");
     if (fvEl) {
-      const oggi = this._euro(hass.states[cfg.bill_today]?.attributes?.risparmio_fotovoltaico);
-      fvEl.textContent = cfg.bill_month
-        ? `\u2212 ${oggi} \u00b7 ${this._euro(hass.states[cfg.bill_month]?.attributes?.risparmio_fotovoltaico)} mese`
-        : oggi;
+      // due numeri in una riga stretta: un simbolo solo e la barra a dividerli
+      // (prima era "- 0,37 EUR . 9,58 EUR mese" e non ci stava mai)
+      const n = (v) => numero(Number(v) || 0, 2);
+      // prima i contatori del risparmio, se la scheda ce li ha; se no gli
+      // attributi del conto della bolletta, come si faceva prima
+      const daContatore = cfg.risparmio_oggi || cfg.risparmio_mese;
+      const oggiFv = daContatore ? hass.states[cfg.risparmio_oggi]?.state
+        : hass.states[cfg.bill_today]?.attributes?.risparmio_fotovoltaico;
+      const meseFv = daContatore ? hass.states[cfg.risparmio_mese]?.state
+        : hass.states[cfg.bill_month]?.attributes?.risparmio_fotovoltaico;
+      fvEl.textContent = (daContatore ? cfg.risparmio_mese : cfg.bill_month)
+        ? `− ${n(oggiFv)} / ${n(meseFv)} €`
+        : this._euro(oggiFv);
+      fvEl.title = "risparmio di oggi / del mese";
     }
+    const kwhOggi = pOggi ? Number((hass.states[pOggi.energy] || {}).state) : NaN;
+    const kwhMese = pMese ? Number((hass.states[pMese.energy] || {}).state) : NaN;
     const senzaEl = this._root.querySelector(".dm-e-senzafv");
     if (senzaEl) {
       const b = hass.states[cfg.bill_today];
-      const a = b?.attributes || {};
-      const tot = Number(b?.state) + Number(a.risparmio_fotovoltaico || 0);
-      const en = Number(a.energia || 0) + Number(a.risparmio_fotovoltaico_energia || 0);
-      senzaEl.textContent = this._euro(tot);
-      const senzaEn = this._root.querySelector(".dm-e-senzafv-en");
-      if (senzaEn) senzaEn.textContent = this._euro(en);
+      if (b) {
+        const a = b.attributes || {};
+        senzaEl.textContent = this._euro(Number(b.state) + Number(a.risparmio_fotovoltaico || 0));
+        const senzaEn = this._root.querySelector(".dm-e-senzafv-en");
+        if (senzaEn) senzaEn.textContent = this._euro(Number(a.energia || 0) + Number(a.risparmio_fotovoltaico_energia || 0));
+      } else if (Number.isFinite(kwhOggi) && tariffa.totale > 0) {
+        // quello che pagheresti oggi se i pannelli non ci fossero
+        const risp = Number((hass.states[cfg.risparmio_oggi] || {}).state) || 0;
+        senzaEl.textContent = this._euro(kwhOggi * tariffa.totale + (tariffa.quota || 0) + risp);
+      } else senzaEl.textContent = "\u2014";
     }
     const soloEl = this._root.querySelector(".dm-e-solo");
-    if (soloEl) soloEl.textContent = this._euro(hass.states[cfg.bill_today]?.attributes?.energia);
+    if (soloEl) {
+      const b = hass.states[cfg.bill_today];
+      soloEl.textContent = b ? this._euro(b.attributes?.energia)
+        : (Number.isFinite(kwhOggi) && tariffa.energia > 0 ? this._euro(kwhOggi * tariffa.energia) : "\u2014");
+    }
 
-    (cfg.circuits || []).slice(0, 4).forEach((c, i) => {
+    // Le barre si riordinano da sole: chi consuma di piu' sta in cima. A parita'
+    // resta l'ordine che hai messo tu nell'editor, se no ballerebbero a vuoto.
+    const barre = this._barre(hass);
+    const metersEl = this._root.querySelector(".dm-ap-meters");
+    if (metersEl && metersEl.children.length !== barre.length) this._rifaiBarre(barre.length);
+    barre.forEach(({ c, live }, i) => {
       const el = this._root.querySelector(`[data-circuit-index="${i}"]`);
       if (!el) return;
-      const v = Number(hass.states[c.entity]?.state);
-      const vVal = Number.isFinite(v) ? Math.max(0, v) : 0;
-      el.querySelector(".dm-e-c-val").textContent = `${numero(vVal, 0)} W`;
-      const pct = c.max ? Math.min(100, (vVal / c.max) * 100) : 0;
+      el._circuito = c;
+      const nome = el.querySelector(".dm-e-c-name");
+      if (nome && nome.textContent !== c.label) nome.textContent = c.label;
+      el.querySelector(".dm-e-c-val").textContent = `${numero(live, 0)} W`;
+      const pct = c.max ? Math.min(100, (live / c.max) * 100) : 0;
       const bar = el.querySelector(".dm-e-c-bar");
       bar.style.width = `${pct}%`;
       bar.style.background = meterSeverityColor(pct);
+    });
+
+    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
+      const t = this._root.querySelector(sel);
+      if (!t) return;
+      const st = hass.states[cfg[chiave]]?.state;
+      t.classList.toggle("acceso", !!st && !["off", "unavailable", "unknown"].includes(st));
     });
 
     const warnEl = this._root.querySelector(".dm-ap-warn");
@@ -18854,7 +19484,10 @@ class CasaEnergia extends HTMLElement {
   // Home Assistant decide da solo e il cursore del Layout si comporta a modo
   // suo: la casella e' alta, va detto.
   getGridOptions() {
-    return { columns: 12, rows: 7, min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
+    // "auto": l'altezza la misura Home Assistant sul contenuto vero. Con un
+    // numero fisso (era 7) le schede corte lasciavano un buco sotto, e in una
+    // vista a sezioni il buco si vede tutto.
+    return { columns: 12, rows: "auto", min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
   }
 
   getCardSize() {
@@ -18883,6 +19516,7 @@ const PERIODI = [
   ["Oggi", "oggi", "daily"],
   ["Settimana", "settimana", "weekly"],
   ["Mese", "mese", "monthly"],
+  ["Bolletta", "bimestre", "bimonthly"],
 ];
 
 // il nome del sensore, senza la coda "energia"/"totale"
@@ -18947,6 +19581,14 @@ async function creaContatore(hass, nome, sorgente, ciclo) {
   });
 }
 
+async function creaEnergiaKwh(hass, nome, sorgente) {
+  return flusso(hass, "template", {
+    name: nome,
+    state: "{{ (states('" + sorgente + "') | float(0) / 1000) | round(4) }}",
+    unit_of_measurement: "kWh", device_class: "energy", state_class: "total_increasing",
+  }, "sensor");
+}
+
 async function creaCosto(hass, nome, stato) {
   // il flusso dei template parte da un menu: prima dico che voglio un sensore
   return flusso(hass, "template", {
@@ -18956,6 +19598,10 @@ async function creaCosto(hass, nome, stato) {
 }
 
 // tutti gli aiutanti che sono un prezzo in euro al kWh
+// rete/oneri, accise, IVA e quota fissa NON sono un prezzo da scegliere: sono
+// le voci che sommate fanno il totale, e il totale lo tiene gia' un'automazione
+const INGREDIENTE = /rete|oneri|accis|iva|quota|fiss/i;
+
 function prezziDelKWh(hass) {
   const st = (hass && hass.states) || {};
   const suo = (id) => String((st[id].attributes || {}).unit_of_measurement || "").replace(/\s/g, "");
@@ -18963,6 +19609,99 @@ function prezziDelKWh(hass) {
     // il totale per primo: e' quello che serve alla scheda della casa
     .sort((a, b) => (a === "input_number.prezzo_energia" ? -1 : 0)
       - (b === "input_number.prezzo_energia" ? -1 : 0) || a.localeCompare(b));
+}
+
+// Le quattro voci della tariffa, come stanno in bolletta. Gli id sono fissi:
+// e' cosi' che ogni altra scheda sa dove andare a leggere il prezzo.
+const VOCI_TARIFFA = [
+  { chiave: "energia", id: "input_number.prezzo_luce_energia", nome: "Prezzo luce energia", unita: "\u20ac/kWh" },
+  { chiave: "rete", id: "input_number.prezzo_luce_rete_e_oneri", nome: "Prezzo luce rete e oneri", unita: "\u20ac/kWh" },
+  { chiave: "accise", id: "input_number.prezzo_luce_accise", nome: "Prezzo luce accise", unita: "\u20ac/kWh" },
+  { chiave: "iva", id: "input_number.iva_luce", alias: ["input_number.prezzo_luce_iva"], nome: "IVA luce", unita: "%" },
+  { chiave: "quota", id: "input_number.quota_fissa_energia_giorno", nome: "Quota fissa energia giorno", unita: "\u20ac/giorno" },
+];
+
+// l'aiutante di questa voce, con qualunque nome sia nato
+function idDellaVoce(hass, v) {
+  const st = (hass && hass.states) || {};
+  if (st[v.id]) return v.id;
+  const altro = (v.alias || []).find((x) => st[x]);
+  return altro || v.id;
+}
+const ID_TOTALE = "input_number.prezzo_energia";
+
+// Il prezzo che la scheda della casa tiene per tutti: la SOLA energia, quella
+// che va sugli apparecchi e sulle prese. Se non c'e', il totale.
+function prezzoDellaCasa(hass) {
+  const st = (hass && hass.states) || {};
+  if (st["input_number.prezzo_luce_energia"]) return "input_number.prezzo_luce_energia";
+  const soli = prezziDelKWh(hass).filter((id) => !INGREDIENTE.test(id));
+  const energia = soli.filter((id) => Number(st[id].state) > 0 && Number(st[id].state) < 0.20);
+  return energia[0] || soli[0] || "";
+}
+
+// La tariffa scritta a mano sulla scheda principale: se l'aiutante non c'e' lo
+// creo, se c'e' gli riscrivo il valore. E alla fine metto anche il totale
+// (energia + rete + accise, piu' l'IVA), che e' il prezzo della bolletta.
+async function scriviTariffa(hass, voci, dillo) {
+  const parla = dillo || (() => {});
+  const messi = {};
+  for (let v of VOCI_TARIFFA) {
+    const n = Number(voci[v.chiave]);
+    if (!Number.isFinite(n) || n < 0) continue;
+    v = { ...v, id: idDellaVoce(hass, v) };
+    if (!hass.states[v.id]) {
+      parla("Creo " + v.nome + "...");
+      await hass.callWS({
+        type: "input_number/create", name: v.nome, min: 0, max: v.unita === "%" ? 100 : 5,
+        step: v.unita === "%" ? 1 : 0.0001, mode: "box", unit_of_measurement: v.unita,
+        icon: "mdi:currency-eur",
+      });
+    }
+    await hass.callService("input_number", "set_value", { entity_id: v.id, value: n });
+    messi[v.chiave] = n;
+    parla(v.nome + ": " + n + " " + v.unita);
+  }
+  const base = (messi.energia || 0) + (messi.rete || 0) + (messi.accise || 0);
+  const totale = Math.round(base * (1 + (messi.iva || 0) / 100) * 10000) / 10000;
+  if (totale > 0) {
+    if (!hass.states[ID_TOTALE]) {
+      await hass.callWS({
+        type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.0001,
+        mode: "box", unit_of_measurement: "\u20ac/kWh", icon: "mdi:currency-eur",
+      });
+    }
+    await hass.callService("input_number", "set_value", { entity_id: ID_TOTALE, value: totale });
+    parla("Totale della bolletta: " + totale.toFixed(4) + " \u20ac/kWh");
+  }
+  return { totale, energia: messi.energia || 0 };
+}
+
+// Home Assistant, quando crea un contatore, gli mette davanti il nome del
+// dispositivo della sorgente: chiedi "Lavasciuga energia oggi" e ti ritrovi
+// sensor.lavatrice_lavasciuga_energia_oggi. Nome diverso = entita' diversa =
+// storico perso. Quindi appena creato lo rinomino come si deve, che e' quello
+// che farebbe uno a mano dalle impostazioni.
+function slug(nome) {
+  return String(nome).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
+async function sistemaNome(hass, entita, nomeVoluto, dillo) {
+  if (!entita || !nomeVoluto) return entita;
+  const dominio = entita.split(".")[0];
+  const voluto = dominio + "." + slug(nomeVoluto);
+  if (entita === voluto) return entita;
+  if (hass.states[voluto]) return entita;          // il nome buono e' occupato
+  try {
+    await hass.callWS({
+      type: "config/entity_registry/update", entity_id: entita, new_entity_id: voluto,
+    });
+    if (dillo) dillo("Rinominato in " + voluto + " (cosi' ritrova il suo storico).");
+    return voluto;
+  } catch (e) {
+    return entita;
+  }
 }
 
 // il prezzo in euro al kWh: quello scelto, quello che c'e', o uno nuovo
@@ -19003,6 +19742,12 @@ async function creaSensoriBase(hass, opzioni, dillo) {
   const sorgente = opzioni.sorgente;
   if (!sorgente || !hass.states[sorgente]) throw new Error("Scegli il sensore dei kWh della casa.");
   const base = nomeSorgente(hass, sorgente);
+  const memoria = opzioni.memoria || {};
+  // come si chiamava prima questo contatore (o questo costo)
+  const comePrima = (chiave, costo) => Object.keys(memoria).find((t) => {
+    const eraCosto = /^costo/i.test(t);
+    return eraCosto === !!costo && new RegExp("(^|[ _])" + chiave + "$", "i").test(t);
+  }) || null;
   const conto = { creati: 0, riusati: 0 };
 
   let voci = await vociDiConfigurazione(hass);
@@ -19021,7 +19766,7 @@ async function creaSensoriBase(hass, opzioni, dillo) {
   const contatori = {};
   const nuovi = [];
   for (const [etichetta, chiave, ciclo] of PERIODI) {
-    const nome = base + " " + chiave;
+    const nome = comePrima(chiave, false) || (base + " " + chiave);
     const vecchio = gia("utility_meter", nome);
     if (vecchio) {
       contatori[chiave] = vecchio;
@@ -19029,64 +19774,108 @@ async function creaSensoriBase(hass, opzioni, dillo) {
       dillo(etichetta + ": c'era gia' (" + vecchio + ").");
     } else {
       dillo("Creo il contatore di " + etichetta.toLowerCase() + "...");
-      nuovi.push([chiave, await creaContatore(hass, nome, sorgente, ciclo)]);
+      nuovi.push([chiave, await creaContatore(hass, nome, sorgente, ciclo), nome]);
       conto.creati++;
     }
   }
   if (nuovi.length) {
     reg = await registro(hass);
-    nuovi.forEach(([chiave, id]) => {
+    for (const [chiave, id, nome] of nuovi) {
       const e = entitaDellaVoce(reg, id);
-      if (e) contatori[chiave] = e;
-    });
+      if (e) contatori[chiave] = await sistemaNome(hass, e, nome, dillo);
+    }
   }
 
   // 3. i costi: i kWh del periodo per il prezzo
   const costi = {};
   const nuoviCosti = [];
-  const perPrezzo = (entita) => "{{ (states('" + entita + "') | float(0) * states('"
-    + prezzo + "') | float(0)) | round(2) }}";
+  // Il costo di un periodo non e' solo kWh x prezzo: c'e' la quota fissa, che
+  // si paga a giorno anche a casa spenta. I giorni li conto da quando il
+  // contatore si e' azzerato, cosi' la formula vale per oggi, per il mese e
+  // per il bimestre senza cambiare niente. Sull'ora la quota non c'entra.
+  const QUOTA = "input_number.quota_fissa_energia_giorno";
+  const GIORNI = {
+    oggi: "1",
+    mese: "now().day",
+    // il bimestre non ha una data di inizio che io possa sapere: conto da
+    // quando il contatore si e' azzerato, e dopo il primo rollover e' esatto
+    bimestre: "((now() - as_datetime(state_attr('%E%', 'last_reset'))).days + 1"
+      + " if state_attr('%E%', 'last_reset') else 1)",
+  };
+  const perPrezzo = (entita, chiave) => {
+    const base = "states('" + entita + "') | float(0) * states('" + prezzo + "') | float(0)";
+    const quanti = GIORNI[chiave];
+    if (!quanti || !hass.states[QUOTA]) return "{{ (" + base + ") | round(2) }}";
+    const giorni = quanti.split("%E%").join(entita);
+    return "{{ (" + base + " + states('" + QUOTA + "') | float(0) * " + giorni + ") | round(2) }}";
+  };
   voci = await vociDiConfigurazione(hass);
   for (const [etichetta, chiave] of PERIODI.map((p) => [p[0], p[1]])) {
     if (!contatori[chiave]) continue;
-    const nome = "Costo " + base.toLowerCase() + " " + chiave;
+    const nome = comePrima(chiave, true) || ("Costo " + base.toLowerCase() + " " + chiave);
     const vecchio = gia("template", nome);
     if (vecchio) {
       costi[chiave] = vecchio;
       conto.riusati++;
     } else {
       dillo("Creo il costo di " + etichetta.toLowerCase() + "...");
-      nuoviCosti.push([chiave, await creaCosto(hass, nome, perPrezzo(contatori[chiave]))]);
+      nuoviCosti.push([chiave, await creaCosto(hass, nome,
+        perPrezzo(contatori[chiave], chiave)), nome]);
       conto.creati++;
     }
   }
   // e il costo di ieri, dal periodo chiuso del contatore di oggi
   if (contatori.oggi) {
-    const nome = "Costo " + base.toLowerCase() + " ieri";
+    const nome = comePrima("ieri", true) || ("Costo " + base.toLowerCase() + " ieri");
     const vecchio = gia("template", nome);
     if (vecchio) { costi.ieri = vecchio; conto.riusati++; } else {
       dillo("Creo il costo di ieri...");
       const stato = "{{ (state_attr('" + contatori.oggi + "', 'last_period') | float(0) * states('"
         + prezzo + "') | float(0)) | round(2) }}";
-      nuoviCosti.push(["ieri", await creaCosto(hass, nome, stato)]);
+      nuoviCosti.push(["ieri", await creaCosto(hass, nome, stato), nome]);
       conto.creati++;
     }
   }
   if (nuoviCosti.length) {
     reg = await registro(hass);
-    nuoviCosti.forEach(([chiave, id]) => {
+    for (const [chiave, id, nome] of nuoviCosti) {
       const e = entitaDellaVoce(reg, id);
-      if (e) costi[chiave] = e;
-    });
+      if (e) costi[chiave] = await sistemaNome(hass, e, nome, dillo);
+    }
+  }
+
+  // 3-bis. i valori di prima: li rimetto dove sono tornati con lo stesso nome
+  let rimessi = 0;
+  for (const chiave of Object.keys(contatori)) {
+    const eid = contatori[chiave];
+    const nome = Object.keys(memoria).find((k) => memoria[k].entita === eid);
+    const v = nome && memoria[nome] && memoria[nome].valore;
+    if (eid && v > 0) {
+      const ora = Number((hass.states[eid] || {}).state);
+      if (Number.isFinite(ora) && ora >= v - 0.0005) {
+        dillo(nome + ": sta gia' contando (" + ora + "), non lo tocco.");
+        continue;
+      }
+      rimessi++;
+      dillo("Rimetto " + v + " su " + nome + ".");
+      try {
+        await hass.callService("utility_meter", "calibrate", { entity_id: eid, value: String(v) });
+      } catch (e) { dillo("Il valore vecchio non sono riuscito a rimetterlo: " + (e.message || e)); }
+    }
   }
 
   // 4. il pezzo di configurazione per la scheda
-  const periods = PERIODI.filter((p) => contatori[p[1]]).map(([etichetta, chiave]) => {
+  const periods = PERIODI.filter((p) => contatori[p[1]] && p[1] !== "bimestre").map(([etichetta, chiave]) => {
     const riga = { label: etichetta, energy: contatori[chiave] };
     if (costi[chiave]) riga.cost = costi[chiave];
     return riga;
   });
   const patch = { periods };
+  // la memoria e' servita: la butto, se no al prossimo giro rischia di
+  // riportare indietro contatori che intanto sono andati avanti
+  if (Object.keys(memoria).length) patch.helper_memoria = null;
+  if (contatori.bimestre) patch.bolletta_energia = contatori.bimestre;
+  if (costi.bimestre) patch.bolletta_costo = costi.bimestre;
   if (contatori.oggi) {
     const ieri = { label: "Ieri", energy: contatori.oggi, energy_attr: "last_period" };
     if (costi.ieri) ieri.cost = costi.ieri;
@@ -19110,10 +19899,16 @@ async function creaSensoriBase(hass, opzioni, dillo) {
 //   cicli (history_stats) -> quante volte si e' acceso
 //   kWh: il sensore della presa, oppure un integrale (Riemann) dai Watt
 //   contatore + costo   -> i kWh e gli euro del periodo
-const FINESTRE = [
+const FINESTRE_TUTTE = [
   ["oggi", "today", "{{ today_at() }}", "daily"],
+  ["settimana", "week", "{{ today_at() - timedelta(days=now().weekday()) }}", "weekly"],
   ["mese", "month", "{{ now().replace(day=1, hour=0, minute=0, second=0, microsecond=0) }}", "monthly"],
 ];
+// quali periodi creare: se non lo dici, oggi e mese come prima
+const finestre = (opzioni) => {
+  const scelti = (opzioni && opzioni.periodi) || ["oggi", "mese"];
+  return FINESTRE_TUTTE.filter(([chiave]) => scelti.includes(chiave));
+};
 
 async function creaSoglia(hass, nome, potenza, soglia) {
   return flusso(hass, "threshold", {
@@ -19131,8 +19926,344 @@ async function creaStorico(hass, nome, acceso, tipo, inizio) {
 async function creaIntegrale(hass, nome, potenza) {
   return flusso(hass, "integration", {
     name: nome, source: potenza, unit_prefix: "k", unit_time: "h",
-    method: "left", round: 3, max_sub_interval: { hours: 0, minutes: 5, seconds: 0 },
+    // un minuto, non cinque: cosi' dice il suo primo valore (e la sua unita')
+    // quasi subito, anche se l'apparecchio e' spento
+    method: "left", round: 3, max_sub_interval: { hours: 0, minutes: 1, seconds: 0 },
   });
+}
+
+// Aspetta che un sensore dica di che unita' parla. Serve prima di appendergli
+// un contatore: un contatore nato su una sorgente muta parte senza unita', e
+// piu' tardi Home Assistant apre una riparazione per ognuno.
+async function aspettaUnita(hass, eid, dillo, secondi = 20) {
+  const ha = () => {
+    const st = hass.states[eid];
+    return st && (st.attributes || {}).unit_of_measurement;
+  };
+  if (!eid || ha()) return true;
+  if (dillo) dillo("Aspetto che " + eid + " dica il primo valore...");
+  for (let i = 0; i < secondi; i++) {
+    await new Promise((f) => setTimeout(f, 1000));
+    if (ha()) return true;
+  }
+  if (dillo) {
+    dillo("\u26a0 " + eid + " non ha ancora un'unita' (l'apparecchio e' spento)."
+      + " Quando comincera' a contare, Home Assistant potrebbe chiederti di sistemare"
+      + " l'unita' delle statistiche: rispondi \u00abaggiorna senza conversione\u00bb.");
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------- i cicli
+// Un template a trigger dall'interfaccia non si puo' fare (Home Assistant non
+// lo offre). La stessa cosa pero' si ottiene con pezzi che so creare: una
+// soglia che dice quando lavora, un contatore che parte da zero a ogni ciclo,
+// tre memorie e un'automazione che al termine ci scrive dentro.
+
+// il nome dell'entita' come lo farebbe Home Assistant
+function sigla(nome) {
+  return String(nome).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
+async function creaNumero(hass, nome, unita, passo, massimo) {
+  await hass.callWS({
+    type: "input_number/create", name: nome, min: 0, max: massimo, step: passo,
+    mode: "box", unit_of_measurement: unita, icon: "mdi:counter",
+  });
+  return "input_number." + sigla(nome);
+}
+
+async function creaDataOra(hass, nome) {
+  await hass.callWS({
+    type: "input_datetime/create", name: nome, has_date: true, has_time: true,
+    icon: "mdi:flag-checkered",
+  });
+  return "input_datetime." + sigla(nome);
+}
+
+async function creaAutomazione(hass, conf) {
+  const id = String(Date.now());
+  await hass.callApi("POST", "config/automation/config/" + id, { id, ...conf });
+  return id;
+}
+
+/**
+ * Il giro completo dei cicli di un elettrodomestico: torna il pezzo di
+ * configurazione con le tre entita' da mostrare nella scheda.
+ */
+async function creaCicli(hass, opzioni, dillo) {
+  const parla = dillo || (() => {});
+  // quanti minuti di fermo vogliono dire "ha finito": il forno spegne e
+  // riaccende la resistenza, la lavatrice ha le pause dell'ammollo
+  const ATTESA = Number(opzioni.attesa) > 0 ? Number(opzioni.attesa) : 5;
+  const { potenza, energia, soglia } = opzioni;
+  if (!potenza) throw new Error("Serve il sensore dei Watt.");
+  if (!energia) throw new Error("Serve il contatore dei kWh.");
+  const base = opzioni.nome || nomeSorgente(hass, potenza);
+
+  let voci = await vociDiConfigurazione(hass);
+  let reg = await registro(hass);
+  const gia = (dominio, nome) => {
+    const v = voci.find((x) => x.domain === dominio
+      && String(x.title || "").toLowerCase() === nome.toLowerCase());
+    return v ? entitaDellaVoce(reg, v.entry_id) : null;
+  };
+  const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
+  const esiste = (eid) => !!hass.states[eid];
+
+  // 1. quando sta lavorando
+  const nomeSoglia = base + " in funzione";
+  let acceso = gia("threshold", nomeSoglia);
+  if (!acceso) {
+    parla("Creo la soglia «" + nomeSoglia + "»...");
+    await creaSoglia(hass, nomeSoglia, potenza, Number(soglia) || 10);
+    await rinfresca();
+    acceso = await sistemaNome(hass, gia("threshold", nomeSoglia), nomeSoglia, parla);
+  } else parla("La soglia c'era gia'.");
+
+  // 2. il contatore del ciclo: nessun ciclo suo, lo azzero io alla partenza
+  const nomeContatore = base + " ciclo kWh";
+  let contatore = gia("utility_meter", nomeContatore);
+  if (!contatore) {
+    parla("Creo il contatore del ciclo...");
+    await flusso(hass, "utility_meter", {
+      name: nomeContatore, source: energia, cycle: "none", offset: 0, tariffs: [],
+      net_consumption: false, delta_values: false, periodically_resetting: true,
+      always_available: true,
+    });
+    await rinfresca();
+    contatore = await sistemaNome(hass, gia("utility_meter", nomeContatore), nomeContatore, parla);
+  } else parla("Il contatore del ciclo c'era gia'.");
+
+  // 3. le tre memorie dell'ultimo ciclo
+  const nKwh = base + " ultimo ciclo kWh";
+  const nMin = base + " ultimo ciclo minuti";
+  const nFine = base + " ultimo ciclo fine";
+  const nVia = base + " ciclo iniziato";
+  const eKwh = "input_number." + sigla(nKwh);
+  const eMin = "input_number." + sigla(nMin);
+  const eFine = "input_datetime." + sigla(nFine);
+  const eVia = "input_datetime." + sigla(nVia);
+  if (!esiste(eKwh)) { parla("Creo la memoria dei kWh..."); await creaNumero(hass, nKwh, "kWh", 0.001, 1000); }
+  if (!esiste(eMin)) { parla("Creo la memoria dei minuti..."); await creaNumero(hass, nMin, "min", 1, 10000); }
+  if (!esiste(eFine)) { parla("Creo la memoria della fine..."); await creaDataOra(hass, nFine); }
+  if (!esiste(eVia)) { parla("Creo la memoria della partenza..."); await creaDataOra(hass, nVia); }
+
+  // 4. l'automazione che al termine del ciclo scrive le tre memorie
+  const nomeAuto = base + ": segna il ciclo";
+  const automazioni = Object.keys(hass.states).filter((x) => x.startsWith("automation."));
+  const gia_auto = automazioni.some((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto);
+  if (!gia_auto) {
+    parla("Creo l'automazione del ciclo...");
+    await creaAutomazione(hass, {
+      alias: nomeAuto,
+      description: "Fatta dalla scheda " + base + ". Segna quando il ciclo e' cominciato, e alla fine"
+        + " scrive kWh, minuti e ora. Un apparecchio come il forno accende e spegne di continuo:"
+        + " per questo il ciclo si chiude solo dopo " + ATTESA + " minuti di fermo, e il contatore"
+        + " si azzera alla FINE, non alla partenza.",
+      mode: "single",
+      triggers: [
+        { trigger: "state", entity_id: acceso, to: "on", id: "parte" },
+        { trigger: "state", entity_id: acceso, to: "off", for: { minutes: ATTESA }, id: "finisce" },
+      ],
+      conditions: [],
+      actions: [{
+        choose: [
+          {
+            // la partenza vale solo se il contatore e' a zero: se no e' una
+            // delle accensioni intermittenti dentro un ciclo gia' cominciato
+            conditions: [
+              { condition: "trigger", id: "parte" },
+              { condition: "numeric_state", entity_id: contatore, below: 0.005 },
+            ],
+            sequence: [{
+              action: "input_datetime.set_datetime",
+              target: { entity_id: eVia },
+              data: { datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}" },
+            }],
+          },
+          {
+            conditions: [{ condition: "trigger", id: "finisce" }],
+            sequence: [
+              {
+                action: "input_number.set_value", target: { entity_id: eKwh },
+                data: { value: "{{ states('" + contatore + "') | float(0) | round(3) }}" },
+              },
+              {
+                action: "input_number.set_value", target: { entity_id: eMin },
+                data: {
+                  value: "{{ [0, ((now() - (states('" + eVia + "') | as_datetime | as_local"
+                    + " if states('" + eVia + "') not in ['unknown','unavailable'] else now()))"
+                    + ".total_seconds() / 60 - " + ATTESA + ") | round(0)] | max }}",
+                },
+              },
+              {
+                action: "input_datetime.set_datetime", target: { entity_id: eFine },
+                data: { datetime: "{{ (now() - timedelta(minutes=" + ATTESA + ")).strftime('%Y-%m-%d %H:%M:%S') }}" },
+              },
+              {
+                // azzero adesso, non alla partenza: cosi' le intermittenze non
+                // buttano via quello che il ciclo ha gia' consumato
+                action: "utility_meter.calibrate",
+                target: { entity_id: contatore }, data: { value: "0" },
+              },
+            ],
+          },
+        ],
+      }],
+    });
+  } else parla("L'automazione c'era gia'.");
+
+  parla("Cicli agganciati.");
+  return {
+    ciclo: { fine: eFine, durata: eMin, consumo: eKwh, contatore, inizio: eVia },
+    soglia_acceso: acceso,
+  };
+}
+
+/**
+ * I kWh di una fonte (i pannelli, la batteria): se il sensore e' in Watt gli
+ * costruisco il contatore, poi i due periodi. Torna { oggi, mese }.
+ */
+async function creaFonte(hass, opzioni, dillo) {
+  const parla = dillo || (() => {});
+  const quali = (Array.isArray(opzioni.entita) ? opzioni.entita : [opzioni.entita])
+    .filter((x) => x && hass.states[x]);
+  if (!quali.length) throw new Error("Scegli il sensore.");
+  let fonte = quali[0];
+  const base = opzioni.nome || nomeSorgente(hass, fonte);
+
+  let voci = await vociDiConfigurazione(hass);
+  let reg = await registro(hass);
+  const gia = (dominio, nome) => {
+    const v = voci.find((x) => x.domain === dominio
+      && String(x.title || "").toLowerCase() === nome.toLowerCase());
+    return v ? entitaDellaVoce(reg, v.entry_id) : null;
+  };
+  const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
+
+  // piu' apparecchi (due batterie, due inverter): prima li sommo con l'aiutante
+  // "somma" di Home Assistant, poi conto i periodi su quello
+  if (quali.length > 1) {
+    const nomeSomma = base + " totale";
+    let somma = gia("min_max", nomeSomma);
+    if (!somma) {
+      parla("Sommo " + quali.length + " sensori in \u00ab" + nomeSomma + "\u00bb...");
+      await flusso(hass, "min_max", {
+        name: nomeSomma, entity_ids: quali, type: "sum", round_digits: 3,
+      });
+      await rinfresca();
+      somma = await sistemaNome(hass, gia("min_max", nomeSomma), nomeSomma, parla);
+    }
+    fonte = somma;
+  }
+
+  const a = (hass.states[fonte].attributes || {});
+  const u = String(a.unit_of_measurement || "").toLowerCase();
+  let kwh = fonte;
+  if (u === "w" || u === "kw") {
+    const nome = base + " energia";
+    kwh = gia("integration", nome);
+    if (!kwh) {
+      parla("Calcolo i kWh di " + base.toLowerCase() + " dai Watt...");
+      await creaIntegrale(hass, nome, fonte);
+      await rinfresca();
+      kwh = await sistemaNome(hass, gia("integration", nome), nome, parla);
+      await aspettaUnita(hass, kwh, parla);
+    }
+  } else if (u === "wh") {
+    const nome = base + " kWh";
+    kwh = gia("template", nome);
+    if (!kwh) {
+      parla("Il sensore e' in Wh: lo porto in kWh...");
+      await creaEnergiaKwh(hass, nome, fonte);
+      await rinfresca();
+      kwh = await sistemaNome(hass, gia("template", nome), nome, parla);
+    }
+  }
+
+  const fuori = {};
+  for (const [chiave, ciclo] of [["oggi", "daily"], ["settimana", "weekly"], ["mese", "monthly"]]) {
+    const nome = base + " " + chiave;
+    let e = gia("utility_meter", nome);
+    if (!e) {
+      parla("Creo " + nome.toLowerCase() + "...");
+      await creaContatore(hass, nome, kwh, ciclo);
+      await rinfresca();
+      e = await sistemaNome(hass, gia("utility_meter", nome), nome, parla);
+    }
+    fuori[chiave] = e;
+  }
+  return fuori;
+}
+
+/**
+ * Il risparmio dei pannelli, dalla sola entita' della produzione solare.
+ * Se gli dai i Watt si fa l'integrale; poi trasforma i kWh in euro con la
+ * tariffa e li mette in due contatori, oggi e mese. Torna le due entita'.
+ */
+async function creaRisparmio(hass, opzioni, dillo) {
+  const parla = dillo || (() => {});
+  const pannelli = opzioni.pannelli;
+  if (!pannelli || !hass.states[pannelli]) throw new Error("Scegli il sensore dei pannelli.");
+  const prezzo = opzioni.prezzo_entita;
+  if (!prezzo) throw new Error("Prima scrivi la tariffa.");
+  const base = nomeSorgente(hass, pannelli);
+
+  let voci = await vociDiConfigurazione(hass);
+  let reg = await registro(hass);
+  const gia = (dominio, nome) => {
+    const v = voci.find((x) => x.domain === dominio
+      && String(x.title || "").toLowerCase() === nome.toLowerCase());
+    return v ? entitaDellaVoce(reg, v.entry_id) : null;
+  };
+  const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
+
+  // 1. i kWh dei pannelli: se il sensore e' in Watt me li calcolo
+  const st = hass.states[pannelli];
+  const unita = String((st.attributes || {}).unit_of_measurement || "").toLowerCase();
+  let kwh = pannelli;
+  if (unita === "w" || unita === "kw") {
+    const nome = base + " energia";
+    kwh = gia("integration", nome);
+    if (!kwh) {
+      parla("Calcolo i kWh dei pannelli dai Watt...");
+      await creaIntegrale(hass, nome, pannelli);
+      await rinfresca();
+      kwh = await sistemaNome(hass, gia("integration", nome), nome, parla);
+      await aspettaUnita(hass, kwh, parla);
+    } else parla("I kWh dei pannelli c'erano gia'.");
+  }
+
+  // 2. quanti euro sono: i kWh prodotti per quello che avresti pagato
+  const nomeEuro = "Risparmio fotovoltaico";
+  let euro = gia("template", nomeEuro)
+    || Object.keys(hass.states).find((x) => x.startsWith("sensor.")
+      && (hass.states[x].attributes.friendly_name || "") === nomeEuro);
+  if (!euro) {
+    parla("Creo il valore in euro del risparmio...");
+    await creaCosto(hass, nomeEuro,
+      "{{ (states('" + kwh + "') | float(0) * states('" + prezzo + "') | float(0)) | round(4) }}");
+    await rinfresca();
+    euro = await sistemaNome(hass, gia("template", nomeEuro), nomeEuro, parla);
+  } else parla("Il risparmio in euro c'era gia'.");
+
+  // 3. i due contatori, oggi e mese
+  const fuori = {};
+  for (const [chiave, etichetta, ciclo] of [["oggi", "oggi", "daily"], ["mese", "mese", "monthly"]]) {
+    const nome = nomeEuro + " " + etichetta;
+    let e = gia("utility_meter", nome);
+    if (!e) {
+      parla("Creo il risparmio di " + etichetta + "...");
+      await creaContatore(hass, nome, euro, ciclo);
+      await rinfresca();
+      e = await sistemaNome(hass, gia("utility_meter", nome), nome, parla);
+    }
+    fuori["risparmio_" + chiave] = e;
+  }
+  parla("Pannelli agganciati.");
+  return fuori;
 }
 
 /**
@@ -19141,6 +20272,28 @@ async function creaIntegrale(hass, nome, potenza) {
  */
 async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   const potenza = opzioni.potenza;
+  // se il contatore scelto e' in Wh me lo porto in kWh prima di usarlo
+  if (opzioni.energia) {
+    const u = String(((hass.states[opzioni.energia] || {}).attributes || {}).unit_of_measurement || "");
+    if (u.toLowerCase() === "wh") {
+      const nome = (opzioni.nome || nomeSorgente(hass, opzioni.energia)) + " kWh";
+      const voci0 = await vociDiConfigurazione(hass);
+      const reg0 = await registro(hass);
+      const trovato = voci0.find((x) => x.domain === "template"
+        && String(x.title || "").toLowerCase() === nome.toLowerCase());
+      if (trovato) {
+        opzioni = { ...opzioni, energia: entitaDellaVoce(reg0, trovato.entry_id) };
+      } else {
+        (dillo || (() => {}))("Il contatore e' in Wh: lo porto in kWh...");
+        await creaEnergiaKwh(hass, nome, opzioni.energia);
+        const reg1 = await registro(hass);
+        const voci1 = await vociDiConfigurazione(hass);
+        const nuovo = voci1.find((x) => x.domain === "template"
+          && String(x.title || "").toLowerCase() === nome.toLowerCase());
+        if (nuovo) opzioni = { ...opzioni, energia: entitaDellaVoce(reg1, nuovo.entry_id) };
+      }
+    }
+  }
   if (!potenza || !hass.states[potenza]) throw new Error("Scegli la presa che misura i Watt.");
   const base = (opzioni.nome || nomeSorgente(hass, potenza)).trim();
   const soglia = Number(opzioni.soglia) > 0 ? Number(opzioni.soglia) : 10;
@@ -19161,25 +20314,30 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
     }
     dillo("Creo: " + nome + "...");
     conto.creati++;
-    nuovi.push([await fai(), dove]);
+    nuovi.push([await fai(), dove, nome]);
     return null;
   };
   const risolvi = async () => {
     if (!nuovi.length) return;
     reg = await registro(hass);
     voci = await vociDiConfigurazione(hass);
-    nuovi.splice(0).forEach(([id, dove]) => {
-      const e = entitaDellaVoce(reg, id);
-      if (e) dove(e);
-    });
+    const lista = nuovi.splice(0);
+    for (const [id, dove, nome] of lista) {
+      let e = entitaDellaVoce(reg, id);
+      if (!e) continue;
+      if (nome) e = await sistemaNome(hass, e, nome, dillo);
+      dove(e);
+    }
   };
 
-  // 1. "sta lavorando"
+  // 1. "sta lavorando": serve solo per tempo e cicli
   let acceso = null;
-  await trovaOCrea("threshold", base + " in funzione",
-    () => creaSoglia(hass, base + " in funzione", potenza, soglia), (e) => { acceso = e; });
-  await risolvi();
-  if (!acceso) throw new Error("Non trovo l'entita' della soglia appena creata.");
+  if (opzioni.tempi !== false) {
+    await trovaOCrea("threshold", base + " in funzione",
+      () => creaSoglia(hass, base + " in funzione", potenza, soglia), (e) => { acceso = e; });
+    await risolvi();
+    if (!acceso) throw new Error("Non trovo l'entita' della soglia appena creata.");
+  }
 
   // 2. i kWh: quelli della presa se ci sono, se no li calcolo dai Watt
   let kwh = opzioni.energia || null;
@@ -19187,6 +20345,7 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
     await trovaOCrea("integration", base + " energia",
       () => creaIntegrale(hass, base + " energia", potenza), (e) => { kwh = e; });
     await risolvi();
+    if (kwh) await aspettaUnita(hass, kwh, dillo);
   } else {
     dillo("kWh: uso il sensore della presa (" + kwh + ").");
   }
@@ -19195,25 +20354,49 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   const prezzo = await prezzoDelKWh(hass, opzioni, dillo, conto);
   const periodi = {};
   const cicli = {};
-  for (const [chiave, periodo, inizio, ciclo] of FINESTRE) {
+  for (const [chiave, periodo, inizio, ciclo] of finestre(opzioni)) {
     periodi[periodo] = {};
-    await trovaOCrea("history_stats", base + " tempo " + chiave,
-      () => creaStorico(hass, base + " tempo " + chiave, acceso, "time", inizio),
-      (e) => { periodi[periodo].time = e; });
-    await trovaOCrea("history_stats", base + " cicli " + chiave,
-      () => creaStorico(hass, base + " cicli " + chiave, acceso, "count", inizio),
-      (e) => { cicli[chiave] = e; });
+    // tempo e cicli si creano SOLO se li hai chiesti: per una presa che sta
+    // sempre accesa sono sei aiutanti che non guarderai mai
+    if (opzioni.tempi !== false) {
+      await trovaOCrea("history_stats", base + " tempo " + chiave,
+        () => creaStorico(hass, base + " tempo " + chiave, acceso, "time", inizio),
+        (e) => { periodi[periodo].time = e; });
+      await trovaOCrea("history_stats", base + " cicli " + chiave,
+        () => creaStorico(hass, base + " cicli " + chiave, acceso, "count", inizio),
+        (e) => { cicli[chiave] = e; });
+    }
     if (kwh) {
-      await trovaOCrea("utility_meter", base + " energia " + chiave,
-        () => creaContatore(hass, base + " energia " + chiave, kwh, ciclo),
+      const suo = (opzioni.gia || {})[chiave];
+      if (suo && hass.states[suo]) {
+        periodi[periodo].energy = suo;
+        dillo("Contatore di " + chiave + ": uso quello che la scheda ha gia' (" + suo + ").");
+        conto.riusati++;
+        continue;
+      }
+      const comePrima = Object.keys(opzioni.memoria || {}).find((t) =>
+        !/^costo/i.test(t) && new RegExp("(^|[ _])" + chiave + "$", "i").test(t));
+      const nomeContatore = comePrima || (base + " energia " + chiave);
+      await trovaOCrea("utility_meter", nomeContatore,
+        () => creaContatore(hass, nomeContatore, kwh, ciclo),
         (e) => { periodi[periodo].energy = e; });
     }
   }
   await risolvi();
-  // i costi vengono dopo: hanno bisogno dei contatori gia' risolti
-  for (const [chiave, periodo] of FINESTRE.map((f) => [f[0], f[1]])) {
+  // I costi: un sensore per il costo non lo creo piu'. La scheda sa i kWh e sa
+  // il prezzo, il conto se lo fa da sola: un aiutante in meno per ogni periodo.
+  // Se pero' un sensore del costo esiste gia' (l'avevi fatto tu, o c'era prima)
+  // me lo tengo e la scheda usa quello.
+  for (const [chiave, periodo] of finestre(opzioni).map((f) => [f[0], f[1]])) {
     const contatore = periodi[periodo].energy;
     if (!contatore) continue;
+    if (!opzioni.costi) {
+      const gia = Object.values(hass.states).find((x) => x.entity_id.startsWith("sensor.")
+        && (x.attributes.friendly_name || "").toLowerCase()
+          === ("Costo " + base.toLowerCase() + " " + chiave).toLowerCase());
+      if (gia) periodi[periodo].cost = gia.entity_id;
+      continue;
+    }
     const nome = "Costo " + base.toLowerCase() + " " + chiave;
     await trovaOCrea("template", nome, () => creaCosto(hass, nome,
       "{{ (states('" + contatore + "') | float(0) * states('" + prezzo + "') | float(0)) | round(2) }}"),
@@ -19221,7 +20404,30 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   }
   await risolvi();
 
+
+  // se questa scheda aveva gia' dei contatori e li hai cancellati, il valore
+  // se l'era segnato: lo rimetto, cosi' non riparti da zero
+  const memoria = opzioni.memoria || {};
+  for (const periodo of Object.keys(periodi)) {
+    const eid = periodi[periodo].energy;
+    const nome = Object.keys(memoria).find((k) => memoria[k].entita === eid)
+      || Object.keys(memoria).find((k) => k.toLowerCase() === (base + " energia "
+        + (periodo === "today" ? "oggi" : periodo === "week" ? "settimana" : "mese")).toLowerCase());
+    const v = nome && memoria[nome] && memoria[nome].valore;
+    if (eid && v > 0) {
+      const ora = Number((hass.states[eid] || {}).state);
+      if (Number.isFinite(ora) && ora >= v - 0.0005) {
+        dillo(nome + ": sta gia' contando (" + ora + "), non lo tocco.");
+        continue;
+      }
+      dillo("Rimetto " + v + " su " + nome + " (era il valore di prima).");
+      try {
+        await hass.callService("utility_meter", "calibrate", { entity_id: eid, value: String(v) });
+      } catch (e) { dillo("Il valore vecchio non sono riuscito a rimetterlo: " + (e.message || e)); }
+    }
+  }
   const patch = { period_entities: periodi, stats: { ...(opzioni.stats || {}) } };
+  if (Object.keys(memoria).length) patch.helper_memoria = null;
   // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"
   if (kwh) patch.energy_stat_entity = kwh;
   if (cicli.oggi) patch.stats.cycles_today = cicli.oggi;
@@ -19231,6 +20437,169 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   return patch;
 }
 
+// Cancella gli aiutanti che questa scheda si e' fatta creare. Tocca SOLO
+// entita' che stanno nella configurazione della scheda e che sono davvero
+// aiutanti (una voce di configurazione con uno di questi domini): la presa e
+// i sensori del dispositivo non si toccano nemmeno per sbaglio.
+const DOMINI_AIUTANTI = ["threshold", "history_stats", "utility_meter", "integration", "template"];
+
+function aiutantiDellaScheda(hass, cfg) {
+  const dentro = new Set();
+  const metti = (x) => { if (x && typeof x === "string" && x.includes(".")) dentro.add(x); };
+  const pe = cfg.period_entities || {};
+  Object.keys(pe).forEach((k) => { metti(pe[k].energy); metti(pe[k].cost); metti(pe[k].time); });
+  metti(cfg.energy_stat_entity);
+  metti((cfg.stats || {}).cycles_today);
+  metti((cfg.stats || {}).cycles_month);
+  ["oggi_energia", "oggi_costo", "settimana_energia", "settimana_costo", "mese_energia", "mese_costo",
+   "bolletta_energia", "bolletta_costo", "bill_today", "bill_month"].forEach((k) => metti(cfg[k]));
+  // la scheda della casa tiene i suoi contatori qui dentro
+  [...(cfg.periods || []), ...(cfg.periods_prev || [])].forEach((r) => { metti(r.energy); metti(r.cost); });
+  // pannelli, batteria e risparmio: oggi, settimana, mese
+  ["pannelli", "batteria", "risparmio"].forEach((chi) => {
+    ["oggi", "settimana", "mese"].forEach((q) => metti(cfg[chi + "_" + q]));
+  });
+  // i pezzi dell'ultimo ciclo e la soglia "sta lavorando"
+  const c = cfg.ciclo || {};
+  metti(c.contatore);
+  metti(cfg.soglia_acceso);
+  // anche la soglia "... in funzione", che sta nel binary_sensor dei cicli
+  const reg = (hass && hass.entities) || {};
+  Object.keys(reg).forEach((eid) => {
+    if (eid.startsWith("binary_sensor.") && /_in_funzione$/.test(eid)
+        && [...dentro].some((x) => eid.replace("binary_sensor.", "").replace(/_in_funzione$/, "")
+            && x.includes(eid.replace("binary_sensor.", "").replace(/_in_funzione$/, "")))) {
+      dentro.add(eid);
+    }
+  });
+  return [...dentro];
+}
+
+// Gli aiutanti VERI fra quelli nominati dalla scheda: quelli che hanno una
+// voce di configurazione di un dominio da aiutante. Il resto (la presa, i
+// sensori del dispositivo) non e' roba nostra e non si tocca.
+async function aiutantiVeri(hass, cfg) {
+  const candidati = aiutantiDellaScheda(hass, cfg);
+  if (!candidati.length) return [];
+  const reg = await registro(hass);
+  const voci = await vociDiConfigurazione(hass);
+  const perId = {};
+  voci.forEach((x) => { perId[x.entry_id] = x; });
+  const fuori = [];
+  candidati.forEach((eid) => {
+    const e = reg.find((x) => x.entity_id === eid);
+    const voce = e && e.config_entry_id ? perId[e.config_entry_id] : null;
+    if (voce && DOMINI_AIUTANTI.includes(voce.domain) && !fuori.some((f) => f.entry_id === voce.entry_id)) {
+      fuori.push({ entity: eid, entry_id: voce.entry_id, titolo: voce.title || eid });
+    }
+  });
+  return fuori;
+}
+
+// Quanto segnano adesso gli aiutanti della scheda: me lo segno PRIMA di
+// cancellarli, cosi' ricreandoli i contatori ripartono da li' e i kWh gia'
+// contati non si perdono.
+async function valoriDegliAiutanti(hass, cfg) {
+  const veri = await aiutantiVeri(hass, cfg);
+  const memoria = {};
+  veri.forEach((a) => {
+    const st = hass.states[a.entity];
+    if (!st || ["unknown", "unavailable"].includes(st.state)) return;
+    const n = Number(st.state);
+    if (!Number.isFinite(n)) return;
+    memoria[a.titolo] = { valore: n, entita: a.entity, quando: new Date().toISOString().slice(0, 16) };
+  });
+  return memoria;
+}
+
+/**
+ * Cancella solo gli aiutanti che gli passi. Torna { cancellati, memoria }:
+ * la memoria sono i valori che avevano, per farli ripartire da li'.
+ */
+async function cancellaQuesti(hass, scelti, dillo) {
+  const parla = dillo || (() => {});
+  const memoria = {};
+  let cancellati = 0;
+  for (const a of scelti) {
+    const st = hass.states[a.entity];
+    const n = st ? Number(st.state) : NaN;
+    if (Number.isFinite(n)) {
+      memoria[a.titolo] = { valore: n, entita: a.entity, quando: new Date().toISOString().slice(0, 16) };
+    }
+    try {
+      await hass.callWS({ type: "config_entries/delete", entry_id: a.entry_id });
+      parla("Cancellato: " + a.titolo);
+      cancellati++;
+    } catch (e) {
+      parla("Non ho potuto cancellare " + a.titolo + ": " + (e.message || e));
+    }
+  }
+  return { cancellati, memoria };
+}
+
+// Toglie dalla configurazione i riferimenti alle entita' sparite, ovunque siano.
+function scollegaEntita(cfg, spariti) {
+  const via = new Set(spariti);
+  const c = { ...cfg };
+  const CHIAVI = ["oggi_energia", "oggi_costo", "settimana_energia", "settimana_costo",
+    "mese_energia", "mese_costo", "bolletta_energia", "bolletta_costo", "energy_stat_entity",
+    "soglia_acceso"];
+  CHIAVI.forEach((k) => { if (via.has(c[k])) delete c[k]; });
+  ["pannelli", "batteria", "risparmio"].forEach((chi) => {
+    ["oggi", "settimana", "mese"].forEach((q) => {
+      if (via.has(c[chi + "_" + q])) delete c[chi + "_" + q];
+    });
+  });
+  if (c.period_entities) {
+    const pe = {};
+    Object.keys(c.period_entities).forEach((k) => {
+      const r = { ...c.period_entities[k] };
+      ["energy", "cost", "time"].forEach((x) => { if (via.has(r[x])) delete r[x]; });
+      if (Object.keys(r).length) pe[k] = r;
+    });
+    if (Object.keys(pe).length) c.period_entities = pe; else delete c.period_entities;
+  }
+  ["periods", "periods_prev"].forEach((k) => {
+    if (!Array.isArray(c[k])) return;
+    const l = c[k].map((r) => {
+      const n = { ...r };
+      if (via.has(n.energy)) delete n.energy;
+      if (via.has(n.cost)) delete n.cost;
+      return n;
+    }).filter((r) => r.energy || r.cost);
+    if (l.length) c[k] = l; else delete c[k];
+  });
+  if (c.stats) {
+    const st = { ...c.stats };
+    Object.keys(st).forEach((k) => { if (via.has(st[k])) delete st[k]; });
+    if (Object.keys(st).length) c.stats = st; else delete c.stats;
+  }
+  if (c.ciclo && via.has(c.ciclo.contatore)) {
+    const ci = { ...c.ciclo };
+    delete ci.contatore;
+    c.ciclo = ci;
+  }
+  return c;
+}
+
+async function cancellaSensoriElettrodomestico(hass, cfg, dillo) {
+  const memoria = await valoriDegliAiutanti(hass, cfg);
+  const veri = await aiutantiVeri(hass, cfg);
+  const tutti = aiutantiDellaScheda(hass, cfg);
+  let cancellati = 0;
+  for (const a of veri) {
+    dillo("Cancello: " + a.titolo + "...");
+    try {
+      await hass.callWS({ type: "config_entries/delete", entry_id: a.entry_id });
+    } catch (e) {
+      await hass.callApi("DELETE", "config/config_entries/entry/" + a.entry_id);
+    }
+    cancellati++;
+  }
+  const saltati = tutti.filter((x) => !veri.some((a) => a.entity === x));
+  return { cancellati, saltati, memoria };
+}
+
 // L'editor a clic di custom:casa-energia.
 // Sopra: le impostazioni (ha-form di Home Assistant). Sotto: le righe del
 // riquadro Oggi, da accendere/spegnere, trascinare in ordine e rinominare.
@@ -19238,10 +20607,28 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
 // sensore, e chi li ha gia' configurati a mano li ritrova come erano.
 
 
+// quello che si legge sotto al campo, per i tre che sembrano vuoti e rotti
+const AIUTI = {
+  top_exclude: "Vuoto = valgono le parole di serie (batterie, inverter, fotovoltaico, solar, grid...): "
+    + ESCLUSI_DI_SERIE.slice(0, 8).join(", ") + "...",
+  top_include: "Vuoto = nessuna forzatura. Serve solo per una presa che una parola qui sopra escluderebbe.",
+  top_min_w: "Vuoto = 5 W. Sotto questa soglia un apparecchio non vale come 'top'.",
+  unmeasured_label: "Vuoto = «Non misurato»: quanto consuma la casa fuori dalle prese che misurano.",
+};
+
+// il campo tiene una lista: quello che c'era prima (un'entita' sola) vale uguale
+const lista = (v) => (Array.isArray(v) ? v : (v ? [v] : []));
+
 const ETICHETTE$1 = {
   name: "Nome della scheda",
   power_entity: "Potenza della casa (W) - obbligatoria",
   artwork: "Disegno",
+  interruttore: "Tasto \u23fb nella barra in alto: cosa accende e spegne",
+  interruttore_usb: "Secondo tasto per le prese USB (se ci sono)",
+  oggi_energia: "Contatore dei kWh di OGGI (aiutante «contatore di utenza», ciclo giornaliero)",
+  oggi_costo: "Sensore degli EURO di oggi (i kWh per il prezzo)",
+  mese_energia: "Contatore dei kWh del MESE (stesso aiutante, ciclo mensile)",
+  mese_costo: "Sensore degli EURO del mese",
   soglia_entity: "Entit\u00e0 con la soglia d'allarme (facoltativa)",
   switches: "Interruttori da mettere nelle impostazioni",
   max_power: "Fondo scala della barra (W, es. 3300 con 3 kW)",
@@ -19263,38 +20650,66 @@ const ETICHETTE$1 = {
   velo_sfoca: "Quanto sfoca quello che c'e' dietro",
 };
 
-const SCHEMA$1 = [
+const SCHEMA_TUTTO$1 = [
   { name: "name", selector: { text: {} } },
   { name: "power_entity", required: true, selector: { entity: { domain: "sensor", device_class: "power" } } },
-  // i nomi veri dei disegni (HERO_BUILDERS in elettro-comune.js): uno che non
-  // esiste non darebbe errore, tornerebbe in silenzio al contatore della luce
   { name: "artwork", selector: { select: { mode: "dropdown", options: [
+    { value: "washer", label: "Lavatrice" },
+    { value: "dishwasher", label: "Lavastoviglie" },
+    { value: "dryer", label: "Asciugatrice" },
+    { value: "oven", label: "Forno" },
+    { value: "microonde", label: "Microonde" },
+    { value: "frigorifero", label: "Frigorifero" },
+    { value: "dehumidifier", label: "Deumidificatore" },
+    { value: "condizionatore", label: "Condizionatore" },
+    { value: "ventilatore", label: "Ventilatore" },
+    { value: "boiler", label: "Boiler / scaldabagno" },
+    { value: "luce", label: "Luce" },
+    { value: "lampada", label: "Lampada" },
+    { value: "tv", label: "Televisore" },
+    { value: "pc_torre", label: "PC (torre)" },
+    { value: "pc_monitor", label: "PC (monitor)" },
+    { value: "minipc", label: "Mini PC (Home Assistant)" },
+    { value: "presa", label: "Presa smart" },
+    { value: "ciabatta", label: "Ciabatta / multipresa" },
+    { value: "powerstation", label: "Powerstation" },
     { value: "energy", label: "Contatore della luce" },
-    { value: "ups", label: "Gruppo di continuità" },
+    { value: "ups", label: "Gruppo di continuita'" },
     { value: "server", label: "Server" },
     { value: "nas", label: "NAS" },
     { value: "fritzbox", label: "Router" },
     { value: "proxmox", label: "Proxmox" }] } } },
-  { name: "soglia_entity", selector: { entity: {} } },
-  { name: "switches", selector: { entity: { multiple: true } } },
-  { name: "max_power", selector: { number: { min: 500, max: 30000, step: 100, mode: "box", unit_of_measurement: "W" } } },
-  { name: "circuiti", selector: { entity: { multiple: true, domain: "sensor", device_class: "power" } } },
-  { name: "top_auto", selector: { boolean: {} } },
-  { name: "top_min_w", selector: { number: { min: 0, max: 1000, step: 1, mode: "box", unit_of_measurement: "W" } } },
-  { name: "unmeasured_label", selector: { text: {} } },
-  { name: "top_include", selector: { entity: { multiple: true, domain: "sensor" } } },
-  { name: "top_exclude", selector: { text: { multiple: true } } },
-  { name: "bill_today", selector: { entity: { domain: "sensor" } } },
-  { name: "bill_month", selector: { entity: { domain: "sensor" } } },
-  { name: "bolletta_energia", selector: { entity: { domain: "sensor" } } },
-  { name: "bolletta_costo", selector: { entity: { domain: "sensor" } } },
-  { name: "notification_path", selector: { text: {} } },
-  { name: "finestra_sfondo", selector: { color_rgb: {} } },
-  { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
-  { name: "finestra_scritta", selector: { color_rgb: {} } },
-  { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
-  { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
+  { name: "g_tasti", type: "expandable", flatten: true, title: "Tasti e interruttori", schema: [
+    { name: "interruttore", selector: { entity: {} } },
+    { name: "interruttore_usb", selector: { entity: {} } },
+    { name: "switches", selector: { entity: { multiple: true } } },
+    { name: "soglia_entity", selector: { entity: {} } },
+  ] },
+  { name: "g_barre", type: "expandable", flatten: true, title: "Barre dei circuiti", schema: [
+    { name: "circuiti", selector: { entity: { multiple: true, domain: "sensor", device_class: "power" } } },
+    { name: "max_power", selector: { number: { min: 500, max: 30000, step: 100, mode: "box", unit_of_measurement: "W" } } },
+  ] },
+  { name: "g_top", type: "expandable", flatten: true, title: "Top consumo (chi consuma di piu')", schema: [
+    { name: "top_auto", selector: { boolean: {} } },
+    { name: "top_min_w", selector: { number: { min: 0, max: 1000, step: 1, mode: "box", unit_of_measurement: "W" } } },
+    { name: "top_include", selector: { entity: { multiple: true, domain: "sensor" } } },
+    { name: "top_exclude", selector: { text: { multiple: true } } },
+    { name: "unmeasured_label", selector: { text: {} } },
+  ] },
+  { name: "g_aspetto", type: "expandable", flatten: true, title: "Aspetto e finestra del pop-up", schema: [
+    { name: "notification_path", selector: { text: {} } },
+    { name: "finestra_sfondo", selector: { color_rgb: {} } },
+    { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+    { name: "finestra_scritta", selector: { color_rgb: {} } },
+    { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+    { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
+  ] },
 ];
+
+// appena apri vedi solo l'essenziale; il resto con l'interruttore
+const SCHEMA_SEMPLICE$1 = ["name", "power_entity", "artwork"]
+  .map((n) => SCHEMA_TUTTO$1.find((x) => x.name === n))
+  .filter(Boolean);
 
 
 class CasaEnergiaEditor extends HTMLElement {
@@ -19314,9 +20729,20 @@ class CasaEnergiaEditor extends HTMLElement {
     }));
   }
 
+  // i quattro sensori dei conti stanno dentro `periods`: li tiro fuori per
+  // nome, cosi' l'ordine nell'elenco non conta
+  _periodo(nome) {
+    return (this._config.periods || []).find(
+      (x) => String(x.label || "").trim().toLowerCase() === nome) || {};
+  }
+
   _datiForm() {
     const c = this._config;
     return { ...c,
+      oggi_energia: this._periodo("oggi").energy || "",
+      oggi_costo: this._periodo("oggi").cost || "",
+      mese_energia: this._periodo("mese").energy || "",
+      mese_costo: this._periodo("mese").cost || "",
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
       finestra_scritta: this._versoRgb(c.finestra_scritta), top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false,
       switches: (c.switches || []).map((x) => x && x.entity).filter(Boolean),
@@ -19354,6 +20780,28 @@ class CasaEnergiaEditor extends HTMLElement {
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   }
 
+  // rimette i quattro sensori dentro periods/periods_prev. "Ieri" e "mese
+  // scorso" non sono altri sensori: sono l'attributo last_period di questi.
+  _rimettiPeriodi(c, v) {
+    const chiavi = ["oggi_energia", "oggi_costo", "mese_energia", "mese_costo"];
+    if (!chiavi.some((k) => k in v)) return;
+    const val = (k) => (k in v ? v[k] : (this._periodo(k.split("_")[0])[k.split("_")[1] === "energia" ? "energy" : "cost"] || ""));
+    const oggiE = val("oggi_energia"), oggiC = val("oggi_costo");
+    const meseE = val("mese_energia"), meseC = val("mese_costo");
+    const periodi = [];
+    if (oggiE || oggiC) periodi.push({ label: "Oggi", energy: oggiE, cost: oggiC });
+    if (meseE || meseC) periodi.push({ label: "Mese", energy: meseE, cost: meseC });
+    const prima = [];
+    if (oggiE || oggiC) prima.push({ label: "Ieri", energy: oggiE, energy_attr: "last_period", cost: oggiC, cost_attr: "last_period" });
+    if (meseE || meseC) prima.push({ label: "Mese scorso", energy: meseE, energy_attr: "last_period", cost: meseC, cost_attr: "last_period" });
+    // gli altri periodi che l'utente si e' scritto a mano restano dove sono
+    const suoi = (c.periods || []).filter((x) => !["oggi", "mese"].includes(String(x.label || "").trim().toLowerCase()));
+    const suoiPrima = (c.periods_prev || []).filter((x) => !["ieri", "mese scorso"].includes(String(x.label || "").trim().toLowerCase()));
+    if (periodi.length) c.periods = periodi.concat(suoi); else delete c.periods;
+    if (prima.length) c.periods_prev = prima.concat(suoiPrima); else delete c.periods_prev;
+    ["oggi_energia", "oggi_costo", "mese_energia", "mese_costo"].forEach((k) => delete c[k]);
+  }
+
   _cambiatoForm(v) {
     // le terne del selettore tornano esadecimali
     ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
@@ -19376,6 +20824,7 @@ class CasaEnergiaEditor extends HTMLElement {
     if (v.switches && v.switches.length) {
       c.switches = v.switches.map((eid) => primaSw[eid] || { label: this._nomeDi(eid), entity: eid });
     } else delete c.switches;
+    this._rimettiPeriodi(c, v);
     this._config = c;
     this._emetti();
   }
@@ -19387,6 +20836,24 @@ class CasaEnergiaEditor extends HTMLElement {
       this._emetti();
       this._disegnaRighe();
     });
+    { const v = this.querySelector(".ce-barre-vive");
+      if (v) v.checked = !!this._config.barre_vive;
+      const q = this.querySelector(".ce-barre-quante");
+      if (q && !q.dataset.tocco) q.value = this._config.barre_quante || 6;
+      this._mostraQuante(); }
+    { const sc = this.querySelector(".ce-barra-nuova");
+      if (sc && this._hass) {
+        sc.hass = this._hass;
+        sc.includeDomains = ["sensor"];
+        sc.entityFilter = (e) => {
+          const id = typeof e === "string" ? e : e.entity_id;
+          const a = ((this._hass.states[id] || {}).attributes) || {};
+          const u = String(a.unit_of_measurement || "").toLowerCase();
+          return a.device_class === "power" && (u === "w" || u === "kw");
+        };
+      } }
+    { const o = this.querySelector(".ce-barre-ordine");
+      if (o) o.checked = this._config.barre_in_ordine !== false; }
     this._disegnaCircuiti();
   }
 
@@ -19399,8 +20866,36 @@ class CasaEnergiaEditor extends HTMLElement {
     circ.forEach((c, k) => {
       const riga = document.createElement("div");
       riga.className = "ce-riga";
-      riga.innerHTML = `<span class="ent"></span><input type="text" class="nome"><input type="number" class="max" min="100" step="100" title="Fondo scala (W)"> W`;
+      riga.draggable = true;
+      riga.innerHTML = `<span class="ce-presa" title="Trascina per spostarla">\u2807</span>`
+        + `<span class="ent"></span><input type="text" class="nome"><input type="number" class="max" min="100" step="100" title="Fondo scala (W)"> W`
+        + `<button type="button" class="ce-via" title="Togli questa barra">\u00d7</button>`;
       riga.querySelector(".ent").textContent = this._nomeDi(c.entity);
+      // trascinare per cambiare l'ordine
+      riga.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", String(k));
+        riga.classList.add("ce-presa-su");
+      });
+      riga.addEventListener("dragend", () => riga.classList.remove("ce-presa-su"));
+      riga.addEventListener("dragover", (e) => e.preventDefault());
+      riga.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const da = Number(e.dataTransfer.getData("text/plain"));
+        if (!Number.isFinite(da) || da === k) return;
+        const n = [...(this._config.circuits || [])];
+        const [preso] = n.splice(da, 1);
+        n.splice(k, 0, preso);
+        this._config = { ...this._config, circuits: n };
+        this._emetti();
+        this._disegnaCircuiti();
+      });
+      riga.querySelector(".ce-via").addEventListener("click", () => {
+        const n = [...(this._config.circuits || [])];
+        n.splice(k, 1);
+        this._config = { ...this._config, circuits: n };
+        this._emetti();
+        this._disegnaCircuiti();
+      });
       const nome = riga.querySelector(".nome");
       nome.value = c.label || "";
       nome.placeholder = this._nomeDi(c.entity);
@@ -19431,11 +20926,13 @@ class CasaEnergiaEditor extends HTMLElement {
     sel.hidden = !elenco.length;
     campo.hidden = !!elenco.length;
     sel.innerHTML = "";
-    elenco.forEach((id) => {
+    elenco.filter((id) => !INGREDIENTE.test(id)).forEach((id) => {
       const st = this._hass.states[id];
       const o = document.createElement("option");
       o.value = id;
-      o.textContent = (st.attributes.friendly_name || id) + " \u2014 " + st.state + " \u20ac/kWh";
+      const tutto = Number(st.state) >= 0.20;
+      o.textContent = (st.attributes.friendly_name || id) + " \u2014 " + st.state + " \u20ac/kWh"
+        + (tutto ? "  (tutto compreso \u2014 questo)" : "  (sola energia)");
       sel.appendChild(o);
     });
     const mio = this._config.prezzo_entita;
@@ -19453,37 +20950,208 @@ class CasaEnergiaEditor extends HTMLElement {
     }).sort();
   }
 
+  // I pannelli: va bene sia un sensore in kWh sia uno in Watt (i kWh me li
+  // calcolo io). Metto davanti quelli che sembrano solari.
+  _disegnaBatteria() {
+    const sel = this.querySelector(".ce-batteria-pick");
+    if (!sel || !this._hass) return;
+    sel.hass = this._hass;
+    const st = this._hass.states;
+    sel.includeDomains = ["sensor"];
+    sel.entityFilter = (e) => {
+      const id = typeof e === "string" ? e : e.entity_id;
+      const a = (st[id] || {}).attributes || {};
+      const u = String(a.unit_of_measurement || "").toLowerCase();
+      return (a.device_class === "power" && (u === "w" || u === "kw"))
+        || (a.device_class === "energy" && (u === "kwh" || u === "wh"));
+    };
+    if (!sel._agganciato) {
+      sel._agganciato = true;
+      sel.addEventListener("value-changed", (ev) => {
+        ev.stopPropagation();
+        this._scriviScelta("batteria_entita", ev.detail.value || "");
+      });
+    }
+    sel.value = lista(this._config.batteria_entita);
+  }
+
+  _disegnaPannelli() {
+    const sel = this.querySelector(".ce-pannelli-pick");
+    if (!sel || !this._hass) return;
+    sel.hass = this._hass;
+    const st = this._hass.states;
+    const buono = (id) => {
+      const a = (st[id] || {}).attributes || {};
+      const u = String(a.unit_of_measurement || "").toLowerCase();
+      return (a.device_class === "power" && (u === "w" || u === "kw"))
+        || (a.device_class === "energy" && (u === "kwh" || u === "wh"));
+    };
+    sel.includeDomains = ["sensor"];
+    sel.entityFilter = (e) => buono(typeof e === "string" ? e : e.entity_id);
+    if (!sel._agganciato) {
+      sel._agganciato = true;
+      sel.addEventListener("value-changed", (ev) => {
+        ev.stopPropagation();
+        this._scriviScelta("pannelli_entita", ev.detail.value || "");
+      });
+    }
+    sel.value = lista(this._config.pannelli_entita);
+  }
+
   _disegnaKwh() {
-    const sel = this.querySelector(".ce-kwh");
+    const sel = this.querySelector(".ce-kwh-pick");
     if (!sel) return;
-    const elenco = this._kWhPossibili();
-    const scelto = sel.value;
-    // PRIMA VOCE VUOTA, apposta: se la tendina si sceglie da sola il primo
-    // della lista (in ordine alfabetico finisce per essere una batteria) uno
-    // preme il tasto e si ritrova i contatori sull'apparecchio sbagliato.
-    sel.innerHTML = elenco.length
-      ? "<option value=''>\u2014 scegli il sensore \u2014</option>"
-      : "<option value=''>nessun sensore in kWh trovato</option>";
-    elenco.forEach((id) => {
-      const o = document.createElement("option");
-      o.value = id;
-      o.textContent = this._nomeDi(id);
-      sel.appendChild(o);
-    });
-    // il suggerimento buono: i kWh dello stesso apparecchio che da' i Watt
-    // (sensor.casa_totale_power -> sensor.casa_totale_energy). I contatori non
-    // dicono piu' da quale sensore nascono, quindi da li' non si risale.
+    if (this._hass) sel.hass = this._hass;
+    const buoni = this._kWhPossibili();
+    sel.includeDomains = ["sensor"];
+    sel.entityFilter = (e) => buoni.includes(typeof e === "string" ? e : e.entity_id);
+    if (!sel._agganciato) {
+      sel._agganciato = true;
+      sel.addEventListener("value-changed", (ev) => {
+        ev.stopPropagation();
+        this._scriviScelta("energia_kwh", ev.detail.value || "");
+      });
+    }
+    const mio = this._config.energia_kwh;
     const dallaPresa = String(this._config.power_entity || "")
       .replace(/_power$/, "_energy").replace(/_potenza$/, "_energia");
-    const mio = this._config.energia_kwh;
-    if (scelto && elenco.includes(scelto)) sel.value = scelto;
-    else if (mio && elenco.includes(mio)) sel.value = mio;
-    else if (elenco.includes(dallaPresa)) sel.value = dallaPresa;
+    sel.value = mio || (buoni.includes(dallaPresa) ? dallaPresa : "");
+  }
+
+  // i campi della tariffa partono da quello che gli aiutanti dicono adesso:
+  // cosi' vedi il prezzo che stai usando e lo puoi riscrivere a mano
+  _disegnaTariffa() {
+    VOCI_TARIFFA.forEach((v) => {
+      const campo = this.querySelector(".ce-t-" + v.chiave);
+      if (!campo || campo.dataset.tocco) return;
+      const st = this._hass && this._hass.states[idDellaVoce(this._hass, v)];
+      if (st && !["unknown", "unavailable"].includes(st.state)) campo.value = Number(st.state);
+      campo.addEventListener("input", () => { campo.dataset.tocco = "1"; }, { once: true });
+    });
+    this._totaleTariffa();
+  }
+
+  _totaleTariffa() {
+    const n = (c) => Number((this.querySelector(".ce-t-" + c) || {}).value) || 0;
+    const t = this.querySelector(".ce-t-totale");
+    if (!t) return 0;
+    const v = Math.round((n("energia") + n("rete") + n("accise")) * (1 + n("iva") / 100) * 10000) / 10000;
+    t.textContent = v ? v.toFixed(4) + " \u20ac/kWh" : "\u2014";
+    return v;
+  }
+
+  async _scriviTariffa() {
+    const esito = this.querySelector(".ce-esito-tariffa");
+    const n = (c) => Number((this.querySelector(".ce-t-" + c) || {}).value);
+    esito.hidden = false;
+    esito.classList.remove("male");
+    esito.textContent = "";
+    const dillo = (t) => { esito.textContent += (esito.textContent ? "\n" : "") + t; };
+    if (!(n("energia") > 0)) {
+      esito.classList.add("male");
+      esito.textContent = "Scrivi almeno il prezzo dell'energia.";
+      return;
+    }
+    try {
+      await scriviTariffa(this._hass, { energia: n("energia"), rete: n("rete"), accise: n("accise"), iva: n("iva"), quota: n("quota") }, dillo);
+      dillo("Fatto: adesso tutte le schede leggono questi prezzi.");
+      this._disegnaPrezzo();
+    } catch (e) {
+      esito.classList.add("male");
+      dillo("Non ce l'ho fatta: " + (e && e.message ? e.message : e));
+    }
+  }
+
+  // Butta via i contatori e i costi che questa scheda si e' fatta creare. I
+  // prezzi NON si toccano: quelli sono la tariffa, e la usano tutte le schede.
+  async _cancellaSensori() {
+    const elenco = (await aiutantiVeri(this._hass, this._config))
+      .filter((x) => !String(x.entity).startsWith("input_number."));
+    this._esito.hidden = false;
+    this._esito.classList.remove("male");
+    if (!elenco.length) {
+      this._esito.textContent = "Questa scheda non ha aiutanti da cancellare.";
+      return;
+    }
+    this._esito.textContent = "";
+    // il riquadro con le caselline: scegli tu quali buttare
+    quali_cancellare(this._esito, elenco, this._hass, async (scelti) => {
+      const tasto = this.querySelector(".ce-cancella");
+      if (tasto) tasto.disabled = true;
+      this._esito.hidden = false;
+      this._esito.textContent = "";
+      try {
+        const esito = await cancellaQuesti(this._hass, scelti,
+          (m) => { this._esito.textContent += m + "\n"; });
+        let c = scollegaEntita(this._config, scelti.map((x) => x.entity));
+        const memoria = { ...(this._config.helper_memoria || {}), ...(esito.memoria || {}) };
+        if (Object.keys(memoria).length) c.helper_memoria = memoria;
+        this._config = c;
+        this._emetti();
+        this._form.data = this._datiForm();
+        this._esito.textContent += "Fatto: " + esito.cancellati + " cancellati. "
+          + "I valori me li sono segnati: se li rifai ripartono da li'.";
+      } catch (e) {
+        this._esito.classList.add("male");
+        this._esito.textContent = "Non ce l'ho fatta: " + (e && e.message ? e.message : e);
+      } finally {
+        if (tasto) tasto.disabled = false;
+      }
+    });
+  }
+
+  // Le quattro barre proposte guardando la casa: sensori di potenza veri,
+  // senza le parole che escludono (le stesse del "top consumo").
+  // con "le piu' accese" l'elenco a mano non serve: lo nascondo
+  _mostraQuante() {
+    const acceso = !!(this.querySelector(".ce-barre-vive") || {}).checked;
+    const q = this.querySelector(".ce-quante");
+    if (q) q.hidden = !acceso;
+    [".ce-barra-nuova", ".ce-barre-ordine", ".ce-barre-auto", ".ce-circuiti"].forEach((sel) => {
+      const el = this.querySelector(sel);
+      const riga = el && (el.closest(".ce-riga") || el);
+      if (riga) riga.style.display = acceso ? "none" : "";
+    });
+  }
+
+  _proponiBarre() {
+    const st = (this._hass || {}).states || {};
+    const escl = (this._config.top_exclude || ESCLUSI_DI_SERIE).map((x) => String(x).toLowerCase());
+    const buoni = Object.keys(st).filter((id) => {
+      if (!id.startsWith("sensor.") || id === this._config.power_entity) return false;
+      const a = st[id].attributes || {};
+      if (a.device_class !== "power") return false;
+      const u = String(a.unit_of_measurement || "").toLowerCase();
+      if (u !== "w" && u !== "kw") return false;
+      return !escl.some((x) => id.toLowerCase().includes(x));
+    });
+    if (!buoni.length) {
+      window.alert("Non ho trovato prese che misurano i Watt, a parte quelle escluse.");
+      return;
+    }
+    // il fondo scala: il massimo visto di recente, arrotondato in su
+    const scala = (v) => {
+      const n = Math.max(500, Math.ceil((Number(v) || 0) * 1.3 / 500) * 500);
+      return Math.min(3500, n);
+    };
+    const barre = buoni
+      .map((id) => ({
+        entity: id,
+        live: Number(st[id].state) || 0,
+        label: String(st[id].attributes.friendly_name || id)
+          .replace(/\s+(potenza|power)\s*$/i, "").replace(/\s{2,}/g, " ").trim(),
+      }))
+      .sort((a, b) => b.live - a.live)
+      .slice(0, 6)
+      .map((x) => ({ label: x.label, entity: x.entity, max: scala(x.live || 1000) }));
+    this._config = { ...this._config, circuits: barre };
+    this._emetti();
+    this._disegnaCircuiti();
   }
 
   async _creaSensori() {
     const tasto = this.querySelector(".ce-crea");
-    const sorgente = (this.querySelector(".ce-kwh") || {}).value || this._config.energia_kwh;
+    const sorgente = (this.querySelector(".ce-kwh-pick") || {}).value || this._config.energia_kwh;
     if (!sorgente) { this._dillo("Scegli il sensore dei kWh.", true); return; }
     if (!window.confirm("Creo in Home Assistant i contatori (ora, oggi, settimana, mese) e i costi "
       + "sopra a " + this._nomeDi(sorgente) + "." + "\n" + "Quelli che ci sono gia' li riuso. Vado?")) return;
@@ -19494,12 +21162,38 @@ class CasaEnergiaEditor extends HTMLElement {
     try {
       const patch = await creaSensoriBase(this._hass, {
         sorgente,
-        prezzo_entita: (this.querySelector(".ce-prezzo-ent") || {}).value || this._config.prezzo_entita,
-        prezzo: Number((this.querySelector(".ce-prezzo") || {}).value),
+        memoria: this._config.helper_memoria || {},
+        // il prezzo e' quello della tariffa qui sopra: per la casa vale il TOTALE,
+        // che e' quello che paghi davvero in bolletta
+        prezzo_entita: (this._hass.states[ID_TOTALE] ? ID_TOTALE : prezzoDellaCasa(this._hass))
+          || this._config.prezzo_entita,
+        prezzo: this._totaleTariffa(),
       }, (t) => this._dillo(t));
       this._config = { ...this._config, ...patch };
+      // la memoria dei valori, se e' stata usata, si butta (patch la mette a null)
+      if (patch.helper_memoria === null) delete this._config.helper_memoria;
       this._emetti();
       this._form.data = this._datiForm();
+      // i kWh delle due fonti: pannelli e batteria
+      for (const [chiave, sel, nome] of [["pannelli", ".ce-pannelli-pick", "Pannelli energia"],
+        ["batteria", ".ce-batteria-pick", "Batteria energia"]]) {
+        const ent = lista((this.querySelector(sel) || {}).value || this._config[chiave + "_entita"]);
+        if (!ent.length) continue;
+        const p = await creaFonte(this._hass, { entita: ent, nome }, (t) => this._dillo(t));
+        this._config = { ...this._config, [chiave + "_oggi"]: p.oggi,
+          [chiave + "_settimana"]: p.settimana, [chiave + "_mese"]: p.mese,
+          [chiave + "_entita"]: ent };
+        this._emetti();
+      }
+      const pannelli = (this.querySelector(".ce-pannelli-pick") || {}).value || this._config.pannelli_entita;
+      if (pannelli) {
+        const piu = await creaRisparmio(this._hass, {
+          pannelli,
+          prezzo_entita: this._hass.states[ID_TOTALE] ? ID_TOTALE : prezzoDellaCasa(this._hass),
+        }, (t) => this._dillo(t));
+        this._config = { ...this._config, ...piu, pannelli_entita: pannelli };
+        this._emetti();
+      }
       this._dillo("La scheda e' agganciata ai sensori nuovi. Salva e chiudi.");
     } catch (e) {
       this._dillo("Non ce l'ho fatta: " + (e && e.message ? e.message : e), true);
@@ -19517,7 +21211,25 @@ class CasaEnergiaEditor extends HTMLElement {
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
-      this.innerHTML = `<style>${STILE_EDITOR}</style><div class="ce-form"></div>
+      this.innerHTML = `<style>${STILE_EDITOR}</style><label class="ce-riga ce-tutto-riga"><input type="checkbox" class="ce-tutto">
+          <span>Mostra tutte le impostazioni</span></label>
+        <div class="ce-versione">casa-energia \u00b7 casa-tile v${VERSIONE}</div>
+        <div class="ce-form"></div>
+        <div class="ce-sez">
+          <div class="ce-tit">I sensori dei conti</div>
+          <div class="ce-aiuto">I quattro campi <b>kWh di oggi / euro di oggi / kWh del mese / euro del mese</b>
+            vogliono i sensori fatti con gli aiutanti: i due <b>contatori di utenza</b> (uno a ciclo
+            <i>giornaliero</i>, uno <i>mensile</i>) sopra al kWh dell'apparecchio, e i due sensori che
+            moltiplicano quei kWh per il prezzo. <b>Ieri</b> e <b>mese scorso</b> non vanno messi:
+            li legge da solo dal periodo appena chiuso degli stessi contatori.</div>
+        </div>
+        <div class="ce-sez">
+          <div class="ce-tit">Tasti di accensione</div>
+          <div class="ce-aiuto">I due campi <b>Tasto \u23fb</b> e <b>USB</b> qui sopra mettono un tastino tondo
+            nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne,
+            e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare.
+            Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.</div>
+        </div>
         <div class="ce-sez">
           <div class="ce-tit">Righe del riquadro «Oggi»</div>
           <div class="ce-aiuto">Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi,
@@ -19526,31 +21238,70 @@ class CasaEnergiaEditor extends HTMLElement {
         </div>
         <div class="ce-sez">
           <div class="ce-tit">Nomi dei circuiti</div>
+          <div class="ce-aiuto">Le barre sotto la scheda. Se non sai quali mettere, <b>Proponi da solo</b>
+            guarda le prese di casa e ti mette le quattro che consumano di piu' (batterie, inverter e
+            pannelli restano fuori). Poi cambi nome e fondo scala come vuoi.</div>
+          <button type="button" class="ce-prepara ce-barre-auto">Proponi da solo</button>
           <div class="ce-aiuto">Il nome e il fondo scala (W) di ogni barra.</div>
+          <div class="ce-riga"><span class="ent">Aggiungi una barra</span><ha-entity-picker class="ce-barra-nuova" allow-custom-entity></ha-entity-picker></div>
+          <label class="ce-riga"><input type="checkbox" class="ce-barre-vive">
+            <span><b>Scegli le barre da sola</b>: fa vedere le prese piu' accese del momento. Se parte
+            il forno, il forno compare. L'elenco qui sotto non serve piu'.</span></label>
+          <div class="ce-riga ce-quante" hidden><span class="ent">Quante barre</span>
+            <input type="number" class="ce-barre-quante max" min="2" max="10" step="1" value="6"></div>
+          <label class="ce-riga"><input type="checkbox" class="ce-barre-ordine" checked>
+            <span>Mettile in fila da sole, la piu' accesa in cima (se la togli resta l'ordine di qui sotto)</span></label>
           <div class="ce-circuiti"></div>
         </div>
         <div class="ce-sez">
-          <div class="ce-tit">Crea i sensori base</div>
-          <div class="ce-aiuto">Non hai ancora i contatori? Scegli il sensore dei <b>kWh</b> della casa
-            e il prezzo: creo io gli helper di Home Assistant per ora, oggi, settimana, mese e ieri,
-            con il costo di ogni periodo, e li aggancio alla scheda. Il conto voce per voce, i cicli
-            degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: quelli stanno
-            nella guida, in <i>esempi/luce</i>.</div>
-          <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
-          <div class="ce-riga"><span class="ent">Prezzo dei sensori che creo</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
-          <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
-          <div class="ce-esito" hidden></div>
+          <div class="ce-tit">La tua tariffa</div>
+          <div class="ce-aiuto">Questa e' la scheda <b>principale</b>: il prezzo si scrive qui, una volta
+            sola. Gli apparecchi, le prese e le luci lo leggono da qui, non lo richiedono.<br>
+            Scrivi le voci come stanno in bolletta: il totale lo faccio io, ed e' quello che uso per la spesa
+            della casa. Sugli apparecchi invece vale la <b>sola energia</b>, se no le tasse le paghi due volte.</div>
+          <div class="ce-riga"><span class="ent">Energia &euro;/kWh</span><input type="number" class="ce-t-energia max" step="0.0001" min="0" placeholder="0.1657"></div>
+          <div class="ce-riga"><span class="ent">Rete e oneri &euro;/kWh</span><input type="number" class="ce-t-rete max" step="0.0001" min="0" placeholder="0.045"></div>
+          <div class="ce-riga"><span class="ent">Accise &euro;/kWh</span><input type="number" class="ce-t-accise max" step="0.0001" min="0" placeholder="0.0093"></div>
+          <div class="ce-riga"><span class="ent">IVA %</span><input type="number" class="ce-t-iva max" step="1" min="0" placeholder="10"></div>
+          <div class="ce-riga"><span class="ent">Quota fissa &euro; al giorno</span><input type="number" class="ce-t-quota max" step="0.0001" min="0" placeholder="0.542"></div>
+          <div class="ce-riga"><span class="ent">Totale della bolletta</span><b class="ce-t-totale">&mdash;</b></div>
+          <button type="button" class="ce-prepara ce-scrivi-tariffa">Scrivi la tariffa</button>
+          <div class="ce-esito ce-esito-tariffa" hidden></div>
         </div>
         <div class="ce-sez">
-          <div class="ce-tit">Periodi e costi</div>
-          <div class="ce-aiuto">Aggancia da soli i contatori (ora, oggi, settimana, mese, ieri), i costi,
-            il conto voce per voce e i prezzi della bolletta, se li hai creati coi nomi dell'esempio
-            <i>esempi/luce</i>. Quello che c'e' gia' viene sostituito.</div>
-          <button type="button" class="ce-prepara">Prepara periodi e costi da soli</button>
-        </div>`;
+          <div class="ce-tit">Crea i sensori base</div>
+          <div class="ce-aiuto">Il prezzo l'hai gia' scritto qui sopra: qui scegli solo <b>da quale
+            sensore dei kWh</b> parte la casa. Creo io i contatori (ora, oggi, settimana, mese e ieri) e il
+            costo di ogni periodo, e li aggancio alla scheda; quelli che ci sono gia' li riuso.<br>
+            Il conto voce per voce della bolletta, i cicli degli elettrodomestici e il risparmio del
+            fotovoltaico non si fanno da qui: stanno nella guida, in <i>esempi/luce</i>.</div>
+          <div class="ce-riga"><span class="ent">Sensore dei kWh</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
+          <div class="ce-riga"><span class="ent">Sensore dei pannelli (se ce l'hai)</span><ha-entities-picker class="ce-pannelli-pick"></ha-entities-picker></div>
+          <button type="button" class="ce-prepara ce-pannelli-tutti">Prendile tutte</button>
+          <div class="ce-riga"><span class="ent">Sensore della batteria (se ce l'hai)</span><ha-entities-picker class="ce-batteria-pick"></ha-entities-picker></div>
+          <button type="button" class="ce-prepara ce-batteria-tutti">Prendile tutte</button>
+          <div class="ce-aiuto">Dei pannelli e della batteria faccio i kWh di oggi e del mese, e li metto
+            nelle righe <i>Dai pannelli</i> e <i>Dalla batteria</i> (spuntale qui sopra). Va bene sia un
+            sensore in kWh sia uno in Watt. Per la batteria scegli quello che dice <b>quanto ha dato alla
+            casa</b> (la scarica), non la percentuale.</div>
+          <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
+          <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
+          <div class="ce-esito" hidden></div>
+        </div>
+`;
       const form = document.createElement("ha-form");
-      form.schema = SCHEMA$1;
-      form.computeLabel = (x) => ETICHETTE$1[x.name] || x.name;
+      form.schema = this._tutto ? SCHEMA_TUTTO$1 : SCHEMA_SEMPLICE$1;
+      form.computeLabel = (x) => x.title || ETICHETTE$1[x.name] || x.name;
+      form.computeHelper = (x) => AIUTI[x.name] || "";
+      const spunta = this.querySelector(".ce-tutto");
+      if (spunta) {
+        spunta.checked = !!this._tutto;
+        spunta.addEventListener("change", () => {
+          this._tutto = spunta.checked;
+          form.schema = this._tutto ? SCHEMA_TUTTO$1 : SCHEMA_SEMPLICE$1;
+          form.data = this._datiForm();
+        });
+      }
       form.addEventListener("value-changed", (e) => {
         e.stopPropagation();
         this._cambiatoForm(e.detail.value || {});
@@ -19561,24 +21312,76 @@ class CasaEnergiaEditor extends HTMLElement {
       this._circuiti = this.querySelector(".ce-circuiti");
       this._esito = this.querySelector(".ce-esito");
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
-      this.querySelector(".ce-kwh").addEventListener("change", (e) =>
-        this._scriviScelta("energia_kwh", e.target.value));
-      this.querySelector(".ce-prezzo-ent").addEventListener("change", (e) =>
-        this._scriviScelta("prezzo_entita", e.target.value));
-      this.querySelector(".ce-prepara").addEventListener("click", () => {
-        const pronta = preparaEnergia(this._hass, { entity: this._config.power_entity, name: this._config.name });
-        const c = { ...this._config };
-        ["periods", "periods_prev", "settings_sections", "bill_today", "bill_month"].forEach((k) => {
-          if (pronta[k] !== undefined) c[k] = pronta[k];
+      this.querySelector(".ce-scrivi-tariffa").addEventListener("click", () => this._scriviTariffa());
+      this.querySelector(".ce-barre-auto").addEventListener("click", () => this._proponiBarre());
+      [["pannelli", /solar|fotovolt|pv/i], ["batteria", /discharg|scaric/i]].forEach(([chi, come]) => {
+        const b = this.querySelector(".ce-" + chi + "-tutti");
+        if (!b) return;
+        b.addEventListener("click", () => {
+          const st = (this._hass || {}).states || {};
+          const trovati = Object.keys(st).filter((id) => {
+            const a = st[id].attributes || {};
+            const u = String(a.unit_of_measurement || "").toLowerCase();
+            return id.startsWith("sensor.") && a.device_class === "energy"
+              && (u === "kwh" || u === "wh") && come.test(id)
+              && !/_returned|restituit|forecast|previs/i.test(id);
+          });
+          if (!trovati.length) {
+            window.alert("Non ho trovato contatori che sembrino " + chi + ".");
+            return;
+          }
+          this._scriviScelta(chi + "_entita", trovati);
+          const sel = this.querySelector(".ce-" + chi + "-pick");
+          if (sel) sel.value = trovati;
+          window.alert("Presi " + trovati.length + ":\n" + trovati.join("\n")
+            + "\n\nSe ne aggiungi un altro in futuro, torna qui e ripremi.");
         });
-        this._config = c;
-        this._emetti();
-        this._form.data = this._datiForm();
       });
+      const scegli = this.querySelector(".ce-barra-nuova");
+      if (scegli) {
+        scegli.addEventListener("value-changed", (ev) => {
+          ev.stopPropagation();
+          const id = ev.detail.value;
+          if (!id) return;
+          const n = [...(this._config.circuits || [])];
+          if (!n.some((x) => x.entity === id)) {
+            const w = Number((this._hass.states[id] || {}).state) || 0;
+            n.push({ label: this._nomeDi(id), entity: id,
+              max: Math.min(3500, Math.max(500, Math.ceil(w * 1.3 / 500) * 500)) });
+            this._config = { ...this._config, circuits: n };
+            this._emetti();
+            this._disegnaCircuiti();
+          }
+          scegli.value = "";
+        });
+      }
+      const vive = this.querySelector(".ce-barre-vive");
+      if (vive) {
+        vive.addEventListener("change", () => {
+          this._scriviScelta("barre_vive", vive.checked ? true : "");
+          this._mostraQuante();
+        });
+      }
+      const quante = this.querySelector(".ce-barre-quante");
+      if (quante) {
+        quante.addEventListener("change", () =>
+          this._scriviScelta("barre_quante", Number(quante.value) || 6));
+      }
+      const ordine = this.querySelector(".ce-barre-ordine");
+      if (ordine) {
+        ordine.addEventListener("change", () =>
+          this._scriviScelta("barre_in_ordine", ordine.checked ? "" : false));
+      }
+      this.querySelector(".ce-cancella").addEventListener("click", () => this._cancellaSensori());
+      this.querySelectorAll(".ce-t-energia, .ce-t-rete, .ce-t-accise, .ce-t-iva, .ce-t-quota").forEach((x) =>
+        x.addEventListener("input", () => this._totaleTariffa()));
     }
     if (this._hass) this._form.hass = this._hass;
     this._disegnaKwh();
+    this._disegnaPannelli();
+    this._disegnaBatteria();
     this._disegnaPrezzo();
+    this._disegnaTariffa();
     this._form.data = this._datiForm();
     this._disegnaRighe();
   }
@@ -19596,6 +21399,12 @@ const RIGHE_CICLO = [
   { id: "durata", nome: "Durata del ciclo", etichetta: "Durata", colore: "#2fbfb0" },
   { id: "consumo", nome: "Consumo del ciclo (kWh)", etichetta: "Consumo", colore: "#3fb4ea" },
   { id: "costo", nome: "Costo del ciclo", etichetta: "Costo", colore: "#e2ad1c" },
+  { id: "oggi", nome: "kWh di oggi (per prese e apparecchi senza ciclo)", etichetta: "Oggi", colore: "#3fb4ea" },
+  { id: "costo_oggi", nome: "Costo di oggi", etichetta: "Costo oggi", colore: "#e2ad1c" },
+  { id: "settimana", nome: "kWh della settimana", etichetta: "Settimana", colore: "#4fb0d8" },
+  { id: "costo_settimana", nome: "Costo della settimana", etichetta: "Costo settimana", colore: "#d8a13c" },
+  { id: "mese", nome: "kWh del mese", etichetta: "Mese", colore: "#3f8fea" },
+  { id: "costo_mese", nome: "Costo del mese", etichetta: "Costo mese", colore: "#a283f2" },
 ];
 
 const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
@@ -19608,23 +21417,59 @@ class CasaElettrodomestico extends HTMLElement {
       durata: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TIMER}</span><small>Durata</small></span><b class="dm-c-duration">\u2014</b></div>`,
       consumo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-c-energy">\u2014</b></div>`,
       costo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo</small></span><b class="dm-c-cost">\u2014</b></div>`,
+      oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Oggi</small></span><b class="dm-c-oggi">\u2014</b></div>`,
+      costo_oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore dm-forte" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo oggi</small></span><b class="dm-c-costo-oggi">\u2014</b></div>`,
+      settimana: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#4fb0d8"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Settimana</small></span><b class="dm-c-settimana">\u2014</b></div>`,
+      costo_settimana: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#d8a13c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo settimana</small></span><b class="dm-c-costo-settimana">\u2014</b></div>`,
+      mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3f8fea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Mese</small></span><b class="dm-c-mese">\u2014</b></div>`,
+      costo_mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo mese</small></span><b class="dm-c-costo-mese">\u2014</b></div>`,
     };
-    return righeInOrdine(this._config, RIGHE_CICLO, R, esc);
+    const c = this._config;
+    const pe0 = c.period_entities || {};
+    const haCicli = !!(c.cycle_sensor || c.ciclo);
+    const haPeriodi = !!(c.oggi_energia || c.oggi_costo || c.mese_energia || c.mese_costo
+      || (pe0.today || {}).energy || (pe0.month || {}).energy);
+    const daCiclo = ["fine", "durata", "consumo", "costo"];
+    const daPresa = ["oggi", "costo_oggi", "mese", "costo_mese"];
+    // se hai scelto tu le righe comandi tu; se no ti do quelle che sai riempire
+    const elenco = c.righe ? RIGHE_CICLO
+      : RIGHE_CICLO.filter((r) => (haPeriodi && !haCicli ? daPresa : daCiclo).includes(r.id));
+    return righeInOrdine(c, elenco, R, esc);
+  }
+
+  // Le barre in piu': un elenco {entita', nome, fondo scala}. Accetto anche la
+  // vecchia forma a barra singola, cosi' chi ce l'ha non si accorge di niente.
+  _barreExtra() {
+    const c = this._config || {};
+    const elenco = Array.isArray(c.barre) ? c.barre.slice() : [];
+    if (c.barra2_entita && !elenco.some((b) => b && b.entity === c.barra2_entita)) {
+      elenco.unshift({ entity: c.barra2_entita, label: c.barra2_nome, max: c.barra2_max });
+    }
+    return elenco.filter((b) => b && b.entity).map((b) => ({
+      entity: b.entity,
+      label: b.label || this._nomeEntita(b.entity),
+      max: Number(b.max) || c.max_power || 1000,
+    }));
+  }
+
+  _nomeEntita(eid) {
+    const st = this._hass && this._hass.states && this._hass.states[eid];
+    return (st && st.attributes && st.attributes.friendly_name) || eid;
   }
 
   static getConfigElement() {
     return document.createElement("casa-elettrodomestico-editor");
   }
 
-  static getStubConfig(hass) {
-    const st = (hass && hass.states) || {};
-    const potenza = Object.keys(st).find((k) => k.startsWith("sensor.")
-      && (st[k].attributes || {}).device_class === "power") || "";
-    return { type: "custom:casa-elettrodomestico", name: "Lavatrice", artwork: "washer", power_entity: potenza };
+  // Niente entita' scelte da me: la scheda nasce vuota e la riempi tu (o la
+  // fai riempire dal tasto "Capisci da solo").
+  static getStubConfig() {
+    return { type: "custom:casa-elettrodomestico", name: "", artwork: "washer" };
   }
 
   setConfig(config) {
-    if (!config.power_entity) throw new Error("power_entity \u00e8 obbligatorio");
+    // senza entita' la scheda non si rompe: si fa vedere vuota, e l'editor
+    // dice cosa manca. Prima buttava un errore rosso in faccia.
     this._config = {
       name: "Elettrodomestico",
       artwork: "dishwasher",
@@ -19666,6 +21511,8 @@ class CasaElettrodomestico extends HTMLElement {
           <span class="dm-ap-badge"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label"></span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
+            ${this._config.interruttore ? `<button type="button" class="dm-ap-tool dm-ap-power" title="Accendi / spegni">${ICON_POWER}</button>` : ""}
+            ${this._config.interruttore_usb ? `<button type="button" class="dm-ap-tool dm-ap-usb" title="USB">${ICON_USB}</button>` : ""}
             <button type="button" class="dm-ap-tool dm-ap-settings" title="Impostazioni">${ICON_GEAR}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
           </span>
@@ -19687,6 +21534,10 @@ class CasaElettrodomestico extends HTMLElement {
               <div class="dm-ap-meter-row"><span>${esc(this._config.power_label || "Potenza attuale")}</span><strong class="dm-ap-power-val">0 W</strong></div>
               <div class="dm-ap-bar"><i style="width:0%"></i></div>
             </div>
+            ${this._barreExtra().map((b, i) => `<div class="dm-ap-meter">
+              <div class="dm-ap-meter-row"><span>${esc(b.label)}</span><strong class="dm-ap-extra-val" data-b="${i}">0 W</strong></div>
+              <div class="dm-ap-bar"><i class="dm-ap-extra-bar" data-b="${i}" style="width:0%"></i></div>
+            </div>`).join("")}
             ${
               this._config.live?.progress_entity
                 ? `<div class="dm-ap-meter">
@@ -19708,6 +21559,14 @@ class CasaElettrodomestico extends HTMLElement {
       e.stopPropagation();
       history.pushState(null, "", this._config.notification_path);
       window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
+    });
+    // i due interruttori: quello grande e quello delle USB
+    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
+      this._root.querySelector(sel)?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const eid = this._config[chiave];
+        this._hass?.callService(eid.split(".")[0], "toggle", { entity_id: eid });
+      });
     });
     this._root.querySelector(".dm-ap-settings").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -19786,12 +21645,20 @@ class CasaElettrodomestico extends HTMLElement {
   _openSettings() {
     const hass = this._hass;
     const sections = (this._config.settings_sections || [])
-      .map(
-        (sec) => `<div class="dm-ap-sec">
-          <div class="dm-ap-sec-cap">${esc(sec.title)}</div>
-          ${sec.rows.map((row) => this._settingsRowHtml(hass, row)).join("")}
-        </div>`,
-      )
+      .map((sec) => {
+        const righe = (sec.rows || []).map((row) => this._settingsRowHtml(hass, row)).join("");
+        if ((sec.rows || []).length <= 3 && !sec.chiuso) {
+          return `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">${esc(sec.title)}</div>${righe}</div>`;
+        }
+        // il numero da mettere nel titolo: l'ultima riga (di solito il totale)
+        const ultima = sec.rows[sec.rows.length - 1];
+        const st = ultima && hass.states[ultima.entity];
+        const valore = st ? `${st.state}${st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : ""}` : "";
+        return `<details class="dm-ap-sec dm-ap-sec-chiusa">
+          <summary class="dm-ap-sec-cap">${esc(sec.title)}${valore ? ` \u00b7 <b>${esc(valore)}</b>` : ""}</summary>
+          ${righe}
+        </details>`;
+      })
       .join("");
 
     const resetBtn = this._config.reset_script
@@ -19841,9 +21708,57 @@ class CasaElettrodomestico extends HTMLElement {
 
   _cycleAttr(hass, key) {
     const cfg = this._config;
-    if (!cfg.cycle_sensor || !cfg.cycle_attrs?.[key]) return null;
-    const st = hass.states[cfg.cycle_sensor];
-    return st ? st.attributes?.[cfg.cycle_attrs[key]] : null;
+    if (cfg.cycle_sensor && cfg.cycle_attrs?.[key]) {
+      const st = hass.states[cfg.cycle_sensor];
+      return st ? st.attributes?.[cfg.cycle_attrs[key]] : null;
+    }
+    // niente sensore del ciclo: allora sono le tre memorie che riempie
+    // l'automazione fatta dalla scheda (fine, minuti, kWh)
+    return this._cicloDaMemorie(hass, key);
+  }
+
+  // Le tre memorie dell'ultimo ciclo, gia' scritte come vanno lette.
+  _cicloDaMemorie(hass, key) {
+    const c = this._config.ciclo;
+    if (!c) return null;
+    // niente ciclo ancora registrato: meglio un trattino che un falso 00:00
+    const kWh = Number((hass.states[c.consumo] || {}).state);
+    const min = Number((hass.states[c.durata] || {}).state);
+    if (!(kWh > 0) && !(min > 0)) return null;
+    const leggi = (eid) => {
+      const st = eid ? hass.states[eid] : null;
+      return st && !["unknown", "unavailable", ""].includes(st.state) ? st.state : null;
+    };
+    if (key === "end") {
+      const v = leggi(c.fine);
+      if (!v) return null;
+      const d = new Date(v.replace(" ", "T"));
+      if (isNaN(d)) return v;
+      const ora = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+      const oggi = new Date();
+      const stessoGiorno = d.toDateString() === oggi.toDateString();
+      const ieri = new Date(oggi.getTime() - 86400000).toDateString() === d.toDateString();
+      if (stessoGiorno) return ora;
+      if (ieri) return "ieri " + ora;
+      return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + " " + ora;
+    }
+    if (key === "duration") {
+      const m = Number(leggi(c.durata));
+      if (!Number.isFinite(m) || m <= 0) return null;
+      const h = Math.floor(m / 60);
+      return h ? h + "h " + String(Math.round(m % 60)).padStart(2, "0") + "m" : Math.round(m) + " min";
+    }
+    if (key === "energy") {
+      const k = Number(leggi(c.consumo));
+      return Number.isFinite(k) && k > 0 ? numero(k, 2) + " kWh" : null;
+    }
+    if (key === "cost") {
+      const k = Number(leggi(c.consumo));
+      const p = Number((hass.states[this._config.prezzo_entita] || {}).state);
+      if (!Number.isFinite(k) || !Number.isFinite(p) || p <= 0) return null;
+      return k * p;
+    }
+    return null;
   }
 
   // Il tempo: dal sensore "history_stats" sono ore con la virgola (1.25),
@@ -19863,9 +21778,42 @@ class CasaElettrodomestico extends HTMLElement {
   // sensore a fine ciclo. Ma l'apparecchio, intanto, i suoi numeri li dice
   // (energia, minuti fatti, minuti che mancano, che fase sta facendo): qui li
   // traduco nelle stesse quattro righe, cosi' il riquadro parla anche adesso.
+  // Il ciclo in corso ricavato dai pezzi che crea la scheda: il contatore
+  // azzerato alla partenza e la soglia "sta lavorando".
+  _cicloVivoDaiNostri(hass) {
+    const c = this._config.ciclo;
+    if (!c || !c.contatore) return null;
+    const out = {};
+    const st = hass.states[c.contatore];
+    if (st && !["unknown", "unavailable"].includes(st.state)) {
+      const k = Number(st.state);
+      if (Number.isFinite(k)) {
+        out.energy = `${numero(k, 2)} kWh`;
+        const p = Number(hass.states[this._config.prezzo_entita]?.state);
+        if (Number.isFinite(p) && p > 0) out.cost = k * p;
+      }
+    }
+    // da quanto va: dalla partenza segnata, se c'e' (regge le intermittenze),
+    // se no da quando la soglia si e' accesa
+    const via = c.inizio ? hass.states[c.inizio] : null;
+    const scritta = via && !["unknown", "unavailable"].includes(via.state)
+      && !/[ T]00:00:00$/.test(String(via.state)) ? via.state : null;
+    const daVia = scritta ? new Date(scritta.replace(" ", "T")) : null;
+    const sg = this._config.soglia_acceso ? hass.states[this._config.soglia_acceso] : null;
+    const quando = daVia && !isNaN(daVia) ? daVia
+      : (sg && sg.state === "on" && sg.last_changed ? new Date(sg.last_changed) : null);
+    if (quando) {
+      const min = Math.max(0, Math.round((Date.now() - quando.getTime()) / 60000));
+      const h = Math.floor(min / 60);
+      out.duration = h ? h + "h " + String(min % 60).padStart(2, "0") + "m" : min + " min";
+    }
+    out.end = "in corso";
+    return Object.keys(out).length ? out : null;
+  }
+
   _cicloVivo(hass) {
     const c = this._config.ciclo_live;
-    if (!c) return null;
+    if (!c) return this._cicloVivoDaiNostri(hass);
     const buono = (e) => {
       const st = e && hass.states[e];
       return st && !["unavailable", "unknown"].includes(st.state) ? st : null;
@@ -19917,16 +21865,32 @@ class CasaElettrodomestico extends HTMLElement {
     const pEnt = cfg.period_entities?.[periodKey] || {};
     const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time])
       : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
-    const cost = pEnt.cost ? hass.states[pEnt.cost]?.state
+    const kwhNum = pEnt.energy ? Number(hass.states[pEnt.energy]?.state) : NaN;
+    const kwhTxt = Number.isFinite(kwhNum) ? `${numero(kwhNum, 2)} kWh` : "\u2014";
+    let cost = pEnt.cost ? hass.states[pEnt.cost]?.state
       : (pAttrs.cost ? attrs[pAttrs.cost] : null);
+    // senza un sensore del costo il conto lo faccio qui: kWh per il prezzo.
+    // Attenzione: Number(null) vale 0, quindi "manca" va chiesto per bene.
+    const manca = cost === null || cost === undefined || cost === ""
+      || !Number.isFinite(Number(cost));
+    if (manca && Number.isFinite(kwhNum)) {
+      const p = Number(hass.states[cfg.prezzo_entita]?.state);
+      if (Number.isFinite(p) && p > 0) cost = kwhNum * p;
+    }
     const costTxt = Number.isFinite(Number(cost)) ? `${numero(cost, 2)} \u20ac` : "\u2014";
-    const label = cfg.period_labels[periodKey] || periodKey;
+    const NOMI = { today: "Oggi", yesterday: "Ieri", week: "Settimana", month: "Mese",
+      month_prev: "Mese scorso", year: "Anno", year_prev: "Anno scorso" };
+    const label = (cfg.period_labels || {})[periodKey] || NOMI[periodKey] || periodKey;
+    // le colonne vuote non si mostrano: su una presa i cicli non esistono
+    const celle = [];
+    if (cycles !== "\u2014") celle.push(["Cicli", esc(cycles)]);
+    if (time !== "\u2014") celle.push(["Tempo", esc(time)]);
+    if (Number.isFinite(kwhNum)) celle.push(["Consumo", kwhTxt]);
+    celle.push(["Costo", costTxt]);
     return `<div class="dm-ap-week-row">
       <div class="dm-ap-week-day">${esc(label)}</div>
-      <div class="dm-ap-week-stats cols3">
-        <div class="dm-ap-week-stat"><small>Cicli</small><b>${esc(cycles)}</b></div>
-        <div class="dm-ap-week-stat"><small>Tempo</small><b>${esc(time)}</b></div>
-        <div class="dm-ap-week-stat"><small>Costo</small><b>${costTxt}</b></div>
+      <div class="dm-ap-week-stats${celle.length <= 3 ? " cols3" : ""}">
+        ${celle.map(([n, val]) => `<div class="dm-ap-week-stat"><small>${n}</small><b>${val}</b></div>`).join("")}
       </div>
     </div>`;
   }
@@ -20119,13 +22083,19 @@ class CasaElettrodomestico extends HTMLElement {
       })
       .join("");
 
+    const conta = ((this._config.period_entities || {}).today || {}).energy
+      || this._config.oggi_energia || this._config.energy_stat_entity;
+    const vuoto = !daAttributo && !body;
     this._openDialog("Statistiche", `
       ${periodRows ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div><div class="dm-ap-week-list">${periodRows}</div></div>` : ""}
       <div class="dm-ap-sec">
         <div class="dm-ap-sec-cap">Ultimi 7 giorni</div>
-        <div class="dm-ap-week-list">${daAttributo || body || `<div class="dm-ap-row-val">Nessun dato configurato</div>`}</div>
+        <div class="dm-ap-week-list" data-sette>${daAttributo || body
+          || (conta ? `<div class="dm-ap-row-val">Guardo nello storico...</div>`
+            : `<div class="dm-ap-row-val">Nessun dato configurato</div>`)}</div>
       </div>
     `);
+    if (vuoto && conta) this._settimanaDalloStorico(conta);
   }
 
   // -- grafici potenza (linea 24h + istogrammi mese/anno) ------------------
@@ -20222,6 +22192,50 @@ class CasaElettrodomestico extends HTMLElement {
     return rows
       .map((r) => ({ t: new Date((r.lu || r.last_updated_ts) * 1000 || r.last_updated), y: Number(r.s ?? r.state) }))
       .filter((p) => Number.isFinite(p.y));
+  }
+
+  // I sette giorni presi dallo storico del contatore: una riga per giorno,
+  // i kWh consumati e quanto sono costati al prezzo di adesso.
+  async _settimanaDalloStorico(conta) {
+    const box = this._root.querySelector("[data-sette]");
+    if (!box) return;
+    const fine = new Date();
+    const inizio = new Date(fine.getTime() - 7 * 86400000);
+    inizio.setHours(0, 0, 0, 0);
+    try {
+      const punti = await this._fetchStats(conta, "day", inizio, fine);
+      if (!punti.length) {
+        box.innerHTML = `<div class="dm-ap-row-val">Ancora niente: lo storico comincia adesso.</div>`;
+        return;
+      }
+      const p = Number(this._hass.states[this._config.prezzo_entita]?.state);
+      const GIORNI = ["dom", "lun", "mar", "mer", "gio", "ven", "sab"];
+      const chiave = (d) => d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+      const trovati = {};
+      punti.forEach((x) => { trovati[chiave(x.t)] = (trovati[chiave(x.t)] || 0) + x.value; });
+      const giorni = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setHours(12, 0, 0, 0);
+        d.setDate(d.getDate() - i);
+        giorni.push({ t: d, value: trovati[chiave(d)] || 0 });
+      }
+      box.innerHTML = giorni.map((x) => {
+        const d = x.t;
+        const etichetta = GIORNI[d.getDay()] + " " + String(d.getDate()).padStart(2, "0")
+          + "/" + String(d.getMonth() + 1).padStart(2, "0");
+        const costo = Number.isFinite(p) && p > 0 ? `${numero(x.value * p, 2)} \u20ac` : "\u2014";
+        return `<div class="dm-ap-week-row">
+          <div class="dm-ap-week-day">${esc(etichetta)}</div>
+          <div class="dm-ap-week-stats cols3">
+            <div class="dm-ap-week-stat"><small>Consumo</small><b>${numero(x.value, 2)} kWh</b></div>
+            <div class="dm-ap-week-stat"><small>Costo</small><b>${costo}</b></div>
+          </div>
+        </div>`;
+      }).join("");
+    } catch (e) {
+      box.innerHTML = `<div class="dm-ap-row-val">Lo storico non risponde.</div>`;
+    }
   }
 
   async _fetchStats(entityId, period, start, end) {
@@ -20417,7 +22431,9 @@ class CasaElettrodomestico extends HTMLElement {
     let duration = this._cycleAttr(hass, "duration");
     let energy = this._cycleAttr(hass, "energy");
     let cost = this._cycleAttr(hass, "cost");
-    const vivo = mode === "running" ? this._cicloVivo(hass) : null;
+    const sogliaOn = cfg.soglia_acceso
+      && hass.states[cfg.soglia_acceso]?.state === "on";
+    const vivo = (mode === "running" || sogliaOn) ? this._cicloVivo(hass) : null;
     const cap = this._root.querySelector(".dm-c-cap");
     const sub = this._root.querySelector(".dm-ap-cycle-sub");
     if (cap) cap.textContent = vivo ? "Ciclo in corso" : "Ultimo ciclo";
@@ -20438,6 +22454,71 @@ class CasaElettrodomestico extends HTMLElement {
     { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-cost"); if (x) x.textContent = Number.isFinite(Number(cost)) ? `${numero(Number(cost), 2)} \u20ac` : "\u2014"; }
 
+    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
+      const t = this._root.querySelector(sel);
+      if (!t) return;
+      const st = hass.states[cfg[chiave]]?.state;
+      t.classList.toggle("acceso", !!st && !["off", "unavailable", "unknown"].includes(st));
+    });
+
+    // le quattro righe "da presa": kWh e costo di oggi e del mese
+    const numeroDi = (eid, unita, dec) => {
+      const st = eid ? hass.states[eid] : null;
+      if (!st || ["unavailable", "unknown"].includes(st.state)) return "\u2014";
+      const n = Number(st.state);
+      return Number.isFinite(n) ? `${numero(n, dec)}${unita}` : st.state;
+    };
+    // i quattro sensori: quelli scelti a mano, oppure quelli creati dal tasto
+    // "Crea statistiche e costi", che li scrive dentro period_entities
+    const pe = cfg.period_entities || {};
+    // Il costo non ha bisogno di un sensore suo: e' i kWh per il prezzo, e il
+    // prezzo lo tiene la scheda principale. Se un sensore del costo c'e' lo uso
+    // (magari l'hai fatto tu), se no il conto lo faccio qui e non creo niente.
+    const prezzo = Number((hass.states[cfg.prezzo_entita] || {}).state);
+    const costoDa = (eidCosto, eidKwh) => {
+      if (eidCosto && hass.states[eidCosto]) return numeroDi(eidCosto, " \u20ac", 2);
+      const st = eidKwh ? hass.states[eidKwh] : null;
+      if (!st || ["unavailable", "unknown"].includes(st.state)) return "\u2014";
+      const k = Number(st.state);
+      if (!Number.isFinite(k) || !Number.isFinite(prezzo) || prezzo <= 0) return "\u2014";
+      return `${numero(k * prezzo, 2)} \u20ac`;
+    };
+    const kwhOggi = cfg.oggi_energia || (pe.today || {}).energy;
+    const kwhSett = cfg.settimana_energia || (pe.week || {}).energy;
+    const kwhMese = cfg.mese_energia || (pe.month || {}).energy;
+    const periodi = [
+      [".dm-c-oggi", kwhOggi, " kWh", 2],
+      [".dm-c-settimana", kwhSett, " kWh", 2],
+      [".dm-c-mese", kwhMese, " kWh", 2],
+    ];
+    let hoPeriodi = false;
+    periodi.forEach(([sel, eid, unita, dec]) => {
+      const x = this._root.querySelector(sel);
+      if (!x) return;
+      if (eid) hoPeriodi = true;
+      x.textContent = numeroDi(eid, unita, dec);
+    });
+    [[".dm-c-costo-oggi", cfg.oggi_costo || (pe.today || {}).cost, kwhOggi],
+     [".dm-c-costo-settimana", cfg.settimana_costo || (pe.week || {}).cost, kwhSett],
+     [".dm-c-costo-mese", cfg.mese_costo || (pe.month || {}).cost, kwhMese]].forEach(([sel, eidCosto, eidKwh]) => {
+      const x = this._root.querySelector(sel);
+      if (!x) return;
+      if (eidCosto || eidKwh) hoPeriodi = true;
+      x.textContent = costoDa(eidCosto, eidKwh);
+    });
+    if (cap && !vivo && !cfg.cycle_sensor && !cfg.ciclo && hoPeriodi) cap.textContent = "Consumi";
+
+    this._barreExtra().forEach((b, i) => {
+      const barra = this._root.querySelector(`.dm-ap-extra-bar[data-b="${i}"]`);
+      const scritta = this._root.querySelector(`.dm-ap-extra-val[data-b="${i}"]`);
+      if (!barra || !scritta) return;
+      const st2 = hass.states[b.entity];
+      const w2 = st2 && !["unavailable", "unknown"].includes(st2.state) ? Number(st2.state) : NaN;
+      const val2 = Number.isFinite(w2) ? Math.max(0, w2) : 0;
+      scritta.textContent = val2 >= 1000 ? `${numero(val2 / 1000, 1)} kW` : `${numero(val2, 0)} W`;
+      barra.style.width = `${Math.min(100, Math.round((val2 / b.max) * 100))}%`;
+    });
+
     const warnEl = this._root.querySelector(".dm-ap-warn");
     const activeWarnings = (cfg.warn_entities || [])
       .filter((w) => hass.states[w.entity]?.state === w.on_state)
@@ -20455,7 +22536,10 @@ class CasaElettrodomestico extends HTMLElement {
   // Home Assistant decide da solo e il cursore del Layout si comporta a modo
   // suo: la casella e' alta, va detto.
   getGridOptions() {
-    return { columns: 12, rows: 7, min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
+    // "auto": l'altezza la misura Home Assistant sul contenuto vero. Con un
+    // numero fisso (era 7) le schede corte lasciavano un buco sotto, e in una
+    // vista a sezioni il buco si vede tutto.
+    return { columns: 12, rows: "auto", min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
   }
 
   getCardSize() {
@@ -20470,8 +22554,31 @@ class CasaElettrodomestico extends HTMLElement {
 
 
 const DISEGNI = [
-  ["washer", "Lavatrice"], ["dishwasher", "Lavastoviglie"], ["dryer", "Asciugatrice"],
-  ["oven", "Forno"], ["dehumidifier", "Deumidificatore"], ["tv", "Televisore"], ["boiler", "Boiler / scaldabagno"],
+  ["washer", "Lavatrice"],
+  ["dishwasher", "Lavastoviglie"],
+  ["dryer", "Asciugatrice"],
+  ["oven", "Forno"],
+  ["microonde", "Microonde"],
+  ["frigorifero", "Frigorifero"],
+  ["dehumidifier", "Deumidificatore"],
+  ["condizionatore", "Condizionatore"],
+  ["ventilatore", "Ventilatore"],
+  ["boiler", "Boiler / scaldabagno"],
+  ["luce", "Luce"],
+  ["lampada", "Lampada"],
+  ["tv", "Televisore"],
+  ["pc_torre", "PC (torre)"],
+  ["pc_monitor", "PC (monitor)"],
+  ["minipc", "Mini PC (Home Assistant)"],
+  ["presa", "Presa smart"],
+  ["ciabatta", "Ciabatta / multipresa"],
+  ["powerstation", "Powerstation"],
+  ["energy", "Contatore della luce"],
+  ["ups", "Gruppo di continuita'"],
+  ["server", "Server"],
+  ["nas", "NAS"],
+  ["fritzbox", "Router"],
+  ["proxmox", "Proxmox"],
 ];
 
 const ETICHETTE = {
@@ -20484,6 +22591,13 @@ const ETICHETTE = {
   power_label: "Nome della barra (vuoto = Potenza attuale)",
   power_unit: "Unita' della barra (vuoto = W)",
   stato: "Stato vero dell'apparecchio (facoltativo: integrazioni LG, Bosch...)",
+  interruttore: "Tasto \u23fb nella barra in alto: cosa accende e spegne",
+  interruttore_usb: "Secondo tasto per le prese USB (se ci sono)",
+  oggi_energia: "kWh di OGGI: il contatore di utenza a ciclo giornaliero",
+  oggi_costo: "Euro di oggi: quei kWh per il prezzo",
+  mese_energia: "kWh del MESE: lo stesso contatore a ciclo mensile",
+  mese_costo: "Euro del mese",
+  barre_entita: "Barre in piu' (una per ogni cosa che vuoi vedere in W)",
   cycle_sensor: "Sensore dell'ultimo ciclo (es. sensor.lavatrice_ciclo)",
   avanzamento: "Seconda barra: un numero da 0 a 100 (avanzamento, umidita'...)",
   progress_label: "Nome della seconda barra (vuoto = Avanzamento programma)",
@@ -20500,31 +22614,55 @@ const ETICHETTE = {
   velo_sfoca: "Quanto sfoca quello che c'e' dietro",
 };
 
-const SCHEMA = [
+const SCHEMA_TUTTO = [
+  // in vista solo l'essenziale: come si chiama, che faccia ha, cosa misura
   { name: "name", selector: { text: {} } },
   { name: "artwork", selector: { select: { mode: "dropdown", options: DISEGNI.map(([value, label]) => ({ value, label })) } } },
-  { name: "power_entity", required: true, selector: { entity: { domain: "sensor" } } },
-  { name: "threshold_run", selector: { number: { min: 0, max: 3000, step: 1, mode: "box", unit_of_measurement: "W" } } },
-  { name: "threshold_standby", selector: { number: { min: 0, max: 500, step: 0.5, mode: "box", unit_of_measurement: "W" } } },
-  { name: "max_power", selector: { number: { min: 1, max: 10000, step: 1, mode: "box" } } },
-  { name: "power_label", selector: { text: {} } },
-  { name: "power_unit", selector: { text: {} } },
-  { name: "stato", selector: { entity: {} } },
-  { name: "cycle_sensor", selector: { entity: { domain: "sensor" } } },
-  { name: "avanzamento", selector: { entity: {} } },
-  { name: "progress_label", selector: { text: {} } },
-  { name: "vivo_energia", selector: { entity: { domain: "sensor" } } },
-  { name: "vivo_trascorso", selector: { entity: { domain: "sensor" } } },
-  { name: "vivo_residuo", selector: { entity: { domain: "sensor" } } },
-  { name: "vivo_programma", selector: { entity: { domain: "sensor" } } },
-  { name: "vivo_fase", selector: { entity: { domain: "sensor" } } },
-  { name: "notification_path", selector: { text: {} } },
-  { name: "finestra_sfondo", selector: { color_rgb: {} } },
-  { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
-  { name: "finestra_scritta", selector: { color_rgb: {} } },
-  { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
-  { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
+  { name: "power_entity", selector: { entity: { domain: "sensor" } } },
+  // il resto in cassetti, che si aprono solo se servono
+  { name: "g_acceso", type: "expandable", flatten: true, title: "Quando e' acceso (soglie e barra)", schema: [
+    { name: "threshold_run", selector: { number: { min: 0, max: 3000, step: 1, mode: "box", unit_of_measurement: "W" } } },
+    { name: "threshold_standby", selector: { number: { min: 0, max: 500, step: 0.5, mode: "box", unit_of_measurement: "W" } } },
+    { name: "max_power", selector: { number: { min: 1, max: 10000, step: 1, mode: "box" } } },
+    { name: "power_label", selector: { text: {} } },
+    { name: "power_unit", selector: { text: {} } },
+    { name: "stato", selector: { entity: {} } },
+  ] },
+  { name: "g_tasti", type: "expandable", flatten: true, title: "Tasti di accensione", schema: [
+    { name: "interruttore", selector: { entity: {} } },
+    { name: "interruttore_usb", selector: { entity: {} } },
+  ] },
+  { name: "g_conti", type: "expandable", flatten: true, title: "Sensore dell'ultimo ciclo", schema: [
+    { name: "cycle_sensor", selector: { entity: { domain: "sensor" } } },
+  ] },
+  { name: "g_vivo", type: "expandable", flatten: true, title: "Ciclo in corso (mentre lavora)", schema: [
+    { name: "vivo_energia", selector: { entity: { domain: "sensor" } } },
+    { name: "vivo_trascorso", selector: { entity: { domain: "sensor" } } },
+    { name: "vivo_residuo", selector: { entity: { domain: "sensor" } } },
+    { name: "vivo_programma", selector: { entity: { domain: "sensor" } } },
+    { name: "vivo_fase", selector: { entity: { domain: "sensor" } } },
+  ] },
+  { name: "g_barre", type: "expandable", flatten: true, title: "Seconda barra", schema: [
+    { name: "barre_entita", selector: { entity: { multiple: true, domain: "sensor" } } },
+    { name: "avanzamento", selector: { entity: {} } },
+    { name: "progress_label", selector: { text: {} } },
+  ] },
+  { name: "g_aspetto", type: "expandable", flatten: true, title: "Aspetto e finestra del pop-up", schema: [
+    { name: "notification_path", selector: { text: {} } },
+    { name: "finestra_sfondo", selector: { color_rgb: {} } },
+    { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+    { name: "finestra_scritta", selector: { color_rgb: {} } },
+    { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
+    { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
+  ] },
 ];
+
+// Quello che si vede appena apri: tre campi e due cassetti. Il resto sta in
+// SCHEMA_TUTTO e compare solo con l'interruttore "mostra tutto".
+const SCHEMA_SEMPLICE = ["artwork", "power_entity", "interruttore", "name"]
+  .map((n) => SCHEMA_TUTTO.find((x) => x.name === n))
+  .filter(Boolean);
+
 
 class CasaElettrodomesticoEditor extends HTMLElement {
   setConfig(config) {
@@ -20547,6 +22685,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
   _datiForm() {
     const c = this._config;
     return { ...c,
+      barre_entita: (c.barre || []).map((x) => x && x.entity).filter(Boolean),
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
       finestra_scritta: this._versoRgb(c.finestra_scritta), stato: (c.live && c.live.state_entity) || "",
       avanzamento: (c.live && c.live.progress_entity) || "",
@@ -20572,6 +22711,11 @@ class CasaElettrodomesticoEditor extends HTMLElement {
   }
 
   _cambiatoForm(v) {
+    // hai cambiato il disegno? allora vado a cercare l'apparecchio che gli
+    // somiglia. Lo PROPONGO e basta: la scheda non si compila da sola.
+    if ("artwork" in v && v.artwork && v.artwork !== this._config.artwork) {
+      this._proponiDalDisegno(v.artwork);
+    }
     // le terne del selettore tornano esadecimali
     ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
       if (k in v) v[k] = this._versoHex(v[k]);
@@ -20597,8 +22741,110 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       if (nuovo) vivo[CHIAVI[k]] = nuovo;
     });
     if (Object.keys(vivo).length) c.ciclo_live = vivo; else delete c.ciclo_live;
+    // le barre in piu': tengo nome e fondo scala di quelle che c'erano gia'
+    if ("barre_entita" in v) {
+      const prima = {};
+      (this._config.barre || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x; });
+      const elenco = (v.barre_entita || []).map((eid) => prima[eid]
+        || { label: this._nomeDi(eid), entity: eid, max: 1000 });
+      if (elenco.length) c.barre = elenco; else delete c.barre;
+      delete c.barre_entita;
+      ["barra2_entita", "barra2_nome", "barra2_max"].forEach((k) => delete c[k]);
+    }
     this._config = c;
     this._emetti();
+  }
+
+  // cerca in casa un apparecchio che somigli al disegno scelto
+  _proponiDalDisegno(disegno) {
+    const esito = this.querySelector(".ce-capisci-esito");
+    const sel = this.querySelector(".ce-capisci-ent");
+    if (!esito || !this._hass) return;
+    const trovati = trovaPerDisegno(this._hass, disegno);
+    if (!trovati.length) {
+      esito.textContent = "Per questo disegno non ho trovato niente che si chiami cosi'. Scegli tu l'entita' qui sopra.";
+      return;
+    }
+    // il candidato lo NOMINO soltanto: la casella la riempi tu
+    // NON compilo mai da solo: propongo il candidato, decidi tu
+    esito.textContent = "Per questo disegno ci sarebbe " + this._nomeDi(trovati[0])
+      + (trovati.length > 1 ? " (e altri " + (trovati.length - 1) + ")" : "")
+      + ": premi il tasto qui sotto se lo vuoi. Non ho toccato niente.";
+  }
+
+  // nome e fondo scala di ogni barra in piu'
+  _disegnaBarre() {
+    const box = this.querySelector(".ce-barre");
+    if (!box) return;
+    const barre = this._config.barre || [];
+    box.innerHTML = barre.length ? "" : "<div class='ce-aiuto'>Nessuna barra in piu'.</div>";
+    barre.forEach((b, i) => {
+      const riga = document.createElement("div");
+      riga.className = "ce-riga";
+      riga.innerHTML = `<span class="ent">${b.entity}</span>`;
+      const nome = document.createElement("input");
+      nome.className = "nome";
+      nome.placeholder = "nome della barra";
+      nome.value = b.label || "";
+      const max = document.createElement("input");
+      max.type = "number";
+      max.className = "max";
+      max.style.maxWidth = "90px";
+      max.value = b.max || 1000;
+      const scrivi = () => {
+        const c = { ...this._config, barre: barre.map((x, k) => k !== i ? x
+          : { ...x, label: nome.value.trim() || this._nomeDi(x.entity), max: Number(max.value) || 1000 }) };
+        this._config = c;
+        this._emetti();
+      };
+      nome.addEventListener("change", scrivi);
+      max.addEventListener("change", scrivi);
+      riga.append(nome, max, document.createTextNode(" W"));
+      box.appendChild(riga);
+    });
+  }
+
+  // Il prezzo dei sensori che creo: o il numero secco del menu, o la tariffa
+  // della sola energia scritta a mano. Il conto della bolletta sta altrove.
+  _prezzoScritto() {
+    const n = (c) => Number((this.querySelector(c) || {}).value) || 0;
+    const energia = n(".ce-v-energia");
+    if (energia > 0) return Math.round(energia * 10000) / 10000;
+    // se hai detto "scrivo io" valgono SOLO le voci: niente numeri di scorta
+    const sel = this.querySelector(".ce-prezzo-ent");
+    if (sel && sel.value === "__mia__") return 0;
+    return Number((this.querySelector(".ce-prezzo") || {}).value) || 0;
+  }
+
+  _aggiornaTotale() {
+    const t = this.querySelector(".ce-v-totale");
+    if (!t) return;
+    const v = this._prezzoScritto();
+    t.textContent = v ? v.toFixed(4) + " \u20ac/kWh" : "\u2014";
+  }
+
+  // il nome buono e' quello del dispositivo ("Lavatrice"), non del sensore
+  // ("Lavatrice Potenza"): se no gli aiutanti si chiamano tutti "... Potenza ..."
+  _nomeDispositivo(eid) {
+    const h = this._hass;
+    if (!h || !eid) return "";
+    const voce = (h.entities || {})[eid];
+    const dev = voce && voce.device_id && (h.devices || {})[voce.device_id];
+    if (dev && (dev.name_by_user || dev.name)) return dev.name_by_user || dev.name;
+    const st = h.states[eid];
+    return (st && st.attributes && st.attributes.friendly_name) || "";
+  }
+
+  // il contatore in kWh dello stesso dispositivo della presa, se c'e'
+  _kWhDelDispositivo() {
+    const h = this._hass;
+    const potenza = this._config.power_entity;
+    if (!h || !potenza) return "";
+    const reg = h.entities || {};
+    const dev = reg[potenza] && reg[potenza].device_id;
+    if (!dev) return "";
+    return Object.keys(reg).find((k) => reg[k].device_id === dev && k.startsWith("sensor.")
+      && ((h.states[k] || {}).attributes || {}).device_class === "energy") || "";
   }
 
   _disegnaRighe() {
@@ -20607,6 +22853,14 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       this._config = c;
       this._emetti();
       this._disegnaRighe();
+    this._disegnaBarre();
+    this.querySelectorAll(".ce-v-energia").forEach((x) => {
+      if (x._agganciato) return;
+      x._agganciato = true;
+      x.addEventListener("input", () => this._aggiornaTotale());
+    });
+    const sceglitore = this.querySelector(".ce-capisci-ent");
+    if (sceglitore) sceglitore.hass = this._hass;
     });
   }
 
@@ -20634,19 +22888,50 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     if (!sel || !campo) return;
     const elenco = prezziDelKWh(this._hass);
     const scelto = sel.value;
-    sel.hidden = !elenco.length;
-    campo.hidden = !!elenco.length;
+    sel.hidden = false;
+    campo.hidden = true;
     sel.innerHTML = "";
-    elenco.forEach((id) => {
+    // niente di preselezionato: il prezzo lo scegli tu
+    const vuoto = document.createElement("option");
+    vuoto.value = "";
+    vuoto.textContent = "\u2014 scegli il prezzo \u2014";
+    sel.appendChild(vuoto);
+    // quello che tiene la scheda principale: e' il caso normale
+    const dallaCasa = prezzoDellaCasa(this._hass);
+    // gli aiutanti in \u20ac/kWh che hai gia' in casa (li ha fatti Home Assistant,
+    // non io: sono gli input_number con unita' \u20ac/kWh)
+    elenco.filter((id) => !INGREDIENTE.test(id)).forEach((id) => {
       const st = this._hass.states[id];
       const o = document.createElement("option");
       o.value = id;
-      o.textContent = (st.attributes.friendly_name || id) + " \u2014 " + st.state + " \u20ac/kWh";
+      o.textContent = (st.attributes.friendly_name || id) + " \u2014 " + st.state + " \u20ac/kWh"
+        + (id === dallaCasa ? "  (dalla scheda principale)" : "");
       sel.appendChild(o);
     });
+    const mia = document.createElement("option");
+    mia.value = "__mia__";
+    mia.textContent = elenco.length ? "\u2014 scrivo io la mia tariffa \u2014" : "\u2014 scrivo io la mia tariffa (non ne hai) \u2014";
+    sel.appendChild(mia);
     const mio = this._config.prezzo_entita;
-    if (scelto && elenco.includes(scelto)) sel.value = scelto;
+    // ripesco quello che hai scelto tu; se non hai scelto niente vale quello
+    // della scheda principale, che e' dove la tariffa si scrive
+    if (scelto && (scelto === "__mia__" || elenco.includes(scelto))) sel.value = scelto;
     else if (mio && elenco.includes(mio)) sel.value = mio;
+    else if (dallaCasa && elenco.includes(dallaCasa)) sel.value = dallaCasa;
+    else sel.value = "";
+    if (!sel._agganciato) {
+      sel._agganciato = true;
+      sel.addEventListener("change", () => this._mostraVoci());
+    }
+    this._mostraVoci();
+  }
+
+  // le voci della bolletta si vedono solo se hai detto "scrivo io"
+  _mostraVoci() {
+    const sel = this.querySelector(".ce-prezzo-ent");
+    const mia = sel && sel.value === "__mia__";
+    this.querySelectorAll(".ce-voci").forEach((x) => { x.hidden = !mia; });
+    this._aggiornaTotale();
   }
 
   _kWhPossibili() {
@@ -20654,35 +22939,119 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     return Object.keys(st).filter((id) => {
       if (!id.startsWith("sensor.")) return false;
       const a = st[id].attributes || {};
-      return a.device_class === "energy" && String(a.unit_of_measurement || "").toLowerCase() === "kwh";
+      const u = String(a.unit_of_measurement || "").toLowerCase();
+      return a.device_class === "energy" && (u === "kwh" || u === "wh");
     }).sort();
   }
 
   _disegnaKwh() {
-    const sel = this.querySelector(".ce-kwh");
+    const sel = this.querySelector(".ce-kwh-pick");
     if (!sel) return;
-    const scelto = sel.value;
-    sel.innerHTML = "<option value=''>\u2014 calcolalo dai Watt \u2014</option>";
-    this._kWhPossibili().forEach((id) => {
-      const o = document.createElement("option");
-      o.value = id;
-      o.textContent = this._nomeDi(id);
-      sel.appendChild(o);
-    });
+    if (this._hass) sel.hass = this._hass;
+    // gli faccio vedere solo i contatori di energia: cosi' la ricerca non
+    // pesca lampadine e termometri
+    const buoni = this._kWhPossibili();
+    sel.includeDomains = ["sensor"];
+    sel.entityFilter = (e) => buoni.includes(typeof e === "string" ? e : e.entity_id);
+    if (!sel._agganciato) {
+      sel._agganciato = true;
+      sel.addEventListener("value-changed", (ev) => {
+        ev.stopPropagation();
+        this._scriviScelta("energia_kwh", ev.detail.value || "");
+        this._disegnaKwh();
+      });
+    }
     const mio = this._config.energia_kwh;
-    if (scelto) sel.value = scelto;
-    else if (mio && this._kWhPossibili().includes(mio)) sel.value = mio;
+    // se il dispositivo ha gia' il suo contatore in kWh lo scelgo io: creare
+    // un integrale sopra a un contatore vero sarebbe lavoro (e helper) sprecato
+    sel.value = mio || "";
+    // la soglia si misura con l'unita' del sensore scelto: se al posto dei Watt
+    // c'e' il tempo residuo della lavatrice, sono minuti
+    const un = String((((this._hass || {}).states || {})[this._config.power_entity] || {}).attributes
+      ?.unit_of_measurement || "W");
+    const eti = this.querySelector(".ce-soglia-eti");
+    const unEl = this.querySelector(".ce-soglia-un");
+    if (eti) eti.textContent = "Sopra questi " + un + " sta lavorando";
+    if (unEl) unEl.textContent = un;
+    // rimetto le spunte come le avevi lasciate
+    const scelti = this._config.periodi;
+    if (Array.isArray(scelti)) {
+      ["oggi", "settimana", "mese"].forEach((k) => {
+        const c = this.querySelector(".ce-p-" + k);
+        if (c) c.checked = scelti.includes(k);
+      });
+    }
+    const nota = this.querySelector(".ce-nota-kwh");
+    if (nota) {
+      const u = sel.value ? String(((this._hass.states[sel.value] || {}).attributes || {})
+        .unit_of_measurement || "") : "";
+      nota.innerHTML = sel.value
+        ? ("Bene: i kWh li conta gia' il dispositivo"
+          + (u.toLowerCase() === "wh" ? ", e visto che sono in <b>Wh</b> li porto in kWh da solo." : ", li uso e basta."))
+        : "Questo dispositivo <b>non conta i kWh</b>, dice solo i Watt: me li calcolo io, minuto per minuto. E' un aiutante in piu', ma e' l'unico modo.";
+    }
     const soglia = this.querySelector(".ce-soglia");
     if (soglia && !soglia.dataset.tocco && this._config.threshold_run) {
       soglia.value = this._config.threshold_run;
     }
   }
 
+  // Il contrario del tasto qui sopra: butta via gli aiutanti che questa
+  // scheda si e' fatta creare. Prima te li fa vedere uno per uno.
+  async _cancellaSensori() {
+    const elenco = (await aiutantiVeri(this._hass, this._config))
+      .filter((x) => !String(x.entity).startsWith("input_number."));
+    this._esito.hidden = false;
+    this._esito.classList.remove("male");
+    if (!elenco.length) {
+      this._esito.textContent = "Questa scheda non ha aiutanti da cancellare.";
+      return;
+    }
+    this._esito.textContent = "";
+    // il riquadro con le caselline: scegli tu quali buttare
+    quali_cancellare(this._esito, elenco, this._hass, async (scelti) => {
+      const tasto = this.querySelector(".ce-cancella");
+      if (tasto) tasto.disabled = true;
+      this._esito.hidden = false;
+      this._esito.textContent = "";
+      try {
+        const esito = await cancellaQuesti(this._hass, scelti,
+          (m) => { this._esito.textContent += m + "\n"; });
+        let c = scollegaEntita(this._config, scelti.map((x) => x.entity));
+        const memoria = { ...(this._config.helper_memoria || {}), ...(esito.memoria || {}) };
+        if (Object.keys(memoria).length) c.helper_memoria = memoria;
+        this._config = c;
+        this._emetti();
+        this._form.data = this._datiForm();
+        this._esito.textContent += "Fatto: " + esito.cancellati + " cancellati. "
+          + "I valori me li sono segnati: se li rifai ripartono da li'.";
+      } catch (e) {
+        this._esito.classList.add("male");
+        this._esito.textContent = "Non ce l'ho fatta: " + (e && e.message ? e.message : e);
+      } finally {
+        if (tasto) tasto.disabled = false;
+      }
+    });
+  }
+
   async _creaSensori() {
     const tasto = this.querySelector(".ce-crea");
     const potenza = this._config.power_entity;
     if (!potenza) { this._dillo("Prima scegli la presa che misura i Watt.", true); return; }
-    const kwh = (this.querySelector(".ce-kwh") || {}).value || this._config.energia_kwh;
+    const kwh = (this.querySelector(".ce-kwh-pick") || {}).value || this._config.energia_kwh;
+    const prezzoScelto = (this.querySelector(".ce-prezzo-ent") || {}).value;
+    if (!prezzoScelto) {
+      this._esito.hidden = false;
+      this._esito.classList.add("male");
+      this._esito.textContent = "Scegli prima il prezzo: o un aiutante che hai gia', o \u00abscrivo io la mia tariffa\u00bb.";
+      return;
+    }
+    if (prezzoScelto === "__mia__" && !this._prezzoScritto()) {
+      this._esito.hidden = false;
+      this._esito.classList.add("male");
+      this._esito.textContent = "Hai detto \u00abscrivo io\u00bb ma le voci della tariffa sono vuote.";
+      return;
+    }
     if (!window.confirm("Creo in Home Assistant gli helper delle statistiche di "
       + (this._config.name || "questo elettrodomestico") + "." + "\n"
       + "Quelli che ci sono gia' li riuso. Vado?")) return;
@@ -20692,13 +23061,38 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     this._esito.textContent = "";
     try {
       const patch = await creaSensoriElettrodomestico(this._hass, {
-        potenza, energia: kwh || null, nome: this._config.name,
+        memoria: this._config.helper_memoria || {},
+        // i contatori che la scheda gia' usa: quelli si riusano, non si rifanno
+        gia: {
+          oggi: this._config.oggi_energia || ((this._config.period_entities || {}).today || {}).energy,
+          settimana: this._config.settimana_energia || ((this._config.period_entities || {}).week || {}).energy,
+          mese: this._config.mese_energia || ((this._config.period_entities || {}).month || {}).energy,
+        },
+        nome: this._config.name || this._nomeDispositivo(kwh || potenza),
+        potenza, energia: kwh || null,
         soglia: Number((this.querySelector(".ce-soglia") || {}).value),
-        prezzo_entita: (this.querySelector(".ce-prezzo-ent") || {}).value || this._config.prezzo_entita,
-        prezzo: Number((this.querySelector(".ce-prezzo") || {}).value),
+        prezzo_entita: (() => {
+          const v = (this.querySelector(".ce-prezzo-ent") || {}).value;
+          return v === "__mia__" ? "" : (v || this._config.prezzo_entita);
+        })(),
+        prezzo: this._prezzoScritto(),
+        tempi: !!(this.querySelector(".ce-tempi") || {}).checked,
+        periodi: ["oggi", "settimana", "mese"].filter((k) =>
+          ((this.querySelector(".ce-p-" + k) || {}).checked)),
         stats: this._config.stats,
       }, (t) => this._dillo(t));
       this._config = { ...this._config, ...patch };
+      // la memoria dei valori, se e' stata usata, si butta (patch la mette a null)
+      if (patch.helper_memoria === null) delete this._config.helper_memoria;
+      if ((this.querySelector(".ce-cicli") || {}).checked) {
+        const kwhVero = (patch.energy_stat_entity || kwh
+          || ((patch.period_entities || {}).today || {}).energy);
+        const piu = await creaCicli(this._hass, {
+          potenza, energia: kwhVero, nome: this._config.name,
+          soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+        }, (t) => this._dillo(t));
+        this._config = { ...this._config, ...piu };
+      }
       this._emetti();
       this._form.data = this._datiForm();
       this._dillo("Le statistiche sono agganciate. Salva e chiudi.");
@@ -20718,35 +23112,99 @@ class CasaElettrodomesticoEditor extends HTMLElement {
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
-      this.innerHTML = `<style>${STILE_EDITOR}</style><div class="ce-form"></div>
+      this.innerHTML = `<style>${STILE_EDITOR}</style><label class="ce-riga ce-tutto-riga"><input type="checkbox" class="ce-tutto">
+          <span>Mostra tutte le impostazioni (soglie, barre, ciclo in corso, colori)</span></label>
+        <div class="ce-versione">casa-elettrodomestico \u00b7 casa-tile v${VERSIONE}</div>
+        <div class="ce-form"></div>
+        <div class="ce-sez">
+          <div class="ce-tit">Come si fa, in tre mosse</div>
+          <div class="ce-aiuto">
+            <b>1.</b> Qui sotto scegli <b>una</b> entita' dell'apparecchio e premi <b>Compila da solo</b>:
+            riempio io quello che trovo.<br>
+            <b>2.</b> Guarda l'<b>anteprima a destra</b>. Quello che vedi e' quello che avrai. Se un numero
+            dice "&mdash;", apri il cassetto che lo riguarda (sono qui sopra, chiusi) e scegli il sensore.<br>
+            <b>3.</b> Se i contatori non esistono ancora, in fondo c'e' <b>Crea statistiche e costi</b>:
+            te li creo io e poi li aggancio.<br>
+            Il resto e' facoltativo: tasti, barre in piu', colori. Se non li tocchi, non compaiono.
+          </div>
+        </div>
+        <div class="ce-sez">
+          <div class="ce-tit">1. Capisci da solo l'apparecchio</div>
+          <div class="ce-aiuto">Scegli <b>una qualsiasi</b> entita' dell'apparecchio - la presa, l'interruttore,
+            lo stato - e premi il tasto. Guardo tutte le altre entita' dello <b>stesso dispositivo</b> e riempio
+            io: i <b>watt</b>, lo <b>stato</b>, l'<b>interruttore</b> e quello <b>USB</b>, i sensori del
+            <b>ciclo in corso</b> e il <b>disegno</b> che mi sembra giusto dal nome.
+            Niente e' definitivo: tutto quello che trovo si cambia qui sotto, disegno compreso.</div>
+          <div class="ce-riga"><span class="ent">Entita' da cui partire</span><ha-entity-picker class="ce-capisci-ent" allow-custom-entity></ha-entity-picker></div>
+          <button type="button" class="ce-prepara">Compila da solo</button>
+          <div class="ce-esito ce-capisci-esito"></div>
+        </div>
+        
+        <details class="ce-sez"><summary class="ce-tit">Due modi di contare: scegli il tuo</summary>
+          <div class="ce-aiuto">Questa scheda va bene per <b>tutti e due</b> i casi, e capisce da sola quale
+            e' il tuo da quello che compili:<br>
+            &bull; <b>Ha dei cicli</b> (lavatrice, lavastoviglie, forno): dagli il <i>sensore dell'ultimo ciclo</i>
+            e il riquadro fa vedere <i>fine, durata, consumo e costo</i> dell'ultimo lavaggio.<br>
+            &bull; <b>Sta sempre acceso</b> (una presa, un PC, un frigo): lascia stare il ciclo e dagli i
+            <i>quattro sensori dei kWh e dei costi</i> qui sopra; il riquadro diventa <b>Consumi</b> e fa
+            vedere oggi e il mese. Le righe si spuntano qui sotto.</div>
+        </details>
+        <details class="ce-sez"><summary class="ce-tit">A cosa servono i tasti di accensione</summary>
+          <div class="ce-aiuto">I due campi <b>Tasto \u23fb</b> e <b>USB</b> qui sopra mettono un tastino tondo
+            nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne,
+            e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare.
+            Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.</div>
+        </details>
+        <details class="ce-sez"><summary class="ce-tit">Nomi delle barre in piu'</summary>
+          <div class="ce-aiuto">Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto
+            <i>Seconda barra</i>. Servono per far vedere insieme piu' misure: per esempio quanto prende
+            dalla rete e quanto manda a casa.</div>
+          <div class="ce-barre"></div>
+        </details>
         <div class="ce-sez">
           <div class="ce-tit">Righe dell'«Ultimo ciclo»</div>
           <div class="ce-aiuto">Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle
             in ordine e, se vuoi, scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).</div>
           <div class="ce-righe"></div>
         </div>
-        <div class="ce-sez">
-          <div class="ce-tit">Crea i sensori base</div>
-          <div class="ce-aiuto">Creo io gli helper di Home Assistant per le <b>statistiche</b>:
-            quante volte e' partito, quanto ha lavorato e quanto e' costato, oggi e questo mese.
-            Per il costo scegli <b>con quale prezzo</b>: di solito qui si vuole la sola energia, senza tasse, e il conto completo si guarda nella scheda della casa. Il riquadro <i>Ultimo ciclo</i> non si fa da qui: quello vuole un sensore template a
-            trigger, che sta nella guida (<i>esempi/luce</i>).</div>
-          <div class="ce-riga"><span class="ent">Sensore dei kWh</span><select class="ce-kwh"></select></div>
-          <div class="ce-riga"><span class="ent">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> W</div>
+        <details class="ce-sez" open><summary class="ce-tit">Crea i sensori base (se non ce li hai)</summary>
+          <div class="ce-aiuto">A un apparecchio o a una presa servono <b>due aiutanti</b>: i kWh di oggi
+            e i kWh del mese. Il <b>costo non ha un sensore</b>: sono i kWh per il prezzo, e il conto lo fa
+            la scheda mentre lo guardi. Il prezzo lo scrivi una volta sola nella scheda <i>Energia Casa</i>,
+            che e' la principale: qui vale la <b>sola energia</b>, se no le tasse le paghi due volte.<br>
+            Se la presa non conta i kWh da sola ne serve un terzo, che li calcola dai Watt.</div>
+          <div class="ce-riga"><span class="ent">Sensore dei kWh</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
+          <div class="ce-aiuto ce-nota-kwh"></div>
+          <div class="ce-riga"><span class="ent ce-soglia-eti">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> <span class="ce-soglia-un">W</span></div>
           <div class="ce-riga"><span class="ent">Prezzo dei sensori che creo</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
+          <div class="ce-riga ce-voci" hidden><span class="ent">Quanto paghi l'energia, &euro;/kWh</span><input type="number" class="ce-v-energia max" step="0.0001" min="0" placeholder="0.1657"></div>
+          <div class="ce-riga ce-voci ce-voci-nota" hidden><span class="ent">Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia' la scheda grande della casa.</span></div>
+          <div class="ce-riga"><label><input type="checkbox" class="ce-cicli">
+            <span>Segui i <b>cicli</b>: quando finisce, quanto e' durato, quanto ha consumato
+            (aggiunge 5 aiutanti e 1 automazione)</span></label></div>
+          <div class="ce-riga"><label><input type="checkbox" class="ce-tempi">
+            <span>Conta anche <b>quante volte parte</b> e <b>per quanto</b> (aggiunge 3 aiutanti per periodo)</span></label></div>
+          <div class="ce-riga"><span class="ent">Periodi da creare</span>
+            <label><input type="checkbox" class="ce-p-oggi" checked> oggi</label>
+            <label><input type="checkbox" class="ce-p-settimana"> settimana</label>
+            <label><input type="checkbox" class="ce-p-mese" checked> mese</label></div>
           <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
+          <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
           <div class="ce-esito" hidden></div>
-        </div>
-        <div class="ce-sez">
-          <div class="ce-tit">Prepara da solo</div>
-          <div class="ce-aiuto">Ricompila la scheda partendo dalla presa: disegno dal nome, soglie,
-            stato, sensori del ciclo e dei costi (se li hai creati coi nomi dell'esempio
-            <i>esempi/luce</i>). Nome, righe e nomi delle righe restano come li hai scelti.</div>
-          <button type="button" class="ce-prepara">Prepara da solo</button>
-        </div>`;
+        </details>
+`;
       const form = document.createElement("ha-form");
-      form.schema = SCHEMA;
-      form.computeLabel = (x) => ETICHETTE[x.name] || x.name;
+      form.schema = this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE;
+      form.computeLabel = (x) => x.title || ETICHETTE[x.name] || x.name;
+      const spunta = this.querySelector(".ce-tutto");
+      if (spunta) {
+        spunta.checked = !!this._tutto;
+        spunta.addEventListener("change", () => {
+          this._tutto = spunta.checked;
+          form.schema = this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE;
+          form.data = this._datiForm();
+        });
+      }
       form.addEventListener("value-changed", (e) => {
         e.stopPropagation();
         this._cambiatoForm(e.detail.value || {});
@@ -20756,8 +23214,21 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       this._righe = this.querySelector(".ce-righe");
       this._esito = this.querySelector(".ce-esito");
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
-      this.querySelector(".ce-kwh").addEventListener("change", (e) =>
-        this._scriviScelta("energia_kwh", e.target.value));
+      this.querySelector(".ce-cancella").addEventListener("click", () => this._cancellaSensori());
+      ["oggi", "settimana", "mese"].forEach((k) => {
+        const c = this.querySelector(".ce-p-" + k);
+        if (!c) return;
+        c.addEventListener("change", () => this._scriviScelta("periodi",
+          ["oggi", "settimana", "mese"].filter((x) =>
+            (this.querySelector(".ce-p-" + x) || {}).checked)));
+      });
+      const spuntaCicli = this.querySelector(".ce-cicli");
+      if (spuntaCicli) {
+        spuntaCicli.checked = !!this._config.ciclo;
+        spuntaCicli.addEventListener("change", () => {
+          if (!spuntaCicli.checked) this._scriviScelta("ciclo", "");
+        });
+      }
       this.querySelector(".ce-prezzo-ent").addEventListener("change", (e) =>
         this._scriviScelta("prezzo_entita", e.target.value));
       this.querySelector(".ce-soglia").addEventListener("change", (e) => {
@@ -20766,7 +23237,12 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       });
       this.querySelector(".ce-prepara").addEventListener("click", () => {
         const c0 = this._config;
-        const entita = (c0.live && c0.live.state_entity) || c0.power_entity;
+        const scelta = this.querySelector(".ce-capisci-ent");
+        const entita = (scelta && scelta.value) || (c0.live && c0.live.state_entity) || c0.power_entity;
+        if (!entita) {
+          this.querySelector(".ce-capisci-esito").textContent = "Scegli prima un'entita' dell'apparecchio.";
+          return;
+        }
         const pronta = preparaElettrodomestico(this._hass, { entity: entita, name: c0.name, icona: c0.artwork });
         const tieni = {};
         ["name", "righe", "nomi_righe", "notification_path", "grid_options", "casa_misura"].forEach((k) => {
@@ -20776,6 +23252,12 @@ class CasaElettrodomesticoEditor extends HTMLElement {
         this._emetti();
         this._form.data = this._datiForm();
         this._disegnaRighe();
+        const c = this._config;
+        const trovate = ["power_entity", "interruttore", "interruttore_usb", "cycle_sensor"].filter((x) => c[x]);
+        if (c.ciclo_live) trovate.push("ciclo in corso");
+        if (c.live && c.live.state_entity) trovate.push("stato");
+        this.querySelector(".ce-capisci-esito").textContent =
+          "Trovato: " + trovate.join(", ") + ". Disegno scelto: \u00ab" + c.artwork + "\u00bb.";
       });
     }
     if (this._hass) this._form.hass = this._hass;
@@ -20829,8 +23311,10 @@ window.customCards.push({
 }
 
 [
-  ["casa-energia", "Casa · energia", "Consumo della casa, costi per periodo, circuiti e chi consuma di più (trova da sola le prese che misurano)."],
-  ["casa-elettrodomestico", "Casa · elettrodomestico", "Lavatrice, lavastoviglie, forno, asciugatrice: stato, ultimo ciclo, tempi e costi."],
+  ["casa-elettrodomestico", "Casa \u00b7 consumi",
+   "Una scheda per elettrodomestici E prese: watt, acceso/spento, ultimo ciclo oppure kWh e costi di oggi e del mese. Capisce da sola le entita' del dispositivo."],
+  // casa-energia resta viva per le schede gia' in giro (la grande della casa,
+  // con bolletta e top consumo) ma non si propone piu' nell'elenco: una sola.
 ].forEach(([type, name, description]) => {
   if (!window.customCards.some((x) => x && x.type === type)) {
     window.customCards.push({ type, name, description });

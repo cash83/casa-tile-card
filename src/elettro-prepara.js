@@ -31,7 +31,7 @@ const STATI_ITALIANI = {
   "unavailable": { mode: "unavailable", label: "N/D" },
 };
 
-const DISEGNI = [
+export const DISEGNI = [
   ["dishwasher", ["lavastovigli", "dishwasher"]],
   // la lavatrice prima: "lavASCIUGA" contiene "asciuga"
   ["washer", ["lavatric", "lavasciug", "washer", "lavaggio"]],
@@ -39,6 +39,19 @@ const DISEGNI = [
   ["oven", ["forno", "oven", "fornell"]],
   ["tv", ["tv", "televisor"]],
   ["boiler", ["boiler", "scaldabagn", "caldaia"]],
+  ["condizionatore", ["condizionator", "clima", "split", "aria_condizionata", "conditioner"]],
+  ["frigorifero", ["frigo", "fridge", "congelator", "freezer", "pozzetto"]],
+  ["ventilatore", ["ventilator", "ventola", "fan", "aspirator"]],
+  ["microonde", ["microond", "microwave"]],
+  ["dehumidifier", ["deumidificator", "umidificator", "dehumid"]],
+  ["lampada", ["abat", "lampada", "comodino", "piantana"]],
+  ["luce", ["luce", "luci", "light", "lampadin", "faretto", "plafonier"]],
+  ["pc_monitor", ["monitor", "schermo", "scrivania"]],
+  ["pc_torre", ["pc", "computer", "desktop", "torre", "nuc"]],
+  ["minipc", ["home_assistant", "homeassistant", "raspberry", "hass"]],
+  ["powerstation", ["powerstation", "power_station", "landbook", "ecoflow", "jackery"]],
+  ["ciabatta", ["ciabatta", "multipresa", "presa_multipla", "power_strip"]],
+  ["presa", ["presa", "spina", "plug", "socket", "outlet"]],
 ];
 
 const pulisci = (s) => String(s || "").toLowerCase()
@@ -90,6 +103,50 @@ function cicloDi(hass, cfg) {
   return null;
 }
 
+
+// Dal disegno alle entita': cerco in casa chi si chiama come quell'apparecchio
+// e restituisco i candidati, il migliore per primo. Un candidato vale di piu'
+// se il suo dispositivo ha anche un sensore in Watt: vuol dire che con quello
+// la scheda si riempie davvero, non solo a meta'.
+export function trovaPerDisegno(hass, disegno) {
+  const parole = (DISEGNI.find(([d]) => d === disegno) || [null, []])[1];
+  if (!parole.length) return [];
+  const st = (hass && hass.states) || {};
+  const reg = (hass && hass.entities) || {};
+  const buoni = ["switch.", "sensor.", "light.", "fan.", "humidifier.", "climate.", "binary_sensor."];
+  const punti = [];
+  Object.keys(st).forEach((eid) => {
+    if (!buoni.some((d) => eid.startsWith(d))) return;
+    if (ESCLUSI_DI_SERIE.some((x) => eid.includes(x))) return;
+    const testo = pulisci(eid + " " + ((st[eid].attributes || {}).friendly_name || ""));
+    if (!parole.some((x) => testo.includes(x))) return;
+    let p = 1;
+    // meglio un interruttore o una presa che misura: da li' si capisce tutto
+    if (eid.startsWith("switch.")) p += 3;
+    if ((st[eid].attributes || {}).device_class === "power") p += 4;
+    // e ancora meglio se il dispositivo ha davvero un sensore in Watt
+    const dev = reg[eid] && reg[eid].device_id;
+    if (dev) {
+      const fratelliW = Object.keys(reg).filter((k) => reg[k].device_id === dev
+        && k.startsWith("sensor.") && ((st[k] || {}).attributes || {}).device_class === "power");
+      if (fratelliW.length) p += 5;
+      p += 1;
+    }
+    punti.push({ eid, p });
+  });
+  punti.sort((a, b) => b.p - a.p);
+  // uno solo per dispositivo: le altre entita' le trova poi da sola
+  const visti = new Set();
+  const fuori = [];
+  punti.forEach(({ eid }) => {
+    const dev = (reg[eid] && reg[eid].device_id) || eid;
+    if (visti.has(dev)) return;
+    visti.add(dev);
+    fuori.push(eid);
+  });
+  return fuori;
+}
+
 export function preparaElettrodomestico(hass, cfg) {
   const scheda = {
     type: "custom:casa-elettrodomestico",
@@ -119,6 +176,54 @@ export function preparaElettrodomestico(hass, cfg) {
       scheda.power_entity = cfg.entity;
     }
   }
+  // gli interruttori del dispositivo: quello grande e, se c'e', quello USB
+  const sw = fratelli(hass, cfg.entity).filter((x) => x.startsWith("switch."));
+  const usb = sw.find((x) => /usb/.test(x));
+  const grande = sw.find((x) => x !== usb && !/protection|overcharge|blocco|lock|child/.test(x));
+  if (grande) scheda.interruttore = grande;
+  else if (/^(switch|light|fan|humidifier)\./.test(cfg.entity || "")) scheda.interruttore = cfg.entity;
+  if (usb) scheda.interruttore_usb = usb;
+
+  // il "ciclo in corso": energia, minuti fatti, minuti che mancano, programma,
+  // fase. Sono nomi che le integrazioni usano quasi sempre allo stesso modo.
+  const sensori = fratelli(hass, cfg.entity).filter((x) => x.startsWith("sensor."));
+  const cerca = (re) => sensori.find((x) => re.test(x));
+  const vivo = {};
+  const coppie = [
+    ["energy_entity", /energia_ciclo|cycle_energy|energy_cycle/],
+    ["elapsed_entity", /tempo_trascorso|elapsed|trascors/],
+    ["remaining_entity", /tempo_residuo|remain|residu|rimanent/],
+    ["program_entity", /programma|program|course/],
+    ["phase_entity", /fase|phase|stato_ciclo|run_state/],
+  ];
+  coppie.forEach(([chiave, re_]) => { const t = cerca(re_); if (t) vivo[chiave] = t; });
+  if (Object.keys(vivo).length >= 2) scheda.ciclo_live = vivo;
+
+  // se il dispositivo (o un contatore che si chiama come lui) espone GIA' i
+  // kWh di oggi e del mese, li uso: non c'e' bisogno di crearli di nuovo
+  const tuttiSensori = Object.keys((hass && hass.states) || {}).filter((x) => x.startsWith("sensor."));
+  // le parole con cui cercare: sia dal nome della scheda sia dall'entita'
+  // (una scheda appena nata si chiama "Nuova", e cercare "nuova" non trova
+  // niente: il nome buono sta nell'entita')
+  const radici = [];
+  pulisci(cfg.name || "").split("_").forEach((x) => { if (x.length > 3) radici.push(x); });
+  (String(cfg.entity || "").split(".")[1] || "").split("_").forEach((x) => { if (x.length > 3) radici.push(x); });
+  radici.sort((x, y) => y.length - x.length);
+  const suoi = tuttiSensori.filter((x) => radici.some((r) => x.includes(r)));
+  const classeDi = (x) => ((hass.states[x] || {}).attributes || {}).device_class;
+  const unita = (x) => String(((hass.states[x] || {}).attributes || {}).unit_of_measurement || "");
+  const trova = (quando, tipo) => suoi.find((x) => quando.test(x)
+    && (tipo === "energia" ? (classeDi(x) === "energy" || /kwh/i.test(unita(x)))
+                           : (classeDi(x) === "monetary" || /eur|€/i.test(unita(x)))));
+  const oggiE = trova(/_oggi|_today|_daily|_giorno/, "energia");
+  const meseE = trova(/_mese|_month/, "energia");
+  const oggiC = trova(/costo.*(oggi|today)|(oggi|today).*costo|cost.*(today|daily)/, "soldi");
+  const meseC = trova(/costo.*mese|mese.*costo|cost.*month/, "soldi");
+  if (oggiE) scheda.oggi_energia = oggiE;
+  if (meseE) scheda.mese_energia = meseE;
+  if (oggiC) scheda.oggi_costo = oggiC;
+  if (meseC) scheda.mese_costo = meseC;
+
   const k = cicloDi(hass, cfg);
   if (k) {
     scheda.cycle_sensor = `sensor.${k}_ciclo`;

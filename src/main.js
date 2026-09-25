@@ -54,8 +54,10 @@ window.customCards.push({
 }
 
 [
-  ["casa-energia", "Casa · energia", "Consumo della casa, costi per periodo, circuiti e chi consuma di più (trova da sola le prese che misurano)."],
-  ["casa-elettrodomestico", "Casa · elettrodomestico", "Lavatrice, lavastoviglie, forno, asciugatrice: stato, ultimo ciclo, tempi e costi."],
+  ["casa-elettrodomestico", "Casa \u00b7 consumi",
+   "Una scheda per elettrodomestici E prese: watt, acceso/spento, ultimo ciclo oppure kWh e costi di oggi e del mese. Capisce da sola le entita' del dispositivo."],
+  // casa-energia resta viva per le schede gia' in giro (la grande della casa,
+  // con bolletta e top consumo) ma non si propone piu' nell'elenco: una sola.
 ].forEach(([type, name, description]) => {
   if (!window.customCards.some((x) => x && x.type === type)) {
     window.customCards.push({ type, name, description });

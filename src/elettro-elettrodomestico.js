@@ -10,6 +10,8 @@ import {
   CHIP_SVGS,
   ICON_GEAR,
   ICON_CHART,
+  ICON_POWER,
+  ICON_USB,
   ICON_CLOSE,
   ICON_RESTART,
   ICON_NOTIFCENTER,
@@ -32,6 +34,12 @@ export const RIGHE_CICLO = [
   { id: "durata", nome: "Durata del ciclo", etichetta: "Durata", colore: "#2fbfb0" },
   { id: "consumo", nome: "Consumo del ciclo (kWh)", etichetta: "Consumo", colore: "#3fb4ea" },
   { id: "costo", nome: "Costo del ciclo", etichetta: "Costo", colore: "#e2ad1c" },
+  { id: "oggi", nome: "kWh di oggi (per prese e apparecchi senza ciclo)", etichetta: "Oggi", colore: "#3fb4ea" },
+  { id: "costo_oggi", nome: "Costo di oggi", etichetta: "Costo oggi", colore: "#e2ad1c" },
+  { id: "settimana", nome: "kWh della settimana", etichetta: "Settimana", colore: "#4fb0d8" },
+  { id: "costo_settimana", nome: "Costo della settimana", etichetta: "Costo settimana", colore: "#d8a13c" },
+  { id: "mese", nome: "kWh del mese", etichetta: "Mese", colore: "#3f8fea" },
+  { id: "costo_mese", nome: "Costo del mese", etichetta: "Costo mese", colore: "#a283f2" },
 ];
 
 const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
@@ -44,23 +52,59 @@ export class CasaElettrodomestico extends HTMLElement {
       durata: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TIMER}</span><small>Durata</small></span><b class="dm-c-duration">\u2014</b></div>`,
       consumo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-c-energy">\u2014</b></div>`,
       costo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo</small></span><b class="dm-c-cost">\u2014</b></div>`,
+      oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Oggi</small></span><b class="dm-c-oggi">\u2014</b></div>`,
+      costo_oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore dm-forte" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo oggi</small></span><b class="dm-c-costo-oggi">\u2014</b></div>`,
+      settimana: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#4fb0d8"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Settimana</small></span><b class="dm-c-settimana">\u2014</b></div>`,
+      costo_settimana: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#d8a13c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo settimana</small></span><b class="dm-c-costo-settimana">\u2014</b></div>`,
+      mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3f8fea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Mese</small></span><b class="dm-c-mese">\u2014</b></div>`,
+      costo_mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo mese</small></span><b class="dm-c-costo-mese">\u2014</b></div>`,
     };
-    return righeInOrdine(this._config, RIGHE_CICLO, R, esc);
+    const c = this._config;
+    const pe0 = c.period_entities || {};
+    const haCicli = !!(c.cycle_sensor || c.ciclo);
+    const haPeriodi = !!(c.oggi_energia || c.oggi_costo || c.mese_energia || c.mese_costo
+      || (pe0.today || {}).energy || (pe0.month || {}).energy);
+    const daCiclo = ["fine", "durata", "consumo", "costo"];
+    const daPresa = ["oggi", "costo_oggi", "mese", "costo_mese"];
+    // se hai scelto tu le righe comandi tu; se no ti do quelle che sai riempire
+    const elenco = c.righe ? RIGHE_CICLO
+      : RIGHE_CICLO.filter((r) => (haPeriodi && !haCicli ? daPresa : daCiclo).includes(r.id));
+    return righeInOrdine(c, elenco, R, esc);
+  }
+
+  // Le barre in piu': un elenco {entita', nome, fondo scala}. Accetto anche la
+  // vecchia forma a barra singola, cosi' chi ce l'ha non si accorge di niente.
+  _barreExtra() {
+    const c = this._config || {};
+    const elenco = Array.isArray(c.barre) ? c.barre.slice() : [];
+    if (c.barra2_entita && !elenco.some((b) => b && b.entity === c.barra2_entita)) {
+      elenco.unshift({ entity: c.barra2_entita, label: c.barra2_nome, max: c.barra2_max });
+    }
+    return elenco.filter((b) => b && b.entity).map((b) => ({
+      entity: b.entity,
+      label: b.label || this._nomeEntita(b.entity),
+      max: Number(b.max) || c.max_power || 1000,
+    }));
+  }
+
+  _nomeEntita(eid) {
+    const st = this._hass && this._hass.states && this._hass.states[eid];
+    return (st && st.attributes && st.attributes.friendly_name) || eid;
   }
 
   static getConfigElement() {
     return document.createElement("casa-elettrodomestico-editor");
   }
 
-  static getStubConfig(hass) {
-    const st = (hass && hass.states) || {};
-    const potenza = Object.keys(st).find((k) => k.startsWith("sensor.")
-      && (st[k].attributes || {}).device_class === "power") || "";
-    return { type: "custom:casa-elettrodomestico", name: "Lavatrice", artwork: "washer", power_entity: potenza };
+  // Niente entita' scelte da me: la scheda nasce vuota e la riempi tu (o la
+  // fai riempire dal tasto "Capisci da solo").
+  static getStubConfig() {
+    return { type: "custom:casa-elettrodomestico", name: "", artwork: "washer" };
   }
 
   setConfig(config) {
-    if (!config.power_entity) throw new Error("power_entity \u00e8 obbligatorio");
+    // senza entita' la scheda non si rompe: si fa vedere vuota, e l'editor
+    // dice cosa manca. Prima buttava un errore rosso in faccia.
     this._config = {
       name: "Elettrodomestico",
       artwork: "dishwasher",
@@ -102,6 +146,8 @@ export class CasaElettrodomestico extends HTMLElement {
           <span class="dm-ap-badge"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label"></span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
+            ${this._config.interruttore ? `<button type="button" class="dm-ap-tool dm-ap-power" title="Accendi / spegni">${ICON_POWER}</button>` : ""}
+            ${this._config.interruttore_usb ? `<button type="button" class="dm-ap-tool dm-ap-usb" title="USB">${ICON_USB}</button>` : ""}
             <button type="button" class="dm-ap-tool dm-ap-settings" title="Impostazioni">${ICON_GEAR}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
           </span>
@@ -123,6 +169,10 @@ export class CasaElettrodomestico extends HTMLElement {
               <div class="dm-ap-meter-row"><span>${esc(this._config.power_label || "Potenza attuale")}</span><strong class="dm-ap-power-val">0 W</strong></div>
               <div class="dm-ap-bar"><i style="width:0%"></i></div>
             </div>
+            ${this._barreExtra().map((b, i) => `<div class="dm-ap-meter">
+              <div class="dm-ap-meter-row"><span>${esc(b.label)}</span><strong class="dm-ap-extra-val" data-b="${i}">0 W</strong></div>
+              <div class="dm-ap-bar"><i class="dm-ap-extra-bar" data-b="${i}" style="width:0%"></i></div>
+            </div>`).join("")}
             ${
               this._config.live?.progress_entity
                 ? `<div class="dm-ap-meter">
@@ -144,6 +194,14 @@ export class CasaElettrodomestico extends HTMLElement {
       e.stopPropagation();
       history.pushState(null, "", this._config.notification_path);
       window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
+    });
+    // i due interruttori: quello grande e quello delle USB
+    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
+      this._root.querySelector(sel)?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const eid = this._config[chiave];
+        this._hass?.callService(eid.split(".")[0], "toggle", { entity_id: eid });
+      });
     });
     this._root.querySelector(".dm-ap-settings").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -222,12 +280,20 @@ export class CasaElettrodomestico extends HTMLElement {
   _openSettings() {
     const hass = this._hass;
     const sections = (this._config.settings_sections || [])
-      .map(
-        (sec) => `<div class="dm-ap-sec">
-          <div class="dm-ap-sec-cap">${esc(sec.title)}</div>
-          ${sec.rows.map((row) => this._settingsRowHtml(hass, row)).join("")}
-        </div>`,
-      )
+      .map((sec) => {
+        const righe = (sec.rows || []).map((row) => this._settingsRowHtml(hass, row)).join("");
+        if ((sec.rows || []).length <= 3 && !sec.chiuso) {
+          return `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">${esc(sec.title)}</div>${righe}</div>`;
+        }
+        // il numero da mettere nel titolo: l'ultima riga (di solito il totale)
+        const ultima = sec.rows[sec.rows.length - 1];
+        const st = ultima && hass.states[ultima.entity];
+        const valore = st ? `${st.state}${st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : ""}` : "";
+        return `<details class="dm-ap-sec dm-ap-sec-chiusa">
+          <summary class="dm-ap-sec-cap">${esc(sec.title)}${valore ? ` \u00b7 <b>${esc(valore)}</b>` : ""}</summary>
+          ${righe}
+        </details>`;
+      })
       .join("");
 
     const resetBtn = this._config.reset_script
@@ -277,9 +343,57 @@ export class CasaElettrodomestico extends HTMLElement {
 
   _cycleAttr(hass, key) {
     const cfg = this._config;
-    if (!cfg.cycle_sensor || !cfg.cycle_attrs?.[key]) return null;
-    const st = hass.states[cfg.cycle_sensor];
-    return st ? st.attributes?.[cfg.cycle_attrs[key]] : null;
+    if (cfg.cycle_sensor && cfg.cycle_attrs?.[key]) {
+      const st = hass.states[cfg.cycle_sensor];
+      return st ? st.attributes?.[cfg.cycle_attrs[key]] : null;
+    }
+    // niente sensore del ciclo: allora sono le tre memorie che riempie
+    // l'automazione fatta dalla scheda (fine, minuti, kWh)
+    return this._cicloDaMemorie(hass, key);
+  }
+
+  // Le tre memorie dell'ultimo ciclo, gia' scritte come vanno lette.
+  _cicloDaMemorie(hass, key) {
+    const c = this._config.ciclo;
+    if (!c) return null;
+    // niente ciclo ancora registrato: meglio un trattino che un falso 00:00
+    const kWh = Number((hass.states[c.consumo] || {}).state);
+    const min = Number((hass.states[c.durata] || {}).state);
+    if (!(kWh > 0) && !(min > 0)) return null;
+    const leggi = (eid) => {
+      const st = eid ? hass.states[eid] : null;
+      return st && !["unknown", "unavailable", ""].includes(st.state) ? st.state : null;
+    };
+    if (key === "end") {
+      const v = leggi(c.fine);
+      if (!v) return null;
+      const d = new Date(v.replace(" ", "T"));
+      if (isNaN(d)) return v;
+      const ora = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+      const oggi = new Date();
+      const stessoGiorno = d.toDateString() === oggi.toDateString();
+      const ieri = new Date(oggi.getTime() - 86400000).toDateString() === d.toDateString();
+      if (stessoGiorno) return ora;
+      if (ieri) return "ieri " + ora;
+      return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + " " + ora;
+    }
+    if (key === "duration") {
+      const m = Number(leggi(c.durata));
+      if (!Number.isFinite(m) || m <= 0) return null;
+      const h = Math.floor(m / 60);
+      return h ? h + "h " + String(Math.round(m % 60)).padStart(2, "0") + "m" : Math.round(m) + " min";
+    }
+    if (key === "energy") {
+      const k = Number(leggi(c.consumo));
+      return Number.isFinite(k) && k > 0 ? numero(k, 2) + " kWh" : null;
+    }
+    if (key === "cost") {
+      const k = Number(leggi(c.consumo));
+      const p = Number((hass.states[this._config.prezzo_entita] || {}).state);
+      if (!Number.isFinite(k) || !Number.isFinite(p) || p <= 0) return null;
+      return k * p;
+    }
+    return null;
   }
 
   // Il tempo: dal sensore "history_stats" sono ore con la virgola (1.25),
@@ -299,9 +413,42 @@ export class CasaElettrodomestico extends HTMLElement {
   // sensore a fine ciclo. Ma l'apparecchio, intanto, i suoi numeri li dice
   // (energia, minuti fatti, minuti che mancano, che fase sta facendo): qui li
   // traduco nelle stesse quattro righe, cosi' il riquadro parla anche adesso.
+  // Il ciclo in corso ricavato dai pezzi che crea la scheda: il contatore
+  // azzerato alla partenza e la soglia "sta lavorando".
+  _cicloVivoDaiNostri(hass) {
+    const c = this._config.ciclo;
+    if (!c || !c.contatore) return null;
+    const out = {};
+    const st = hass.states[c.contatore];
+    if (st && !["unknown", "unavailable"].includes(st.state)) {
+      const k = Number(st.state);
+      if (Number.isFinite(k)) {
+        out.energy = `${numero(k, 2)} kWh`;
+        const p = Number(hass.states[this._config.prezzo_entita]?.state);
+        if (Number.isFinite(p) && p > 0) out.cost = k * p;
+      }
+    }
+    // da quanto va: dalla partenza segnata, se c'e' (regge le intermittenze),
+    // se no da quando la soglia si e' accesa
+    const via = c.inizio ? hass.states[c.inizio] : null;
+    const scritta = via && !["unknown", "unavailable"].includes(via.state)
+      && !/[ T]00:00:00$/.test(String(via.state)) ? via.state : null;
+    const daVia = scritta ? new Date(scritta.replace(" ", "T")) : null;
+    const sg = this._config.soglia_acceso ? hass.states[this._config.soglia_acceso] : null;
+    const quando = daVia && !isNaN(daVia) ? daVia
+      : (sg && sg.state === "on" && sg.last_changed ? new Date(sg.last_changed) : null);
+    if (quando) {
+      const min = Math.max(0, Math.round((Date.now() - quando.getTime()) / 60000));
+      const h = Math.floor(min / 60);
+      out.duration = h ? h + "h " + String(min % 60).padStart(2, "0") + "m" : min + " min";
+    }
+    out.end = "in corso";
+    return Object.keys(out).length ? out : null;
+  }
+
   _cicloVivo(hass) {
     const c = this._config.ciclo_live;
-    if (!c) return null;
+    if (!c) return this._cicloVivoDaiNostri(hass);
     const buono = (e) => {
       const st = e && hass.states[e];
       return st && !["unavailable", "unknown"].includes(st.state) ? st : null;
@@ -353,16 +500,32 @@ export class CasaElettrodomestico extends HTMLElement {
     const pEnt = cfg.period_entities?.[periodKey] || {};
     const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time])
       : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
-    const cost = pEnt.cost ? hass.states[pEnt.cost]?.state
+    const kwhNum = pEnt.energy ? Number(hass.states[pEnt.energy]?.state) : NaN;
+    const kwhTxt = Number.isFinite(kwhNum) ? `${numero(kwhNum, 2)} kWh` : "\u2014";
+    let cost = pEnt.cost ? hass.states[pEnt.cost]?.state
       : (pAttrs.cost ? attrs[pAttrs.cost] : null);
+    // senza un sensore del costo il conto lo faccio qui: kWh per il prezzo.
+    // Attenzione: Number(null) vale 0, quindi "manca" va chiesto per bene.
+    const manca = cost === null || cost === undefined || cost === ""
+      || !Number.isFinite(Number(cost));
+    if (manca && Number.isFinite(kwhNum)) {
+      const p = Number(hass.states[cfg.prezzo_entita]?.state);
+      if (Number.isFinite(p) && p > 0) cost = kwhNum * p;
+    }
     const costTxt = Number.isFinite(Number(cost)) ? `${numero(cost, 2)} \u20ac` : "\u2014";
-    const label = cfg.period_labels[periodKey] || periodKey;
+    const NOMI = { today: "Oggi", yesterday: "Ieri", week: "Settimana", month: "Mese",
+      month_prev: "Mese scorso", year: "Anno", year_prev: "Anno scorso" };
+    const label = (cfg.period_labels || {})[periodKey] || NOMI[periodKey] || periodKey;
+    // le colonne vuote non si mostrano: su una presa i cicli non esistono
+    const celle = [];
+    if (cycles !== "\u2014") celle.push(["Cicli", esc(cycles)]);
+    if (time !== "\u2014") celle.push(["Tempo", esc(time)]);
+    if (Number.isFinite(kwhNum)) celle.push(["Consumo", kwhTxt]);
+    celle.push(["Costo", costTxt]);
     return `<div class="dm-ap-week-row">
       <div class="dm-ap-week-day">${esc(label)}</div>
-      <div class="dm-ap-week-stats cols3">
-        <div class="dm-ap-week-stat"><small>Cicli</small><b>${esc(cycles)}</b></div>
-        <div class="dm-ap-week-stat"><small>Tempo</small><b>${esc(time)}</b></div>
-        <div class="dm-ap-week-stat"><small>Costo</small><b>${costTxt}</b></div>
+      <div class="dm-ap-week-stats${celle.length <= 3 ? " cols3" : ""}">
+        ${celle.map(([n, val]) => `<div class="dm-ap-week-stat"><small>${n}</small><b>${val}</b></div>`).join("")}
       </div>
     </div>`;
   }
@@ -555,13 +718,19 @@ export class CasaElettrodomestico extends HTMLElement {
       })
       .join("");
 
+    const conta = ((this._config.period_entities || {}).today || {}).energy
+      || this._config.oggi_energia || this._config.energy_stat_entity;
+    const vuoto = !daAttributo && !body;
     this._openDialog("Statistiche", `
       ${periodRows ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div><div class="dm-ap-week-list">${periodRows}</div></div>` : ""}
       <div class="dm-ap-sec">
         <div class="dm-ap-sec-cap">Ultimi 7 giorni</div>
-        <div class="dm-ap-week-list">${daAttributo || body || `<div class="dm-ap-row-val">Nessun dato configurato</div>`}</div>
+        <div class="dm-ap-week-list" data-sette>${daAttributo || body
+          || (conta ? `<div class="dm-ap-row-val">Guardo nello storico...</div>`
+            : `<div class="dm-ap-row-val">Nessun dato configurato</div>`)}</div>
       </div>
     `);
+    if (vuoto && conta) this._settimanaDalloStorico(conta);
   }
 
   // -- grafici potenza (linea 24h + istogrammi mese/anno) ------------------
@@ -658,6 +827,50 @@ export class CasaElettrodomestico extends HTMLElement {
     return rows
       .map((r) => ({ t: new Date((r.lu || r.last_updated_ts) * 1000 || r.last_updated), y: Number(r.s ?? r.state) }))
       .filter((p) => Number.isFinite(p.y));
+  }
+
+  // I sette giorni presi dallo storico del contatore: una riga per giorno,
+  // i kWh consumati e quanto sono costati al prezzo di adesso.
+  async _settimanaDalloStorico(conta) {
+    const box = this._root.querySelector("[data-sette]");
+    if (!box) return;
+    const fine = new Date();
+    const inizio = new Date(fine.getTime() - 7 * 86400000);
+    inizio.setHours(0, 0, 0, 0);
+    try {
+      const punti = await this._fetchStats(conta, "day", inizio, fine);
+      if (!punti.length) {
+        box.innerHTML = `<div class="dm-ap-row-val">Ancora niente: lo storico comincia adesso.</div>`;
+        return;
+      }
+      const p = Number(this._hass.states[this._config.prezzo_entita]?.state);
+      const GIORNI = ["dom", "lun", "mar", "mer", "gio", "ven", "sab"];
+      const chiave = (d) => d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+      const trovati = {};
+      punti.forEach((x) => { trovati[chiave(x.t)] = (trovati[chiave(x.t)] || 0) + x.value; });
+      const giorni = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setHours(12, 0, 0, 0);
+        d.setDate(d.getDate() - i);
+        giorni.push({ t: d, value: trovati[chiave(d)] || 0 });
+      }
+      box.innerHTML = giorni.map((x) => {
+        const d = x.t;
+        const etichetta = GIORNI[d.getDay()] + " " + String(d.getDate()).padStart(2, "0")
+          + "/" + String(d.getMonth() + 1).padStart(2, "0");
+        const costo = Number.isFinite(p) && p > 0 ? `${numero(x.value * p, 2)} \u20ac` : "\u2014";
+        return `<div class="dm-ap-week-row">
+          <div class="dm-ap-week-day">${esc(etichetta)}</div>
+          <div class="dm-ap-week-stats cols3">
+            <div class="dm-ap-week-stat"><small>Consumo</small><b>${numero(x.value, 2)} kWh</b></div>
+            <div class="dm-ap-week-stat"><small>Costo</small><b>${costo}</b></div>
+          </div>
+        </div>`;
+      }).join("");
+    } catch (e) {
+      box.innerHTML = `<div class="dm-ap-row-val">Lo storico non risponde.</div>`;
+    }
   }
 
   async _fetchStats(entityId, period, start, end) {
@@ -853,7 +1066,9 @@ export class CasaElettrodomestico extends HTMLElement {
     let duration = this._cycleAttr(hass, "duration");
     let energy = this._cycleAttr(hass, "energy");
     let cost = this._cycleAttr(hass, "cost");
-    const vivo = mode === "running" ? this._cicloVivo(hass) : null;
+    const sogliaOn = cfg.soglia_acceso
+      && hass.states[cfg.soglia_acceso]?.state === "on";
+    const vivo = (mode === "running" || sogliaOn) ? this._cicloVivo(hass) : null;
     const cap = this._root.querySelector(".dm-c-cap");
     const sub = this._root.querySelector(".dm-ap-cycle-sub");
     if (cap) cap.textContent = vivo ? "Ciclo in corso" : "Ultimo ciclo";
@@ -874,6 +1089,71 @@ export class CasaElettrodomestico extends HTMLElement {
     { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-cost"); if (x) x.textContent = Number.isFinite(Number(cost)) ? `${numero(Number(cost), 2)} \u20ac` : "\u2014"; }
 
+    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
+      const t = this._root.querySelector(sel);
+      if (!t) return;
+      const st = hass.states[cfg[chiave]]?.state;
+      t.classList.toggle("acceso", !!st && !["off", "unavailable", "unknown"].includes(st));
+    });
+
+    // le quattro righe "da presa": kWh e costo di oggi e del mese
+    const numeroDi = (eid, unita, dec) => {
+      const st = eid ? hass.states[eid] : null;
+      if (!st || ["unavailable", "unknown"].includes(st.state)) return "\u2014";
+      const n = Number(st.state);
+      return Number.isFinite(n) ? `${numero(n, dec)}${unita}` : st.state;
+    };
+    // i quattro sensori: quelli scelti a mano, oppure quelli creati dal tasto
+    // "Crea statistiche e costi", che li scrive dentro period_entities
+    const pe = cfg.period_entities || {};
+    // Il costo non ha bisogno di un sensore suo: e' i kWh per il prezzo, e il
+    // prezzo lo tiene la scheda principale. Se un sensore del costo c'e' lo uso
+    // (magari l'hai fatto tu), se no il conto lo faccio qui e non creo niente.
+    const prezzo = Number((hass.states[cfg.prezzo_entita] || {}).state);
+    const costoDa = (eidCosto, eidKwh) => {
+      if (eidCosto && hass.states[eidCosto]) return numeroDi(eidCosto, " \u20ac", 2);
+      const st = eidKwh ? hass.states[eidKwh] : null;
+      if (!st || ["unavailable", "unknown"].includes(st.state)) return "\u2014";
+      const k = Number(st.state);
+      if (!Number.isFinite(k) || !Number.isFinite(prezzo) || prezzo <= 0) return "\u2014";
+      return `${numero(k * prezzo, 2)} \u20ac`;
+    };
+    const kwhOggi = cfg.oggi_energia || (pe.today || {}).energy;
+    const kwhSett = cfg.settimana_energia || (pe.week || {}).energy;
+    const kwhMese = cfg.mese_energia || (pe.month || {}).energy;
+    const periodi = [
+      [".dm-c-oggi", kwhOggi, " kWh", 2],
+      [".dm-c-settimana", kwhSett, " kWh", 2],
+      [".dm-c-mese", kwhMese, " kWh", 2],
+    ];
+    let hoPeriodi = false;
+    periodi.forEach(([sel, eid, unita, dec]) => {
+      const x = this._root.querySelector(sel);
+      if (!x) return;
+      if (eid) hoPeriodi = true;
+      x.textContent = numeroDi(eid, unita, dec);
+    });
+    [[".dm-c-costo-oggi", cfg.oggi_costo || (pe.today || {}).cost, kwhOggi],
+     [".dm-c-costo-settimana", cfg.settimana_costo || (pe.week || {}).cost, kwhSett],
+     [".dm-c-costo-mese", cfg.mese_costo || (pe.month || {}).cost, kwhMese]].forEach(([sel, eidCosto, eidKwh]) => {
+      const x = this._root.querySelector(sel);
+      if (!x) return;
+      if (eidCosto || eidKwh) hoPeriodi = true;
+      x.textContent = costoDa(eidCosto, eidKwh);
+    });
+    if (cap && !vivo && !cfg.cycle_sensor && !cfg.ciclo && hoPeriodi) cap.textContent = "Consumi";
+
+    this._barreExtra().forEach((b, i) => {
+      const barra = this._root.querySelector(`.dm-ap-extra-bar[data-b="${i}"]`);
+      const scritta = this._root.querySelector(`.dm-ap-extra-val[data-b="${i}"]`);
+      if (!barra || !scritta) return;
+      const st2 = hass.states[b.entity];
+      const w2 = st2 && !["unavailable", "unknown"].includes(st2.state) ? Number(st2.state) : NaN;
+      const val2 = Number.isFinite(w2) ? Math.max(0, w2) : 0;
+      scritta.textContent = val2 >= 1000 ? `${numero(val2 / 1000, 1)} kW` : `${numero(val2, 0)} W`;
+      barra.style.width = `${Math.min(100, Math.round((val2 / b.max) * 100))}%`;
+    });
+
     const warnEl = this._root.querySelector(".dm-ap-warn");
     const activeWarnings = (cfg.warn_entities || [])
       .filter((w) => hass.states[w.entity]?.state === w.on_state)
@@ -891,7 +1171,10 @@ export class CasaElettrodomestico extends HTMLElement {
   // Home Assistant decide da solo e il cursore del Layout si comporta a modo
   // suo: la casella e' alta, va detto.
   getGridOptions() {
-    return { columns: 12, rows: 7, min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
+    // "auto": l'altezza la misura Home Assistant sul contenuto vero. Con un
+    // numero fisso (era 7) le schede corte lasciavano un buco sotto, e in una
+    // vista a sezioni il buco si vede tutto.
+    return { columns: 12, rows: "auto", min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
   }
 
   getCardSize() {

@@ -121,92 +121,98 @@ giusto dal nome (lavatrice, lavastoviglie, asciugatrice, forno…) e i sensori q
 sotto, se ci sono. Poi la voce diventa «Apri un pop-up mio» e la scheda la
 ritocchi nella linguetta **Pop-up** come tutte le altre.
 
-### Quali sensori servono
+### I sensori se li fa la scheda
 
-Le schede **mostrano** i valori, non li calcolano: i conti li fa Home Assistant.
-Senza sensori si vedono lo stesso i Watt; il resto compare man mano che li crei.
+Dalla **2.87** non serve più preparare niente a mano: gli aiutanti di Home
+Assistant li crea la scheda, con due tasti.
 
-| Valore sulla scheda | Da dove arriva | Come si crea |
-|---|---|---|
-| Watt adesso, barre dei circuiti, top consumo | sensori di potenza (W) delle prese | ci sono già (Shelly, Tuya, Zigbee…) |
-| Consumo di oggi / periodi | `sensor.casa_totale_casa_rete_ora` · `_oggi` · `_settimana` · `_mese` | contatori di utenza (`utility_meter`) sul contatore generale in kWh, con **`always_available: true`** |
-| Costo + tasse, Mese + tasse | `sensor.costo_energia_ora` · `_oggi` · `_ieri` · `_settimana` · `_mese` | sensori template: kWh × prezzo + quota fissa |
-| Solo energia, conto voce per voce | `sensor.costi_luce_oggi`, `sensor.costi_luce_mese` (attributi `kwh`, `energia`, `rete_e_oneri`, `accise`, `quota_fissa`, `iva`, `risparmio_fotovoltaico`, `risparmio_fotovoltaico_energia`) — da qui anche la riga «Senza FV» | sensori template + macro `luce.jinja` |
-| Risparmio FV | `sensor.risparmio_fotovoltaico` + contatori `_oggi` / `_mese` | sensore trigger + `utility_meter` con `net_consumption: true` |
-| Il prezzo | `input_number.prezzo_luce_energia`, `…_rete_e_oneri`, `…_accise`, `input_number.iva_luce`, `input_number.quota_fissa_energia_giorno` → `input_number.prezzo_energia` (totale) | aiutanti + un'automazione che ricalcola il totale |
-| Ultimo ciclo, cicli, tempi e costi di un elettrodomestico | `sensor.<nome>_ciclo`, `sensor.<nome>_cicli_oggi`, `sensor.<nome>_cicli_mese` (+ contatori `<nome>_energia_oggi` / `_mese`) | sensori trigger che guardano i W della presa |
+**1. La tariffa, una volta sola.** Nell'editor di `casa-energia`, riquadro
+**La tua tariffa**: scrivi le voci come stanno in bolletta — energia, rete e
+oneri, accise, IVA, quota fissa al giorno — e premi **Scrivi la tariffa**. Il
+totale per kWh lo calcola lei. Se gli aiutanti dei prezzi non esistono li crea,
+se ci sono riscrive il valore.
+
+Quel prezzo vale **per tutta la casa**: le schede degli apparecchi e delle prese
+lo leggono da qui e non te lo richiedono. Su un apparecchio conta la **sola
+energia** (tasse e quota fissa si pagano una volta sola, e le conta la scheda
+grande: se le mettessi anche lì le pagheresti due volte).
+
+**2. I contatori.** Riquadro **Crea i sensori base**: scegli da quale sensore dei
+**kWh** parte la casa e premi **Crea contatori e costi**. Nascono i contatori di
+ora, oggi, settimana, mese e **bolletta** (con `always_available` già acceso), più
+il costo di ogni periodo — con la **quota fissa** contata sui giorni giusti.
+Nello stesso riquadro puoi indicare il **sensore dei pannelli** e quello della
+**batteria** (uno o più d'uno: se sono tanti li somma), e avrai i kWh arrivati da
+lì, di oggi, della settimana e del mese.
+
+Sulle schede degli apparecchi e delle prese il tasto si chiama **Crea statistiche
+e costi** e fa la stessa cosa in piccolo: i kWh di oggi e del mese. Se la presa
+non conta i kWh (capita spesso con le Tuya) se li ricava dai Watt; se li conta in
+**Wh** li converte.
+
+**Il costo non ha un sensore.** Sono i kWh per il prezzo, e il conto lo fa la
+scheda mentre la guardi: un aiutante in meno per ogni periodo, e cambiando la
+tariffa si aggiorna tutto da solo.
+
+**Quello che crea è roba normale di Home Assistant**: la ritrovi in *Impostazioni
+> Dispositivi e servizi > Helper*, entra nel backup, e da lì si modifica. Premere
+i tasti due volte non fa danni: quello che c'è già lo riusa.
+
+**Per cancellare** c'è **Cancella gli aiutanti di questa scheda**: ti mostra
+l'elenco con una casella per ognuno e quanto segna adesso, e butta solo quelli che
+spunti. I prezzi non li tocca mai. Prima di cancellare si segna i valori: se li
+rifai, ripartono da lì invece che da zero.
+
+> **Il nome conta.** Quando Home Assistant crea un contatore gli mette davanti il
+> nome del dispositivo della sorgente: chiedi «Lavatrice energia oggi» e nasce
+> `sensor.presa_cucina_lavatrice_energia_oggi`. Con un nome diverso lo storico
+> resta orfano e il contatore riparte da zero. La scheda se ne accorge e **lo
+> rinomina da sola** subito dopo averlo creato — ed è anche il motivo per cui
+> cancellando e ricreando un contatore con lo stesso nome i valori tornano al loro
+> posto: le statistiche nel database sono legate al nome, non all'aiutante.
+
+### L'ultimo ciclo di un elettrodomestico
+
+Fine, durata, consumo e costo dell'ultimo lavaggio (o dell'ultima infornata) si
+accendono spuntando **Segui i cicli** nell'editor. La scheda crea la soglia che
+dice quando l'apparecchio sta lavorando, un contatore per il ciclo, tre memorie e
+un'automazione che le riempie.
+
+Un template *a trigger* — quello che serviva prima — **dall'interfaccia non si può
+creare**, e infatti la stessa cosa si ottiene con pezzi normali. Le due attenzioni
+che ci sono volute, e che adesso sono dentro:
+
+- **Forno e lavatrice si fermano e ripartono di continuo** (la resistenza che
+  stacca, l'ammollo). Il ciclo si chiude solo dopo **alcuni minuti di fermo vero**,
+  e l'ora di fine è quella dello spegnimento, non di quando scade l'attesa.
+- **Il contatore si azzera alla fine, non alla partenza**, se no una ripartenza a
+  metà ciclo butta via quello che hai già consumato.
+
+Mentre lavora il riquadro diventa **Ciclo in corso** e si muove: quanto è durato
+finora, quanti kWh e quanto sono costati.
+
+### Se preferisci farteli a mano
+
+Chi vuole scrivere i sensori nel file YAML trova tutto pronto in
+[`esempi/luce/`](esempi/luce/): `luce.yaml` da copiare in `/config/packages/`,
+`luce.jinja` in `/config/custom_templates/`, e in cima all'esempio l'elenco dei
+nomi da cercare e sostituire con i tuoi. Serve ancora se vuoi il **conto della
+bolletta voce per voce** (`sensor.costi_luce_oggi` con gli attributi `energia`,
+`rete_e_oneri`, `accise`, `quota_fissa`, `iva`): quello i tasti non lo fanno,
+perché un helper template dall'interfaccia non può avere attributi propri.
 
 **I contatori vogliono `always_available: true`.** Se il sensore di partenza
 sparisce per qualche minuto (stacco di corrente, riavvio del dispositivo), un
-contatore senza quell'opzione riparte dal valore nuovo e **perde i kWh del
-buco**, mentre i sensori dei costi qui sotto li recuperano: i due numeri poi
-non tornano. Per rimetterli in pari: `utility_meter.calibrate` col valore vero,
-che si legge dalle statistiche del sensore di partenza.
-
-**La scorciatoia: il tasto «Crea i sensori base».** Nell'editor di
-`casa-energia` scegli il sensore dei **kWh** della casa e il prezzo, premi il
-tasto, e la scheda crea da sola in Home Assistant i contatori di **ora, oggi,
-settimana, mese** (con `always_available` già acceso), il **costo** di ogni
-periodo e di **ieri**, e il prezzo in euro al kWh. Sono normali helper: li
-ritrovi in *Impostazioni > Dispositivi e servizi > Helper*, entrano nel backup
-e da lì si cancellano. Quelli che ci sono già li riusa, quindi premerlo due
-volte non fa danni. Il resto (conto voce per voce, risparmio del fotovoltaico,
-cicli degli elettrodomestici) vuole i template a trigger e le macro: quello si
-copia dall'esempio qui sotto.
-
-**E per gli elettrodomestici.** Anche l'editor di `casa-elettrodomestico` ha il
-suo tasto **«Crea statistiche e costi»**: sceglie una soglia in Watt per dire
-quando l'apparecchio *sta lavorando*, e da lì costruisce **quante volte è
-partito**, **quanto ha lavorato** e **quanto è costato**, oggi e questo mese
-(soglia + due `history_stats` + contatori + costi; se la presa non dà i kWh, li
-ricava dai Watt con un integrale). Il riquadro **Ultimo ciclo**, invece, nasce
-da un sensore template *a trigger* che dall'interfaccia non si può creare:
-quello resta nell'esempio qui sotto.
-
-**È tutto pronto in [`esempi/luce/`](esempi/luce/):**
-
-1. copia [`luce.yaml`](esempi/luce/luce.yaml) in `/config/packages/`
-   (in `configuration.yaml` serve `homeassistant: packages: !include_dir_named packages`);
-2. copia [`luce.jinja`](esempi/luce/luce.jinja) in `/config/custom_templates/`;
-3. in cima a `luce.yaml` c'è l'elenco dei nomi da **cercare e sostituire** con i
-   tuoi (contatore della rete, pannelli, batteria, presa della lavatrice);
-4. riavvia Home Assistant, poi scrivi i prezzi negli aiutanti
-   **Prezzo luce energia**, **… rete e oneri**, **… accise**, **IVA luce** e
-   **Quota fissa energia giorno** (si trovano sulla bolletta: spesa per
-   l'energia / kWh, spese di rete e oneri / kWh, accise / kWh, IVA; la quota
-   fissa del giorno è quota fissa + quota potenza con IVA, divisa per i giorni).
-   Il totale per kWh si calcola da solo.
-
-Per un secondo elettrodomestico copia il blocco della lavatrice in fondo a
-`luce.yaml` e cambia nome, presa e soglia: il nome deve essere lo stesso che dai
-alla casella, perché la scheda cerca `sensor.<nome>_ciclo`.
+contatore senza quell'opzione riparte dal valore nuovo e **perde i kWh del buco**.
+Per rimetterli in pari: `utility_meter.calibrate` col valore vero, che si legge
+dalle statistiche del sensore di partenza. I tasti lo accendono da soli.
 
 **Una presa per due macchine?** Se una presa sola misura due macchine (per
-esempio lavatrice e asciugatrice):
-
-1. fai partire il ciclo della lavatrice solo quando l'altra è ferma
-   (`… > 10 and not is_state('binary_sensor.asciugatrice_in_funzione', 'on')`)
-   e dai all'asciugatrice i kWh della stessa presa mentre è in funzione;
-2. crea un sensore **«Lavatrice potenza netta»** = i W della presa quando
-   l'asciugatrice è ferma, 0 quando asciuga (in fondo a
-   [`luce.yaml`](esempi/luce/luce.yaml) c'è già, commentato). **Senza
-   `device_class`**, se no il top consumo conta la presa due volte;
-3. nella scheda della lavatrice usa quel sensore come presa e lo stato vero
-   del ciclo, così con la sola asciugatrice accesa la lavatrice dice «SPENTA»
-   e 0 W:
-
-   ```yaml
-   power_entity: sensor.lavatrice_potenza_netta
-   live:
-     state_entity: binary_sensor.lavatrice_in_funzione
-   state_map:
-     "on": { mode: running, label: IN FUNZIONE }
-     "off": { mode: "off", label: SPENTA }
-   ```
-
-**Asciugatrici che vanno «in pausa»** (LG e altre): conta la pausa come
-«in funzione» (`states(...) in ['In funzione', 'In pausa']`), se no una pausa
-di pochi secondi spezza il ciclo in due.
+esempio lavatrice e asciugatrice), crea un sensore **«Lavatrice potenza netta»** =
+i W della presa quando l'altra è ferma, 0 quando lavora (in fondo a
+[`luce.yaml`](esempi/luce/luce.yaml) c'è già, commentato). **Senza
+`device_class`**, se no il top consumo conta la presa due volte. Poi nella scheda
+della lavatrice usi quel sensore come presa.
 
 ### Le opzioni di casa-energia
 
@@ -222,7 +228,15 @@ di pochi secondi spezza il ciclo in due.
 | `top_include` | entità da contare comunque |
 | `top_min_w` | sotto questi W non è «top» (di serie 5) |
 | `unmeasured_label` | nome della voce «Non misurato» |
-| `bill_today`, `bill_month` | i sensori col conto voce per voce (`sensor.costi_luce_oggi` / `_mese`) |
+| `bill_today`, `bill_month` | i sensori col conto voce per voce (`sensor.costi_luce_oggi` / `_mese`); se mancano, il conto lo fa la scheda con la tariffa |
+| `bolletta_energia`, `bolletta_costo` | i kWh e gli euro del periodo della bolletta |
+| `pannelli_oggi` · `_settimana` · `_mese` | i kWh arrivati dai pannelli (riga «Dai pannelli») |
+| `batteria_oggi` · `_settimana` · `_mese` | i kWh restituiti dalla batteria (riga «Dalla batteria») |
+| `risparmio_oggi`, `risparmio_mese` | il risparmio del fotovoltaico in euro |
+| `barre_vive` | `true` = le barre non sono un elenco fisso: fa vedere le prese più accese del momento |
+| `barre_quante` | quante barre con `barre_vive` (di serie 6) |
+| `barre_in_ordine` | `false` = tiene l'ordine che hai messo tu invece di mettere in cima la più accesa |
+| `pannelli_entita`, `batteria_entita` | da quali sensori nascono i contatori qui sopra (uno o un elenco) |
 | `settings_sections` | cosa c'è nell'ingranaggio (es. gli aiutanti del prezzo) |
 | `notification_path` | se c'è, compare il tasto per andare alla tua pagina delle notifiche |
 
@@ -241,6 +255,11 @@ di pochi secondi spezza il ciclo in due.
 | `cycle_sensor`, `cycle_attrs` | l'ultimo ciclo: attributi `terminato`, `tempo_ciclo`, `consumo_ciclo`, `costo_ciclo` |
 | `period_attrs` | tempi e costi per oggi / ieri / mese / mese prima |
 | `stats.cycles_today`, `stats.cycles_month` | quanti cicli |
+| `ciclo` | l'ultimo ciclo fatto dalla scheda: `fine`, `durata`, `consumo`, `contatore`, `inizio` |
+| `soglia_acceso` | il binary_sensor «sta lavorando» che fa da sveglia al ciclo |
+| `oggi_energia`, `mese_energia` | i contatori dei kWh (il costo lo calcola la scheda) |
+| `prezzo_entita` | il prezzo in €/kWh: di solito quello della scheda principale |
+| `periodi` | quali periodi creare col tasto: `["oggi", "mese"]` |
 
 ### La pagina Energia di Home Assistant
 
@@ -253,6 +272,44 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.88
+
+**Le schede si costruiscono i sensori da sole.** Prima bisognava preparare a mano
+un pacchetto YAML di trenta sensori; adesso bastano due tasti, e quello che creano
+sono normali aiutanti di Home Assistant.
+
+- **La tariffa si scrive sulla scheda**, voce per voce come in bolletta, e vale per
+  tutta la casa: apparecchi e prese leggono il prezzo da lì.
+- **Il costo non ha più un sensore**: sono i kWh per il prezzo, e il conto lo fa la
+  scheda mentre la guardi. Un aiutante in meno per ogni periodo.
+- **I nomi si sistemano da soli.** Home Assistant mette davanti il nome del
+  dispositivo e il contatore nuovo perde lo storico del vecchio: adesso la scheda
+  lo rinomina subito dopo averlo creato.
+- **L'ultimo ciclo senza template a trigger**: soglia, contatore, tre memorie e
+  un'automazione. Regge gli apparecchi che si fermano e ripartono (forno,
+  lavatrice): il ciclo si chiude solo dopo alcuni minuti di fermo vero e il
+  contatore si azzera alla fine, non alla partenza. Mentre lavora si vede il
+  **ciclo in corso**.
+- **Pannelli e batteria**: due righe nuove con i kWh arrivati da lì, oggi, questa
+  settimana e questo mese. Se le sorgenti sono più d'una le somma.
+- **Le barre dei circuiti**: quante ne vuoi (non più quattro), si trascinano per
+  ordinarle, e c'è **Scegli le barre da sola** — fa vedere le prese più accese del
+  momento, così se parte il forno la sua barra compare da sé.
+- **Cancella scegliendo**: l'elenco degli aiutanti con una casella per ognuno e il
+  valore che segna, invece di prendere o lasciare. Prima di cancellare si segna i
+  valori, così ricreandoli ripartono da lì.
+- **La quota fissa si conta sui giorni giusti** (dal calendario, non da quando è
+  nato il contatore) e il menù dei prezzi non propone più le voci che sono solo
+  ingredienti del totale.
+- Il sensore dei kWh e quelli dei pannelli **si cercano scrivendo**, e accettano
+  anche i contatori in **Wh** (li converte lei).
+- **Niente piu' riparazioni «l'unita' e' cambiata».** Un contatore appeso a una
+  sorgente ancora muta (l'apparecchio e' spento) nasceva senza unita' e poi Home
+  Assistant chiedeva di sistemare le statistiche, una per una. Adesso l'integrale
+  si aggiorna ogni minuto e la scheda aspetta che dica la sua unita' prima di
+  appendergli i contatori.
+
 
 ## Novità della 2.34
 

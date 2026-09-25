@@ -5,6 +5,18 @@
 // ({id: "nome"}; vuoto = nome di serie).
 
 export const STILE_EDITOR = `
+.ce-scelta{margin-top:8px;border:1px solid var(--divider-color);border-radius:10px;padding:8px}
+.ce-scelta label{display:flex;gap:8px;align-items:center;padding:3px 2px;font-size:13px}
+.ce-scelta .dett{color:var(--secondary-text-color);font-size:11px;margin-left:auto}
+.ce-scelta .barra{display:flex;gap:8px;margin-top:8px;align-items:center}
+.ce-scelta .tutti{font-size:12px;color:var(--primary-color);cursor:pointer;text-decoration:underline}
+
+.ce-presa{cursor:grab;opacity:.55;font-size:16px;line-height:1;padding:0 2px;user-select:none}
+.ce-presa:active{cursor:grabbing}
+.ce-presa-su{opacity:.5;outline:1px dashed var(--primary-color);border-radius:8px}
+.ce-via{background:none;border:0;color:var(--secondary-text-color);font-size:18px;cursor:pointer;line-height:1;padding:0 4px}
+.ce-via:hover{color:var(--error-color,#e05b5b)}
+
   .ce-sez{margin-top:18px;padding:12px;border-radius:12px;border:1px solid var(--divider-color,#444)}
   .ce-tit{font-weight:600;margin-bottom:4px}
   .ce-aiuto{font-size:12.5px;color:var(--secondary-text-color);margin-bottom:10px}
@@ -18,6 +30,12 @@ export const STILE_EDITOR = `
   .ce-riga input.max{width:72px;padding:5px 6px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
   .ce-riga .maniglia{cursor:grab;touch-action:none;user-select:none;font-size:18px;line-height:1;padding:2px 4px;color:var(--secondary-text-color)}
   .ce-riga.trascino{outline:2px solid var(--primary-color);opacity:.85}
+  .ce-versione{font-size:11px;opacity:.55;letter-spacing:.3px;margin:2px 0 8px}
+  .ce-tutto-riga{cursor:pointer;margin:6px 0 10px;gap:10px;font-size:13px}
+  details.ce-sez>summary{cursor:pointer;list-style:none}
+  details.ce-sez>summary::-webkit-details-marker{display:none}
+  details.ce-sez>summary:before{content:'\\25b8 ';opacity:.6}
+  details.ce-sez[open]>summary:before{content:'\\25be ';opacity:.6}
   .ce-esito{margin-top:10px;font-size:12.5px;white-space:pre-wrap;color:var(--secondary-text-color)}
   .ce-esito.male{color:var(--error-color,#e46)}
   .ce-riga select{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
@@ -133,4 +151,40 @@ export function righeInOrdine(config, elenco, R, esc) {
     if (colori[id]) html = html.replace(/style="--c:[^"]*"/, `style="--c:${esc(colori[id])}"`);
     return html;
   }).join("\n              ");
+}
+
+
+/**
+ * Fa scegliere QUALI aiutanti cancellare, invece di prendere o lasciare.
+ * `elenco` sono {entity, entry_id, titolo}; chiama `poi(scelti)` col sottoinsieme.
+ */
+export function quali_cancellare(box, elenco, hass, poi) {
+  const valore = (e) => {
+    const st = hass && hass.states[e];
+    if (!st || ["unknown", "unavailable"].includes(st.state)) return "";
+    const u = st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : "";
+    return st.state + u;
+  };
+  box.innerHTML = `<div class="ce-scelta">
+    <div class="ce-aiuto">Spunta quelli da buttare. Lo storico che hanno raccolto si perde;
+      la presa e i sensori del dispositivo non si toccano.</div>
+    ${elenco.map((a, i) => `<label><input type="checkbox" data-i="${i}" checked>
+      <span>${a.titolo}</span><span class="dett">${valore(a.entity)}</span></label>`).join("")}
+    <div class="barra">
+      <span class="tutti" data-tutti="1">tutti</span>
+      <span class="tutti" data-tutti="0">nessuno</span>
+      <button type="button" class="ce-prepara ce-fai-cancella">Cancella i selezionati</button>
+      <button type="button" class="ce-prepara ce-lascia">Lascia stare</button>
+    </div>
+  </div>`;
+  const spunte = [...box.querySelectorAll("input[type=checkbox]")];
+  box.querySelectorAll("[data-tutti]").forEach((t) => t.addEventListener("click", () => {
+    spunte.forEach((x) => { x.checked = t.dataset.tutti === "1"; });
+  }));
+  box.querySelector(".ce-lascia").addEventListener("click", () => { box.innerHTML = ""; });
+  box.querySelector(".ce-fai-cancella").addEventListener("click", () => {
+    const scelti = spunte.filter((x) => x.checked).map((x) => elenco[Number(x.dataset.i)]);
+    box.innerHTML = "";
+    if (scelti.length) poi(scelti);
+  });
 }

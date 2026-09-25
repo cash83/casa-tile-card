@@ -252,6 +252,45 @@ entity tracking the total costs"** and pick:
 
 The full bill, line by line, stays in the casa-energia card.
 
+## What's new in 2.88
+
+**The cards build their own sensors.** You used to prepare a thirty-sensor YAML
+package by hand; now two buttons do it, and what they create are ordinary Home
+Assistant helpers.
+
+- **The tariff is typed into the card**, item by item as it appears on your bill,
+  and it counts for the whole house: appliances and sockets read the price from
+  there.
+- **Cost no longer needs a sensor**: it is kWh times price, worked out by the card
+  as you look at it. One helper less per period.
+- **Names fix themselves.** Home Assistant prefixes the source device's name, and
+  the new counter loses the old one's history: the card now renames it right after
+  creating it.
+- **Last cycle without a trigger template**: a threshold, a meter, three memories
+  and one automation. It copes with appliances that stop and start again (oven,
+  washing machine): the cycle only closes after some minutes of real stillness,
+  and the meter is zeroed at the end, not at the start. While it runs you see the
+  **cycle in progress**.
+- **Panels and battery**: two new rows with the kWh that came from them, today,
+  this week and this month. More than one source gets summed.
+- **Circuit bars**: as many as you want (no longer four), drag to reorder, and
+  **let it pick the bars** — it shows whatever is drawing the most right now, so
+  when the oven starts its bar appears by itself.
+- **Delete what you choose**: the list of helpers with a checkbox each and the
+  value it currently reads, instead of all or nothing. Values are remembered, so
+  recreating a counter picks up where it left off.
+- **The daily standing charge counts the right days** (from the calendar, not from
+  when the counter was born), and the price menu no longer offers the items that
+  are merely ingredients of the total.
+- The kWh sensor and the panel ones are **searched by typing**, and **Wh** counters
+  are accepted too (converted automatically).
+- **No more "the unit has changed" repairs.** A meter attached to a source that
+  was still silent (the appliance was off) was born without a unit, and later Home
+  Assistant asked you to fix the statistics, one by one. The integral now updates
+  every minute and the card waits for it to state its unit before attaching the
+  meters.
+
+
 ## What's new in 2.34
 
 Three new things in the **casa-elettrodomestico** card, plus two numbers that
