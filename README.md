@@ -2,7 +2,7 @@
 
 Casella animata per Home Assistant: **icone che si muovono solo quando la cosa è accesa**, si configura a clic (niente YAML) e ha un pop-up tutto suo dove puoi mettere qualsiasi scheda di Home Assistant.
 
-![versione](https://img.shields.io/badge/versione-2.31.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.34.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 
@@ -253,6 +253,32 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.34
+
+Tre cose nuove nella scheda **casa-elettrodomestico**, più due numeri che si
+leggevano male.
+
+- **Il ciclo in corso non sta più a trattini.** Il riquadro dell'ultimo ciclo,
+  mentre l'apparecchio lavora, diceva quattro trattini: i conti veri li fa il
+  sensore del ciclo, e quelli arrivano solo alla fine. Ma l'apparecchio, intanto,
+  i suoi numeri li dice. Con il blocco `ciclo_live` (cinque campi nell'editor:
+  energia, minuti fatti, minuti che mancano, programma, fase) il titolo diventa
+  **CICLO IN CORSO**, sotto compare *programma - fase*, e le quattro righe dicono
+  l'ora di fine prevista, la durata di adesso, i kWh già consumati e quanto sono
+  costati. Il costo usa lo stesso prezzo del conto di fine ciclo, quindi il numero
+  che vedi crescere e quello che resta scritto alla fine sono coerenti.
+- **Un disegno per il deumidificatore**: torre con la griglia dell'aria, la
+  ventola che gira dietro alle lamelle, le gocce che cadono nella tanica e l'acqua
+  che ondeggia. Come gli altri, si muove solo mentre l'apparecchio lavora.
+- **La seconda barra non è più solo l'avanzamento del programma**: accetta
+  qualunque numero da 0 a 100 e adesso ha il suo nome (`progress_label`). Su un
+  deumidificatore ci va l'umidità della stanza, accanto ai watt.
+- **La riga Consumo veniva tagliata** ("CONSU... 1.02 k..."): il riquadro era
+  troppo stretto per il valore più lungo. Corretto misurando il testo alla
+  larghezza di un telefono, non a occhio.
+- **Il costo ora ha la virgola** della tua lingua, come gli altri numeri della
+  scheda (0,29 € e non 0.29 €).
 
 ## Novità della 2.31
 

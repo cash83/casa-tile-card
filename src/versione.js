@@ -1,4 +1,4 @@
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-export const VERSIONE = "2.31.1";
+export const VERSIONE = "2.34.0";

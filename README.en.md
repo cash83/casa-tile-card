@@ -2,7 +2,7 @@
 
 An animated tile for Home Assistant: **icons that move only while the thing is actually on**, set up entirely by clicking (no YAML), with a pop-up of its own where you can put any Home Assistant card.
 
-![version](https://img.shields.io/badge/version-2.31.1-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.34.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 
@@ -251,6 +251,32 @@ entity tracking the total costs"** and pick:
 - `sensor.costo_energia_pura` to see **energy only**, without taxes.
 
 The full bill, line by line, stays in the casa-energia card.
+
+## What's new in 2.34
+
+Three new things in the **casa-elettrodomestico** card, plus two numbers that
+were hard to read.
+
+- **The running cycle is no longer four dashes.** While the appliance works, the
+  "last cycle" box had nothing to say: the real figures come from the cycle
+  sensor, and those only land at the end. The appliance, though, is talking all
+  along. With the `ciclo_live` block (five fields in the editor: energy, minutes
+  done, minutes left, programme, phase) the caption turns into **CYCLE RUNNING**,
+  *programme - phase* appears underneath, and the four rows show the expected
+  finish time, how long it has been going, the kWh burnt so far and what they
+  cost. The cost uses the same price as the end-of-cycle figure, so the number you
+  watch growing and the one that stays afterwards agree.
+- **A drawing for dehumidifiers**: a tower with an air grille, a fan spinning
+  behind the louvres, drops falling into the tank and water swaying inside it.
+  Like the others, it only moves while the appliance is working.
+- **The second bar is no longer just programme progress**: it takes any number
+  from 0 to 100 and now has its own name (`progress_label`). On a dehumidifier
+  that is the room humidity, right next to the watts.
+- **The Consumption row was being clipped** ("CONSU... 1.02 k..."): the box was
+  too narrow for the longest value. Fixed by measuring the text at phone width
+  rather than eyeballing it.
+- **The cost now uses your locale's decimal separator**, like every other number
+  on the card (0,29 € rather than 0.29 €).
 
 ## What's new in 2.31
 

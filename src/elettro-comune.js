@@ -214,6 +214,48 @@ const HERO_BUILDERS = {
     <ellipse cx="120" cy="222" rx="60" ry="9" fill="#0f172a" opacity=".14" filter="url(#dmh-blur-${id})"/>
     <image href="/local/foto-pkg/apc-ups.png" x="17.15" y="14" width="205.7" height="211.75" preserveAspectRatio="xMidYMid meet"/>
   </svg>`,
+  // Deumidificatore: torre con la griglia dell'aria, la ventola che gira dietro
+  // le lamelle, le gocce che cadono nella tanica e l'acqua che ondeggia piano.
+  dehumidifier: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>
+      <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+      <linearGradient id="dmh-steel-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f8fb"/><stop offset=".5" stop-color="#dde4ec"/><stop offset="1" stop-color="#aab6c5"/></linearGradient>
+      <linearGradient id="dmh-acqua-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#0284c7"/></linearGradient>
+      <clipPath id="dmh-tanica-${id}"><rect x="74" y="150" width="92" height="48" rx="8"/></clipPath>
+    </defs>
+    <ellipse cx="120" cy="222" rx="62" ry="10" fill="#0f172a" opacity=".14" filter="url(#dmh-blur-${id})"/>
+    <rect x="56" y="16" width="128" height="200" rx="18" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="68" y="26" width="104" height="18" rx="7" fill="#eef2f7" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <circle cx="80" cy="35" r="3.4" fill="#22c55e" class="dmh-glow"/>
+    <rect x="96" y="30" width="64" height="10" rx="4" fill="#0b1526"/>
+    <path d="M108 31.5c-2.2 3-3.4 4.4-3.4 6a3.4 3.4 0 0 0 6.8 0c0-1.6-1.2-3-3.4-6z" fill="#7dd3fc"/>
+    <rect x="118" y="33.5" width="26" height="3" rx="1.5" fill="#38bdf8" opacity=".75"/>
+    <rect x="118" y="38" width="16" height="2.4" rx="1.2" fill="#38bdf8" opacity=".45"/>
+    <rect x="72" y="54" width="96" height="84" rx="12" fill="#0b1526"/>
+    <g class="dmh-spin-fan" opacity=".55">
+      <circle cx="120" cy="100" r="30" fill="none" stroke="#38bdf8" stroke-opacity=".35" stroke-width="2"/>
+      <path d="M120 100 L120 72 A28 28 0 0 1 144 86 Z" fill="#38bdf8" opacity=".5"/>
+      <path d="M120 100 L144 114 A28 28 0 0 1 96 114 Z" fill="#38bdf8" opacity=".5"/>
+      <path d="M120 100 L96 86 A28 28 0 0 1 120 72 Z" fill="#38bdf8" opacity=".3"/>
+    </g>
+    <g stroke="#9fb4c9" stroke-opacity=".65" stroke-width="3" stroke-linecap="round">
+      <path d="M84 66v60M96 62v68M108 60v72M132 60v72M144 62v68M156 66v60"/>
+    </g>
+    <circle cx="120" cy="100" r="5" fill="#cbd5e1" opacity=".9"/>
+    <g fill="#7dd3fc">
+      <ellipse class="dmh-goccia" cx="104" cy="140" rx="3.2" ry="4.4"/>
+      <ellipse class="dmh-goccia dmh-goccia2" cx="120" cy="140" rx="3.2" ry="4.4"/>
+      <ellipse class="dmh-goccia dmh-goccia3" cx="136" cy="140" rx="3.2" ry="4.4"/>
+    </g>
+    <rect x="74" y="150" width="92" height="48" rx="8" fill="#e8eef6" opacity=".55" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.4"/>
+    <g clip-path="url(#dmh-tanica-${id})">
+      <rect class="dmh-onda" x="66" y="176" width="108" height="26" fill="url(#dmh-acqua-${id})" opacity=".9"/>
+    </g>
+    <rect x="74" y="150" width="92" height="48" rx="8" fill="none" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.4"/>
+    <rect x="104" y="156" width="32" height="5" rx="2.5" fill="#94a3b8" opacity=".8"/>
+    <rect x="66" y="206" width="12" height="12" rx="4" fill="#9fadbc"/>
+    <rect x="162" y="206" width="12" height="12" rx="4" fill="#9fadbc"/>
+  </svg>`,
   boiler: (id) => `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
     <defs>
       <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
@@ -250,6 +292,8 @@ const CHIP_SVGS = {
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><rect x="20" y="16" width="56" height="14" rx="5" fill="#f8fafc"/><circle cx="28" cy="23" r="3" fill="#0ea5e9"/><circle cx="48" cy="56" r="24" fill="#f8fafc"/><circle cx="48" cy="56" r="19" fill="#bae6fd"/><circle cx="48" cy="56" r="19" fill="none" stroke="#0f2942" stroke-width="3"/><path fill="none" stroke="#0f2942" stroke-width="2.6" stroke-linecap="round" d="M39 58c4 6 14 6 18 0"/></svg>',
   oven:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><rect x="20" y="16" width="56" height="14" rx="5" fill="#f8fafc"/><circle cx="28" cy="23" r="3" fill="#ef4444"/><rect x="20" y="36" width="56" height="41" rx="6" fill="#f8fafc"/><path fill="none" stroke="#0f2942" stroke-width="3" stroke-linecap="round" d="M28 51h40M28 63h40"/></svg>',
+  dehumidifier:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="22" y="8" width="52" height="80" rx="10" fill="#0f2942"/><rect x="28" y="14" width="40" height="10" rx="4" fill="#f8fafc"/><circle cx="34" cy="19" r="2.6" fill="#22c55e"/><rect x="28" y="30" width="40" height="30" rx="6" fill="#f8fafc"/><path fill="none" stroke="#0f2942" stroke-width="3" stroke-linecap="round" d="M35 34v22M43 33v24M53 33v24M61 34v22"/><path d="M48 64c-3 4-4.6 6-4.6 8.2A4.6 4.6 0 0 0 52.6 72c0-2.2-1.6-4.2-4.6-8z" fill="#8be2ff"/><rect x="28" y="70" width="40" height="12" rx="4" fill="#38bdf8"/></svg>',
   boiler:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><circle cx="48" cy="38" r="17" fill="#f8fafc"/><path d="M48 26c-5 7-9 10-9 16a9 9 0 0 0 18 0c0-3-1-6-3-8 0 3-2 5-4 4-2-1-2-5-1-7-3 1-4 3-4 3z" fill="#fb923c"/><rect x="28" y="62" width="40" height="10" rx="4" fill="#38bdf8"/></svg>',
   tv:
@@ -382,18 +426,29 @@ const STYLE = `
 .dm-ap-card.is-run .dmh-spin-drum{animation:dmh-spin 2.6s linear infinite}
 .dm-ap-card.is-run .dmh-spin-spray{animation:dmh-spin 1.3s linear infinite}
 .dm-ap-card.is-run .dmh-spin-spit{animation:dmh-spin 3.4s linear infinite}
+@keyframes dmh-drip{0%{opacity:0;transform:translateY(0)}12%{opacity:.95}80%{opacity:.95}100%{opacity:0;transform:translateY(38px)}}
+@keyframes dmh-onda{0%,100%{transform:translateX(-4px)}50%{transform:translateX(4px)}}
+.dmh-spin-fan{transform-box:view-box;transform-origin:120px 100px}
+.dmh-goccia{opacity:0}
+.dm-ap-card.is-run .dmh-spin-fan{animation:dmh-spin 1.6s linear infinite}
+.dm-ap-card.is-run .dmh-goccia{animation:dmh-drip 1.9s linear infinite}
+.dm-ap-card.is-run .dmh-goccia2{animation-delay:.6s}
+.dm-ap-card.is-run .dmh-goccia3{animation-delay:1.2s}
+.dm-ap-card.is-run .dmh-onda{animation:dmh-onda 3.4s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-glow{animation:dmh-glow 1.7s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-flicker{animation:dmh-flicker 1.5s ease-in-out infinite}
-.dm-ap-cycle-side{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;padding:11px 13px;border-radius:16px;background:var(--dm-soft)}
+.dm-ap-cycle-side{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;padding:11px 10px;border-radius:16px;background:var(--dm-soft)}
 .dm-ap-cycle-cap{display:flex;align-items:center;gap:6px;margin-top:-3px;margin-bottom:15px;font-size:11px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--dm-dim)}
+.dm-ap-cycle-sub{margin-top:-11px;margin-bottom:11px;font-size:11.5px;font-weight:600;color:var(--dm-text);opacity:.72;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-ap-cycle-side.ha-sub .dm-ap-cycle-cap{margin-bottom:6px}
 .dm-ap-cycle-list{display:flex;flex-direction:column;flex:1;justify-content:flex-start;gap:4px}
-.dm-ap-cycle-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0}
+.dm-ap-cycle-row{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0}
 .dm-ap-cycle-row small{flex:0 0 auto;font-size:10.5px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-cycle-row b{min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:400;letter-spacing:-.1px;color:var(--dm-text)}
-.dm-ap-cycle-row-b{padding:4px 8px;border-radius:9px;border:1px solid var(--dm-border);background:var(--dm-card);align-items:center}
+.dm-ap-cycle-row-b{padding:4px 6px;border-radius:9px;border:1px solid var(--dm-border);background:var(--dm-card);align-items:center}
 .dm-ap-cycle-label{display:flex;align-items:center;gap:5px;min-width:0;flex:1 1 auto;overflow:hidden}
 .dm-ap-cycle-label small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
-.dm-ap-cycle-row-b b{flex:0 1 auto;max-width:72%}
+.dm-ap-cycle-row-b b{flex:0 1 auto;max-width:none}
 .dm-ap-cycle-ic{display:flex;align-items:center;flex:0 0 auto;color:var(--dm-blue)}
 .dm-colore{border-left:3px solid var(--c)!important;border-radius:4px 9px 9px 4px!important}
 .dm-colore small,.dm-colore b,.dm-colore .dm-ap-cycle-ic,.dm-colore .dm-ap-row-label,.dm-colore .dm-ap-row-val{color:var(--c)!important}

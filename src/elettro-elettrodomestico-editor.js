@@ -10,7 +10,7 @@ import { creaSensoriElettrodomestico, prezziDelKWh } from './elettro-crea.js';
 
 const DISEGNI = [
   ["washer", "Lavatrice"], ["dishwasher", "Lavastoviglie"], ["dryer", "Asciugatrice"],
-  ["oven", "Forno"], ["tv", "Televisore"], ["boiler", "Boiler / scaldabagno"],
+  ["oven", "Forno"], ["dehumidifier", "Deumidificatore"], ["tv", "Televisore"], ["boiler", "Boiler / scaldabagno"],
 ];
 
 const ETICHETTE = {
@@ -24,6 +24,13 @@ const ETICHETTE = {
   power_unit: "Unita' della barra (vuoto = W)",
   stato: "Stato vero dell'apparecchio (facoltativo: integrazioni LG, Bosch...)",
   cycle_sensor: "Sensore dell'ultimo ciclo (es. sensor.lavatrice_ciclo)",
+  avanzamento: "Seconda barra: un numero da 0 a 100 (avanzamento, umidita'...)",
+  progress_label: "Nome della seconda barra (vuoto = Avanzamento programma)",
+  vivo_energia: "Ciclo in corso: energia gia' consumata (Wh o kWh)",
+  vivo_trascorso: "Ciclo in corso: minuti gia' fatti",
+  vivo_residuo: "Ciclo in corso: minuti che mancano (per l'ora di fine)",
+  vivo_programma: "Ciclo in corso: programma scelto",
+  vivo_fase: "Ciclo in corso: fase (asciugatura, risciacquo...)",
   notification_path: "Pagina delle notifiche (facoltativa)",
   finestra_sfondo: "Tinta della finestra del pop-up",
   finestra_trasparenza: "Trasparenza della finestra",
@@ -43,6 +50,13 @@ const SCHEMA = [
   { name: "power_unit", selector: { text: {} } },
   { name: "stato", selector: { entity: {} } },
   { name: "cycle_sensor", selector: { entity: { domain: "sensor" } } },
+  { name: "avanzamento", selector: { entity: {} } },
+  { name: "progress_label", selector: { text: {} } },
+  { name: "vivo_energia", selector: { entity: { domain: "sensor" } } },
+  { name: "vivo_trascorso", selector: { entity: { domain: "sensor" } } },
+  { name: "vivo_residuo", selector: { entity: { domain: "sensor" } } },
+  { name: "vivo_programma", selector: { entity: { domain: "sensor" } } },
+  { name: "vivo_fase", selector: { entity: { domain: "sensor" } } },
   { name: "notification_path", selector: { text: {} } },
   { name: "finestra_sfondo", selector: { color_rgb: {} } },
   { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
@@ -73,7 +87,13 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
     const c = this._config;
     return { ...c,
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
-      finestra_scritta: this._versoRgb(c.finestra_scritta), stato: (c.live && c.live.state_entity) || "" };
+      finestra_scritta: this._versoRgb(c.finestra_scritta), stato: (c.live && c.live.state_entity) || "",
+      avanzamento: (c.live && c.live.progress_entity) || "",
+      vivo_energia: (c.ciclo_live && c.ciclo_live.energy_entity) || "",
+      vivo_trascorso: (c.ciclo_live && c.ciclo_live.elapsed_entity) || "",
+      vivo_residuo: (c.ciclo_live && c.ciclo_live.remaining_entity) || "",
+      vivo_programma: (c.ciclo_live && c.ciclo_live.program_entity) || "",
+      vivo_fase: (c.ciclo_live && c.ciclo_live.phase_entity) || "" };
   }
 
   // i colori si scrivono in esadecimale (#1b2430), il selettore di Home
@@ -97,13 +117,25 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
     });
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
-      if (k === "stato") return;
+      if (k === "stato" || k === "avanzamento" || k.startsWith("vivo_")) return;
       if (v[k] === "" || v[k] === undefined || v[k] === null) delete c[k];
       else c[k] = v[k];
     });
     const live = { ...(c.live || {}) };
     if (v.stato) live.state_entity = v.stato; else delete live.state_entity;
+    if ("avanzamento" in v) {
+      if (v.avanzamento) live.progress_entity = v.avanzamento; else delete live.progress_entity;
+    }
     if (Object.keys(live).length) c.live = live; else delete c.live;
+    const vivo = {};
+    const CHIAVI = { vivo_energia: "energy_entity", vivo_trascorso: "elapsed_entity",
+      vivo_residuo: "remaining_entity", vivo_programma: "program_entity", vivo_fase: "phase_entity" };
+    Object.keys(CHIAVI).forEach((k) => {
+      const vecchio = (this._config.ciclo_live || {})[CHIAVI[k]];
+      const nuovo = k in v ? v[k] : vecchio;
+      if (nuovo) vivo[CHIAVI[k]] = nuovo;
+    });
+    if (Object.keys(vivo).length) c.ciclo_live = vivo; else delete c.ciclo_live;
     this._config = c;
     this._emetti();
   }

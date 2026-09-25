@@ -109,7 +109,8 @@ export class CasaElettrodomestico extends HTMLElement {
         <div class="dm-ap-top-row">
           <div class="dm-ap-hero">${hero}</div>
           ${righe ? `<div class="dm-ap-cycle-side">
-            <span class="dm-ap-cycle-cap">Ultimo ciclo</span>
+            <span class="dm-ap-cycle-cap"><span class="dm-c-cap">Ultimo ciclo</span></span>
+            <span class="dm-ap-cycle-sub" hidden></span>
             <div class="dm-ap-cycle-list">
               ${righe}
             </div>
@@ -125,7 +126,7 @@ export class CasaElettrodomestico extends HTMLElement {
             ${
               this._config.live?.progress_entity
                 ? `<div class="dm-ap-meter">
-              <div class="dm-ap-meter-row"><span>Avanzamento programma</span><strong class="dm-ap-progress-val">\u2014</strong></div>
+              <div class="dm-ap-meter-row"><span>${esc(this._config.progress_label || "Avanzamento programma")}</span><strong class="dm-ap-progress-val">\u2014</strong></div>
               <div class="dm-ap-bar"><i class="dm-ap-progress-bar" style="width:0%"></i></div>
             </div>`
                 : ""
@@ -292,6 +293,39 @@ export class CasaElettrodomestico extends HTMLElement {
     const minuti = Math.round(unita.startsWith("min") ? n : n * 60);
     if (minuti < 60) return minuti + " min";
     return Math.floor(minuti / 60) + "h " + String(minuti % 60).padStart(2, "0") + "m";
+  }
+
+  // Mentre il ciclo gira il riquadro resta a trattini: il conto vero lo fa il
+  // sensore a fine ciclo. Ma l'apparecchio, intanto, i suoi numeri li dice
+  // (energia, minuti fatti, minuti che mancano, che fase sta facendo): qui li
+  // traduco nelle stesse quattro righe, cosi' il riquadro parla anche adesso.
+  _cicloVivo(hass) {
+    const c = this._config.ciclo_live;
+    if (!c) return null;
+    const buono = (e) => {
+      const st = e && hass.states[e];
+      return st && !["unavailable", "unknown"].includes(st.state) ? st : null;
+    };
+    const out = {};
+    const en = buono(c.energy_entity);
+    if (en && Number.isFinite(Number(en.state))) {
+      const unita = String(en.attributes.unit_of_measurement || "kWh").toLowerCase();
+      const kwh = unita === "wh" ? Number(en.state) / 1000 : Number(en.state);
+      out.energy = `${numero(kwh, 2)} kWh`;
+      const prezzo = Number(hass.states[this._config.prezzo_entita]?.state);
+      if (Number.isFinite(prezzo)) out.cost = kwh * prezzo;
+    }
+    const tr = buono(c.elapsed_entity);
+    if (tr) out.duration = this._tempoLeggibile(tr);
+    const res = buono(c.remaining_entity);
+    const mancano = res ? Number(res.state) : NaN;
+    if (Number.isFinite(mancano) && mancano >= 0) {
+      out.end = new Date(Date.now() + mancano * 60000)
+        .toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+    }
+    out.sub = [buono(c.program_entity), buono(c.phase_entity)]
+      .map((st) => st && st.state).filter(Boolean).join(" · ");
+    return out;
   }
 
   _renderPeriodRow(hass, periodKey) {
@@ -815,14 +849,30 @@ export class CasaElettrodomestico extends HTMLElement {
       progressBar.style.width = `${Number.isFinite(pVal) ? Math.min(100, Math.max(0, pVal)) : 0}%`;
     }
 
-    const end = this._cycleAttr(hass, "end");
-    const duration = this._cycleAttr(hass, "duration");
-    const energy = this._cycleAttr(hass, "energy");
-    const cost = this._cycleAttr(hass, "cost");
+    let end = this._cycleAttr(hass, "end");
+    let duration = this._cycleAttr(hass, "duration");
+    let energy = this._cycleAttr(hass, "energy");
+    let cost = this._cycleAttr(hass, "cost");
+    const vivo = mode === "running" ? this._cicloVivo(hass) : null;
+    const cap = this._root.querySelector(".dm-c-cap");
+    const sub = this._root.querySelector(".dm-ap-cycle-sub");
+    if (cap) cap.textContent = vivo ? "Ciclo in corso" : "Ultimo ciclo";
+    if (sub) {
+      sub.hidden = !(vivo && vivo.sub);
+      sub.textContent = (vivo && vivo.sub) || "";
+    }
+    const lato = this._root.querySelector(".dm-ap-cycle-side");
+    if (lato) lato.classList.toggle("ha-sub", !!(vivo && vivo.sub));
+    if (vivo) {
+      if (vivo.end !== undefined) end = vivo.end;
+      if (vivo.duration !== undefined) duration = vivo.duration;
+      if (vivo.energy !== undefined) energy = vivo.energy;
+      if (vivo.cost !== undefined) cost = vivo.cost;
+    }
     { const x = this._root.querySelector(".dm-c-end"); if (x) x.textContent = end ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-duration"); if (x) x.textContent = duration ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
-    { const x = this._root.querySelector(".dm-c-cost"); if (x) x.textContent = Number.isFinite(Number(cost)) ? `${Number(cost).toFixed(2)} \u20ac` : "\u2014"; }
+    { const x = this._root.querySelector(".dm-c-cost"); if (x) x.textContent = Number.isFinite(Number(cost)) ? `${numero(Number(cost), 2)} \u20ac` : "\u2014"; }
 
     const warnEl = this._root.querySelector(".dm-ap-warn");
     const activeWarnings = (cfg.warn_entities || [])
