@@ -8918,7 +8918,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.88.0";
+const VERSIONE = "2.88.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -19870,6 +19870,7 @@ async function creaSensoriBase(hass, opzioni, dillo) {
     if (costi[chiave]) riga.cost = costi[chiave];
     return riga;
   });
+  avvisoUnita(hass, Object.values(contatori), dillo);
   const patch = { periods };
   // la memoria e' servita: la butto, se no al prossimo giro rischia di
   // riportare indietro contatori che intanto sono andati avanti
@@ -19932,26 +19933,24 @@ async function creaIntegrale(hass, nome, potenza) {
   });
 }
 
-// Aspetta che un sensore dica di che unita' parla. Serve prima di appendergli
-// un contatore: un contatore nato su una sorgente muta parte senza unita', e
-// piu' tardi Home Assistant apre una riparazione per ognuno.
-async function aspettaUnita(hass, eid, dillo, secondi = 20) {
-  const ha = () => {
-    const st = hass.states[eid];
-    return st && (st.attributes || {}).unit_of_measurement;
-  };
-  if (!eid || ha()) return true;
-  if (dillo) dillo("Aspetto che " + eid + " dica il primo valore...");
-  for (let i = 0; i < secondi; i++) {
-    await new Promise((f) => setTimeout(f, 1000));
-    if (ha()) return true;
-  }
-  if (dillo) {
-    dillo("\u26a0 " + eid + " non ha ancora un'unita' (l'apparecchio e' spento)."
-      + " Quando comincera' a contare, Home Assistant potrebbe chiederti di sistemare"
-      + " l'unita' delle statistiche: rispondi \u00abaggiorna senza conversione\u00bb.");
-  }
-  return false;
+// I contatori appena nati che non hanno ancora un'unita'. Succede quando
+// l'apparecchio e' spento: il contatore la prende solo al primo conto vero, e
+// fino a quel momento le statistiche vanno a finire senza unita'. Quando poi
+// l'unita' arriva, Home Assistant apre una "riparazione" per ognuno.
+// PROVATO: non si puo' evitare - ne' aspettando che la sorgente dia un numero,
+// ne' con utility_meter.calibrate. Percio' lo dico prima invece di lasciartelo
+// scoprire dopo.
+function avvisoUnita(hass, entita, dillo) {
+  if (!dillo) return;
+  const mute = (entita || []).filter((e) => {
+    const st = e && hass.states[e];
+    return st && !(st.attributes || {}).unit_of_measurement;
+  });
+  if (!mute.length) return;
+  dillo("\u26a0 " + mute.length + (mute.length === 1 ? " contatore e' nato" : " contatori sono nati")
+    + " senza unita', perche' l'apparecchio adesso e' fermo. Appena comincera' a"
+    + " contare, Home Assistant ti chiedera' di sistemare l'unita' delle statistiche:"
+    + " rispondi \u00abaggiorna l'unita' senza conversione\u00bb. Succede una volta sola.");
 }
 
 // ---------------------------------------------------------------- i cicli
@@ -20170,7 +20169,6 @@ async function creaFonte(hass, opzioni, dillo) {
       await creaIntegrale(hass, nome, fonte);
       await rinfresca();
       kwh = await sistemaNome(hass, gia("integration", nome), nome, parla);
-      await aspettaUnita(hass, kwh, parla);
     }
   } else if (u === "wh") {
     const nome = base + " kWh";
@@ -20195,6 +20193,7 @@ async function creaFonte(hass, opzioni, dillo) {
     }
     fuori[chiave] = e;
   }
+  avvisoUnita(hass, Object.values(fuori), parla);
   return fuori;
 }
 
@@ -20232,7 +20231,6 @@ async function creaRisparmio(hass, opzioni, dillo) {
       await creaIntegrale(hass, nome, pannelli);
       await rinfresca();
       kwh = await sistemaNome(hass, gia("integration", nome), nome, parla);
-      await aspettaUnita(hass, kwh, parla);
     } else parla("I kWh dei pannelli c'erano gia'.");
   }
 
@@ -20345,7 +20343,6 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
     await trovaOCrea("integration", base + " energia",
       () => creaIntegrale(hass, base + " energia", potenza), (e) => { kwh = e; });
     await risolvi();
-    if (kwh) await aspettaUnita(hass, kwh, dillo);
   } else {
     dillo("kWh: uso il sensore della presa (" + kwh + ").");
   }
@@ -20426,6 +20423,7 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
       } catch (e) { dillo("Il valore vecchio non sono riuscito a rimetterlo: " + (e.message || e)); }
     }
   }
+  avvisoUnita(hass, Object.values(periodi).map((x) => x.energy), dillo);
   const patch = { period_entities: periodi, stats: { ...(opzioni.stats || {}) } };
   if (Object.keys(memoria).length) patch.helper_memoria = null;
   // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"

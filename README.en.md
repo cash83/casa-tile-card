@@ -252,7 +252,7 @@ entity tracking the total costs"** and pick:
 
 The full bill, line by line, stays in the casa-energia card.
 
-## What's new in 2.88
+## What's new in 2.88.1
 
 **The cards build their own sensors.** You used to prepare a thirty-sensor YAML
 package by hand; now two buttons do it, and what they create are ordinary Home
@@ -284,11 +284,14 @@ Assistant helpers.
   are merely ingredients of the total.
 - The kWh sensor and the panel ones are **searched by typing**, and **Wh** counters
   are accepted too (converted automatically).
-- **No more "the unit has changed" repairs.** A meter attached to a source that
-  was still silent (the appliance was off) was born without a unit, and later Home
-  Assistant asked you to fix the statistics, one by one. The integral now updates
-  every minute and the card waits for it to state its unit before attaching the
-  meters.
+- **"The unit has changed" repairs, explained before they happen.** A meter
+  created while the appliance is **off** is born without a unit — it only picks one
+  up on its first real reading — and when the unit arrives Home Assistant asks you
+  to fix the statistics, once per meter. Tested: it cannot be avoided, neither by
+  waiting for the source to produce a number nor with `utility_meter.calibrate`. If
+  the appliance is running the problem does not arise. So the card now **tells you
+  while it creates them**, with the answer to give: "update the unit without
+  conversion". It happens once per meter.
 
 
 ## What's new in 2.34

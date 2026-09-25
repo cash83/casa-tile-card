@@ -273,7 +273,7 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
 
-## Novità della 2.88
+## Novità della 2.88.1
 
 **Le schede si costruiscono i sensori da sole.** Prima bisognava preparare a mano
 un pacchetto YAML di trenta sensori; adesso bastano due tasti, e quello che creano
@@ -304,11 +304,14 @@ sono normali aiutanti di Home Assistant.
   ingredienti del totale.
 - Il sensore dei kWh e quelli dei pannelli **si cercano scrivendo**, e accettano
   anche i contatori in **Wh** (li converte lei).
-- **Niente piu' riparazioni «l'unita' e' cambiata».** Un contatore appeso a una
-  sorgente ancora muta (l'apparecchio e' spento) nasceva senza unita' e poi Home
-  Assistant chiedeva di sistemare le statistiche, una per una. Adesso l'integrale
-  si aggiorna ogni minuto e la scheda aspetta che dica la sua unita' prima di
-  appendergli i contatori.
+- **Le riparazioni «l'unità è cambiata», spiegate prima che succedano.** Un
+  contatore creato mentre l'apparecchio è **spento** nasce senza unità di misura —
+  la prende solo al primo conto vero — e quando l'unità arriva Home Assistant
+  chiede di sistemare le statistiche, una richiesta per contatore. Provato: non si
+  può evitare, né aspettando che la sorgente dia un numero né con
+  `utility_meter.calibrate`. Se l'apparecchio sta lavorando il problema non si pone.
+  Quindi adesso la scheda **te lo dice mentre crea**, con la risposta da dare:
+  «aggiorna l'unità senza conversione». Succede una volta sola per contatore.
 
 
 ## Novità della 2.34
