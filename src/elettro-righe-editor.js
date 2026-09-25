@@ -5,6 +5,11 @@
 // ({id: "nome"}; vuoto = nome di serie).
 
 export const STILE_EDITOR = `
+.ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
+  border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;
+  white-space:pre-wrap;font-size:12.5px;box-shadow:0 -6px 12px -8px rgba(0,0,0,.6)}
+.ce-esito.male{border-color:var(--error-color,#e05b5b)}
+
 .ce-scelta{margin-top:8px;border:1px solid var(--divider-color);border-radius:10px;padding:8px}
 .ce-scelta label{display:flex;gap:8px;align-items:center;padding:3px 2px;font-size:13px}
 .ce-scelta .dett{color:var(--secondary-text-color);font-size:11px;margin-left:auto}

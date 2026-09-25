@@ -8918,7 +8918,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.88.1";
+const VERSIONE = "2.89.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -18457,6 +18457,11 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
 // ({id: "nome"}; vuoto = nome di serie).
 
 const STILE_EDITOR = `
+.ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
+  border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;
+  white-space:pre-wrap;font-size:12.5px;box-shadow:0 -6px 12px -8px rgba(0,0,0,.6)}
+.ce-esito.male{border-color:var(--error-color,#e05b5b)}
+
 .ce-scelta{margin-top:8px;border:1px solid var(--divider-color);border-radius:10px;padding:8px}
 .ce-scelta label{display:flex;gap:8px;align-items:center;padding:3px 2px;font-size:13px}
 .ce-scelta .dett{color:var(--secondary-text-color);font-size:11px;margin-left:auto}
@@ -21039,7 +21044,8 @@ class CasaEnergiaEditor extends HTMLElement {
   }
 
   async _scriviTariffa() {
-    const esito = this.querySelector(".ce-esito-tariffa");
+    const esito = this._esito;
+    if (esito) { esito.hidden = false; esito.classList.remove("male"); }
     const n = (c) => Number((this.querySelector(".ce-t-" + c) || {}).value);
     esito.hidden = false;
     esito.classList.remove("male");
@@ -21073,6 +21079,7 @@ class CasaEnergiaEditor extends HTMLElement {
     }
     this._esito.textContent = "";
     // il riquadro con le caselline: scegli tu quali buttare
+    this._esito.hidden = false;
     quali_cancellare(this._esito, elenco, this._hass, async (scelti) => {
       const tasto = this.querySelector(".ce-cancella");
       if (tasto) tasto.disabled = true;
@@ -21204,6 +21211,8 @@ class CasaEnergiaEditor extends HTMLElement {
     this._esito.hidden = false;
     if (male) this._esito.classList.add("male");
     this._esito.textContent += (this._esito.textContent ? "\n" : "") + testo;
+    // il riquadro sta in fondo e resta attaccato: se sei piu' su, ti ci porto
+    try { this._esito.scrollIntoView({ block: "nearest" }); } catch (e) { /* vecchi browser */ }
   }
 
   _disegna() {
@@ -21264,7 +21273,6 @@ class CasaEnergiaEditor extends HTMLElement {
           <div class="ce-riga"><span class="ent">Quota fissa &euro; al giorno</span><input type="number" class="ce-t-quota max" step="0.0001" min="0" placeholder="0.542"></div>
           <div class="ce-riga"><span class="ent">Totale della bolletta</span><b class="ce-t-totale">&mdash;</b></div>
           <button type="button" class="ce-prepara ce-scrivi-tariffa">Scrivi la tariffa</button>
-          <div class="ce-esito ce-esito-tariffa" hidden></div>
         </div>
         <div class="ce-sez">
           <div class="ce-tit">Crea i sensori base</div>
@@ -21284,9 +21292,8 @@ class CasaEnergiaEditor extends HTMLElement {
             casa</b> (la scarica), non la percentuale.</div>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
-          <div class="ce-esito" hidden></div>
         </div>
-`;
+        <div class="ce-esito" hidden></div>`;
       const form = document.createElement("ha-form");
       form.schema = this._tutto ? SCHEMA_TUTTO$1 : SCHEMA_SEMPLICE$1;
       form.computeLabel = (x) => x.title || ETICHETTE$1[x.name] || x.name;
@@ -21693,7 +21700,23 @@ class CasaElettrodomestico extends HTMLElement {
     const reset = overlay.querySelector("[data-reset-script]");
     if (reset) {
       reset.addEventListener("click", () => {
-        hass.callService("script", "turn_on", { entity_id: reset.dataset.resetScript });
+        const cfg = this._config;
+        const pe = cfg.period_entities || {};
+        const ci = cfg.ciclo || {};
+        // quello che lo script deve azzerare glielo dico io: cosi' basta uno
+        // script solo per tutta la casa, non uno per apparecchio
+        const variables = {
+          scheda: cfg.name || "",
+          oggi: cfg.oggi_energia || (pe.today || {}).energy || "",
+          settimana: cfg.settimana_energia || (pe.week || {}).energy || "",
+          mese: cfg.mese_energia || (pe.month || {}).energy || "",
+          ciclo_contatore: ci.contatore || "",
+          ciclo_kwh: ci.consumo || "",
+          ciclo_minuti: ci.durata || "",
+          ciclo_fine: ci.fine || "",
+        };
+        hass.callService("script", "turn_on",
+          { entity_id: reset.dataset.resetScript, variables });
         overlay.hidden = true;
       });
     }
@@ -22755,7 +22778,8 @@ class CasaElettrodomesticoEditor extends HTMLElement {
 
   // cerca in casa un apparecchio che somigli al disegno scelto
   _proponiDalDisegno(disegno) {
-    const esito = this.querySelector(".ce-capisci-esito");
+    const esito = this._esito;
+    if (esito) { esito.hidden = false; esito.classList.remove("male"); }
     const sel = this.querySelector(".ce-capisci-ent");
     if (!esito || !this._hass) return;
     const trovati = trovaPerDisegno(this._hass, disegno);
@@ -23007,6 +23031,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     }
     this._esito.textContent = "";
     // il riquadro con le caselline: scegli tu quali buttare
+    this._esito.hidden = false;
     quali_cancellare(this._esito, elenco, this._hass, async (scelti) => {
       const tasto = this.querySelector(".ce-cancella");
       if (tasto) tasto.disabled = true;
@@ -23105,6 +23130,8 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     this._esito.hidden = false;
     if (male) this._esito.classList.add("male");
     this._esito.textContent += (this._esito.textContent ? "\n" : "") + testo;
+    // il riquadro sta in fondo e resta attaccato: se sei piu' su, ti ci porto
+    try { this._esito.scrollIntoView({ block: "nearest" }); } catch (e) { /* vecchi browser */ }
   }
 
   _disegna() {
@@ -23135,7 +23162,6 @@ class CasaElettrodomesticoEditor extends HTMLElement {
             Niente e' definitivo: tutto quello che trovo si cambia qui sotto, disegno compreso.</div>
           <div class="ce-riga"><span class="ent">Entita' da cui partire</span><ha-entity-picker class="ce-capisci-ent" allow-custom-entity></ha-entity-picker></div>
           <button type="button" class="ce-prepara">Compila da solo</button>
-          <div class="ce-esito ce-capisci-esito"></div>
         </div>
         
         <details class="ce-sez"><summary class="ce-tit">Due modi di contare: scegli il tuo</summary>
@@ -23179,18 +23205,18 @@ class CasaElettrodomesticoEditor extends HTMLElement {
           <div class="ce-riga ce-voci ce-voci-nota" hidden><span class="ent">Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia' la scheda grande della casa.</span></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-cicli">
             <span>Segui i <b>cicli</b>: quando finisce, quanto e' durato, quanto ha consumato
-            (aggiunge 5 aiutanti e 1 automazione)</span></label></div>
+            (6 aiutanti e 1 automazione, una volta sola)</span></label></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-tempi">
-            <span>Conta anche <b>quante volte parte</b> e <b>per quanto</b> (aggiunge 3 aiutanti per periodo)</span></label></div>
+            <span>Conta anche <b>quante volte parte</b> e <b>per quanto</b>
+            (2 aiutanti per ogni periodo, piu' la soglia)</span></label></div>
           <div class="ce-riga"><span class="ent">Periodi da creare</span>
             <label><input type="checkbox" class="ce-p-oggi" checked> oggi</label>
             <label><input type="checkbox" class="ce-p-settimana"> settimana</label>
             <label><input type="checkbox" class="ce-p-mese" checked> mese</label></div>
           <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
-          <div class="ce-esito" hidden></div>
         </details>
-`;
+        <div class="ce-esito" hidden></div>`;
       const form = document.createElement("ha-form");
       form.schema = this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE;
       form.computeLabel = (x) => x.title || ETICHETTE[x.name] || x.name;
@@ -23238,7 +23264,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
         const scelta = this.querySelector(".ce-capisci-ent");
         const entita = (scelta && scelta.value) || (c0.live && c0.live.state_entity) || c0.power_entity;
         if (!entita) {
-          this.querySelector(".ce-capisci-esito").textContent = "Scegli prima un'entita' dell'apparecchio.";
+          this._esito.textContent = "Scegli prima un'entita' dell'apparecchio.";
           return;
         }
         const pronta = preparaElettrodomestico(this._hass, { entity: entita, name: c0.name, icona: c0.artwork });
@@ -23254,7 +23280,7 @@ class CasaElettrodomesticoEditor extends HTMLElement {
         const trovate = ["power_entity", "interruttore", "interruttore_usb", "cycle_sensor"].filter((x) => c[x]);
         if (c.ciclo_live) trovate.push("ciclo in corso");
         if (c.live && c.live.state_entity) trovate.push("stato");
-        this.querySelector(".ce-capisci-esito").textContent =
+        this._esito.textContent =
           "Trovato: " + trovate.join(", ") + ". Disegno scelto: \u00ab" + c.artwork + "\u00bb.";
       });
     }

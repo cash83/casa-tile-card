@@ -258,6 +258,7 @@ della lavatrice usi quel sensore come presa.
 | `cycle_sensor`, `cycle_attrs` | l'ultimo ciclo: attributi `terminato`, `tempo_ciclo`, `consumo_ciclo`, `costo_ciclo` |
 | `period_attrs` | tempi e costi per oggi / ieri / mese / mese prima |
 | `stats.cycles_today`, `stats.cycles_month` | quanti cicli |
+| `reset_script` | lo script del tasto «Reset contatori»: riceve le entità della scheda, quindi uno solo basta per tutte |
 | `ciclo` | l'ultimo ciclo fatto dalla scheda: `fine`, `durata`, `consumo`, `contatore`, `inizio` |
 | `soglia_acceso` | il binary_sensor «sta lavorando» che fa da sveglia al ciclo |
 | `oggi_energia`, `mese_energia` | i contatori dei kWh (il costo lo calcola la scheda) |
@@ -275,6 +276,35 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.89
+
+**Un riquadro dei messaggi solo, sempre nello stesso posto.** Erano tre, sparsi
+per l'editor — uno sotto la tariffa, uno sotto «Capisci da solo», uno sotto i
+tasti — e ognuno scriveva nel suo: premevi *Cancella gli aiutanti* e l'elenco con
+le caselline si apriva a mezza pagina più su, dove non stavi guardando. Adesso ce
+n'è uno, **incollato in fondo all'editor** come una barra di stato: lo usano tutti
+i tasti, si porta da solo nella vista quando compare qualcosa, e diventa rosso se
+va storto.
+
+**Il tasto «Reset contatori» funziona davvero.** L'opzione `reset_script` c'era da
+sempre, ma il tasto passava allo script solo il proprio nome: per sapere *cosa*
+azzerare serviva uno script per ogni apparecchio. Adesso gli passa anche **le
+entità che la scheda già conosce** — contatore di oggi, del mese, del ciclo e le
+memorie — così un solo script vale per tutta la casa:
+
+```yaml
+reset_script: script.azzera_conti
+```
+
+Lo script riceve `scheda`, `oggi`, `settimana`, `mese`, `ciclo_contatore`,
+`ciclo_kwh`, `ciclo_minuti`, `ciclo_fine`: usa quelle che gli servono e lascia
+stare le altre.
+
+**Le spunte dicono i numeri veri.** «Segui i cicli» diceva *5 aiutanti*: erano
+giusti finché la memoria della partenza non è esistita, adesso sono **6**. E
+«conta quante volte parte» diceva *3 per periodo*: sono **2**, più la soglia che
+si fa una volta sola.
 
 ## Novità della 2.88.1
 

@@ -213,7 +213,8 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
 
   // cerca in casa un apparecchio che somigli al disegno scelto
   _proponiDalDisegno(disegno) {
-    const esito = this.querySelector(".ce-capisci-esito");
+    const esito = this._esito;
+    if (esito) { esito.hidden = false; esito.classList.remove("male"); }
     const sel = this.querySelector(".ce-capisci-ent");
     if (!esito || !this._hass) return;
     const trovati = trovaPerDisegno(this._hass, disegno);
@@ -465,6 +466,7 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
     }
     this._esito.textContent = "";
     // il riquadro con le caselline: scegli tu quali buttare
+    this._esito.hidden = false;
     quali_cancellare(this._esito, elenco, this._hass, async (scelti) => {
       const tasto = this.querySelector(".ce-cancella");
       if (tasto) tasto.disabled = true;
@@ -563,6 +565,8 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
     this._esito.hidden = false;
     if (male) this._esito.classList.add("male");
     this._esito.textContent += (this._esito.textContent ? "\n" : "") + testo;
+    // il riquadro sta in fondo e resta attaccato: se sei piu' su, ti ci porto
+    try { this._esito.scrollIntoView({ block: "nearest" }); } catch (e) { /* vecchi browser */ }
   }
 
   _disegna() {
@@ -593,7 +597,6 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
             Niente e' definitivo: tutto quello che trovo si cambia qui sotto, disegno compreso.</div>
           <div class="ce-riga"><span class="ent">Entita' da cui partire</span><ha-entity-picker class="ce-capisci-ent" allow-custom-entity></ha-entity-picker></div>
           <button type="button" class="ce-prepara">Compila da solo</button>
-          <div class="ce-esito ce-capisci-esito"></div>
         </div>
         
         <details class="ce-sez"><summary class="ce-tit">Due modi di contare: scegli il tuo</summary>
@@ -637,18 +640,18 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
           <div class="ce-riga ce-voci ce-voci-nota" hidden><span class="ent">Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia' la scheda grande della casa.</span></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-cicli">
             <span>Segui i <b>cicli</b>: quando finisce, quanto e' durato, quanto ha consumato
-            (aggiunge 5 aiutanti e 1 automazione)</span></label></div>
+            (6 aiutanti e 1 automazione, una volta sola)</span></label></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-tempi">
-            <span>Conta anche <b>quante volte parte</b> e <b>per quanto</b> (aggiunge 3 aiutanti per periodo)</span></label></div>
+            <span>Conta anche <b>quante volte parte</b> e <b>per quanto</b>
+            (2 aiutanti per ogni periodo, piu' la soglia)</span></label></div>
           <div class="ce-riga"><span class="ent">Periodi da creare</span>
             <label><input type="checkbox" class="ce-p-oggi" checked> oggi</label>
             <label><input type="checkbox" class="ce-p-settimana"> settimana</label>
             <label><input type="checkbox" class="ce-p-mese" checked> mese</label></div>
           <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
-          <div class="ce-esito" hidden></div>
         </details>
-`;
+        <div class="ce-esito" hidden></div>`;
       const form = document.createElement("ha-form");
       form.schema = this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE;
       form.computeLabel = (x) => x.title || ETICHETTE[x.name] || x.name;
@@ -696,7 +699,7 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
         const scelta = this.querySelector(".ce-capisci-ent");
         const entita = (scelta && scelta.value) || (c0.live && c0.live.state_entity) || c0.power_entity;
         if (!entita) {
-          this.querySelector(".ce-capisci-esito").textContent = "Scegli prima un'entita' dell'apparecchio.";
+          this._esito.textContent = "Scegli prima un'entita' dell'apparecchio.";
           return;
         }
         const pronta = preparaElettrodomestico(this._hass, { entity: entita, name: c0.name, icona: c0.artwork });
@@ -712,7 +715,7 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
         const trovate = ["power_entity", "interruttore", "interruttore_usb", "cycle_sensor"].filter((x) => c[x]);
         if (c.ciclo_live) trovate.push("ciclo in corso");
         if (c.live && c.live.state_entity) trovate.push("stato");
-        this.querySelector(".ce-capisci-esito").textContent =
+        this._esito.textContent =
           "Trovato: " + trovate.join(", ") + ". Disegno scelto: \u00ab" + c.artwork + "\u00bb.";
       });
     }

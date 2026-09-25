@@ -330,7 +330,23 @@ export class CasaElettrodomestico extends HTMLElement {
     const reset = overlay.querySelector("[data-reset-script]");
     if (reset) {
       reset.addEventListener("click", () => {
-        hass.callService("script", "turn_on", { entity_id: reset.dataset.resetScript });
+        const cfg = this._config;
+        const pe = cfg.period_entities || {};
+        const ci = cfg.ciclo || {};
+        // quello che lo script deve azzerare glielo dico io: cosi' basta uno
+        // script solo per tutta la casa, non uno per apparecchio
+        const variables = {
+          scheda: cfg.name || "",
+          oggi: cfg.oggi_energia || (pe.today || {}).energy || "",
+          settimana: cfg.settimana_energia || (pe.week || {}).energy || "",
+          mese: cfg.mese_energia || (pe.month || {}).energy || "",
+          ciclo_contatore: ci.contatore || "",
+          ciclo_kwh: ci.consumo || "",
+          ciclo_minuti: ci.durata || "",
+          ciclo_fine: ci.fine || "",
+        };
+        hass.callService("script", "turn_on",
+          { entity_id: reset.dataset.resetScript, variables });
         overlay.hidden = true;
       });
     }

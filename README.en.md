@@ -252,6 +252,35 @@ entity tracking the total costs"** and pick:
 
 The full bill, line by line, stays in the casa-energia card.
 
+## What's new in 2.89
+
+**One message box, always in the same place.** There were three, scattered across
+the editor — one under the tariff, one under "work it out for me", one under the
+buttons — and each wrote to its own: you pressed *Delete helpers* and the checkbox
+list opened half a page further up, where you were not looking. Now there is one,
+**stuck to the bottom of the editor** like a status bar: every button uses it, it
+scrolls itself into view when something appears, and turns red when something goes
+wrong.
+
+**The "Reset counters" button actually works.** The `reset_script` option had
+always been there, but the button only passed the script its own name: to know
+*what* to reset you needed one script per appliance. Now it also passes **the
+entities the card already knows** — today's meter, the month's, the cycle's and the
+memories — so a single script covers the whole house:
+
+```yaml
+reset_script: script.azzera_conti
+```
+
+The script receives `scheda`, `oggi`, `settimana`, `mese`, `ciclo_contatore`,
+`ciclo_kwh`, `ciclo_minuti`, `ciclo_fine`: it uses the ones it needs and ignores
+the rest.
+
+**The checkboxes state the real numbers.** "Follow the cycles" said *5 helpers*:
+true until the start-time memory existed, now it is **6**. And "count how many
+times it starts" said *3 per period*: it is **2**, plus the threshold, which is
+made once.
+
 ## What's new in 2.88.1
 
 **The cards build their own sensors.** You used to prepare a thirty-sensor YAML

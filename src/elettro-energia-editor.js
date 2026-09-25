@@ -444,7 +444,8 @@ export class CasaEnergiaEditor extends HTMLElement {
   }
 
   async _scriviTariffa() {
-    const esito = this.querySelector(".ce-esito-tariffa");
+    const esito = this._esito;
+    if (esito) { esito.hidden = false; esito.classList.remove("male"); }
     const n = (c) => Number((this.querySelector(".ce-t-" + c) || {}).value);
     esito.hidden = false;
     esito.classList.remove("male");
@@ -478,6 +479,7 @@ export class CasaEnergiaEditor extends HTMLElement {
     }
     this._esito.textContent = "";
     // il riquadro con le caselline: scegli tu quali buttare
+    this._esito.hidden = false;
     quali_cancellare(this._esito, elenco, this._hass, async (scelti) => {
       const tasto = this.querySelector(".ce-cancella");
       if (tasto) tasto.disabled = true;
@@ -609,6 +611,8 @@ export class CasaEnergiaEditor extends HTMLElement {
     this._esito.hidden = false;
     if (male) this._esito.classList.add("male");
     this._esito.textContent += (this._esito.textContent ? "\n" : "") + testo;
+    // il riquadro sta in fondo e resta attaccato: se sei piu' su, ti ci porto
+    try { this._esito.scrollIntoView({ block: "nearest" }); } catch (e) { /* vecchi browser */ }
   }
 
   _disegna() {
@@ -669,7 +673,6 @@ export class CasaEnergiaEditor extends HTMLElement {
           <div class="ce-riga"><span class="ent">Quota fissa &euro; al giorno</span><input type="number" class="ce-t-quota max" step="0.0001" min="0" placeholder="0.542"></div>
           <div class="ce-riga"><span class="ent">Totale della bolletta</span><b class="ce-t-totale">&mdash;</b></div>
           <button type="button" class="ce-prepara ce-scrivi-tariffa">Scrivi la tariffa</button>
-          <div class="ce-esito ce-esito-tariffa" hidden></div>
         </div>
         <div class="ce-sez">
           <div class="ce-tit">Crea i sensori base</div>
@@ -689,9 +692,8 @@ export class CasaEnergiaEditor extends HTMLElement {
             casa</b> (la scarica), non la percentuale.</div>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
-          <div class="ce-esito" hidden></div>
         </div>
-`;
+        <div class="ce-esito" hidden></div>`;
       const form = document.createElement("ha-form");
       form.schema = this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE;
       form.computeLabel = (x) => x.title || ETICHETTE[x.name] || x.name;
