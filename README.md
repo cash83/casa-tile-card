@@ -123,7 +123,7 @@ ritocchi nella linguetta **Pop-up** come tutte le altre.
 
 ### I sensori se li fa la scheda
 
-Dalla **2.87** non serve più preparare niente a mano: gli aiutanti di Home
+Dalla **2.88** non serve più preparare niente a mano: gli aiutanti di Home
 Assistant li crea la scheda, con due tasti.
 
 **1. La tariffa, una volta sola.** Nell'editor di `casa-energia`, riquadro
@@ -150,9 +150,11 @@ e costi** e fa la stessa cosa in piccolo: i kWh di oggi e del mese. Se la presa
 non conta i kWh (capita spesso con le Tuya) se li ricava dai Watt; se li conta in
 **Wh** li converte.
 
-**Il costo non ha un sensore.** Sono i kWh per il prezzo, e il conto lo fa la
-scheda mentre la guardi: un aiutante in meno per ogni periodo, e cambiando la
-tariffa si aggiorna tutto da solo.
+**Sugli apparecchi e sulle prese il costo non ha un sensore.** Sono i kWh per il
+prezzo, e il conto lo fa la scheda mentre la guardi: un aiutante in meno per ogni
+periodo, e cambiando la tariffa si aggiorna tutto da solo. Sulla scheda della casa
+invece i costi sono sensori veri, perché lì servono a un contatore (quello della
+bolletta, che deve sommare giorno dopo giorno) e perché ci entra la quota fissa.
 
 **Quello che crea è roba normale di Home Assistant**: la ritrovi in *Impostazioni
 > Dispositivi e servizi > Helper*, entra nel backup, e da lì si modifica. Premere
@@ -175,8 +177,9 @@ rifai, ripartono da lì invece che da zero.
 
 Fine, durata, consumo e costo dell'ultimo lavaggio (o dell'ultima infornata) si
 accendono spuntando **Segui i cicli** nell'editor. La scheda crea la soglia che
-dice quando l'apparecchio sta lavorando, un contatore per il ciclo, tre memorie e
-un'automazione che le riempie.
+dice quando l'apparecchio sta lavorando, un contatore per il ciclo, quattro
+memorie (kWh, minuti, ora di fine e ora di partenza) e un'automazione che le
+riempie: sei aiutanti in tutto.
 
 Un template *a trigger* — quello che serviva prima — **dall'interfaccia non si può
 creare**, e infatti la stessa cosa si ottiene con pezzi normali. Le due attenzioni
