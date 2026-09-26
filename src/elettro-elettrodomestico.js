@@ -3,7 +3,7 @@
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
 // da un secondo file. Da qui in poi e' codice nostro.
 
-import { scegliLingua } from './lingua.js';
+import { laLingua, laLocale, scegliLingua, T, TH } from './lingua.js';
 import {
   mirinoGrafico,
   numero,
@@ -14,21 +14,22 @@ import {
   ICON_CHART,
   ICON_POWER,
   ICON_USB,
-  ICON_CLOSE,
   ICON_RESTART,
   ICON_NOTIFCENTER,
   ICON_BOLT,
   ICON_FLAG,
   ICON_TIMER,
   ICON_EURO,
+  giornoBreve,
+  meseBreve,
   WEEKDAY_FULL_IT,
-  WEEKDAY_ABBR_IT,
   DEFAULT_STATE_MAP,
   STYLE,
   esc,
   vestiFinestra,
 } from './elettro-comune.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
+import { ConFinestrelle } from './elettro-condivisi.js';
 
 // Le righe dell'Ultimo ciclo, col nome che si vede nell'editor.
 export const RIGHE_CICLO = [
@@ -46,7 +47,7 @@ export const RIGHE_CICLO = [
 
 const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
 
-export class CasaElettrodomestico extends HTMLElement {
+export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
   // Le righe dell'Ultimo ciclo, nell'ordine e coi nomi della configurazione.
   _righeCiclo() {
     const R = {
@@ -136,7 +137,7 @@ export class CasaElettrodomestico extends HTMLElement {
     const righe = this._righeCiclo();
 
     const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.dishwasher;
-    this._root.innerHTML = `<style>${STYLE}</style>
+    this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
       <article class="dm-ap-card">
         ${this._config.label ? `<span class="dm-test-flag">${esc(this._config.label)}</span>` : ""}
         <div class="dm-ap-top">
@@ -190,7 +191,7 @@ export class CasaElettrodomestico extends HTMLElement {
             }
           </div>
         </div>
-      </article>`;
+      </article>`);
     this._root.querySelector(".dm-ap-name").textContent = this._config.name;
     if (this._config.room) {
       const room = this._root.querySelector(".dm-ap-room");
@@ -248,50 +249,6 @@ export class CasaElettrodomestico extends HTMLElement {
     const e = new Event("hass-more-info", { bubbles: true, composed: true });
     e.detail = { entityId };
     this.dispatchEvent(e);
-  }
-
-  _openDialog(title, bodyHtml) {
-    let overlay = this._root.querySelector(".dm-ap-overlay");
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.className = "dm-ap-overlay";
-      overlay.hidden = true;
-      overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) overlay.hidden = true;
-      });
-      this._root.appendChild(overlay);
-    }
-    overlay.innerHTML = `<div class="dm-ap-dialog">
-      <div class="dm-ap-dialog-head"><h3>${esc(title)}</h3><button type="button" class="dm-ap-dialog-close">${ICON_CLOSE}</button></div>
-      <div class="dm-ap-dialog-body">${bodyHtml}</div>
-    </div>`;
-    overlay.querySelector(".dm-ap-dialog-close").addEventListener("click", () => {
-      overlay.hidden = true;
-    });
-    overlay.hidden = false;
-    return overlay;
-  }
-
-  _row(label, valueHtml) {
-    return `<div class="dm-ap-row"><span class="dm-ap-row-label">${esc(label)}</span>${valueHtml}</div>`;
-  }
-
-  _settingsRowHtml(hass, row) {
-    const st = hass.states[row.entity];
-    if (!st) return this._row(row.label, `<span class="dm-ap-row-val">n/d</span>`);
-    const domain = row.entity.split(".")[0];
-    if (["input_boolean", "automation", "switch"].includes(domain)) {
-      const on = st.state === "on";
-      return this._row(
-        row.label,
-        `<button type="button" class="dm-ap-switch${on ? " on" : ""}" data-entity="${esc(row.entity)}" aria-pressed="${on}"></button>`,
-      );
-    }
-    const unit = st.attributes?.unit_of_measurement || "";
-    return `<div class="dm-ap-row" data-open-entity="${esc(row.entity)}" style="cursor:pointer">
-      <span class="dm-ap-row-label">${esc(row.label)}</span>
-      <span class="dm-ap-row-val">${esc(st.state)}${unit ? " " + esc(unit) : ""}</span>
-    </div>`;
   }
 
   _openSettings() {
@@ -402,7 +359,7 @@ export class CasaElettrodomestico extends HTMLElement {
       const stessoGiorno = d.toDateString() === oggi.toDateString();
       const ieri = new Date(oggi.getTime() - 86400000).toDateString() === d.toDateString();
       if (stessoGiorno) return ora;
-      if (ieri) return "ieri " + ora;
+      if (ieri) return T("ieri") + " " + ora;
       return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + " " + ora;
     }
     if (key === "duration") {
@@ -470,7 +427,7 @@ export class CasaElettrodomestico extends HTMLElement {
       const h = Math.floor(min / 60);
       out.duration = h ? h + "h " + String(min % 60).padStart(2, "0") + "m" : min + " min";
     }
-    out.end = "in corso";
+    out.end = T("in corso");
     return Object.keys(out).length ? out : null;
   }
 
@@ -496,7 +453,7 @@ export class CasaElettrodomestico extends HTMLElement {
     const mancano = res ? Number(res.state) : NaN;
     if (Number.isFinite(mancano) && mancano >= 0) {
       out.end = new Date(Date.now() + mancano * 60000)
-        .toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+        .toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" });
     }
     out.sub = [buono(c.program_entity), buono(c.phase_entity)]
       .map((st) => st && st.state).filter(Boolean).join(" · ");
@@ -576,7 +533,7 @@ export class CasaElettrodomestico extends HTMLElement {
     }
     if (live.remaining_entity) {
       const st = hass.states[live.remaining_entity];
-      const val = st && st.state !== "unavailable" && st.state !== "unknown" ? new Date(st.state).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "n/d";
+      const val = st && st.state !== "unavailable" && st.state !== "unknown" ? new Date(st.state).toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) : "n/d";
       liveHtml += this._row("Fine prevista", `<span class="dm-ap-row-val">${esc(val)}</span>`);
     }
     if (live.salt_entity) {
@@ -606,7 +563,7 @@ export class CasaElettrodomestico extends HTMLElement {
         val = Number.isFinite(n) ? `${Math.round(n * 100)}%` : "n/d";
       } else if (row.format === "time") {
         const d = new Date(raw);
-        val = Number.isFinite(d.getTime()) ? d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : raw;
+        val = Number.isFinite(d.getTime()) ? d.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) : raw;
       } else {
         val = row.unit ? `${raw}${row.unit}` : raw;
       }
@@ -628,7 +585,7 @@ export class CasaElettrodomestico extends HTMLElement {
         const soglia = Number(cfg.threshold_run);
         if (Number.isFinite(n) && Number.isFinite(soglia)) {
           liveHtml += this._row("Sta lavorando",
-            `<span class="dm-ap-row-val">${n > soglia ? "Sì" : "No"} (sopra ${soglia} ${esc(unita)})</span>`);
+            `<span class="dm-ap-row-val">${n > soglia ? T("S\u00ec") : T("No")} (${T("sopra")} ${soglia} ${esc(unita)})</span>`);
         }
       }
     }
@@ -683,11 +640,11 @@ export class CasaElettrodomestico extends HTMLElement {
             m: st.attributes.min_ieri, e: st.attributes.costo_ieri };
         }
       }
-      const etichetta = `${WEEKDAY_ABBR_IT[d.getDay()]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const etichetta = `${giornoBreve(d)} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
       const vuoto = !dato || (dato.c === undefined && dato.m === undefined && dato.e === undefined);
       const costo = Number(dato?.e);
       righe.push(`<div class="dm-ap-week-row">
-        <div class="dm-ap-week-day">${esc(etichetta)}${i === 0 ? " (oggi)" : ""}</div>
+        <div class="dm-ap-week-day">${esc(etichetta)}${i === 0 ? " " + T("(oggi)") : ""}</div>
         <div class="dm-ap-week-stats cols3">
           <div class="dm-ap-week-stat"><small>Cicli</small><b>${vuoto ? "\u2014" : esc(String(Number(dato.c) || 0))}</b></div>
           <div class="dm-ap-week-stat"><small>Tempo</small><b>${vuoto ? "\u2014" : esc(min2txt(dato.m))}</b></div>
@@ -714,7 +671,7 @@ export class CasaElettrodomestico extends HTMLElement {
       if (!row) continue;
       const dd = String(d.getDate()).padStart(2, "0");
       const mm = String(d.getMonth() + 1).padStart(2, "0");
-      ordered.push({ ...row, _label: `${WEEKDAY_ABBR_IT[dow]} ${dd}/${mm}` });
+      ordered.push({ ...row, _label: `${giornoBreve(d)} ${dd}/${mm}` });
     }
     return ordered;
   }
@@ -766,43 +723,6 @@ export class CasaElettrodomestico extends HTMLElement {
   // Nessuna libreria esterna: SVG disegnato a mano, dati presi dalla cronologia
   // e dalle statistiche a lungo termine di Home Assistant via WebSocket.
 
-  _fmtAxis(v) {
-    if (!Number.isFinite(v)) return "0";
-    const s = Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1);
-    return s.endsWith(".0") ? s.slice(0, -2) : s;
-  }
-
-  _lineChartSvg(points, color, fixedMax) {
-    if (!points.length) return `<div class="dm-ap-chart-empty">Nessun dato</div>`;
-    const width = 300;
-    const height = 90;
-    // asse sinistro: riserva spazio per i valori min/max, riferimento comune ai 3 grafici
-    const plotX0 = 24;
-    const plotW = width - plotX0;
-    const values = points.map((p) => p.y);
-    // Con una scala fissa (basata sul picco storico reale) il minimo resta
-    // sempre 0: cosi' il rumore di standby appiattisce vicino al fondo del
-    // grafico invece di essere "gonfiato" da un auto-scale sul range minimo
-    // dei dati del giorno, e un consumo vero resta comunque ben visibile.
-    const min = fixedMax ? 0 : Math.min(...values, 0);
-    const max = fixedMax ? Math.max(fixedMax, ...values) : Math.max(...values, min + 1);
-    const range = max - min || 1;
-    const stepX = points.length > 1 ? plotW / (points.length - 1) : 0;
-    const coords = points.map((p, i) => {
-      const x = (plotX0 + i * stepX).toFixed(1);
-      const y = (height - ((p.y - min) / range) * (height - 6) - 3).toFixed(1);
-      return `${x},${y}`;
-    });
-    const area = `${plotX0},${height} ${coords.join(" ")} ${width},${height}`;
-    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg" preserveAspectRatio="none">
-      <line x1="${plotX0}" y1="3" x2="${plotX0}" y2="${height - 3}" stroke="#94a3b840" stroke-width="1"/>
-      <text x="${plotX0 - 4}" y="8" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
-      <text x="${plotX0 - 4}" y="${height - 3}" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(min)}</text>
-      <polygon points="${area}" fill="${color}" opacity="0.14"/>
-      <polyline points="${coords.join(" ")}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-    </svg>`;
-  }
-
   _barChartSvg(bars, color) {
     if (!bars.length) return `<div class="dm-ap-chart-empty">Nessun dato</div>`;
     const width = 300;
@@ -841,23 +761,6 @@ export class CasaElettrodomestico extends HTMLElement {
     return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg" preserveAspectRatio="none">${axis}${parts}</svg>`;
   }
 
-  async _fetchHistory24h(entityId) {
-    const end = new Date();
-    const start = new Date(end.getTime() - 24 * 3600 * 1000);
-    const result = await this._hass.connection.sendMessagePromise({
-      type: "history/history_during_period",
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-      entity_ids: [entityId],
-      minimal_response: true,
-      no_attributes: true,
-    });
-    const rows = result?.[entityId] || [];
-    return rows
-      .map((r) => ({ t: new Date((r.lu || r.last_updated_ts) * 1000 || r.last_updated), y: Number(r.s ?? r.state) }))
-      .filter((p) => Number.isFinite(p.y));
-  }
-
   // I sette giorni presi dallo storico del contatore: una riga per giorno,
   // i kWh consumati e quanto sono costati al prezzo di adesso.
   async _settimanaDalloStorico(conta) {
@@ -885,7 +788,7 @@ export class CasaElettrodomestico extends HTMLElement {
       }
       box.innerHTML = giorni.map((x) => {
         const d = x.t;
-        const etichetta = WEEKDAY_ABBR_IT[d.getDay()] + " " + String(d.getDate()).padStart(2, "0")
+        const etichetta = giornoBreve(d) + " " + String(d.getDate()).padStart(2, "0")
           + "/" + String(d.getMonth() + 1).padStart(2, "0");
         const costo = Number.isFinite(p) && p > 0 ? `${numero(x.value * p, 2)} \u20ac` : "\u2014";
         return `<div class="dm-ap-week-row">
@@ -913,21 +816,6 @@ export class CasaElettrodomestico extends HTMLElement {
     return rows.map((r) => ({ t: new Date(r.start), value: Math.max(0, Number(r.change ?? 0)) }));
   }
 
-  // Sceglie fino a "count" indici distribuiti in modo uniforme (incluso il
-  // primo e l'ultimo) per non affollare l'asse con un'etichetta per ogni
-  // singolo punto/barra.
-  _labelSpans(items, count, formatFn) {
-    if (!items.length) return "";
-    const n = Math.min(count, items.length);
-    const idxs = [];
-    for (let i = 0; i < n; i++) {
-      idxs.push(n === 1 ? 0 : Math.round((i * (items.length - 1)) / (n - 1)));
-    }
-    const seen = new Set();
-    const unique = idxs.filter((i) => (seen.has(i) ? false : (seen.add(i), true)));
-    return `<div class="dm-ap-chart-labels">${unique.map((i) => `<span>${formatFn(items[i], i)}</span>`).join("")}</div>`;
-  }
-
   async _openPowerHistory() {
     const cfg = this._config;
     const powerEntity = cfg.power_history_entity || cfg.power_entity;
@@ -943,18 +831,18 @@ export class CasaElettrodomestico extends HTMLElement {
     const slot = (name) => overlay?.querySelector(`[data-chart="${name}"]`);
 
     if (powerEntity) {
-      this._fetchHistory24h(powerEntity)
+      this._storia(powerEntity, 24)
         .then((points) => {
           const el = slot("24h");
           if (!el) return;
-          const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }));
+          const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }));
           // Scala fissa sul picco storico (cfg.max_power, un po' sopra il
           // massimo osservato negli ultimi mesi): il rumore di standby resta
           // vicino allo zero e un consumo vero si vede comunque bene, senza
           // nascondere il dato reale come faceva l'azzeramento.
           el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", cfg.max_power)}${labels}</div>`;
           mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
-            (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
+            (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
         })
         .catch(() => {
           const el = slot("24h");
@@ -979,13 +867,13 @@ export class CasaElettrodomestico extends HTMLElement {
         });
 
       const yearStart = new Date(now.getFullYear(), 0, 1);
-      const MONTH_ABBR = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+
       this._fetchStats(energyEntity, "month", yearStart, now)
         .then((rows) => {
           const el = slot("year");
           if (!el) return;
           const bars = rows.map((r) => ({ value: r.value }));
-          const labels = `<div class="dm-ap-chart-labels">${rows.map((r) => `<span>${MONTH_ABBR[r.t.getMonth()]}</span>`).join("")}</div>`;
+          const labels = `<div class="dm-ap-chart-labels">${rows.map((r) => `<span>${meseBreve(r.t)}</span>`).join("")}</div>`;
           el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars, "#0ea5e9")}${labels}</div>`;
         })
         .catch(() => {
@@ -999,6 +887,13 @@ export class CasaElettrodomestico extends HTMLElement {
     this._hass = hass;
     scegliLingua(hass);
     if (!this._config) return;
+    // Il disegno lo facciamo in setConfig, che Home Assistant chiama PRIMA di
+    // darci hass: la prima volta la lingua non la sapevamo ancora. Adesso la
+    // sappiamo: se non e' quella di prima, rifaccio il disegno una volta sola.
+    if (this._linguaDisegnata !== laLingua()) {
+      this._linguaDisegnata = laLingua();
+      this.setConfig(this._config);
+    }
     // Home Assistant passa di qui a ogni cambio di stato di TUTTA la casa.
     // Invece di rifare tutto il disegno per ognuno, i cambi che arrivano
     // insieme li raggruppo: disegno una volta sola, con l'ultimo valore.
@@ -1046,7 +941,7 @@ export class CasaElettrodomestico extends HTMLElement {
     const badge = this._root.querySelector(".dm-ap-badge");
     badge.classList.remove("run", "standby", "off", "unavailable");
     badge.classList.add(mode === "running" ? "run" : mode);
-    this._root.querySelector(".dm-ap-badge-label").textContent = label;
+    this._root.querySelector(".dm-ap-badge-label").textContent = T(label);
 
     const powerVal = Number.isFinite(watts) ? Math.max(0, watts) : 0;
     const powerUnit = cfg.power_unit || "W";
@@ -1099,7 +994,7 @@ export class CasaElettrodomestico extends HTMLElement {
     const vivo = (mode === "running" || sogliaOn) ? this._cicloVivo(hass) : null;
     const cap = this._root.querySelector(".dm-c-cap");
     const sub = this._root.querySelector(".dm-ap-cycle-sub");
-    if (cap) cap.textContent = vivo ? "Ciclo in corso" : "Ultimo ciclo";
+    if (cap) cap.textContent = T(vivo ? "Ciclo in corso" : "Ultimo ciclo");
     if (sub) {
       sub.hidden = !(vivo && vivo.sub);
       sub.textContent = (vivo && vivo.sub) || "";
@@ -1181,7 +1076,7 @@ export class CasaElettrodomestico extends HTMLElement {
       if (eidCosto || eidKwh) hoPeriodi = true;
       x.textContent = costoDa(eidCosto, eidKwh);
     });
-    if (cap && !vivo && !cfg.cycle_sensor && !cfg.ciclo && hoPeriodi) cap.textContent = "Consumi";
+    if (cap && !vivo && !cfg.cycle_sensor && !cfg.ciclo && hoPeriodi) cap.textContent = T("Consumi");
 
     this._barreExtra().forEach((b, i) => {
       const barra = this._root.querySelector(`.dm-ap-extra-bar[data-b="${i}"]`);
@@ -1210,17 +1105,4 @@ export class CasaElettrodomestico extends HTMLElement {
     }
   }
 
-  // Quanto spazio chiede nella griglia delle viste a sezioni. Senza questo
-  // Home Assistant decide da solo e il cursore del Layout si comporta a modo
-  // suo: la casella e' alta, va detto.
-  getGridOptions() {
-    // "auto": l'altezza la misura Home Assistant sul contenuto vero. Con un
-    // numero fisso (era 7) le schede corte lasciavano un buco sotto, e in una
-    // vista a sezioni il buco si vede tutto.
-    return { columns: 12, rows: "auto", min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
-  }
-
-  getCardSize() {
-    return 7;
-  }
 }

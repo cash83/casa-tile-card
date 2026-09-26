@@ -228,6 +228,7 @@ della lavatrice usi quel sensore come presa.
 | `circuits` | barre: `label`, `entity` (W), `max` |
 | `top_auto` | `true` = chi consuma di più lo trova da sola fra tutti i sensori di potenza |
 | `top_exclude` | pezzi di entity_id da non contare (produzione, batterie…); c'è già una lista di serie |
+| `top_exclude_piu` | parole da aggiungere a quelle di serie (`top_exclude` invece le sostituisce) |
 | `top_include` | entità da contare comunque |
 | `top_min_w` | sotto questi W non è «top» (di serie 5) |
 | `unmeasured_label` | nome della voce «Non misurato» |
@@ -277,6 +278,50 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.91
+
+I cinque punti rimasti aperti dal giro di controlli della 2.90, chiusi tutti.
+
+**Le memorie del ciclo e la sua automazione si cancellano.** Il tasto *Cancella
+gli aiutanti di questa scheda* sapeva buttare solo le voci di configurazione:
+contatori, soglie, sensori del costo. Le quattro memorie dell'ultimo ciclo (due
+`input_number` e due `input_datetime`) e l'automazione che le riempie restavano
+lì per sempre, e nessuna schermata te le mostrava. Adesso compaiono nella lista
+con le caselline, marcate **memoria** e **automazione**, e si cancellano ognuna
+come va cancellata lei. La soglia «… in funzione» ora si riconosce per nome
+**esatto**: prima bastava che un nome fosse contenuto in un altro (*forno*
+dentro *forno microonde*) e ti offriva di buttare la soglia di un altro
+apparecchio.
+
+**Una copia sola.** Le due schede dei consumi e i loro editor erano nate
+separate e avevano **venticinque metodi con lo stesso nome**, uno per file: la
+finestrella, il grafico, la riga delle impostazioni, il tasto che cancella. Le
+copie derapano in silenzio, e due derapate le ho trovate mettendole assieme: una
+scriveva `EUR` e l'altra `€` nella stessa riga, e i giorni della settimana erano
+scritti due volte con le maiuscole diverse. Adesso la parte comune sta in
+`elettro-condivisi.js`, come i pezzi della casella: **dodici** metodi restano
+doppi e sono quelli che fanno davvero cose diverse (uno è commentato per
+spiegare perché).
+
+**`top_exclude_piu`.** `top_exclude` *sostituisce* l'elenco di serie delle parole
+che escludono un sensore dal Top consumo: chi ne aggiungeva una si ritrovava
+senza le altre. La nuova `top_exclude_piu` ci si **aggiunge**. E dall'elenco di
+serie sono uscite tre parole che riguardavano solo la casa di chi scrive.
+
+**La scheda dei consumi non butta più l'errore rosso.** `casa-energia` senza
+`power_entity` si rifiutava di disegnarsi, mentre la sua gemella
+`casa-elettrodomestico` in quel caso si fa vedere vuota e lascia che l'editor
+dica cosa manca. Adesso fanno la stessa cosa.
+
+**E l'inglese.** Le due schede e i tre editor erano rimasti tutti in italiano:
+chi ha Home Assistant in inglese leggeva *Ultimo ciclo*, *Spunta quelle da
+vedere*, *Crea statistiche e costi*. Sono **287 scritte** tradotte, e i paragrafi
+di aiuto sono tradotti **interi** invece che a pezzi (una frase italiana col
+grassetto dentro, spezzata in dieci frammenti, in inglese non torna). Giorni,
+mesi e ore non passano più dal dizionario: li scrive il browser nella lingua di
+chi guarda — in italiano *Mar* è sia martedì sia marzo, e nel dizionario non ci
+starebbero entrambi.
 
 ## Novità della 2.90
 

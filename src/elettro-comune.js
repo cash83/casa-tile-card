@@ -876,6 +876,23 @@ export function mirinoGrafico(box, punti, scrivi) {
 // parte e "0.29 €" dall'altra.
 // Il simbolo al posto del codice della moneta, come fa Home Assistant.
 const SIMBOLI = { EUR: "\u20ac", USD: "$", GBP: "\u00a3", CHF: "CHF" };
+// Il giorno e il mese scritti nella lingua di chi guarda: "Mar" in italiano
+// e' sia martedi' sia marzo, quindi nel dizionario non ci starebbero entrambi -
+// e comunque il browser lo sa fare meglio.
+export function giornoBreve(d) {
+  try {
+    const t = d.toLocaleDateString(laLocale(), { weekday: "short" });
+    return t.charAt(0).toUpperCase() + t.slice(1).replace(/\.$/, "");
+  } catch (e) { return WEEKDAY_ABBR_IT[d.getDay()]; }
+}
+
+export function meseBreve(d) {
+  try {
+    const t = d.toLocaleDateString(laLocale(), { month: "short" });
+    return t.charAt(0).toUpperCase() + t.slice(1).replace(/\.$/, "");
+  } catch (e) { return String(d.getMonth() + 1); }
+}
+
 export function unitaBella(u) {
   const t = String(u || "").trim();
   return SIMBOLI[t.toUpperCase()] || t;

@@ -6,9 +6,11 @@
 
 import { RIGHE_OGGI } from './elettro-energia.js';
 import { VERSIONE } from './versione.js';
+import { ConEditor } from './elettro-condivisi.js';
+import { T, TH, traduciSchema } from './lingua.js';
 import { ESCLUSI_DI_SERIE } from './elettro-prepara.js';
-import { quali_cancellare, STILE_EDITOR, disegnaRighe } from './elettro-righe-editor.js';
-import { cancellaQuesti, scollegaEntita, creaFonte, creaRisparmio, ID_TOTALE, prezzoDellaCasa, aiutantiVeri, idDellaVoce, VOCI_TARIFFA, scriviTariffa, INGREDIENTE, creaSensoriBase, prezziDelKWh } from './elettro-crea.js';
+import { STILE_EDITOR, disegnaRighe } from './elettro-righe-editor.js';
+import { creaFonte, creaRisparmio, ID_TOTALE, prezzoDellaCasa, idDellaVoce, VOCI_TARIFFA, scriviTariffa, INGREDIENTE, creaSensoriBase, prezziDelKWh } from './elettro-crea.js';
 
 // quello che si legge sotto al campo, per i tre che sembrano vuoti e rotti
 const AIUTI = {
@@ -115,23 +117,7 @@ const SCHEMA_SEMPLICE = ["name", "power_entity", "artwork"]
   .filter(Boolean);
 
 
-export class CasaEnergiaEditor extends HTMLElement {
-  setConfig(config) {
-    this._config = { ...config };
-    this._disegna();
-  }
-
-  set hass(hass) {
-    this._hass = hass;
-    if (this._form) this._form.hass = hass;
-  }
-
-  _emetti() {
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: this._config }, bubbles: true, composed: true,
-    }));
-  }
-
+export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   // i quattro sensori dei conti stanno dentro `periods`: li tiro fuori per
   // nome, cosi' l'ordine nell'elenco non conta
   _periodo(nome) {
@@ -150,37 +136,6 @@ export class CasaEnergiaEditor extends HTMLElement {
       finestra_scritta: this._versoRgb(c.finestra_scritta), top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false,
       switches: (c.switches || []).map((x) => x && x.entity).filter(Boolean),
       circuiti: (c.circuits || []).map((x) => x && x.entity).filter(Boolean) };
-  }
-
-  // le scelte del riquadro "Crea i sensori base" sono configurazione: le scrivo
-  // subito, se no Home Assistant non accende il tasto Salva
-  _scriviScelta(chiave, valore) {
-    const c = { ...this._config };
-    if (valore === "" || valore === undefined || valore === null || (typeof valore === "number" && !isFinite(valore))) {
-      delete c[chiave];
-    } else c[chiave] = valore;
-    this._config = c;
-    this._emetti();
-  }
-
-  _nomeDi(eid) {
-    const st = this._hass && this._hass.states[eid];
-    const n = st ? String(st.attributes.friendly_name || eid) : eid;
-    return n.replace(/\s+(potenza|power)\s*$/i, "").replace(/\s{2,}/g, " ").trim();
-  }
-
-  // i colori si scrivono in esadecimale (#1b2430), il selettore di Home
-  // Assistant invece parla in tre numeri: qui li traduco avanti e indietro
-  _versoHex(v) {
-    if (!Array.isArray(v) || v.length < 3) return v || "";
-    return "#" + v.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, "0")).join("");
-  }
-
-  _versoRgb(v) {
-    const m = /^#?([0-9a-f]{6})$/i.exec(String(v || ""));
-    if (!m) return undefined;
-    const n = parseInt(m[1], 16);
-    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   }
 
   // rimette i quattro sensori dentro periods/periods_prev. "Ieri" e "mese
@@ -343,6 +298,8 @@ export class CasaEnergiaEditor extends HTMLElement {
     else if (mio && elenco.includes(mio)) sel.value = mio;
   }
 
+  // DIVERSA DI PROPOSITO da quella dell'elettrodomestico: per la casa voglio
+  // solo contatori in kWh e che siano un totale (total / total_increasing)
   _kWhPossibili() {
     const st = (this._hass && this._hass.states) || {};
     return Object.keys(st).filter((id) => {
@@ -466,45 +423,6 @@ export class CasaEnergiaEditor extends HTMLElement {
     }
   }
 
-  // Butta via i contatori e i costi che questa scheda si e' fatta creare. I
-  // prezzi NON si toccano: quelli sono la tariffa, e la usano tutte le schede.
-  async _cancellaSensori() {
-    const elenco = (await aiutantiVeri(this._hass, this._config))
-      .filter((x) => !String(x.entity).startsWith("input_number."));
-    this._esito.hidden = false;
-    this._esito.classList.remove("male");
-    if (!elenco.length) {
-      this._esito.textContent = "Questa scheda non ha aiutanti da cancellare.";
-      return;
-    }
-    this._esito.textContent = "";
-    // il riquadro con le caselline: scegli tu quali buttare
-    this._esito.hidden = false;
-    quali_cancellare(this._esito, elenco, this._hass, async (scelti) => {
-      const tasto = this.querySelector(".ce-cancella");
-      if (tasto) tasto.disabled = true;
-      this._esito.hidden = false;
-      this._esito.textContent = "";
-      try {
-        const esito = await cancellaQuesti(this._hass, scelti,
-          (m) => { this._esito.textContent += m + "\n"; });
-        let c = scollegaEntita(this._config, scelti.map((x) => x.entity));
-        const memoria = { ...(this._config.helper_memoria || {}), ...(esito.memoria || {}) };
-        if (Object.keys(memoria).length) c.helper_memoria = memoria;
-        this._config = c;
-        this._emetti();
-        this._form.data = this._datiForm();
-        this._esito.textContent += "Fatto: " + esito.cancellati + " cancellati. "
-          + "I valori me li sono segnati: se li rifai ripartono da li'.";
-      } catch (e) {
-        this._esito.classList.add("male");
-        this._esito.textContent = "Non ce l'ho fatta: " + (e && e.message ? e.message : e);
-      } finally {
-        if (tasto) tasto.disabled = false;
-      }
-    });
-  }
-
   // Le quattro barre proposte guardando la casa: sensori di potenza veri,
   // senza le parole che escludono (le stesse del "top consumo").
   // con "le piu' accese" l'elenco a mano non serve: lo nascondo
@@ -606,54 +524,34 @@ export class CasaEnergiaEditor extends HTMLElement {
     tasto.disabled = false;
   }
 
-  _dillo(testo, male) {
-    if (!this._esito) return;
-    this._esito.hidden = false;
-    if (male) this._esito.classList.add("male");
-    this._esito.textContent += (this._esito.textContent ? "\n" : "") + testo;
-    // il riquadro sta in fondo e resta attaccato: se sei piu' su, ti ci porto
-    try { this._esito.scrollIntoView({ block: "nearest" }); } catch (e) { /* vecchi browser */ }
-  }
-
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
-      this.innerHTML = `<style>${STILE_EDITOR}</style><label class="ce-riga ce-tutto-riga"><input type="checkbox" class="ce-tutto">
+      this.innerHTML = `<style>${STILE_EDITOR}</style>` + TH(`<label class="ce-riga ce-tutto-riga"><input type="checkbox" class="ce-tutto">
           <span>Mostra tutte le impostazioni</span></label>
         <div class="ce-versione">casa-energia \u00b7 casa-tile v${VERSIONE}</div>
         <div class="ce-form"></div>
         <div class="ce-sez">
-          <div class="ce-tit">I sensori dei conti</div>
-          <div class="ce-aiuto">I quattro campi <b>kWh di oggi / euro di oggi / kWh del mese / euro del mese</b>
-            vogliono i sensori fatti con gli aiutanti: i due <b>contatori di utenza</b> (uno a ciclo
-            <i>giornaliero</i>, uno <i>mensile</i>) sopra al kWh dell'apparecchio, e i due sensori che
-            moltiplicano quei kWh per il prezzo. <b>Ieri</b> e <b>mese scorso</b> non vanno messi:
-            li legge da solo dal periodo appena chiuso degli stessi contatori.</div>
+          <div class="ce-tit">${T("I sensori dei conti")}</div>
+          <div class="ce-aiuto">${T("I quattro campi <b>kWh di oggi / euro di oggi / kWh del mese / euro del mese</b> vogliono i sensori fatti con gli aiutanti: i due <b>contatori di utenza</b> (uno a ciclo <i>giornaliero</i>, uno <i>mensile</i>) sopra al kWh dell'apparecchio, e i due sensori che moltiplicano quei kWh per il prezzo. <b>Ieri</b> e <b>mese scorso</b> non vanno messi: li legge da solo dal periodo appena chiuso degli stessi contatori.")}</div>
         </div>
         <div class="ce-sez">
-          <div class="ce-tit">Tasti di accensione</div>
-          <div class="ce-aiuto">I due campi <b>Tasto \u23fb</b> e <b>USB</b> qui sopra mettono un tastino tondo
-            nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne,
-            e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare.
-            Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.</div>
+          <div class="ce-tit">${T("Tasti di accensione")}</div>
+          <div class="ce-aiuto">${T("I due campi <b>Tasto \u23fb</b> e <b>USB</b> qui sopra mettono un tastino tondo nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne, e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare. Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.")}</div>
         </div>
         <div class="ce-sez">
-          <div class="ce-tit">Righe del riquadro «Oggi»</div>
-          <div class="ce-aiuto">Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi,
-            scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).</div>
+          <div class="ce-tit">${T("Righe del riquadro «Oggi»")}</div>
+          <div class="ce-aiuto">${T("Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi, scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).")}</div>
           <div class="ce-righe"></div>
         </div>
         <div class="ce-sez">
-          <div class="ce-tit">Nomi dei circuiti</div>
-          <div class="ce-aiuto">Le barre sotto la scheda. Se non sai quali mettere, <b>Proponi da solo</b>
-            guarda le prese di casa e ti mette le quattro che consumano di piu' (batterie, inverter e
-            pannelli restano fuori). Poi cambi nome e fondo scala come vuoi.</div>
+          <div class="ce-tit">${T("Nomi dei circuiti")}</div>
+          <div class="ce-aiuto">${T("Le barre sotto la scheda. Se non sai quali mettere, <b>Proponi da solo</b> guarda le prese di casa e ti mette le quattro che consumano di piu' (batterie, inverter e pannelli restano fuori). Poi cambi nome e fondo scala come vuoi.")}</div>
           <button type="button" class="ce-prepara ce-barre-auto">Proponi da solo</button>
-          <div class="ce-aiuto">Il nome e il fondo scala (W) di ogni barra.</div>
+          <div class="ce-aiuto">${T("Il nome e il fondo scala (W) di ogni barra.")}</div>
           <div class="ce-riga"><span class="ent">Aggiungi una barra</span><ha-entity-picker class="ce-barra-nuova" allow-custom-entity></ha-entity-picker></div>
           <label class="ce-riga"><input type="checkbox" class="ce-barre-vive">
-            <span><b>Scegli le barre da sola</b>: fa vedere le prese piu' accese del momento. Se parte
-            il forno, il forno compare. L'elenco qui sotto non serve piu'.</span></label>
+            <span>${T("<b>Scegli le barre da sola</b>: fa vedere le prese piu' accese del momento. Se parte il forno, il forno compare. L'elenco qui sotto non serve piu'.")}</span></label>
           <div class="ce-riga ce-quante" hidden><span class="ent">Quante barre</span>
             <input type="number" class="ce-barre-quante max" min="2" max="10" step="1" value="6"></div>
           <label class="ce-riga"><input type="checkbox" class="ce-barre-ordine" checked>
@@ -661,11 +559,8 @@ export class CasaEnergiaEditor extends HTMLElement {
           <div class="ce-circuiti"></div>
         </div>
         <div class="ce-sez">
-          <div class="ce-tit">La tua tariffa</div>
-          <div class="ce-aiuto">Questa e' la scheda <b>principale</b>: il prezzo si scrive qui, una volta
-            sola. Gli apparecchi, le prese e le luci lo leggono da qui, non lo richiedono.<br>
-            Scrivi le voci come stanno in bolletta: il totale lo faccio io, ed e' quello che uso per la spesa
-            della casa. Sugli apparecchi invece vale la <b>sola energia</b>, se no le tasse le paghi due volte.</div>
+          <div class="ce-tit">${T("La tua tariffa")}</div>
+          <div class="ce-aiuto">${T("Questa e' la scheda <b>principale</b>: il prezzo si scrive qui, una volta sola. Gli apparecchi, le prese e le luci lo leggono da qui, non lo richiedono.<br> Scrivi le voci come stanno in bolletta: il totale lo faccio io, ed e' quello che uso per la spesa della casa. Sugli apparecchi invece vale la <b>sola energia</b>, se no le tasse le paghi due volte.")}</div>
           <div class="ce-riga"><span class="ent">Energia &euro;/kWh</span><input type="number" class="ce-t-energia max" step="0.0001" min="0" placeholder="0.1657"></div>
           <div class="ce-riga"><span class="ent">Rete e oneri &euro;/kWh</span><input type="number" class="ce-t-rete max" step="0.0001" min="0" placeholder="0.045"></div>
           <div class="ce-riga"><span class="ent">Accise &euro;/kWh</span><input type="number" class="ce-t-accise max" step="0.0001" min="0" placeholder="0.0093"></div>
@@ -675,35 +570,28 @@ export class CasaEnergiaEditor extends HTMLElement {
           <button type="button" class="ce-prepara ce-scrivi-tariffa">Scrivi la tariffa</button>
         </div>
         <div class="ce-sez">
-          <div class="ce-tit">Crea i sensori base</div>
-          <div class="ce-aiuto">Il prezzo l'hai gia' scritto qui sopra: qui scegli solo <b>da quale
-            sensore dei kWh</b> parte la casa. Creo io i contatori (ora, oggi, settimana, mese e ieri) e il
-            costo di ogni periodo, e li aggancio alla scheda; quelli che ci sono gia' li riuso.<br>
-            Il conto voce per voce della bolletta, i cicli degli elettrodomestici e il risparmio del
-            fotovoltaico non si fanno da qui: stanno nella guida, in <i>esempi/luce</i>.</div>
+          <div class="ce-tit">${T("Crea i sensori base")}</div>
+          <div class="ce-aiuto">${T("Il prezzo l'hai gia' scritto qui sopra: qui scegli solo <b>da quale sensore dei kWh</b> parte la casa. Creo io i contatori (ora, oggi, settimana, mese e ieri) e il costo di ogni periodo, e li aggancio alla scheda; quelli che ci sono gia' li riuso.<br> Il conto voce per voce della bolletta, i cicli degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: stanno nella guida, in <i>esempi/luce</i>.")}</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
           <div class="ce-riga"><span class="ent">Sensore dei pannelli (se ce l'hai)</span><ha-entities-picker class="ce-pannelli-pick"></ha-entities-picker></div>
           <button type="button" class="ce-prepara ce-pannelli-tutti">Prendile tutte</button>
           <div class="ce-riga"><span class="ent">Sensore della batteria (se ce l'hai)</span><ha-entities-picker class="ce-batteria-pick"></ha-entities-picker></div>
           <button type="button" class="ce-prepara ce-batteria-tutti">Prendile tutte</button>
-          <div class="ce-aiuto">Dei pannelli e della batteria faccio i kWh di oggi e del mese, e li metto
-            nelle righe <i>Dai pannelli</i> e <i>Dalla batteria</i> (spuntale qui sopra). Va bene sia un
-            sensore in kWh sia uno in Watt. Per la batteria scegli quello che dice <b>quanto ha dato alla
-            casa</b> (la scarica), non la percentuale.</div>
+          <div class="ce-aiuto">${T("Dei pannelli e della batteria faccio i kWh di oggi e del mese, e li metto nelle righe <i>Dai pannelli</i> e <i>Dalla batteria</i> (spuntale qui sopra). Va bene sia un sensore in kWh sia uno in Watt. Per la batteria scegli quello che dice <b>quanto ha dato alla casa</b> (la scarica), non la percentuale.")}</div>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
         </div>
-        <div class="ce-esito" hidden></div>`;
+        <div class="ce-esito" hidden></div>`);
       const form = document.createElement("ha-form");
-      form.schema = this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE;
-      form.computeLabel = (x) => x.title || ETICHETTE[x.name] || x.name;
-      form.computeHelper = (x) => AIUTI[x.name] || "";
+      form.schema = traduciSchema(this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE);
+      form.computeLabel = (x) => T(x.title || ETICHETTE[x.name] || x.name);
+      form.computeHelper = (x) => T(AIUTI[x.name] || "");
       const spunta = this.querySelector(".ce-tutto");
       if (spunta) {
         spunta.checked = !!this._tutto;
         spunta.addEventListener("change", () => {
           this._tutto = spunta.checked;
-          form.schema = this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE;
+          form.schema = traduciSchema(this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE);
           form.data = this._datiForm();
         });
       }

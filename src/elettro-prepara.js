@@ -13,7 +13,6 @@ export const ESCLUSI_DI_SERIE = [
   "fotovoltaico", "inverter", "opendtu", "solar", "solare", "_pv", "pv_",
   "battery", "batteria", "grid", "power_production", "produzione",
   "landbook", "hub_1200", "ace_1500", "ab1000", "zendure_manager",
-  "test_powerstation", "presa_ha_", "mamma_",
 ];
 
 // Stati scritti in italiano dalle integrazioni (es. LG in LAN), oltre a

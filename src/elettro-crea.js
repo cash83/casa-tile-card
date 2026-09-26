@@ -947,6 +947,9 @@ export async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
 // aiutanti (una voce di configurazione con uno di questi domini): la presa e
 // i sensori del dispositivo non si toccano nemmeno per sbaglio.
 const DOMINI_AIUTANTI = ["threshold", "history_stats", "utility_meter", "integration", "template"];
+// le memorie del ciclo non sono voci di configurazione: stanno in due elenchi
+// a parte, e si cancellano con un comando loro
+const DOMINI_MEMORIA = ["input_number", "input_datetime"];
 
 export function aiutantiDellaScheda(hass, cfg) {
   const dentro = new Set();
@@ -963,43 +966,79 @@ export function aiutantiDellaScheda(hass, cfg) {
   ["pannelli", "batteria", "risparmio"].forEach((chi) => {
     ["oggi", "settimana", "mese"].forEach((q) => metti(cfg[chi + "_" + q]));
   });
-  // i pezzi dell'ultimo ciclo e la soglia "sta lavorando"
+  // i pezzi dell'ultimo ciclo: il contatore, le quattro memorie e la soglia
   const c = cfg.ciclo || {};
   metti(c.contatore);
+  metti(c.consumo); metti(c.durata); metti(c.fine); metti(c.inizio);
   metti(cfg.soglia_acceso);
-  // anche la soglia "... in funzione", che sta nel binary_sensor dei cicli
-  const reg = (hass && hass.entities) || {};
-  Object.keys(reg).forEach((eid) => {
-    if (eid.startsWith("binary_sensor.") && /_in_funzione$/.test(eid)
-        && [...dentro].some((x) => eid.replace("binary_sensor.", "").replace(/_in_funzione$/, "")
-            && x.includes(eid.replace("binary_sensor.", "").replace(/_in_funzione$/, "")))) {
-      dentro.add(eid);
-    }
-  });
+  // e la soglia "<nome> in funzione", se la scheda non se la ricorda: per NOME
+  // ESATTO, se no "forno" si prende anche la soglia di "forno microonde"
+  const base = radiceDellaScheda(cfg);
+  if (base) metti("binary_sensor." + base + "_in_funzione");
   return [...dentro];
 }
 
-// Gli aiutanti VERI fra quelli nominati dalla scheda: quelli che hanno una
-// voce di configurazione di un dominio da aiutante. Il resto (la presa, i
-// sensori del dispositivo) non e' roba nostra e non si tocca.
+// Il nome-radice della scheda: serve per ritrovare la soglia e l'automazione
+// del ciclo quando nella configurazione non sono scritte.
+function radiceDellaScheda(cfg) {
+  if (cfg.name) return slug(cfg.name);
+  const c = cfg.ciclo || {};
+  const da = (eid, coda) => {
+    const o = String(eid || "").split(".")[1] || "";
+    return o.endsWith(coda) ? o.slice(0, -coda.length) : "";
+  };
+  return da(c.consumo, "_ultimo_ciclo_kwh") || da(c.durata, "_ultimo_ciclo_minuti")
+    || da(c.inizio, "_ciclo_iniziato") || da(c.contatore, "_ciclo_kwh") || "";
+}
+
+// Gli aiutanti VERI fra quelli nominati dalla scheda. Tre razze:
+//   voce       -> una voce di configurazione (contatore, soglia, template...)
+//   memoria    -> un input_number / input_datetime dell'ultimo ciclo
+//   automazione-> quella che riempie le memorie a fine ciclo
+// Il resto (la presa, i sensori del dispositivo) non e' roba nostra e non si
+// tocca nemmeno per sbaglio.
 export async function aiutantiVeri(hass, cfg) {
   const candidati = aiutantiDellaScheda(hass, cfg);
-  if (!candidati.length) return [];
-  const reg = await registro(hass);
-  const voci = await vociDiConfigurazione(hass);
-  const perId = {};
-  voci.forEach((x) => { perId[x.entry_id] = x; });
   const fuori = [];
-  candidati.forEach((eid) => {
-    const e = reg.find((x) => x.entity_id === eid);
-    const voce = e && e.config_entry_id ? perId[e.config_entry_id] : null;
-    if (voce && DOMINI_AIUTANTI.includes(voce.domain) && !fuori.some((f) => f.entry_id === voce.entry_id)) {
-      fuori.push({ entity: eid, entry_id: voce.entry_id, titolo: voce.title || eid });
+  if (candidati.length) {
+    const reg = await registro(hass);
+    const voci = await vociDiConfigurazione(hass);
+    const perId = {};
+    voci.forEach((x) => { perId[x.entry_id] = x; });
+    candidati.forEach((eid) => {
+      const dominio = eid.split(".")[0];
+      if (DOMINI_MEMORIA.includes(dominio)) {
+        if (!hass.states[eid]) return;
+        fuori.push({ entity: eid, tipo: "memoria", dominio,
+          id: eid.split(".").slice(1).join("."),
+          titolo: (hass.states[eid].attributes || {}).friendly_name || eid });
+        return;
+      }
+      const e = reg.find((x) => x.entity_id === eid);
+      const voce = e && e.config_entry_id ? perId[e.config_entry_id] : null;
+      if (voce && DOMINI_AIUTANTI.includes(voce.domain) && !fuori.some((f) => f.entry_id === voce.entry_id)) {
+        fuori.push({ entity: eid, tipo: "voce", entry_id: voce.entry_id, titolo: voce.title || eid });
+      }
+    });
+  }
+  // l'automazione del ciclo: la riconosco dal nome che le ho dato io
+  const base = radiceDellaScheda(cfg);
+  if (base && (cfg.ciclo || cfg.soglia_acceso)) {
+    const eid = "automation." + base + "_segna_il_ciclo";
+    const st = hass.states[eid];
+    if (st && st.attributes && st.attributes.id) {
+      fuori.push({ entity: eid, tipo: "automazione", id: String(st.attributes.id),
+        titolo: st.attributes.friendly_name || eid });
     }
-  });
+  }
   return fuori;
 }
 
+/**
+ * Cancella solo gli aiutanti che gli passi, ognuno come va cancellato lui.
+ * Torna { cancellati, memoria }: la memoria sono i valori che avevano, per
+ * farli ripartire da li'.
+ */
 export async function cancellaQuesti(hass, scelti, dillo) {
   const parla = dillo || (() => {});
   const memoria = {};
@@ -1011,7 +1050,13 @@ export async function cancellaQuesti(hass, scelti, dillo) {
       memoria[a.titolo] = { valore: n, entita: a.entity, quando: new Date().toISOString().slice(0, 16) };
     }
     try {
-      await hass.callWS({ type: "config_entries/delete", entry_id: a.entry_id });
+      if (a.tipo === "memoria") {
+        await hass.callWS({ type: a.dominio + "/delete", [a.dominio + "_id"]: a.id });
+      } else if (a.tipo === "automazione") {
+        await hass.callApi("DELETE", "config/automation/config/" + a.id);
+      } else {
+        await hass.callWS({ type: "config_entries/delete", entry_id: a.entry_id });
+      }
       parla("Cancellato: " + a.titolo);
       cancellati++;
     } catch (e) {
@@ -1058,10 +1103,12 @@ export function scollegaEntita(cfg, spariti) {
     Object.keys(st).forEach((k) => { if (via.has(st[k])) delete st[k]; });
     if (Object.keys(st).length) c.stats = st; else delete c.stats;
   }
-  if (c.ciclo && via.has(c.ciclo.contatore)) {
+  if (c.ciclo) {
     const ci = { ...c.ciclo };
-    delete ci.contatore;
-    c.ciclo = ci;
+    ["contatore", "consumo", "durata", "fine", "inizio"].forEach((k) => {
+      if (via.has(ci[k])) delete ci[k];
+    });
+    if (Object.keys(ci).length) c.ciclo = ci; else delete c.ciclo;
   }
   return c;
 }

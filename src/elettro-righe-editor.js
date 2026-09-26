@@ -4,6 +4,8 @@
 // In configurazione: `righe` (gli id accesi, in ordine) e `nomi_righe`
 // ({id: "nome"}; vuoto = nome di serie).
 
+import { T, TH } from './lingua.js';
+
 export const STILE_EDITOR = `
 .ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
   border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;
@@ -71,12 +73,12 @@ export function disegnaRighe(box, elenco, config, scrivi) {
       + `<label><input type="checkbox" ${accesa ? "checked" : ""}> <span></span></label>`
       + `<input type="text" class="nome"><input type="color" class="tinta" title="Colore della riga">`
       + `<button type="button" class="pulisci" title="Rimetti il colore di serie">↺</button>`;
-    riga.querySelector("label span").textContent = voce.nome;
+    riga.querySelector("label span").textContent = T(voce.nome);
 
     // il nome che si vede sulla scheda: vuoto = quello di serie
     const nome = riga.querySelector(".nome");
-    nome.placeholder = voce.etichetta;
-    nome.title = "Nome sulla scheda (vuoto = " + voce.etichetta + ")";
+    nome.placeholder = T(voce.etichetta);
+    nome.title = T("Nome sulla scheda (vuoto =") + " " + T(voce.etichetta) + ")";
     nome.value = (config.nomi_righe || {})[id] || "";
     nome.addEventListener("change", () => {
       const nomi = { ...(config.nomi_righe || {}) };
@@ -167,24 +169,27 @@ export function quali_cancellare(box, elenco, hass, poi) {
   // i nomi arrivano da Home Assistant: nell'HTML si mettono ripuliti
   const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  // che razza di aiutante e': una memoria e l'automazione del ciclo si
+  // cancellano in un altro modo, e chi guarda deve saperlo
+  const razza = (a) => (a.tipo === "memoria" ? "memoria · "
+    : a.tipo === "automazione" ? "automazione · " : "");
   const valore = (e) => {
     const st = hass && hass.states[e];
     if (!st || ["unknown", "unavailable"].includes(st.state)) return "";
     const u = st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : "";
     return st.state + u;
   };
-  box.innerHTML = `<div class="ce-scelta">
-    <div class="ce-aiuto">Spunta quelli da buttare. Lo storico che hanno raccolto si perde;
-      la presa e i sensori del dispositivo non si toccano.</div>
+  box.innerHTML = TH(`<div class="ce-scelta">
+    <div class="ce-aiuto">${T("Spunta quelli da buttare. Lo storico che hanno raccolto si perde; la presa e i sensori del dispositivo non si toccano. Ci sono anche le <b>memorie dell'ultimo ciclo</b> e l'<b>automazione</b> che le riempie: se butti quelle, il riquadro dell'ultimo ciclo resta vuoto.")}</div>
     ${elenco.map((a, i) => `<label><input type="checkbox" data-i="${i}" checked>
-      <span>${esc(a.titolo)}</span><span class="dett">${esc(valore(a.entity))}</span></label>`).join("")}
+      <span>${esc(a.titolo)}</span><span class="dett">${esc(razza(a))}${esc(valore(a.entity))}</span></label>`).join("")}
     <div class="barra">
       <span class="tutti" data-tutti="1">tutti</span>
       <span class="tutti" data-tutti="0">nessuno</span>
       <button type="button" class="ce-prepara ce-fai-cancella">Cancella i selezionati</button>
       <button type="button" class="ce-prepara ce-lascia">Lascia stare</button>
     </div>
-  </div>`;
+  </div>`);
   const spunte = [...box.querySelectorAll("input[type=checkbox]")];
   box.querySelectorAll("[data-tutti]").forEach((t) => t.addEventListener("click", () => {
     spunte.forEach((x) => { x.checked = t.dataset.tutti === "1"; });

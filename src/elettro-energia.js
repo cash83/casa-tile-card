@@ -3,7 +3,7 @@
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
 // da un secondo file. Da qui in poi e' codice nostro.
 
-import { scegliLingua } from './lingua.js';
+import { laLingua, laLocale, scegliLingua, T, TH } from './lingua.js';
 import {
   mirinoGrafico,
   numero,
@@ -14,7 +14,6 @@ import {
   ICON_CHART,
   ICON_POWER,
   ICON_USB,
-  ICON_CLOSE,
   ICON_NOTIFCENTER,
   ICON_BOLT,
   ICON_EURO,
@@ -27,6 +26,7 @@ import {
 const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 import { ESCLUSI_DI_SERIE } from './elettro-prepara.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
+import { ConFinestrelle } from './elettro-condivisi.js';
 
 // Le righe che puo' avere il riquadro Oggi, con il nome che si vede nell'editor.
 export const RIGHE_OGGI = [
@@ -45,7 +45,7 @@ export const RIGHE_OGGI = [
 
 const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
 
-export class CasaEnergia extends HTMLElement {
+export class CasaEnergia extends ConFinestrelle(HTMLElement) {
   // Le righe del riquadro Oggi, nell'ordine della configurazione (`righe`).
   // Una riga che non e' nell'elenco non si vede.
   _righeOggi() {
@@ -77,7 +77,9 @@ export class CasaEnergia extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config.power_entity) throw new Error("power_entity \u00e8 obbligatorio");
+    // senza la presa la scheda NON si rompe: si fa vedere coi watt a zero e
+    // l'editor dice cosa manca. Prima buttava un errore rosso in faccia, e la
+    // gemella (casa-elettrodomestico) non lo fa.
     this._config = {
       name: "Energia Casa",
       artwork: "energy",
@@ -96,7 +98,7 @@ export class CasaEnergia extends HTMLElement {
     this._heroId = "en" + Math.random().toString(36).slice(2, 8);
     const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.energy)(this._heroId);
     const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.energy;
-    this._root.innerHTML = `<style>${STYLE}</style>
+    this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
       <article class="dm-ap-card is-run">
         <div class="dm-ap-top">
           <span class="dm-ap-chip">${chip}</span>
@@ -126,7 +128,7 @@ export class CasaEnergia extends HTMLElement {
         <div class="dm-ap-panel">
           <div class="dm-ap-meters"></div>
         </div>
-      </article>`;
+      </article>`);
     this._root.querySelector(".dm-ap-name").textContent = this._config.name;
 
     // Le prime 4 voci di "circuits" (Generale/Prese/Luce/Cantina nel setup
@@ -192,50 +194,6 @@ export class CasaEnergia extends HTMLElement {
       e.stopPropagation();
       this._openConsumi();
     });
-  }
-
-  _row(label, valueHtml) {
-    return `<div class="dm-ap-row"><span class="dm-ap-row-label">${esc(label)}</span>${valueHtml}</div>`;
-  }
-
-  _openDialog(title, bodyHtml) {
-    let overlay = this._root.querySelector(".dm-ap-overlay");
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.className = "dm-ap-overlay";
-      overlay.hidden = true;
-      overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) overlay.hidden = true;
-      });
-      this._root.appendChild(overlay);
-    }
-    overlay.innerHTML = `<div class="dm-ap-dialog">
-      <div class="dm-ap-dialog-head"><h3>${esc(title)}</h3><button type="button" class="dm-ap-dialog-close">${ICON_CLOSE}</button></div>
-      <div class="dm-ap-dialog-body">${bodyHtml}</div>
-    </div>`;
-    overlay.querySelector(".dm-ap-dialog-close").addEventListener("click", () => {
-      overlay.hidden = true;
-    });
-    overlay.hidden = false;
-    return overlay;
-  }
-
-  _settingsRowHtml(hass, row) {
-    const st = hass.states[row.entity];
-    if (!st) return this._row(row.label, `<span class="dm-ap-row-val">n/d</span>`);
-    const domain = row.entity.split(".")[0];
-    if (["input_boolean", "automation", "switch"].includes(domain)) {
-      const on = st.state === "on";
-      return this._row(
-        row.label,
-        `<button type="button" class="dm-ap-switch${on ? " on" : ""}" data-entity="${esc(row.entity)}" aria-pressed="${on}"></button>`,
-      );
-    }
-    const unit = unitaBella(st.attributes?.unit_of_measurement);
-    return `<div class="dm-ap-row" data-open-entity="${esc(row.entity)}" style="cursor:pointer">
-      <span class="dm-ap-row-label">${esc(row.label)}</span>
-      <span class="dm-ap-row-val">${esc(st.state)}${unit ? " " + esc(unit) : ""}</span>
-    </div>`;
   }
 
   _actionRowHtml(row) {
@@ -314,6 +272,9 @@ export class CasaEnergia extends HTMLElement {
     });
   }
 
+  // questa scheda addolcisce la linea del grafico
+  get _morbida() { return true; }
+
   _statRow(label, value) {
     return this._row(label, `<span class="dm-ap-row-val">${esc(value)}</span>`);
   }
@@ -342,81 +303,6 @@ export class CasaEnergia extends HTMLElement {
     return `${num}${unit ? " " + unit : ""}`;
   }
 
-  _fmtAxis(v) {
-    if (!Number.isFinite(v)) return "0";
-    const s = Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1);
-    return s.endsWith(".0") ? s.slice(0, -2) : s;
-  }
-
-  _smoothPath(coords) {
-    if (coords.length < 3) {
-      return `M ${coords.map((c) => `${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" L ")}`;
-    }
-    let d = `M ${coords[0][0].toFixed(1)},${coords[0][1].toFixed(1)}`;
-    for (let i = 1; i < coords.length - 1; i++) {
-      const [x0, y0] = coords[i];
-      const [x1, y1] = coords[i + 1];
-      const mx = (x0 + x1) / 2;
-      const my = (y0 + y1) / 2;
-      d += ` Q ${x0.toFixed(1)},${y0.toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}`;
-    }
-    const last = coords[coords.length - 1];
-    d += ` L ${last[0].toFixed(1)},${last[1].toFixed(1)}`;
-    return d;
-  }
-
-  _lineChartSvg(points, color, fixedMax) {
-    if (!points.length) return `<div class="dm-ap-chart-empty">Nessun dato</div>`;
-    const width = 300;
-    const height = 90;
-    const plotX0 = 24;
-    const plotW = width - plotX0;
-    const values = points.map((p) => p.y);
-    const min = fixedMax ? 0 : Math.min(...values, 0);
-    const max = fixedMax ? Math.max(fixedMax, ...values) : Math.max(...values, min + 1);
-    const range = max - min || 1;
-    const stepX = points.length > 1 ? plotW / (points.length - 1) : 0;
-    const coords = points.map((p, i) => [plotX0 + i * stepX, height - ((p.y - min) / range) * (height - 6) - 3]);
-    const lineD = this._smoothPath(coords);
-    const areaD = `${lineD} L ${coords[coords.length - 1][0].toFixed(1)},${height} L ${coords[0][0].toFixed(1)},${height} Z`;
-    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg" preserveAspectRatio="none">
-      <line x1="${plotX0}" y1="3" x2="${plotX0}" y2="${height - 3}" stroke="#94a3b840" stroke-width="1"/>
-      <text x="${plotX0 - 4}" y="8" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
-      <text x="${plotX0 - 4}" y="${height - 3}" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(min)}</text>
-      <path d="${areaD}" fill="${color}" opacity="0.14"/>
-      <path d="${lineD}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-    </svg>`;
-  }
-
-  _labelSpans(items, count, formatFn) {
-    if (!items.length) return "";
-    const n = Math.min(count, items.length);
-    const idxs = [];
-    for (let i = 0; i < n; i++) {
-      idxs.push(n === 1 ? 0 : Math.round((i * (items.length - 1)) / (n - 1)));
-    }
-    const seen = new Set();
-    const unique = idxs.filter((i) => (seen.has(i) ? false : (seen.add(i), true)));
-    return `<div class="dm-ap-chart-labels">${unique.map((i) => `<span>${formatFn(items[i], i)}</span>`).join("")}</div>`;
-  }
-
-  async _fetchHistory6h(entityId) {
-    const end = new Date();
-    const start = new Date(end.getTime() - 6 * 3600 * 1000);
-    const result = await this._hass.connection.sendMessagePromise({
-      type: "history/history_during_period",
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-      entity_ids: [entityId],
-      minimal_response: true,
-      no_attributes: true,
-    });
-    const rows = result?.[entityId] || [];
-    return rows
-      .map((r) => ({ t: new Date((r.lu || r.last_updated_ts) * 1000 || r.last_updated), y: Number(r.s ?? r.state) }))
-      .filter((p) => Number.isFinite(p.y));
-  }
-
   _openMeterChart(entityId, title, color) {
     if (!entityId) return;
     this._openDialog(
@@ -425,11 +311,11 @@ export class CasaEnergia extends HTMLElement {
     );
     const overlay = this._root.querySelector(".dm-ap-overlay");
     const slot = overlay?.querySelector('[data-chart="6h"]');
-    this._fetchHistory6h(entityId)
+    this._storia(entityId, 6)
       .then((points) => {
         const el = overlay?.querySelector('[data-chart="6h"]');
         if (!el) return;
-        const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }));
+        const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }));
         el.outerHTML = `<div data-chart="6h">${this._lineChartSvg(points, color)}${labels}</div>`;
       })
       .catch(() => {
@@ -439,35 +325,25 @@ export class CasaEnergia extends HTMLElement {
 
   _openPowerHistory() {
     const cfg = this._config;
+    if (!cfg.power_entity) {
+      this._openDialog("Andamento potenza",
+        '<div class="dm-ap-reset-note">Manca la presa che misura i Watt: si sceglie nel suo editor.</div>');
+      return;
+    }
     this._openDialog(
       "Andamento potenza",
       `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultime 24 ore</div><div class="dm-ap-chart-loading" data-chart="24h">Caricamento...</div></div>`,
     );
     const overlay = this._root.querySelector(".dm-ap-overlay");
     const slot = overlay?.querySelector('[data-chart="24h"]');
-    (async () => {
-      const end = new Date();
-      const start = new Date(end.getTime() - 24 * 3600 * 1000);
-      const result = await this._hass.connection.sendMessagePromise({
-        type: "history/history_during_period",
-        start_time: start.toISOString(),
-        end_time: end.toISOString(),
-        entity_ids: [cfg.power_entity],
-        minimal_response: true,
-        no_attributes: true,
-      });
-      const rows = result?.[cfg.power_entity] || [];
-      return rows
-        .map((r) => ({ t: new Date((r.lu || r.last_updated_ts) * 1000 || r.last_updated), y: Number(r.s ?? r.state) }))
-        .filter((p) => Number.isFinite(p.y));
-    })()
+    this._storia(cfg.power_entity, 24)
       .then((points) => {
         const el = overlay?.querySelector('[data-chart="24h"]');
         if (!el) return;
-        const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }));
+        const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }));
         el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", this._config.max_power)}${labels}</div>`;
         mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
-          (p) => p.t.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
+          (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
       })
       .catch(() => {
         if (slot) slot.textContent = "Errore caricamento dati";
@@ -552,7 +428,11 @@ export class CasaEnergia extends HTMLElement {
   // quelli che contengono una delle parole di top_exclude (produzione, batterie...).
   _autoLoads(hass) {
     const cfg = this._config;
-    const excl = (cfg.top_exclude || ESCLUSI_DI_SERIE).map((p) => String(p).toLowerCase());
+    // `top_exclude` SOSTITUISCE l'elenco di serie; `top_exclude_piu` ci si
+    // aggiunge, che e' quasi sempre quello che uno vuole
+    const excl = (cfg.top_exclude || ESCLUSI_DI_SERIE)
+      .concat(cfg.top_exclude_piu || [])
+      .map((p) => String(p).toLowerCase());
     const incl = new Set(cfg.top_include || []);
     const loads = [];
     Object.values(hass.states).forEach((st) => {
@@ -685,6 +565,13 @@ export class CasaEnergia extends HTMLElement {
     this._hass = hass;
     scegliLingua(hass);
     if (!this._config) return;
+    // Il disegno lo facciamo in setConfig, che Home Assistant chiama PRIMA di
+    // darci hass: la prima volta la lingua non la sapevamo ancora. Adesso la
+    // sappiamo: se non e' quella di prima, rifaccio il disegno una volta sola.
+    if (this._linguaDisegnata !== laLingua()) {
+      this._linguaDisegnata = laLingua();
+      this.setConfig(this._config);
+    }
     // Home Assistant passa di qui a ogni cambio di stato di TUTTA la casa.
     // Invece di rifare tutto il disegno per ognuno, i cambi che arrivano
     // insieme li raggruppo: disegno una volta sola, con l'ultimo valore.
@@ -795,7 +682,7 @@ export class CasaEnergia extends HTMLElement {
       fvEl.textContent = (daContatore ? cfg.risparmio_mese : cfg.bill_month)
         ? `− ${n(oggiFv)} / ${n(meseFv)} €`
         : this._euro(oggiFv);
-      fvEl.title = "risparmio di oggi / del mese";
+      fvEl.title = T("risparmio di oggi / del mese");
     }
     const kwhOggi = pOggi ? Number((hass.states[pOggi.energy] || {}).state) : NaN;
     const senzaEl = this._root.querySelector(".dm-e-senzafv");
@@ -857,17 +744,4 @@ export class CasaEnergia extends HTMLElement {
     }
   }
 
-  // Quanto spazio chiede nella griglia delle viste a sezioni. Senza questo
-  // Home Assistant decide da solo e il cursore del Layout si comporta a modo
-  // suo: la casella e' alta, va detto.
-  getGridOptions() {
-    // "auto": l'altezza la misura Home Assistant sul contenuto vero. Con un
-    // numero fisso (era 7) le schede corte lasciavano un buco sotto, e in una
-    // vista a sezioni il buco si vede tutto.
-    return { columns: 12, rows: "auto", min_columns: 6, max_columns: 12, min_rows: 3, max_rows: 20 };
-  }
-
-  getCardSize() {
-    return 7;
-  }
 }

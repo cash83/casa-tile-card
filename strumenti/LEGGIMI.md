@@ -21,6 +21,29 @@ mostrare un codice tipo `eti.mostra_icona`.
    dice se qualche scritta e' rimasta senza traduzione, e se qualche chiave
    del dizionario non corrisponde a nessuna scritta vera.
 
+## Le schede dei consumi: due dizionari a parte
+
+`estrai_scritte.py` guarda **solo** `schema.js` e `aiuti.js`, cioe' le scritte
+della casella. Le scritte delle due schede dei consumi (`casa-energia`,
+`casa-elettrodomestico`) e dei loro tre editor stanno nei file `elettro-*`, e
+percio' non passano dall'estrattore: le tengo a mano in due dizionari dentro a
+`fai_lingua.py`, indicizzati per **frase italiana** come le `LIBERE`.
+
+* `ELETTRO` &mdash; i tre editor: nomi dei campi, titoli dei cassetti, tasti e i
+  paragrafi di aiuto. I paragrafi sono tradotti **interi**, col grassetto dentro:
+  una frase italiana spezzata in dieci frammenti in inglese non torna. Per
+  questo nel codice sono avvolti in `T("...")` invece di lasciarli a `TH()`.
+* `ELETTRO_SCHEDE` &mdash; le due schede: righe, finestrelle, avvisi.
+
+Giorni, mesi e ore **non** stanno nei dizionari: li scrive il browser nella
+lingua di chi guarda (`giornoBreve`, `meseBreve`, `laLocale()`). In italiano
+*Mar* e' sia martedi' sia marzo, e una chiave non puo' valere due cose.
+
+**Da sapere**: siccome l'estrattore non vede queste scritte, il conto di
+`controlla_lingua.py` («chiavi che non servono a niente») elenca anche loro.
+Quell'elenco NON e' affidabile: dice ~350 chiavi inutili che in realta' sono
+usate tutte.
+
 ## La trappola, gia' pagata
 
 Le chiavi **non si scrivono a mano**. Un apostrofo tipografico (') al posto

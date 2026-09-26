@@ -252,6 +252,48 @@ entity tracking the total costs"** and pick:
 
 The full bill, line by line, stays in the casa-energia card.
 
+## What's new in 2.91
+
+The five items left open by the 2.90 pass, all closed.
+
+**The cycle memories and its automation can be deleted.** The *Delete this
+card's helpers* button only knew how to throw away config entries: meters,
+thresholds, cost sensors. The four last-cycle memories (two `input_number` and
+two `input_datetime`) and the automation that fills them stayed for ever, and no
+screen ever showed them to you. They now appear in the checkbox list, marked
+**memoria** and **automazione**, and each is deleted the way it has to be. The
+«… in funzione» threshold is now matched by its **exact** name: before, one name
+being contained in another (*forno* inside *forno microonde*) was enough for the
+card to offer you another appliance's threshold.
+
+**One copy only.** The two usage cards and their editors were born separate and
+had **twenty-five methods with the same name**, one per file: the dialog, the
+chart, the settings row, the delete button. Copies drift in silence, and putting
+them together turned up two drifts: one wrote `EUR` and the other `€` in the same
+row, and the weekday names were written twice with different capitalisation. The
+shared part now lives in `elettro-condivisi.js`, like the tile's own mixins:
+**twelve** methods stay separate, and those are the ones that really do different
+things (one carries a comment explaining why).
+
+**`top_exclude_piu`.** `top_exclude` *replaces* the built-in list of words that
+keep a sensor out of Top consumer, so anyone adding one word lost all the others.
+The new `top_exclude_piu` **adds** to it. Three words that only concerned the
+author's own house left the built-in list.
+
+**The energy card no longer throws a red error.** `casa-energia` without
+`power_entity` refused to draw, while its twin `casa-elettrodomestico` shows
+itself empty in that case and lets the editor say what is missing. They now
+behave the same.
+
+**And English.** Both cards and all three editors were still Italian: anyone
+running Home Assistant in English read *Ultimo ciclo*, *Spunta quelle da vedere*,
+*Crea statistiche e costi*. That is **287 strings** translated, with the help
+paragraphs translated **whole** rather than in pieces (an Italian sentence with
+bold words in it, cut into ten fragments, does not come back together in
+English). Days, months and times no longer go through the dictionary: the browser
+writes them in the reader's language — in Italian *Mar* is both Tuesday and
+March, and a dictionary cannot hold both.
+
 ## What's new in 2.90
 
 **Power strips: one small button per socket.** A multi-socket strip has three or
