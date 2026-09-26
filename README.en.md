@@ -252,6 +252,29 @@ entity tracking the total costs"** and pick:
 
 The full bill, line by line, stays in the casa-energia card.
 
+## What's new in 2.91.1
+
+**The last cycle's duration is no longer made up.** Seen for real on a washing
+machine: *2078 minutes* (34 hours) for a wash that ended at 10:38. The automation
+counted the minutes from the `<name> ciclo iniziato` memory, which is only written
+when the threshold turns on **with the cycle meter at zero** — and the meter is
+zeroed by the *previous* cycle's end. On the first cycle after the helpers are
+created that meter has never been zeroed: the start was never recorded, the memory
+stayed at midnight, and the duration came out at two thousand minutes.
+
+Two patches, in the two right places:
+
+* the start is also recorded when the one on record is **not credible** — never
+  written, or older than the last cycle's end. So the first cycle records it, and a
+  cycle that lost it gets it back next time round;
+* if the start is not credible the minutes are written as **0**, and the card shows
+  «—»: which is the truth, instead of thirty-four hours.
+
+If you already have automations created by the card they are **not** updated by
+themselves (the card does not remake what already exists). To remake them, delete
+the automation with *Cancella gli aiutanti* and press *Create statistics and
+costs* again.
+
 ## What's new in 2.91
 
 The five items left open by the 2.90 pass, all closed.

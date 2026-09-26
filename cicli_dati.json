@@ -1,0 +1,67 @@
+[
+ {
+  "id": "1790352113747",
+  "alias": "Asciugatrice: segna il ciclo",
+  "descrizione": "Fatta dalla scheda Asciugatrice. Il ciclo si chiude solo dopo 5 minuti di fermo vero, e il contatore si azzera alla FINE, non alla partenza.",
+  "soglia": "binary_sensor.bagno_lg_dryer_asciugatrice_in_funzione",
+  "attesa": 5,
+  "meter": "sensor.asciugatrice_ciclo_kwh",
+  "inizio": "input_datetime.asciugatrice_ciclo_iniziato",
+  "kwh": "input_number.asciugatrice_ultimo_ciclo_kwh",
+  "minuti": "input_number.asciugatrice_ultimo_ciclo_minuti",
+  "fine": "input_datetime.asciugatrice_ultimo_ciclo_fine",
+  "mode": "single"
+ },
+ {
+  "id": "1790352820110",
+  "alias": "Lavatrice: segna il ciclo",
+  "descrizione": "Fatta dalla scheda Lavatrice. Fra un'ammollo e una centrifuga la lavatrice si ferma: il ciclo si chiude solo dopo 5 minuti di fermo vero, e il contatore si azzera alla FINE, non alla partenza.",
+  "soglia": "binary_sensor.lavatrice_in_funzione",
+  "attesa": 5,
+  "meter": "sensor.lavatrice_ciclo_kwh",
+  "inizio": "input_datetime.lavatrice_ciclo_iniziato",
+  "kwh": "input_number.lavatrice_ultimo_ciclo_kwh",
+  "minuti": "input_number.lavatrice_ultimo_ciclo_minuti",
+  "fine": "input_datetime.lavatrice_ultimo_ciclo_fine",
+  "mode": "single"
+ },
+ {
+  "id": "1790352828153",
+  "alias": "Lavastoviglie: segna il ciclo",
+  "descrizione": "Fatta dalla scheda Lavastoviglie. Fra un risciacquo e l'asciugatura la macchina si ferma: il ciclo si chiude solo dopo 5 minuti di fermo vero, e il contatore si azzera alla FINE, non alla partenza.",
+  "soglia": "binary_sensor.lavastoviglie_in_funzione",
+  "attesa": 5,
+  "meter": "sensor.lavastoviglie_ciclo_kwh",
+  "inizio": "input_datetime.lavastoviglie_ciclo_iniziato",
+  "kwh": "input_number.lavastoviglie_ultimo_ciclo_kwh",
+  "minuti": "input_number.lavastoviglie_ultimo_ciclo_minuti",
+  "fine": "input_datetime.lavastoviglie_ultimo_ciclo_fine",
+  "mode": "single"
+ },
+ {
+  "id": "1790352836209",
+  "alias": "Forno: segna il ciclo",
+  "descrizione": "Fatta dalla scheda Forno. Il forno accende e spegne la resistenza di continuo: il ciclo si chiude solo dopo 3 minuti di fermo vero, e il contatore si azzera alla FINE, non alla partenza.",
+  "soglia": "binary_sensor.forno_in_funzione",
+  "attesa": 3,
+  "meter": "sensor.forno_ciclo_kwh",
+  "inizio": "input_datetime.forno_ciclo_iniziato",
+  "kwh": "input_number.forno_ultimo_ciclo_kwh",
+  "minuti": "input_number.forno_ultimo_ciclo_minuti",
+  "fine": "input_datetime.forno_ultimo_ciclo_fine",
+  "mode": "single"
+ },
+ {
+  "id": "1790378417659",
+  "alias": "Lato Gabriele: segna il ciclo",
+  "descrizione": "Fatta dalla scheda Lato Gabriele. Segna quando il ciclo e' cominciato, e alla fine scrive kWh, minuti e ora. Un apparecchio come il forno accende e spegne di continuo: per questo il ciclo si chiude solo dopo 5 minuti di fermo, e il contatore si azzera alla FINE, non alla partenza.",
+  "soglia": "binary_sensor.lato_gabriele_in_funzione",
+  "attesa": 5,
+  "meter": "sensor.lato_gabriele_ciclo_kwh",
+  "inizio": "input_datetime.lato_gabriele_ciclo_iniziato",
+  "kwh": "input_number.lato_gabriele_ultimo_ciclo_kwh",
+  "minuti": "input_number.lato_gabriele_ultimo_ciclo_minuti",
+  "fine": "input_datetime.lato_gabriele_ultimo_ciclo_fine",
+  "mode": "single"
+ }
+]

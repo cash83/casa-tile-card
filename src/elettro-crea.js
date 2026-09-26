@@ -555,7 +555,15 @@ export async function creaCicli(hass, opzioni, dillo) {
   if (!esiste(eFine)) { parla("Creo la memoria della fine..."); await creaDataOra(hass, nFine); }
   if (!esiste(eVia)) { parla("Creo la memoria della partenza..."); await creaDataOra(hass, nVia); }
 
-  // 4. l'automazione che al termine del ciclo scrive le tre memorie
+  // 4. l'automazione che al termine del ciclo scrive le tre memorie.
+  // "La partenza non e' credibile": mai scritta (mezzanotte) o piu' vecchia
+  // della fine dell'ultimo ciclo. Le date stanno tutte nello stesso formato,
+  // quindi si confrontano come stringhe.
+  const SOSPETTA_CORPO = "states('" + eVia + "') in ['unknown','unavailable','']"
+    + " or states('" + eVia + "').endswith('00:00:00')"
+    + " or (states('" + eFine + "') not in ['unknown','unavailable','']"
+    + " and states('" + eVia + "') < states('" + eFine + "'))";
+  const SOSPETTA = "{{ " + SOSPETTA_CORPO + " }}";
   const nomeAuto = base + ": segna il ciclo";
   const automazioni = Object.keys(hass.states).filter((x) => x.startsWith("automation."));
   const gia_auto = automazioni.some((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto);
@@ -576,11 +584,19 @@ export async function creaCicli(hass, opzioni, dillo) {
       actions: [{
         choose: [
           {
-            // la partenza vale solo se il contatore e' a zero: se no e' una
-            // delle accensioni intermittenti dentro un ciclo gia' cominciato
+            // La partenza vale se il contatore e' a zero (se no e' una delle
+            // accensioni intermittenti dentro un ciclo gia' cominciato) OPPURE
+            // se quella che c'e' scritta non e' credibile: mai scritta, o
+            // PRIMA della fine dell'ultimo ciclo. Senza questo secondo caso il
+            // primo ciclo dopo la creazione non registrava la partenza - il
+            // contatore non era mai stato azzerato - e la durata veniva fuori
+            // di duemila minuti.
             conditions: [
               { condition: "trigger", id: "parte" },
-              { condition: "numeric_state", entity_id: contatore, below: 0.005 },
+              { condition: "or", conditions: [
+                { condition: "numeric_state", entity_id: contatore, below: 0.005 },
+                { condition: "template", value_template: SOSPETTA },
+              ] },
             ],
             sequence: [{
               action: "input_datetime.set_datetime",
@@ -596,11 +612,13 @@ export async function creaCicli(hass, opzioni, dillo) {
                 data: { value: "{{ states('" + contatore + "') | float(0) | round(3) }}" },
               },
               {
+                // i minuti: 0 se la partenza non e' credibile (la scheda
+                // mostra "-", che e' la verita'), se no il tempo vero
                 action: "input_number.set_value", target: { entity_id: eMin },
                 data: {
-                  value: "{{ [0, ((now() - (states('" + eVia + "') | as_datetime | as_local"
-                    + " if states('" + eVia + "') not in ['unknown','unavailable'] else now()))"
-                    + ".total_seconds() / 60 - " + ATTESA + ") | round(0)] | max }}",
+                  value: "{% if " + SOSPETTA_CORPO + " %}0{% else %}"
+                    + "{{ [0, ((now() - (states('" + eVia + "') | as_datetime | as_local))"
+                    + ".total_seconds() / 60 - " + ATTESA + ") | round(0)] | max }}{% endif %}",
                 },
               },
               {

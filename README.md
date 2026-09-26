@@ -279,6 +279,28 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
 
+## Novità della 2.91.1
+
+**La durata dell'ultimo ciclo non si inventa più.** Vista dal vero su una
+lavatrice: *2078 minuti* (34 ore) per un lavaggio finito alle 10:38. L'automazione
+contava i minuti dalla memoria `<nome> ciclo iniziato`, che però si scrive solo
+quando la soglia si accende **col contatore del ciclo a zero** — e il contatore lo
+azzera la fine del ciclo *precedente*. Al primo ciclo dopo aver creato gli
+aiutanti quel contatore non è mai stato azzerato: la partenza non si registrava,
+la memoria restava a mezzanotte, e la durata veniva fuori di duemila minuti.
+
+Due toppe, nei due punti giusti:
+
+* la partenza si registra anche quando quella scritta **non è credibile** — mai
+  scritta, oppure più vecchia della fine dell'ultimo ciclo. Così il primo ciclo la
+  registra, e un ciclo che l'ha persa la ritrova al giro dopo;
+* se la partenza non è credibile i minuti si scrivono **0**, e la scheda mostra
+  «—»: che è la verità, invece di trentaquattro ore.
+
+Chi ha già le automazioni create dalla scheda: quelle **non** si aggiornano da
+sole (la scheda non le rifa' se esistono). Si rifanno cancellando l'automazione
+dal tasto *Cancella gli aiutanti* e ripremendo *Crea statistiche e costi*.
+
 ## Novità della 2.91
 
 I cinque punti rimasti aperti dal giro di controlli della 2.90, chiusi tutti.
