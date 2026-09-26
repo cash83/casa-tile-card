@@ -633,12 +633,8 @@ const ICON_CLOSE =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
 const ICON_RESTART =
   '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>';
-const ICON_BELL =
-  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
 const ICON_NOTIFCENTER =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l4 4V6l-4 4H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>';
-const ICON_SPEED =
-  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l3-3"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>';
 const ICON_BOLT =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>';
 const ICON_FLAG =
@@ -647,49 +643,10 @@ const ICON_TIMER =
   '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6"/></svg>';
 const ICON_EURO =
   '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6.5a6.5 6.5 0 1 0 0 11"/><path d="M5.5 10h9"/><path d="M5.5 14h8"/></svg>';
-const ICON_GLOBE =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/></svg>';
-const ICON_DOWNLOAD =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M6 11l6 6 6-6"/><path d="M4 21h16"/></svg>';
-const ICON_UPLOAD =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V8"/><path d="M6 13l6-6 6 6"/><path d="M4 21h16"/></svg>';
-const ICON_TAG =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 12.6 12 21.2 2.8 12 11.4 3.4H20.6z"/><circle cx="16.3" cy="7.7" r="1.15" fill="currentColor" stroke="none"/></svg>';
-const ICON_SHIELD =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"/></svg>';
-const ICON_BOX =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>';
 const ICON_TREND =
   '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 6h6v6"/></svg>';
-const ICON_PULSE =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 7 4-14 2 7h6"/></svg>';
-const ICON_BATTERY =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 10v4"/><path d="M6 10v4"/></svg>';
-const ICON_PLUG =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v5"/><path d="M15 2v5"/><path d="M6 7h12v4a6 6 0 0 1-12 0V7z"/><path d="M12 17v5"/></svg>';
-const ICON_CUBE =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7.6 12 12l8.7-4.4"/><path d="M12 22V12"/></svg>';
-const ICON_MONITOR =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>';
-const ICON_ALERT =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4"/><circle cx="12" cy="17.5" r=".2" fill="currentColor"/></svg>';
-const ICON_SAVE =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M7 3v5h9V3"/><path d="M7 21v-8h10v8"/></svg>';
-const ICON_CALENDAR =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>';
-const ICON_BACK =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
 
 // Icone per le righe "gruppo" del dialog Impostazioni (stile vecchia card).
-const SETTINGS_GROUP_ICONS = {
-  report: ICON_CHART,
-  notifiche: ICON_BELL,
-  update: ICON_DOWNLOAD,
-  alert: ICON_ALERT,
-  backup: ICON_SAVE,
-  restart: ICON_RESTART,
-  euro: ICON_EURO,
-};
 
 const WEEKDAY_FULL_IT = ["Domenica", "Luned\u00ec", "Marted\u00ec", "Mercoled\u00ec", "Gioved\u00ec", "Venerd\u00ec", "Sabato"];
 const WEEKDAY_ABBR_IT = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
@@ -728,6 +685,13 @@ const STYLE = `
 .dm-ap-tool{width:37px;height:37px;display:grid;place-items:center;border:1px solid var(--dm-border);border-radius:11px;background:var(--dm-card);color:var(--dm-dim);cursor:pointer}
 .dm-ap-tool svg{width:19px;height:19px}
 .dm-ap-tool:hover{border-color:#bae6fd;color:var(--dm-blue-deep)}
+.dm-ap-prese{display:flex;flex-wrap:wrap;gap:6px;margin:0 12px 8px}
+.dm-ap-presa{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.2px;cursor:pointer;
+  padding:4px 10px;border-radius:999px;border:1px solid var(--divider-color);
+  background:rgba(127,127,127,.10);color:var(--secondary-text-color);line-height:1.5}
+.dm-ap-presa.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.14)}
+.dm-ap-presa.assente{opacity:.45;cursor:default}
+.dm-ap-presa:active{transform:scale(.97)}
 .dm-ap-tool.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.12)}
 .dm-ap-top-row{display:flex;align-items:stretch;gap:10px;margin:0 13px}
 .dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
@@ -967,15 +931,6 @@ function meterSeverityColor(pct) {
   return "#38bdf8";
 }
 
-// Inverso di meterSeverityColor: per grandezze dove ALTO e' un bene (es.
-// carica batteria) invece che un problema (es. carico/CPU/disco).
-function inverseSeverityColor(pct) {
-  if (pct <= 15) return "#ef4444";
-  if (pct <= 30) return "#f97316";
-  if (pct <= 60) return "#eab308";
-  return "#22c55e";
-}
-
 export {
   HERO_BUILDERS,
   CHIP_SVGS,
@@ -985,35 +940,16 @@ export {
   ICON_USB,
   ICON_CLOSE,
   ICON_RESTART,
-  ICON_BELL,
   ICON_NOTIFCENTER,
-  ICON_SPEED,
   ICON_BOLT,
   ICON_FLAG,
   ICON_TIMER,
   ICON_EURO,
-  ICON_GLOBE,
-  ICON_DOWNLOAD,
-  ICON_UPLOAD,
-  ICON_TAG,
-  ICON_SHIELD,
-  ICON_BOX,
   ICON_TREND,
-  ICON_PULSE,
-  ICON_BATTERY,
-  ICON_PLUG,
-  ICON_CUBE,
-  ICON_MONITOR,
-  ICON_ALERT,
-  ICON_SAVE,
-  ICON_CALENDAR,
-  ICON_BACK,
-  SETTINGS_GROUP_ICONS,
   WEEKDAY_FULL_IT,
   WEEKDAY_ABBR_IT,
   DEFAULT_STATE_MAP,
   STYLE,
   esc,
   meterSeverityColor,
-  inverseSeverityColor,
 };

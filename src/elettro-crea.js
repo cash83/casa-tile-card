@@ -186,6 +186,7 @@ export async function scriviTariffa(hass, voci, dillo) {
 // storico perso. Quindi appena creato lo rinomino come si deve, che e' quello
 // che farebbe uno a mano dalle impostazioni.
 function slug(nome) {
+  // i segni combinanti scritti coi codici: a caratteri veri sono invisibili
   return String(nome).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
 }
@@ -223,7 +224,7 @@ async function prezzoDelKWh(hass, opzioni, dillo, conto) {
   }
   dillo("Creo il prezzo in €/kWh...");
   await hass.callWS({
-    type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.001,
+    type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.0001,
     mode: "box", unit_of_measurement: "€/kWh", icon: "mdi:currency-eur",
   });
   conto.creati++;
@@ -373,7 +374,7 @@ export async function creaSensoriBase(hass, opzioni, dillo) {
     if (costi[chiave]) riga.cost = costi[chiave];
     return riga;
   });
-  avvisoUnita(hass, Object.values(contatori), dillo);
+  await avvisoUnita(hass, Object.values(contatori), dillo);
   const patch = { periods };
   // la memoria e' servita: la butto, se no al prossimo giro rischia di
   // riportare indietro contatori che intanto sono andati avanti
@@ -386,7 +387,8 @@ export async function creaSensoriBase(hass, opzioni, dillo) {
     patch.periods_prev = [ieri];
   }
   patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
-  dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'.");
+  dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'."
+    + (rimessi ? " " + rimessi + " sono ripartiti dal valore di prima." : ""));
   return patch;
 }
 
@@ -443,10 +445,17 @@ async function creaIntegrale(hass, nome, potenza) {
 // PROVATO: non si puo' evitare - ne' aspettando che la sorgente dia un numero,
 // ne' con utility_meter.calibrate. Percio' lo dico prima invece di lasciartelo
 // scoprire dopo.
-function avvisoUnita(hass, entita, dillo) {
+async function avvisoUnita(hass, entita, dillo) {
   if (!dillo) return;
+  // `hass.states` qui e' la fotografia di PRIMA: i contatori appena creati non
+  // ci sono ancora e l'avviso non sarebbe mai scattato. Li richiedo.
+  let stati = hass.states;
+  try { stati = await hass.callWS({ type: "get_states" }); } catch (e) { stati = null; }
+  const diEntita = {};
+  if (Array.isArray(stati)) stati.forEach((x) => { diEntita[x.entity_id] = x; });
+  else Object.assign(diEntita, hass.states);
   const mute = (entita || []).filter((e) => {
-    const st = e && hass.states[e];
+    const st = e && diEntita[e];
     return st && !(st.attributes || {}).unit_of_measurement;
   });
   if (!mute.length) return;
@@ -462,18 +471,12 @@ function avvisoUnita(hass, entita, dillo) {
 // soglia che dice quando lavora, un contatore che parte da zero a ogni ciclo,
 // tre memorie e un'automazione che al termine ci scrive dentro.
 
-// il nome dell'entita' come lo farebbe Home Assistant
-function sigla(nome) {
-  return String(nome).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-}
-
 async function creaNumero(hass, nome, unita, passo, massimo) {
   await hass.callWS({
     type: "input_number/create", name: nome, min: 0, max: massimo, step: passo,
     mode: "box", unit_of_measurement: unita, icon: "mdi:counter",
   });
-  return "input_number." + sigla(nome);
+  return "input_number." + slug(nome);
 }
 
 async function creaDataOra(hass, nome) {
@@ -481,7 +484,7 @@ async function creaDataOra(hass, nome) {
     type: "input_datetime/create", name: nome, has_date: true, has_time: true,
     icon: "mdi:flag-checkered",
   });
-  return "input_datetime." + sigla(nome);
+  return "input_datetime." + slug(nome);
 }
 
 async function creaAutomazione(hass, conf) {
@@ -543,10 +546,10 @@ export async function creaCicli(hass, opzioni, dillo) {
   const nMin = base + " ultimo ciclo minuti";
   const nFine = base + " ultimo ciclo fine";
   const nVia = base + " ciclo iniziato";
-  const eKwh = "input_number." + sigla(nKwh);
-  const eMin = "input_number." + sigla(nMin);
-  const eFine = "input_datetime." + sigla(nFine);
-  const eVia = "input_datetime." + sigla(nVia);
+  const eKwh = "input_number." + slug(nKwh);
+  const eMin = "input_number." + slug(nMin);
+  const eFine = "input_datetime." + slug(nFine);
+  const eVia = "input_datetime." + slug(nVia);
   if (!esiste(eKwh)) { parla("Creo la memoria dei kWh..."); await creaNumero(hass, nKwh, "kWh", 0.001, 1000); }
   if (!esiste(eMin)) { parla("Creo la memoria dei minuti..."); await creaNumero(hass, nMin, "min", 1, 10000); }
   if (!esiste(eFine)) { parla("Creo la memoria della fine..."); await creaDataOra(hass, nFine); }
@@ -696,7 +699,7 @@ export async function creaFonte(hass, opzioni, dillo) {
     }
     fuori[chiave] = e;
   }
-  avvisoUnita(hass, Object.values(fuori), parla);
+  await avvisoUnita(hass, Object.values(fuori), parla);
   return fuori;
 }
 
@@ -926,12 +929,13 @@ export async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
       } catch (e) { dillo("Il valore vecchio non sono riuscito a rimetterlo: " + (e.message || e)); }
     }
   }
-  avvisoUnita(hass, Object.values(periodi).map((x) => x.energy), dillo);
+  await avvisoUnita(hass, Object.values(periodi).map((x) => x.energy), dillo);
   const patch = { period_entities: periodi, stats: { ...(opzioni.stats || {}) } };
   if (Object.keys(memoria).length) patch.helper_memoria = null;
   // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"
   if (kwh) patch.energy_stat_entity = kwh;
   if (cicli.oggi) patch.stats.cycles_today = cicli.oggi;
+  if (cicli.settimana) patch.stats.cycles_week = cicli.settimana;
   if (cicli.mese) patch.stats.cycles_month = cicli.mese;
   patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
   dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'.");
@@ -950,8 +954,7 @@ export function aiutantiDellaScheda(hass, cfg) {
   const pe = cfg.period_entities || {};
   Object.keys(pe).forEach((k) => { metti(pe[k].energy); metti(pe[k].cost); metti(pe[k].time); });
   metti(cfg.energy_stat_entity);
-  metti((cfg.stats || {}).cycles_today);
-  metti((cfg.stats || {}).cycles_month);
+  Object.values(cfg.stats || {}).forEach(metti);
   ["oggi_energia", "oggi_costo", "settimana_energia", "settimana_costo", "mese_energia", "mese_costo",
    "bolletta_energia", "bolletta_costo", "bill_today", "bill_month"].forEach((k) => metti(cfg[k]));
   // la scheda della casa tiene i suoi contatori qui dentro
@@ -997,26 +1000,6 @@ export async function aiutantiVeri(hass, cfg) {
   return fuori;
 }
 
-// Quanto segnano adesso gli aiutanti della scheda: me lo segno PRIMA di
-// cancellarli, cosi' ricreandoli i contatori ripartono da li' e i kWh gia'
-// contati non si perdono.
-export async function valoriDegliAiutanti(hass, cfg) {
-  const veri = await aiutantiVeri(hass, cfg);
-  const memoria = {};
-  veri.forEach((a) => {
-    const st = hass.states[a.entity];
-    if (!st || ["unknown", "unavailable"].includes(st.state)) return;
-    const n = Number(st.state);
-    if (!Number.isFinite(n)) return;
-    memoria[a.titolo] = { valore: n, entita: a.entity, quando: new Date().toISOString().slice(0, 16) };
-  });
-  return memoria;
-}
-
-/**
- * Cancella solo gli aiutanti che gli passi. Torna { cancellati, memoria }:
- * la memoria sono i valori che avevano, per farli ripartire da li'.
- */
 export async function cancellaQuesti(hass, scelti, dillo) {
   const parla = dillo || (() => {});
   const memoria = {};
@@ -1081,22 +1064,4 @@ export function scollegaEntita(cfg, spariti) {
     c.ciclo = ci;
   }
   return c;
-}
-
-export async function cancellaSensoriElettrodomestico(hass, cfg, dillo) {
-  const memoria = await valoriDegliAiutanti(hass, cfg);
-  const veri = await aiutantiVeri(hass, cfg);
-  const tutti = aiutantiDellaScheda(hass, cfg);
-  let cancellati = 0;
-  for (const a of veri) {
-    dillo("Cancello: " + a.titolo + "...");
-    try {
-      await hass.callWS({ type: "config_entries/delete", entry_id: a.entry_id });
-    } catch (e) {
-      await hass.callApi("DELETE", "config/config_entries/entry/" + a.entry_id);
-    }
-    cancellati++;
-  }
-  const saltati = tutti.filter((x) => !veri.some((a) => a.entity === x));
-  return { cancellati, saltati, memoria };
 }

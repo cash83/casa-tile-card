@@ -1,8 +1,6 @@
 // -*- coding: utf-8 -*-
 // Le impostazioni: sezioni, nomi in italiano, chi le vede.
 
-import { segno } from './segni.js';
-
 export const SEZIONI = [
   {
     chiave: "base", titolo: "Base", segno: "⚙", aperta: true,

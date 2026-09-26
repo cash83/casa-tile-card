@@ -3,10 +3,9 @@
 
 import { riempiRiquadro } from './aiuti.js';
 import { COLORI, coloreLampada, daRgb } from './colori.js';
-import { ICONE, MDI_PAROLE, NOMI_ICONE, NOMI_MDI, SINONIMI, disegnoMdi, iconaAutomatica, indirizzoFoto } from './icone.js';
+import { ICONE, MDI_PAROLE, NOMI_ICONE, NOMI_MDI, SINONIMI, disegnoMdi, iconaAutomatica } from './icone.js';
 import { T, TH } from './lingua.js';
 import { ETICHETTE, SEZIONI } from './schema.js';
-import { segno } from './segni.js';
 
 export const ConIcone = (Base) => class extends Base {
   // icona e colore si scelgono guardandoli

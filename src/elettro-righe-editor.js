@@ -164,6 +164,9 @@ export function righeInOrdine(config, elenco, R, esc) {
  * `elenco` sono {entity, entry_id, titolo}; chiama `poi(scelti)` col sottoinsieme.
  */
 export function quali_cancellare(box, elenco, hass, poi) {
+  // i nomi arrivano da Home Assistant: nell'HTML si mettono ripuliti
+  const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const valore = (e) => {
     const st = hass && hass.states[e];
     if (!st || ["unknown", "unavailable"].includes(st.state)) return "";
@@ -174,7 +177,7 @@ export function quali_cancellare(box, elenco, hass, poi) {
     <div class="ce-aiuto">Spunta quelli da buttare. Lo storico che hanno raccolto si perde;
       la presa e i sensori del dispositivo non si toccano.</div>
     ${elenco.map((a, i) => `<label><input type="checkbox" data-i="${i}" checked>
-      <span>${a.titolo}</span><span class="dett">${valore(a.entity)}</span></label>`).join("")}
+      <span>${esc(a.titolo)}</span><span class="dett">${esc(valore(a.entity))}</span></label>`).join("")}
     <div class="barra">
       <span class="tutti" data-tutti="1">tutti</span>
       <span class="tutti" data-tutti="0">nessuno</span>

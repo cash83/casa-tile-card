@@ -10,7 +10,6 @@ import { ConSchede } from './editor-schede.js';
 import { iconaAutomatica } from './icone.js';
 import { T, laLingua, scegliLingua, traduciSchema } from './lingua.js';
 import { DIPENDE, ETICHETTE, SEZIONI, SOLO_AZIONE, SOLO_PER, STILE_SELETTORE } from './schema.js';
-import { segno } from './segni.js';
 import { STILE_EDITOR } from './stile-editor.js';
 import { VERSIONE } from './versione.js';
 

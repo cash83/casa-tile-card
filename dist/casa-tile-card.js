@@ -652,418 +652,6 @@ const EN = {
 };
 
 // -*- coding: utf-8 -*-
-// I conti sui colori: gradi, lampade, sfumature, meteo.
-
-const COLORI = {
-  ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
-  rosa: "#ff9ec7", viola: "#9b6bff", blu: "#5ec8ff", azzurro: "#7aa7ff",
-  verde: "#3fd98a", acqua: "#4fe0c8", lime: "#cddc39", grigio: "#8ab4f8",
-};
-
-function coloreDaGradi(k) {
-  const t = Math.max(1000, Math.min(12000, Number(k) || 4000)) / 100;
-  const dentro = (x) => Math.max(0, Math.min(255, Math.round(x)));
-  let r; let g; let b;
-  if (t <= 66) {
-    r = 255;
-    g = 99.47 * Math.log(t) - 161.12;
-    b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04;
-  } else {
-    r = 329.7 * Math.pow(t - 60, -0.1332);
-    g = 288.12 * Math.pow(t - 60, -0.0755);
-    b = 255;
-  }
-  return [dentro(r), dentro(g), dentro(b)];
-}
-
-// dal freddo al caldo: azzurro, verde, ambra, arancio, rosso
-const SCALA_TERMICA = [
-  [-5, [79, 139, 255]], [8, [79, 184, 255]], [15, [79, 224, 200]],
-  [19, [63, 217, 138]], [23, [255, 207, 92]], [27, [255, 154, 60]],
-  [32, [255, 95, 95]],
-];
-
-function coloreTemperatura(t) {
-  const n = Number(t);
-  if (isNaN(n)) return null;
-  let a = SCALA_TERMICA[0];
-  let b = SCALA_TERMICA[SCALA_TERMICA.length - 1];
-  if (n <= a[0]) return daRgb(a[1]);
-  if (n >= b[0]) return daRgb(b[1]);
-  for (let i = 0; i < SCALA_TERMICA.length - 1; i += 1) {
-    if (n >= SCALA_TERMICA[i][0] && n <= SCALA_TERMICA[i + 1][0]) {
-      a = SCALA_TERMICA[i];
-      b = SCALA_TERMICA[i + 1];
-      break;
-    }
-  }
-  const q = (n - a[0]) / (b[0] - a[0]);
-  return daRgb([0, 1, 2].map((k) => Math.round(a[1][k] + (b[1][k] - a[1][k]) * q)));
-}
-
-// Come fa Mushroom: il colore della lampada va corretto, se no i bianchi
-// e i colori slavati non si vedono sul fondo scuro.
-function coloreLampada(rgb) {
-  const r = rgb[0] / 255;
-  const g = rgb[1] / 255;
-  const b = rgb[2] / 255;
-  const max = Math.max(r, g, b);
-  const delta = max - Math.min(r, g, b);
-  let h = 0;
-  if (delta) {
-    if (max === r) h = (g - b) / delta;
-    else if (max === g) h = 2 + (b - r) / delta;
-    else h = 4 + (r - g) / delta;
-  }
-  h = 60 * (h < 0 ? h + 6 : h);
-  let sat = max ? delta / max : 0;
-  let val = max * 255;
-  if (sat < 0.4) {
-    if (sat < 0.1) val = 225;      // quasi bianca: la faccio brillare
-    else sat = 0.4;                // slavata: le do' un po' di tinta
-  }
-  const canale = (n) => {
-    const k = (n + h / 60) % 6;
-    return Math.round(val - val * sat * Math.max(Math.min(k, 4 - k, 1), 0));
-  };
-  return [canale(5), canale(3), canale(1)];
-}
-
-function daRgb(rgb) {
-  if (!Array.isArray(rgb) || rgb.length < 3) return null;
-  return "#" + rgb.slice(0, 3)
-    .map((x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0"))
-    .join("");
-}
-
-// Un colore esadecimale a sei cifre, o niente. Serve perche' "red" e
-// "orange" sono lunghi 3 e 6 caratteri come un esadecimale: presi per tali
-// davano "#000000" (parseInt fallisce in silenzio) invece del colore giusto.
-function esadecimale(colore) {
-  const h = String(colore || "").trim().replace(/^#/, "");
-  if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(h)) return null;
-  return h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
-}
-
-// Quanto e' chiaro un colore, da 0 (nero) a 1 (bianco). Serve a decidere se
-// sopra ci va scritto chiaro o scuro. Capisce "#rgb", "#rrggbb" e "rgb(r,g,b)";
-// per tutto il resto (nomi CSS, var(--...)) torna null: non so giudicare.
-function chiarezza(colore) {
-  const t = String(colore || "").trim();
-  let r, g, b;
-  const rgb = t.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
-  if (rgb) {
-    [r, g, b] = [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
-  } else {
-    const h = t.replace(/^#/, "");
-    const pieno = /^[0-9a-fA-F]{3}$/.test(h) ? h.split("").map((x) => x + x).join("") : h;
-    if (!/^[0-9a-fA-F]{6}$/.test(pieno)) return null;
-    const n = parseInt(pieno, 16);
-    [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  }
-  // pesi del canale come li vede l'occhio
-  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-}
-
-// lo stesso colore, ma piu' scuro (quanto: 1 = uguale, 0 = nero)
-function scurisci(colore, quanto) {
-  const pieno = esadecimale(colore);
-  if (!pieno) return colore;
-  // fuori da 0-1 uscivano colori impossibili: "#-ff-5f-5f" con un numero
-  // negativo, o nove cifre con un numero grande
-  const q = Math.max(0, Math.min(1, Number(quanto)));
-  if (!Number.isFinite(q)) return colore;
-  const n = parseInt(pieno, 16);
-  const r = Math.round(((n >> 16) & 255) * q);
-  const g = Math.round(((n >> 8) & 255) * q);
-  const b = Math.round((n & 255) * q);
-  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
-}
-
-function conAlfa(colore, a) {
-  const pieno = esadecimale(colore);
-  if (!pieno) return colore;
-  const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
-  return "#" + pieno + alfa;
-}
-
-const METEO = {
-  "clear-night": ["\uD83C\uDF19", "Sereno"],
-  cloudy: ["\u2601\uFE0F", "Nuvoloso"],
-  fog: ["\uD83C\uDF2B\uFE0F", "Nebbia"],
-  hail: ["\uD83C\uDF28\uFE0F", "Grandine"],
-  lightning: ["\u26C8\uFE0F", "Temporale"],
-  "lightning-rainy": ["\u26C8\uFE0F", "Temporale"],
-  partlycloudy: ["\u26C5", "Parz. nuvoloso"],
-  pouring: ["\uD83C\uDF27\uFE0F", "Pioggia forte"],
-  rainy: ["\uD83C\uDF27\uFE0F", "Pioggia"],
-  snowy: ["\u2744\uFE0F", "Neve"],
-  "snowy-rainy": ["\uD83C\uDF28\uFE0F", "Nevischio"],
-  sunny: ["\u2600\uFE0F", "Sereno"],
-  windy: ["\uD83D\uDCA8", "Vento"],
-  "windy-variant": ["\uD83D\uDCA8", "Vento"],
-  exceptional: ["\u26A0\uFE0F", "Attenzione"],
-};
-
-const CIELI = {
-  sunny: [
-    "radial-gradient(115% 80% at 84% -14%, rgba(255,216,140,.95), rgba(255,216,140,0) 58%),"
-    + "linear-gradient(168deg, #1668b8 0%, #3f97dd 42%, #8cc6ee 74%, #f2b877 100%)", "sole"],
-  "clear-night": [
-    "radial-gradient(90% 70% at 74% 10%, rgba(190,206,255,.30), rgba(190,206,255,0) 62%),"
-    + "linear-gradient(168deg, #060b1e 0%, #101c48 55%, #22366e 100%)", "stelle"],
-  partlycloudy: [
-    "radial-gradient(110% 80% at 78% -10%, rgba(255,226,170,.55), rgba(255,226,170,0) 55%),"
-    + "linear-gradient(168deg, #1f5a94 0%, #5b8fc4 55%, #a8c4dc 100%)", "sole_nuvole"],
-  cloudy: [
-    "radial-gradient(110% 75% at 30% -12%, rgba(226,236,246,.35), rgba(226,236,246,0) 60%),"
-    + "linear-gradient(168deg, #33445a 0%, #566a80 60%, #7b8b9d 100%)", "nuvole"],
-  rainy: [
-    "radial-gradient(100% 70% at 22% -12%, rgba(150,180,205,.45), rgba(150,180,205,0) 60%),"
-    + "linear-gradient(168deg, #17222f 0%, #2b3c4e 55%, #3c5468 100%)", "pioggia"],
-  pouring: [
-    "radial-gradient(100% 70% at 22% -12%, rgba(140,170,200,.4), rgba(140,170,200,0) 58%),"
-    + "linear-gradient(168deg, #101923 0%, #22303f 55%, #33475b 100%)", "pioggia"],
-  lightning: [
-    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
-    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
-  "lightning-rainy": [
-    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
-    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
-  snowy: [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.5), rgba(255,255,255,0) 60%),"
-    + "linear-gradient(168deg, #46596e 0%, #778fa6 55%, #b3c6d6 100%)", "neve"],
-  "snowy-rainy": [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
-    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
-  hail: [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
-    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
-  fog: [
-    "radial-gradient(120% 90% at 50% 40%, rgba(235,240,245,.35), rgba(235,240,245,0) 65%),"
-    + "linear-gradient(168deg, #46505c 0%, #6d7883 55%, #98a2ab 100%)", "nebbia"],
-  windy: [
-    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
-    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
-  "windy-variant": [
-    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
-    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
-  exceptional: [
-    "radial-gradient(110% 80% at 50% -14%, rgba(255,190,150,.45), rgba(255,190,150,0) 58%),"
-    + "linear-gradient(168deg, #4d2424 0%, #7c4034 55%, #a76a4f 100%)", ""],
-};
-
-// -*- coding: utf-8 -*-
-// I simboli dei tasti, e come si mettono dentro a un bottone.
-
-
-const SEGNI = {
-  prec: "M6,18V6H8V18H6M9.5,12L18,6V18L9.5,12Z",
-  succ: "M16,18H18V6H16M6,18L14.5,12L6,6V18Z",
-  play: "M8,5.14V19.14L19,12.14L8,5.14Z",
-  pausa: "M14,19H18V5H14M6,19H10V5H6V19Z",
-  stop: "M18,18H6V6H18V18Z",
-  svuota: "M2,6V8H14V6H2M2,10V12H11V10H2M14,10.88L12.88,12L15.88,15L12.88,18L14,19.12L17,"
-    + "16.12L20,19.12L21.12,18L18.12,15L21.12,12L20,10.88L17,13.88L14,10.88M2,14V16H11V14H2Z",
-  // porta qui la coda: le stesse righe di "svuota", con la freccia invece
-  // della ics - si leggono in coppia
-  trasferisci: "M19,9H2V11H19V9M19,5H2V7H19V5M2,15H15V13H2V15M17,13V19L22,16L17,13Z",
-  tavolozza: "M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,"
-    + "1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,"
-    + "6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 "
-    + "11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 "
-    + "0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A1.5,1.5 0 0,0 "
-    + "13.5,19.5C13.5,19.11 13.35,18.76 13.11,18.5C12.88,18.23 12.73,17.88 12.73,17.5A1.5,"
-    + "1.5 0 0,1 14.23,16H16A5,5 0 0,0 21,11C21,6.58 16.97,3 12,3Z",
-  bianco: "M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8M12,18A6,6 0 "
-    + "0,1 6,12A6,6 0 0,1 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,"
-    + "4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z",
-  volume: "M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,"
-    + "19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,"
-    + "15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z",
-  muto: "M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,"
-    + "18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,"
-    + "10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 "
-    + "18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,"
-    + "12.63C16.5,12.43 16.5,12.21 16.5,12Z",
-  // tapparelle: freccia CONTRO una barra, cosi' si vede dove va a finire.
-  // Le due frecce da sole sembravano il volume di un telecomando
-  su: "M4,4H20V6H4V4M12,7L17,12H14V20H10V12H7L12,7Z",
-  giu: "M4,20H20V18H4V20M12,17L17,12H14V4H10V12H7L12,17Z",
-  // il volume del gruppo un punto alla volta
-  meno: "M19,13H5V11H19V13Z",
-  piu: "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z",
-  serra: "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17"
-    + "M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6"
-    + "A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z",
-  apri: "M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H15V6"
-    + "A3,3 0 0,0 12,3A3,3 0 0,0 9,6H7A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,17"
-    + "A2,2 0 0,0 14,15A2,2 0 0,0 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17Z",
-  // "torna alla base": la casetta si legge al volo anche a 19px, l'arco
-  // della stazione di ricarica a quella misura sembrava un ferro di cavallo
-  base: "M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z",
-  spegni: "M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,"
-    + "9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,"
-    + "12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13V3Z",
-};
-
-// YouTube Music chiama gli artisti "Tizio - Topic": la coda non serve a nessuno
-const nomeArtista = (chi) => String(chi || "").replace(/\s*-\s*Topic\s*$/i, "").trim();
-
-// tinta/pienezza/luce <-> rosso/verde/blu: servono alla ruota dei colori
-function rgbAHsl(r, g, b) {
-  const r2 = r / 255; const g2 = g / 255; const b2 = b / 255;
-  const alto = Math.max(r2, g2, b2); const basso = Math.min(r2, g2, b2);
-  const d = alto - basso;
-  let h = 0;
-  if (d) {
-    if (alto === r2) h = ((g2 - b2) / d) % 6;
-    else if (alto === g2) h = (b2 - r2) / d + 2;
-    else h = (r2 - g2) / d + 4;
-    h *= 60;
-    if (h < 0) h += 360;
-  }
-  const l = (alto + basso) / 2;
-  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
-  return [Math.round(h), Math.round(s * 100), Math.round(l * 100)];
-}
-
-function hslARgb(h, s, l) {
-  const h0 = isFinite(h) ? h : 0;
-  const s2 = Math.max(0, Math.min(100, isFinite(s) ? s : 0)) / 100;
-  const l2 = Math.max(0, Math.min(100, isFinite(l) ? l : 50)) / 100;
-  const c = (1 - Math.abs(2 * l2 - 1)) * s2;
-  const x = c * (1 - Math.abs(((h0 / 60) % 2) - 1));
-  const m = l2 - c / 2;
-  let p = [0, 0, 0];
-  const g = Math.floor(((h0 % 360) + 360) % 360 / 60);
-  if (g === 0) p = [c, x, 0];
-  else if (g === 1) p = [x, c, 0];
-  else if (g === 2) p = [0, c, x];
-  else if (g === 3) p = [0, x, c];
-  else if (g === 4) p = [x, 0, c];
-  else p = [c, 0, x];
-  return p.map((v) => Math.round((v + m) * 255));
-}
-
-const hslATesto = (h, s, l) => daRgb(hslARgb(h, s, l));
-
-// Parecchi simboli non stanno in mezzo al loro quadrato: il triangolo del
-// play, per dire, sta un'unita' e mezza a destra. Dentro un tasto tondo si
-// vede eccome, sembrano storti. Invece di una tabella scritta a mano che
-// prima o poi non torna piu', la prima volta li misuro e me lo segno.
-const SCARTI = {};
-let LAVAGNA = null;
-const NS_SVG = "http://www.w3.org/2000/svg";
-function scartoDi(nome) {
-  if (nome in SCARTI) return SCARTI[nome];
-  let d = [0, 0];
-  try {
-    if (!LAVAGNA) {
-      LAVAGNA = document.createElementNS(NS_SVG, "svg");
-      LAVAGNA.setAttribute("viewBox", "0 0 24 24");
-      LAVAGNA.style.cssText = "position:absolute;left:-999px;top:0;width:24px;"
-        + "height:24px;opacity:0;pointer-events:none";
-      (document.body || document.documentElement).appendChild(LAVAGNA);
-    }
-    const p = document.createElementNS(NS_SVG, "path");
-    p.setAttribute("d", SEGNI[nome]);
-    LAVAGNA.appendChild(p);
-    const b = p.getBBox();
-    p.remove();
-    if (b.width && b.height) {
-      const arr = (v) => Math.round(v * 100) / 100;
-      d = [arr(12 - (b.x + b.width / 2)), arr(12 - (b.y + b.height / 2))];
-      // il triangolo fa eccezione: messo nel mezzo esatto l'occhio lo vede
-      // spostato a sinistra, e allora gli si lascia mezza unita' a destra
-      if (nome === "play") d[0] = arr(d[0] + 0.5);
-    }
-  } catch (_) { d = [0, 0]; }
-  SCARTI[nome] = d;
-  return d;
-}
-
-// come si chiama un tasto: la sua classe (play, prec, su, casa...). "grosso"
-// dice solo che e' piu' grande degli altri, non e' il suo nome.
-const nomeTasto = (b) => [...b.classList].filter((c) => c !== "grosso")[0] || "";
-
-const segno = (nome) => {
-  if (!SEGNI[nome]) return "";
-  const d = scartoDi(nome);
-  const spost = (d[0] || d[1])
-    ? ' transform="translate(' + d[0] + ' ' + d[1] + ')"' : "";
-  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path'
-    + spost + ' d="' + SEGNI[nome] + '"></path></svg>';
-};
-
-// mette il simbolo dentro il tasto solo se e' cambiato davvero: rifare il
-// disegnino a ogni giro (una volta al secondo, con la musica) e' sprecato
-const metti = (el, nome) => {
-  if (!el || el.dataset.segno === nome) return false;
-  el.dataset.segno = nome;
-  el.innerHTML = segno(nome);
-  return true;
-};
-
-// Quanto dura, scritto come lo direbbe una persona: 135 minuti sono
-// "2 h 15 min", non "135". Prende il numero e l'unita di partenza.
-// solo unita' che non si confondono con altro: "m" sarebbe metri, non minuti
-const SECONDI_DI = { s: 1, sec: 1, min: 60, h: 3600, d: 86400 };
-// unita' che accetto quando sono appiccicate dentro allo stato ("17min").
-// Scritte come si scrivono davvero: cosi' "3D" (una stampante) resta "3D"
-// e non diventa "3 giorni".
-const UNITA_NOTE = ["s", "min", "h", "d", "%", "W", "kW", "Wh", "kWh",
-  "V", "A", "Hz", "km", "m", "mm", "cm", "kg", "g", "L", "l", "ml", "GB", "MB",
-  "°C", "°F", "°", "lx", "ppm", "hPa", "mbar", "dB", "dBm"];
-
-function durataBella(numero, unita) {
-  const passo = SECONDI_DI[String(unita || "").toLowerCase()];
-  if (!passo || !isFinite(numero)) return null;
-  // zero non si traduce: "0 h" dice piu' di "0 s"
-  if (numero === 0) return "0 " + unita;
-  let sec = Math.round(Math.abs(numero) * passo);
-  const segno = numero < 0 ? "-" : "";
-  if (sec < 60) return segno + sec + " s";
-  const g = Math.floor(sec / 86400); sec -= g * 86400;
-  const h = Math.floor(sec / 3600); sec -= h * 3600;
-  const m = Math.floor(sec / 60);
-  if (g) return segno + g + " g" + (h ? " " + h + " h" : "");
-  if (h) return segno + h + " h" + (m ? " " + m + " min" : "");
-  return segno + m + " min";
-}
-
-// Certi sensori si scrivono il pezzo dentro allo stato ("17min", "3 h"):
-// il numero da solo non dice niente, quindi lo tengo intero.
-function numeroEUnita(stato) {
-  const testo = String(stato).trim();
-  const pezzi = testo.match(/^(-?\d+(?:[.,]\d+)?)\s*([a-zA-Z%°]{1,6})$/);
-  if (!pezzi) return null;
-  if (!UNITA_NOTE.includes(pezzi[2])) return null;
-  return { n: parseFloat(pezzi[1].replace(",", ".")), u: pezzi[2] };
-}
-
-// il valore da mostrare: numero + unita, e le durate scritte per bene.
-// Restituisce null se lo stato non e' un numero (nemmeno con l'unita
-// appiccicata dentro), cosi' chi chiama scrive il testo cosi' com'e'.
-function valoreScritto(st) {
-  const grezzo = String(st.state).trim();
-  let n = Number(grezzo);
-  let u = st.attributes ? st.attributes.unit_of_measurement : "";
-  if (grezzo === "" || isNaN(n)) {
-    const dentro = numeroEUnita(grezzo);
-    if (!dentro) return null;
-    n = dentro.n;
-    if (!u) u = dentro.u;
-  }
-  const dc = st.attributes ? st.attributes.device_class : "";
-  if (dc === "duration" || SECONDI_DI[String(u || "").toLowerCase()]) {
-    const bella = durataBella(n, u);
-    if (bella) return bella;
-  }
-  return (Math.round(n * 10) / 10).toLocaleString(laLocale()) + (u ? " " + u : "");
-}
-
-// -*- coding: utf-8 -*-
 // Aiuti di servizio: tempi, misure, parole, memorie condivise.
 
 
@@ -1300,7 +888,6 @@ function soloDalPallino(cursore) {
 
 // -*- coding: utf-8 -*-
 // Le impostazioni: sezioni, nomi in italiano, chi le vede.
-
 
 const SEZIONI = [
   {
@@ -2799,8 +2386,8 @@ const ConSchede = (Base) => class extends Base {
           const l = this._schede().slice();
           l[i] = nuova;
           const tec = String(nuova.type || "?");
-      tipo.querySelector(".chiaro").textContent = nomeScheda(tec);
-      tipo.querySelector(".piccolo").textContent = tec.replace("custom:", "");
+          tipo.querySelector(".chiaro").textContent = nomeScheda(tec);
+          tipo.querySelector(".piccolo").textContent = tec.replace("custom:", "");
           this._salvaSchede(l, false);
         };
         this._riempiEditorScheda(box, card, aggiorna, i);
@@ -2848,6 +2435,418 @@ const ConSchede = (Base) => class extends Base {
   }
 
 };
+
+// -*- coding: utf-8 -*-
+// I conti sui colori: gradi, lampade, sfumature, meteo.
+
+const COLORI = {
+  ambra: "#ffc046", oro: "#ffcf5c", arancio: "#ff9a3c", rosso: "#ff5f5f",
+  rosa: "#ff9ec7", viola: "#9b6bff", blu: "#5ec8ff", azzurro: "#7aa7ff",
+  verde: "#3fd98a", acqua: "#4fe0c8", lime: "#cddc39", grigio: "#8ab4f8",
+};
+
+function coloreDaGradi(k) {
+  const t = Math.max(1000, Math.min(12000, Number(k) || 4000)) / 100;
+  const dentro = (x) => Math.max(0, Math.min(255, Math.round(x)));
+  let r; let g; let b;
+  if (t <= 66) {
+    r = 255;
+    g = 99.47 * Math.log(t) - 161.12;
+    b = t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04;
+  } else {
+    r = 329.7 * Math.pow(t - 60, -0.1332);
+    g = 288.12 * Math.pow(t - 60, -0.0755);
+    b = 255;
+  }
+  return [dentro(r), dentro(g), dentro(b)];
+}
+
+// dal freddo al caldo: azzurro, verde, ambra, arancio, rosso
+const SCALA_TERMICA = [
+  [-5, [79, 139, 255]], [8, [79, 184, 255]], [15, [79, 224, 200]],
+  [19, [63, 217, 138]], [23, [255, 207, 92]], [27, [255, 154, 60]],
+  [32, [255, 95, 95]],
+];
+
+function coloreTemperatura(t) {
+  const n = Number(t);
+  if (isNaN(n)) return null;
+  let a = SCALA_TERMICA[0];
+  let b = SCALA_TERMICA[SCALA_TERMICA.length - 1];
+  if (n <= a[0]) return daRgb(a[1]);
+  if (n >= b[0]) return daRgb(b[1]);
+  for (let i = 0; i < SCALA_TERMICA.length - 1; i += 1) {
+    if (n >= SCALA_TERMICA[i][0] && n <= SCALA_TERMICA[i + 1][0]) {
+      a = SCALA_TERMICA[i];
+      b = SCALA_TERMICA[i + 1];
+      break;
+    }
+  }
+  const q = (n - a[0]) / (b[0] - a[0]);
+  return daRgb([0, 1, 2].map((k) => Math.round(a[1][k] + (b[1][k] - a[1][k]) * q)));
+}
+
+// Come fa Mushroom: il colore della lampada va corretto, se no i bianchi
+// e i colori slavati non si vedono sul fondo scuro.
+function coloreLampada(rgb) {
+  const r = rgb[0] / 255;
+  const g = rgb[1] / 255;
+  const b = rgb[2] / 255;
+  const max = Math.max(r, g, b);
+  const delta = max - Math.min(r, g, b);
+  let h = 0;
+  if (delta) {
+    if (max === r) h = (g - b) / delta;
+    else if (max === g) h = 2 + (b - r) / delta;
+    else h = 4 + (r - g) / delta;
+  }
+  h = 60 * (h < 0 ? h + 6 : h);
+  let sat = max ? delta / max : 0;
+  let val = max * 255;
+  if (sat < 0.4) {
+    if (sat < 0.1) val = 225;      // quasi bianca: la faccio brillare
+    else sat = 0.4;                // slavata: le do' un po' di tinta
+  }
+  const canale = (n) => {
+    const k = (n + h / 60) % 6;
+    return Math.round(val - val * sat * Math.max(Math.min(k, 4 - k, 1), 0));
+  };
+  return [canale(5), canale(3), canale(1)];
+}
+
+function daRgb(rgb) {
+  if (!Array.isArray(rgb) || rgb.length < 3) return null;
+  return "#" + rgb.slice(0, 3)
+    .map((x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// Un colore esadecimale a sei cifre, o niente. Serve perche' "red" e
+// "orange" sono lunghi 3 e 6 caratteri come un esadecimale: presi per tali
+// davano "#000000" (parseInt fallisce in silenzio) invece del colore giusto.
+function esadecimale(colore) {
+  const h = String(colore || "").trim().replace(/^#/, "");
+  if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(h)) return null;
+  return h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
+}
+
+// Quanto e' chiaro un colore, da 0 (nero) a 1 (bianco). Serve a decidere se
+// sopra ci va scritto chiaro o scuro. Capisce "#rgb", "#rrggbb" e "rgb(r,g,b)";
+// per tutto il resto (nomi CSS, var(--...)) torna null: non so giudicare.
+function chiarezza(colore) {
+  const t = String(colore || "").trim();
+  let r, g, b;
+  const rgb = t.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+  if (rgb) {
+    [r, g, b] = [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
+  } else {
+    const h = t.replace(/^#/, "");
+    const pieno = /^[0-9a-fA-F]{3}$/.test(h) ? h.split("").map((x) => x + x).join("") : h;
+    if (!/^[0-9a-fA-F]{6}$/.test(pieno)) return null;
+    const n = parseInt(pieno, 16);
+    [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  // pesi del canale come li vede l'occhio
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+// lo stesso colore, ma piu' scuro (quanto: 1 = uguale, 0 = nero)
+function scurisci(colore, quanto) {
+  const pieno = esadecimale(colore);
+  if (!pieno) return colore;
+  // fuori da 0-1 uscivano colori impossibili: "#-ff-5f-5f" con un numero
+  // negativo, o nove cifre con un numero grande
+  const q = Math.max(0, Math.min(1, Number(quanto)));
+  if (!Number.isFinite(q)) return colore;
+  const n = parseInt(pieno, 16);
+  const r = Math.round(((n >> 16) & 255) * q);
+  const g = Math.round(((n >> 8) & 255) * q);
+  const b = Math.round((n & 255) * q);
+  return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+function conAlfa(colore, a) {
+  const pieno = esadecimale(colore);
+  if (!pieno) return colore;
+  const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
+  return "#" + pieno + alfa;
+}
+
+const METEO = {
+  "clear-night": ["\uD83C\uDF19", "Sereno"],
+  cloudy: ["\u2601\uFE0F", "Nuvoloso"],
+  fog: ["\uD83C\uDF2B\uFE0F", "Nebbia"],
+  hail: ["\uD83C\uDF28\uFE0F", "Grandine"],
+  lightning: ["\u26C8\uFE0F", "Temporale"],
+  "lightning-rainy": ["\u26C8\uFE0F", "Temporale"],
+  partlycloudy: ["\u26C5", "Parz. nuvoloso"],
+  pouring: ["\uD83C\uDF27\uFE0F", "Pioggia forte"],
+  rainy: ["\uD83C\uDF27\uFE0F", "Pioggia"],
+  snowy: ["\u2744\uFE0F", "Neve"],
+  "snowy-rainy": ["\uD83C\uDF28\uFE0F", "Nevischio"],
+  sunny: ["\u2600\uFE0F", "Sereno"],
+  windy: ["\uD83D\uDCA8", "Vento"],
+  "windy-variant": ["\uD83D\uDCA8", "Vento"],
+  exceptional: ["\u26A0\uFE0F", "Attenzione"],
+};
+
+const CIELI = {
+  sunny: [
+    "radial-gradient(115% 80% at 84% -14%, rgba(255,216,140,.95), rgba(255,216,140,0) 58%),"
+    + "linear-gradient(168deg, #1668b8 0%, #3f97dd 42%, #8cc6ee 74%, #f2b877 100%)", "sole"],
+  "clear-night": [
+    "radial-gradient(90% 70% at 74% 10%, rgba(190,206,255,.30), rgba(190,206,255,0) 62%),"
+    + "linear-gradient(168deg, #060b1e 0%, #101c48 55%, #22366e 100%)", "stelle"],
+  partlycloudy: [
+    "radial-gradient(110% 80% at 78% -10%, rgba(255,226,170,.55), rgba(255,226,170,0) 55%),"
+    + "linear-gradient(168deg, #1f5a94 0%, #5b8fc4 55%, #a8c4dc 100%)", "sole_nuvole"],
+  cloudy: [
+    "radial-gradient(110% 75% at 30% -12%, rgba(226,236,246,.35), rgba(226,236,246,0) 60%),"
+    + "linear-gradient(168deg, #33445a 0%, #566a80 60%, #7b8b9d 100%)", "nuvole"],
+  rainy: [
+    "radial-gradient(100% 70% at 22% -12%, rgba(150,180,205,.45), rgba(150,180,205,0) 60%),"
+    + "linear-gradient(168deg, #17222f 0%, #2b3c4e 55%, #3c5468 100%)", "pioggia"],
+  pouring: [
+    "radial-gradient(100% 70% at 22% -12%, rgba(140,170,200,.4), rgba(140,170,200,0) 58%),"
+    + "linear-gradient(168deg, #101923 0%, #22303f 55%, #33475b 100%)", "pioggia"],
+  lightning: [
+    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
+    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
+  "lightning-rainy": [
+    "radial-gradient(95% 65% at 68% -8%, rgba(200,180,255,.42), rgba(200,180,255,0) 60%),"
+    + "linear-gradient(168deg, #12172a 0%, #2b2745 55%, #453a63 100%)", "lampo"],
+  snowy: [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.5), rgba(255,255,255,0) 60%),"
+    + "linear-gradient(168deg, #46596e 0%, #778fa6 55%, #b3c6d6 100%)", "neve"],
+  "snowy-rainy": [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
+    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
+  hail: [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,255,255,.42), rgba(255,255,255,0) 60%),"
+    + "linear-gradient(168deg, #3d5062 0%, #6b8196 55%, #a3b7c8 100%)", "neve"],
+  fog: [
+    "radial-gradient(120% 90% at 50% 40%, rgba(235,240,245,.35), rgba(235,240,245,0) 65%),"
+    + "linear-gradient(168deg, #46505c 0%, #6d7883 55%, #98a2ab 100%)", "nebbia"],
+  windy: [
+    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
+    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
+  "windy-variant": [
+    "radial-gradient(110% 80% at 76% -10%, rgba(200,235,245,.4), rgba(200,235,245,0) 58%),"
+    + "linear-gradient(168deg, #24596c 0%, #4a8399 55%, #86b3c4 100%)", "sole_nuvole"],
+  exceptional: [
+    "radial-gradient(110% 80% at 50% -14%, rgba(255,190,150,.45), rgba(255,190,150,0) 58%),"
+    + "linear-gradient(168deg, #4d2424 0%, #7c4034 55%, #a76a4f 100%)", ""],
+};
+
+// -*- coding: utf-8 -*-
+// I simboli dei tasti, e come si mettono dentro a un bottone.
+
+
+const SEGNI = {
+  prec: "M6,18V6H8V18H6M9.5,12L18,6V18L9.5,12Z",
+  succ: "M16,18H18V6H16M6,18L14.5,12L6,6V18Z",
+  play: "M8,5.14V19.14L19,12.14L8,5.14Z",
+  pausa: "M14,19H18V5H14M6,19H10V5H6V19Z",
+  stop: "M18,18H6V6H18V18Z",
+  svuota: "M2,6V8H14V6H2M2,10V12H11V10H2M14,10.88L12.88,12L15.88,15L12.88,18L14,19.12L17,"
+    + "16.12L20,19.12L21.12,18L18.12,15L21.12,12L20,10.88L17,13.88L14,10.88M2,14V16H11V14H2Z",
+  // porta qui la coda: le stesse righe di "svuota", con la freccia invece
+  // della ics - si leggono in coppia
+  trasferisci: "M19,9H2V11H19V9M19,5H2V7H19V5M2,15H15V13H2V15M17,13V19L22,16L17,13Z",
+  tavolozza: "M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,"
+    + "1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,"
+    + "6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 "
+    + "11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 "
+    + "0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A1.5,1.5 0 0,0 "
+    + "13.5,19.5C13.5,19.11 13.35,18.76 13.11,18.5C12.88,18.23 12.73,17.88 12.73,17.5A1.5,"
+    + "1.5 0 0,1 14.23,16H16A5,5 0 0,0 21,11C21,6.58 16.97,3 12,3Z",
+  bianco: "M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8M12,18A6,6 0 "
+    + "0,1 6,12A6,6 0 0,1 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,"
+    + "4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z",
+  volume: "M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,"
+    + "19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,"
+    + "15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z",
+  muto: "M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,"
+    + "18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,"
+    + "10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 "
+    + "18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,"
+    + "12.63C16.5,12.43 16.5,12.21 16.5,12Z",
+  // tapparelle: freccia CONTRO una barra, cosi' si vede dove va a finire.
+  // Le due frecce da sole sembravano il volume di un telecomando
+  su: "M4,4H20V6H4V4M12,7L17,12H14V20H10V12H7L12,7Z",
+  giu: "M4,20H20V18H4V20M12,17L17,12H14V4H10V12H7L12,17Z",
+  // il volume del gruppo un punto alla volta
+  meno: "M19,13H5V11H19V13Z",
+  piu: "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z",
+  serra: "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17"
+    + "M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6"
+    + "A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z",
+  apri: "M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H15V6"
+    + "A3,3 0 0,0 12,3A3,3 0 0,0 9,6H7A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,17"
+    + "A2,2 0 0,0 14,15A2,2 0 0,0 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17Z",
+  // "torna alla base": la casetta si legge al volo anche a 19px, l'arco
+  // della stazione di ricarica a quella misura sembrava un ferro di cavallo
+  base: "M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z",
+  spegni: "M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,"
+    + "9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,"
+    + "12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13V3Z",
+};
+
+// YouTube Music chiama gli artisti "Tizio - Topic": la coda non serve a nessuno
+const nomeArtista = (chi) => String(chi || "").replace(/\s*-\s*Topic\s*$/i, "").trim();
+
+// tinta/pienezza/luce <-> rosso/verde/blu: servono alla ruota dei colori
+function rgbAHsl(r, g, b) {
+  const r2 = r / 255; const g2 = g / 255; const b2 = b / 255;
+  const alto = Math.max(r2, g2, b2); const basso = Math.min(r2, g2, b2);
+  const d = alto - basso;
+  let h = 0;
+  if (d) {
+    if (alto === r2) h = ((g2 - b2) / d) % 6;
+    else if (alto === g2) h = (b2 - r2) / d + 2;
+    else h = (r2 - g2) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  const l = (alto + basso) / 2;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  return [Math.round(h), Math.round(s * 100), Math.round(l * 100)];
+}
+
+function hslARgb(h, s, l) {
+  const h0 = isFinite(h) ? h : 0;
+  const s2 = Math.max(0, Math.min(100, isFinite(s) ? s : 0)) / 100;
+  const l2 = Math.max(0, Math.min(100, isFinite(l) ? l : 50)) / 100;
+  const c = (1 - Math.abs(2 * l2 - 1)) * s2;
+  const x = c * (1 - Math.abs(((h0 / 60) % 2) - 1));
+  const m = l2 - c / 2;
+  let p = [0, 0, 0];
+  const g = Math.floor(((h0 % 360) + 360) % 360 / 60);
+  if (g === 0) p = [c, x, 0];
+  else if (g === 1) p = [x, c, 0];
+  else if (g === 2) p = [0, c, x];
+  else if (g === 3) p = [0, x, c];
+  else if (g === 4) p = [x, 0, c];
+  else p = [c, 0, x];
+  return p.map((v) => Math.round((v + m) * 255));
+}
+
+const hslATesto = (h, s, l) => daRgb(hslARgb(h, s, l));
+
+// Parecchi simboli non stanno in mezzo al loro quadrato: il triangolo del
+// play, per dire, sta un'unita' e mezza a destra. Dentro un tasto tondo si
+// vede eccome, sembrano storti. Invece di una tabella scritta a mano che
+// prima o poi non torna piu', la prima volta li misuro e me lo segno.
+const SCARTI = {};
+let LAVAGNA = null;
+const NS_SVG = "http://www.w3.org/2000/svg";
+function scartoDi(nome) {
+  if (nome in SCARTI) return SCARTI[nome];
+  let d = [0, 0];
+  try {
+    if (!LAVAGNA) {
+      LAVAGNA = document.createElementNS(NS_SVG, "svg");
+      LAVAGNA.setAttribute("viewBox", "0 0 24 24");
+      LAVAGNA.style.cssText = "position:absolute;left:-999px;top:0;width:24px;"
+        + "height:24px;opacity:0;pointer-events:none";
+      (document.body || document.documentElement).appendChild(LAVAGNA);
+    }
+    const p = document.createElementNS(NS_SVG, "path");
+    p.setAttribute("d", SEGNI[nome]);
+    LAVAGNA.appendChild(p);
+    const b = p.getBBox();
+    p.remove();
+    if (b.width && b.height) {
+      const arr = (v) => Math.round(v * 100) / 100;
+      d = [arr(12 - (b.x + b.width / 2)), arr(12 - (b.y + b.height / 2))];
+      // il triangolo fa eccezione: messo nel mezzo esatto l'occhio lo vede
+      // spostato a sinistra, e allora gli si lascia mezza unita' a destra
+      if (nome === "play") d[0] = arr(d[0] + 0.5);
+    }
+  } catch (_) { d = [0, 0]; }
+  SCARTI[nome] = d;
+  return d;
+}
+
+// come si chiama un tasto: la sua classe (play, prec, su, casa...). "grosso"
+// dice solo che e' piu' grande degli altri, non e' il suo nome.
+const nomeTasto = (b) => [...b.classList].filter((c) => c !== "grosso")[0] || "";
+
+const segno = (nome) => {
+  if (!SEGNI[nome]) return "";
+  const d = scartoDi(nome);
+  const spost = (d[0] || d[1])
+    ? ' transform="translate(' + d[0] + ' ' + d[1] + ')"' : "";
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path'
+    + spost + ' d="' + SEGNI[nome] + '"></path></svg>';
+};
+
+// mette il simbolo dentro il tasto solo se e' cambiato davvero: rifare il
+// disegnino a ogni giro (una volta al secondo, con la musica) e' sprecato
+const metti = (el, nome) => {
+  if (!el || el.dataset.segno === nome) return false;
+  el.dataset.segno = nome;
+  el.innerHTML = segno(nome);
+  return true;
+};
+
+// Quanto dura, scritto come lo direbbe una persona: 135 minuti sono
+// "2 h 15 min", non "135". Prende il numero e l'unita di partenza.
+// solo unita' che non si confondono con altro: "m" sarebbe metri, non minuti
+const SECONDI_DI = { s: 1, sec: 1, min: 60, h: 3600, d: 86400 };
+// unita' che accetto quando sono appiccicate dentro allo stato ("17min").
+// Scritte come si scrivono davvero: cosi' "3D" (una stampante) resta "3D"
+// e non diventa "3 giorni".
+const UNITA_NOTE = ["s", "min", "h", "d", "%", "W", "kW", "Wh", "kWh",
+  "V", "A", "Hz", "km", "m", "mm", "cm", "kg", "g", "L", "l", "ml", "GB", "MB",
+  "°C", "°F", "°", "lx", "ppm", "hPa", "mbar", "dB", "dBm"];
+
+function durataBella(numero, unita) {
+  const passo = SECONDI_DI[String(unita || "").toLowerCase()];
+  if (!passo || !isFinite(numero)) return null;
+  // zero non si traduce: "0 h" dice piu' di "0 s"
+  if (numero === 0) return "0 " + unita;
+  let sec = Math.round(Math.abs(numero) * passo);
+  const segno = numero < 0 ? "-" : "";
+  if (sec < 60) return segno + sec + " s";
+  const g = Math.floor(sec / 86400); sec -= g * 86400;
+  const h = Math.floor(sec / 3600); sec -= h * 3600;
+  const m = Math.floor(sec / 60);
+  if (g) return segno + g + " g" + (h ? " " + h + " h" : "");
+  if (h) return segno + h + " h" + (m ? " " + m + " min" : "");
+  return segno + m + " min";
+}
+
+// Certi sensori si scrivono il pezzo dentro allo stato ("17min", "3 h"):
+// il numero da solo non dice niente, quindi lo tengo intero.
+function numeroEUnita(stato) {
+  const testo = String(stato).trim();
+  const pezzi = testo.match(/^(-?\d+(?:[.,]\d+)?)\s*([a-zA-Z%°]{1,6})$/);
+  if (!pezzi) return null;
+  if (!UNITA_NOTE.includes(pezzi[2])) return null;
+  return { n: parseFloat(pezzi[1].replace(",", ".")), u: pezzi[2] };
+}
+
+// il valore da mostrare: numero + unita, e le durate scritte per bene.
+// Restituisce null se lo stato non e' un numero (nemmeno con l'unita
+// appiccicata dentro), cosi' chi chiama scrive il testo cosi' com'e'.
+function valoreScritto(st) {
+  const grezzo = String(st.state).trim();
+  let n = Number(grezzo);
+  let u = st.attributes ? st.attributes.unit_of_measurement : "";
+  if (grezzo === "" || isNaN(n)) {
+    const dentro = numeroEUnita(grezzo);
+    if (!dentro) return null;
+    n = dentro.n;
+    if (!u) u = dentro.u;
+  }
+  const dc = st.attributes ? st.attributes.device_class : "";
+  if (dc === "duration" || SECONDI_DI[String(u || "").toLowerCase()]) {
+    const bella = durataBella(n, u);
+    if (bella) return bella;
+  }
+  return (Math.round(n * 10) / 10).toLocaleString(laLocale()) + (u ? " " + u : "");
+}
 
 // -*- coding: utf-8 -*-
 // Il cerchio dei colori e le righe che li scelgono.
@@ -3708,12 +3707,8 @@ const ICON_CLOSE =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
 const ICON_RESTART =
   '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>';
-const ICON_BELL =
-  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
 const ICON_NOTIFCENTER =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l4 4V6l-4 4H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>';
-const ICON_SPEED =
-  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l3-3"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>';
 const ICON_BOLT =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>';
 const ICON_FLAG =
@@ -3722,49 +3717,10 @@ const ICON_TIMER =
   '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6"/></svg>';
 const ICON_EURO =
   '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6.5a6.5 6.5 0 1 0 0 11"/><path d="M5.5 10h9"/><path d="M5.5 14h8"/></svg>';
-const ICON_GLOBE =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/></svg>';
-const ICON_DOWNLOAD =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M6 11l6 6 6-6"/><path d="M4 21h16"/></svg>';
-const ICON_UPLOAD =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V8"/><path d="M6 13l6-6 6 6"/><path d="M4 21h16"/></svg>';
-const ICON_TAG =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 12.6 12 21.2 2.8 12 11.4 3.4H20.6z"/><circle cx="16.3" cy="7.7" r="1.15" fill="currentColor" stroke="none"/></svg>';
-const ICON_SHIELD =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"/></svg>';
-const ICON_BOX =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>';
 const ICON_TREND =
   '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 6h6v6"/></svg>';
-const ICON_PULSE =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 7 4-14 2 7h6"/></svg>';
-const ICON_BATTERY =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 10v4"/><path d="M6 10v4"/></svg>';
-const ICON_PLUG =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v5"/><path d="M15 2v5"/><path d="M6 7h12v4a6 6 0 0 1-12 0V7z"/><path d="M12 17v5"/></svg>';
-const ICON_CUBE =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7.6 12 12l8.7-4.4"/><path d="M12 22V12"/></svg>';
-const ICON_MONITOR =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>';
-const ICON_ALERT =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4"/><circle cx="12" cy="17.5" r=".2" fill="currentColor"/></svg>';
-const ICON_SAVE =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M7 3v5h9V3"/><path d="M7 21v-8h10v8"/></svg>';
-const ICON_CALENDAR =
-  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>';
-const ICON_BACK =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
 
 // Icone per le righe "gruppo" del dialog Impostazioni (stile vecchia card).
-const SETTINGS_GROUP_ICONS = {
-  report: ICON_CHART,
-  notifiche: ICON_BELL,
-  update: ICON_DOWNLOAD,
-  alert: ICON_ALERT,
-  backup: ICON_SAVE,
-  restart: ICON_RESTART,
-  euro: ICON_EURO,
-};
 
 const WEEKDAY_FULL_IT = ["Domenica", "Luned\u00ec", "Marted\u00ec", "Mercoled\u00ec", "Gioved\u00ec", "Venerd\u00ec", "Sabato"];
 const WEEKDAY_ABBR_IT = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
@@ -3803,6 +3759,13 @@ const STYLE = `
 .dm-ap-tool{width:37px;height:37px;display:grid;place-items:center;border:1px solid var(--dm-border);border-radius:11px;background:var(--dm-card);color:var(--dm-dim);cursor:pointer}
 .dm-ap-tool svg{width:19px;height:19px}
 .dm-ap-tool:hover{border-color:#bae6fd;color:var(--dm-blue-deep)}
+.dm-ap-prese{display:flex;flex-wrap:wrap;gap:6px;margin:0 12px 8px}
+.dm-ap-presa{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.2px;cursor:pointer;
+  padding:4px 10px;border-radius:999px;border:1px solid var(--divider-color);
+  background:rgba(127,127,127,.10);color:var(--secondary-text-color);line-height:1.5}
+.dm-ap-presa.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.14)}
+.dm-ap-presa.assente{opacity:.45;cursor:default}
+.dm-ap-presa:active{transform:scale(.97)}
 .dm-ap-tool.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.12)}
 .dm-ap-top-row{display:flex;align-items:stretch;gap:10px;margin:0 13px}
 .dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
@@ -4042,15 +4005,6 @@ function meterSeverityColor(pct) {
   return "#38bdf8";
 }
 
-// Inverso di meterSeverityColor: per grandezze dove ALTO e' un bene (es.
-// carica batteria) invece che un problema (es. carico/CPU/disco).
-function inverseSeverityColor(pct) {
-  if (pct <= 15) return "#ef4444";
-  if (pct <= 30) return "#f97316";
-  if (pct <= 60) return "#eab308";
-  return "#22c55e";
-}
-
 // Prepara da solo il pop-up con la scheda grande (casa-energia o
 // casa-elettrodomestico) partendo dall'entita' della casella.
 // Lo usa l'editor quando nel Tocco si sceglie "Apri la scheda
@@ -4261,7 +4215,17 @@ function preparaElettrodomestico(hass, cfg) {
   pulisci(cfg.name || "").split("_").forEach((x) => { if (x.length > 3) radici.push(x); });
   (String(cfg.entity || "").split(".")[1] || "").split("_").forEach((x) => { if (x.length > 3) radici.push(x); });
   radici.sort((x, y) => y.length - x.length);
-  const suoi = tuttiSensori.filter((x) => radici.some((r) => x.includes(r)));
+  // prima strada, quella sicura: gli altri sensori dello STESSO dispositivo
+  const reg = (hass && hass.entities) || {};
+  const devDi = (x) => (reg[x] || {}).device_id;
+  const mioDev = devDi(cfg.entity);
+  let suoi = mioDev ? tuttiSensori.filter((x) => devDi(x) === mioDev) : [];
+  if (!suoi.length && radici.length) {
+    // ripiego: il nome. Ma solo la parola piu' lunga, se no "lato" prende
+    // anche la presa del vicino di letto
+    const radice = radici[0];
+    suoi = tuttiSensori.filter((x) => x.includes(radice));
+  }
   const classeDi = (x) => ((hass.states[x] || {}).attributes || {}).device_class;
   const unita = (x) => String(((hass.states[x] || {}).attributes || {}).unit_of_measurement || "");
   const trova = (quando, tipo) => suoi.find((x) => quando.test(x)
@@ -8918,7 +8882,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.89.1";
+const VERSIONE = "2.90.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -17260,7 +17224,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     // senza entita' l'unica cosa sensata e' aprire il pop-up
     if (!c.entity) {
       if (c.azione === "servizio") { this._chiamaServizio(); return; }
-    if (c.azione === "mappa") { this._apriMappa(); return; }
+      if (c.azione === "mappa") { this._apriMappa(); return; }
       if (c.azione === "link" && c.indirizzo_web) {
         window.open(c.indirizzo_web, "_blank", "noopener");
         return;
@@ -17777,30 +17741,6 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
       this._guardaFuori();
       this._render();
     }
-  }
-
-  // Sto dentro alla finestra "Configurazione scheda"? Me lo guardo da solo
-  // risalendo i genitori: mi appoggiavo a un controllo fatto altrove, che
-  // pero' non e' sempre gia' stato eseguito quando serve qui.
-  _dentroSportello() {
-    if (this._inSportello !== undefined) return this._inSportello;
-    let n = this;
-    this._inSportello = false;
-    for (let i = 0; i < 40; i += 1) {
-      n = n.parentNode || n.host;
-      if (!n) break;
-      const nome = String(n.localName || "");
-      const classi = n.classList;
-      // i nomi con cui Home Assistant chiama l'anteprima delle
-      // impostazioni cambiano di versione in versione: li accetto tutti
-      if (nome === "hui-dialog-edit-card" || nome === "hui-card-preview"
-          || nome === "hui-card-element-editor" || nome === "ha-dialog"
-          || (classi && classi.contains && classi.contains("element-preview"))) {
-        this._inSportello = true;
-        break;
-      }
-    }
-    return this._inSportello;
   }
 
   _guardaFuori() {
@@ -18616,6 +18556,9 @@ function righeInOrdine(config, elenco, R, esc) {
  * `elenco` sono {entity, entry_id, titolo}; chiama `poi(scelti)` col sottoinsieme.
  */
 function quali_cancellare(box, elenco, hass, poi) {
+  // i nomi arrivano da Home Assistant: nell'HTML si mettono ripuliti
+  const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const valore = (e) => {
     const st = hass && hass.states[e];
     if (!st || ["unknown", "unavailable"].includes(st.state)) return "";
@@ -18626,7 +18569,7 @@ function quali_cancellare(box, elenco, hass, poi) {
     <div class="ce-aiuto">Spunta quelli da buttare. Lo storico che hanno raccolto si perde;
       la presa e i sensori del dispositivo non si toccano.</div>
     ${elenco.map((a, i) => `<label><input type="checkbox" data-i="${i}" checked>
-      <span>${a.titolo}</span><span class="dett">${valore(a.entity)}</span></label>`).join("")}
+      <span>${esc(a.titolo)}</span><span class="dett">${esc(valore(a.entity))}</span></label>`).join("")}
     <div class="barra">
       <span class="tutti" data-tutti="1">tutti</span>
       <span class="tutti" data-tutti="0">nessuno</span>
@@ -19423,15 +19366,12 @@ class CasaEnergia extends HTMLElement {
       fvEl.title = "risparmio di oggi / del mese";
     }
     const kwhOggi = pOggi ? Number((hass.states[pOggi.energy] || {}).state) : NaN;
-    const kwhMese = pMese ? Number((hass.states[pMese.energy] || {}).state) : NaN;
     const senzaEl = this._root.querySelector(".dm-e-senzafv");
     if (senzaEl) {
       const b = hass.states[cfg.bill_today];
       if (b) {
         const a = b.attributes || {};
         senzaEl.textContent = this._euro(Number(b.state) + Number(a.risparmio_fotovoltaico || 0));
-        const senzaEn = this._root.querySelector(".dm-e-senzafv-en");
-        if (senzaEn) senzaEn.textContent = this._euro(Number(a.energia || 0) + Number(a.risparmio_fotovoltaico_energia || 0));
       } else if (Number.isFinite(kwhOggi) && tariffa.totale > 0) {
         // quello che pagheresti oggi se i pannelli non ci fossero
         const risp = Number((hass.states[cfg.risparmio_oggi] || {}).state) || 0;
@@ -19688,6 +19628,7 @@ async function scriviTariffa(hass, voci, dillo) {
 // storico perso. Quindi appena creato lo rinomino come si deve, che e' quello
 // che farebbe uno a mano dalle impostazioni.
 function slug(nome) {
+  // i segni combinanti scritti coi codici: a caratteri veri sono invisibili
   return String(nome).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
 }
@@ -19725,7 +19666,7 @@ async function prezzoDelKWh(hass, opzioni, dillo, conto) {
   }
   dillo("Creo il prezzo in €/kWh...");
   await hass.callWS({
-    type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.001,
+    type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.0001,
     mode: "box", unit_of_measurement: "€/kWh", icon: "mdi:currency-eur",
   });
   conto.creati++;
@@ -19875,7 +19816,7 @@ async function creaSensoriBase(hass, opzioni, dillo) {
     if (costi[chiave]) riga.cost = costi[chiave];
     return riga;
   });
-  avvisoUnita(hass, Object.values(contatori), dillo);
+  await avvisoUnita(hass, Object.values(contatori), dillo);
   const patch = { periods };
   // la memoria e' servita: la butto, se no al prossimo giro rischia di
   // riportare indietro contatori che intanto sono andati avanti
@@ -19888,7 +19829,8 @@ async function creaSensoriBase(hass, opzioni, dillo) {
     patch.periods_prev = [ieri];
   }
   patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
-  dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'.");
+  dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'."
+    + (rimessi ? " " + rimessi + " sono ripartiti dal valore di prima." : ""));
   return patch;
 }
 
@@ -19945,10 +19887,17 @@ async function creaIntegrale(hass, nome, potenza) {
 // PROVATO: non si puo' evitare - ne' aspettando che la sorgente dia un numero,
 // ne' con utility_meter.calibrate. Percio' lo dico prima invece di lasciartelo
 // scoprire dopo.
-function avvisoUnita(hass, entita, dillo) {
+async function avvisoUnita(hass, entita, dillo) {
   if (!dillo) return;
+  // `hass.states` qui e' la fotografia di PRIMA: i contatori appena creati non
+  // ci sono ancora e l'avviso non sarebbe mai scattato. Li richiedo.
+  let stati = hass.states;
+  try { stati = await hass.callWS({ type: "get_states" }); } catch (e) { stati = null; }
+  const diEntita = {};
+  if (Array.isArray(stati)) stati.forEach((x) => { diEntita[x.entity_id] = x; });
+  else Object.assign(diEntita, hass.states);
   const mute = (entita || []).filter((e) => {
-    const st = e && hass.states[e];
+    const st = e && diEntita[e];
     return st && !(st.attributes || {}).unit_of_measurement;
   });
   if (!mute.length) return;
@@ -19964,18 +19913,12 @@ function avvisoUnita(hass, entita, dillo) {
 // soglia che dice quando lavora, un contatore che parte da zero a ogni ciclo,
 // tre memorie e un'automazione che al termine ci scrive dentro.
 
-// il nome dell'entita' come lo farebbe Home Assistant
-function sigla(nome) {
-  return String(nome).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-}
-
 async function creaNumero(hass, nome, unita, passo, massimo) {
   await hass.callWS({
     type: "input_number/create", name: nome, min: 0, max: massimo, step: passo,
     mode: "box", unit_of_measurement: unita, icon: "mdi:counter",
   });
-  return "input_number." + sigla(nome);
+  return "input_number." + slug(nome);
 }
 
 async function creaDataOra(hass, nome) {
@@ -19983,7 +19926,7 @@ async function creaDataOra(hass, nome) {
     type: "input_datetime/create", name: nome, has_date: true, has_time: true,
     icon: "mdi:flag-checkered",
   });
-  return "input_datetime." + sigla(nome);
+  return "input_datetime." + slug(nome);
 }
 
 async function creaAutomazione(hass, conf) {
@@ -20045,10 +19988,10 @@ async function creaCicli(hass, opzioni, dillo) {
   const nMin = base + " ultimo ciclo minuti";
   const nFine = base + " ultimo ciclo fine";
   const nVia = base + " ciclo iniziato";
-  const eKwh = "input_number." + sigla(nKwh);
-  const eMin = "input_number." + sigla(nMin);
-  const eFine = "input_datetime." + sigla(nFine);
-  const eVia = "input_datetime." + sigla(nVia);
+  const eKwh = "input_number." + slug(nKwh);
+  const eMin = "input_number." + slug(nMin);
+  const eFine = "input_datetime." + slug(nFine);
+  const eVia = "input_datetime." + slug(nVia);
   if (!esiste(eKwh)) { parla("Creo la memoria dei kWh..."); await creaNumero(hass, nKwh, "kWh", 0.001, 1000); }
   if (!esiste(eMin)) { parla("Creo la memoria dei minuti..."); await creaNumero(hass, nMin, "min", 1, 10000); }
   if (!esiste(eFine)) { parla("Creo la memoria della fine..."); await creaDataOra(hass, nFine); }
@@ -20198,7 +20141,7 @@ async function creaFonte(hass, opzioni, dillo) {
     }
     fuori[chiave] = e;
   }
-  avvisoUnita(hass, Object.values(fuori), parla);
+  await avvisoUnita(hass, Object.values(fuori), parla);
   return fuori;
 }
 
@@ -20428,12 +20371,13 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
       } catch (e) { dillo("Il valore vecchio non sono riuscito a rimetterlo: " + (e.message || e)); }
     }
   }
-  avvisoUnita(hass, Object.values(periodi).map((x) => x.energy), dillo);
+  await avvisoUnita(hass, Object.values(periodi).map((x) => x.energy), dillo);
   const patch = { period_entities: periodi, stats: { ...(opzioni.stats || {}) } };
   if (Object.keys(memoria).length) patch.helper_memoria = null;
   // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"
   if (kwh) patch.energy_stat_entity = kwh;
   if (cicli.oggi) patch.stats.cycles_today = cicli.oggi;
+  if (cicli.settimana) patch.stats.cycles_week = cicli.settimana;
   if (cicli.mese) patch.stats.cycles_month = cicli.mese;
   patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
   dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'.");
@@ -20452,8 +20396,7 @@ function aiutantiDellaScheda(hass, cfg) {
   const pe = cfg.period_entities || {};
   Object.keys(pe).forEach((k) => { metti(pe[k].energy); metti(pe[k].cost); metti(pe[k].time); });
   metti(cfg.energy_stat_entity);
-  metti((cfg.stats || {}).cycles_today);
-  metti((cfg.stats || {}).cycles_month);
+  Object.values(cfg.stats || {}).forEach(metti);
   ["oggi_energia", "oggi_costo", "settimana_energia", "settimana_costo", "mese_energia", "mese_costo",
    "bolletta_energia", "bolletta_costo", "bill_today", "bill_month"].forEach((k) => metti(cfg[k]));
   // la scheda della casa tiene i suoi contatori qui dentro
@@ -20499,26 +20442,6 @@ async function aiutantiVeri(hass, cfg) {
   return fuori;
 }
 
-// Quanto segnano adesso gli aiutanti della scheda: me lo segno PRIMA di
-// cancellarli, cosi' ricreandoli i contatori ripartono da li' e i kWh gia'
-// contati non si perdono.
-async function valoriDegliAiutanti(hass, cfg) {
-  const veri = await aiutantiVeri(hass, cfg);
-  const memoria = {};
-  veri.forEach((a) => {
-    const st = hass.states[a.entity];
-    if (!st || ["unknown", "unavailable"].includes(st.state)) return;
-    const n = Number(st.state);
-    if (!Number.isFinite(n)) return;
-    memoria[a.titolo] = { valore: n, entita: a.entity, quando: new Date().toISOString().slice(0, 16) };
-  });
-  return memoria;
-}
-
-/**
- * Cancella solo gli aiutanti che gli passi. Torna { cancellati, memoria }:
- * la memoria sono i valori che avevano, per farli ripartire da li'.
- */
 async function cancellaQuesti(hass, scelti, dillo) {
   const parla = dillo || (() => {});
   const memoria = {};
@@ -20583,24 +20506,6 @@ function scollegaEntita(cfg, spariti) {
     c.ciclo = ci;
   }
   return c;
-}
-
-async function cancellaSensoriElettrodomestico(hass, cfg, dillo) {
-  const memoria = await valoriDegliAiutanti(hass, cfg);
-  const veri = await aiutantiVeri(hass, cfg);
-  const tutti = aiutantiDellaScheda(hass, cfg);
-  let cancellati = 0;
-  for (const a of veri) {
-    dillo("Cancello: " + a.titolo + "...");
-    try {
-      await hass.callWS({ type: "config_entries/delete", entry_id: a.entry_id });
-    } catch (e) {
-      await hass.callApi("DELETE", "config/config_entries/entry/" + a.entry_id);
-    }
-    cancellati++;
-  }
-  const saltati = tutti.filter((x) => !veri.some((a) => a.entity === x));
-  return { cancellati, saltati, memoria };
 }
 
 // L'editor a clic di custom:casa-energia.
@@ -21522,6 +21427,11 @@ class CasaElettrodomestico extends HTMLElement {
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
           </span>
         </div>
+        ${(this._config.interruttori || []).length ? `<div class="dm-ap-prese">
+          ${(this._config.interruttori || []).map((x, i) => `<button type="button"
+             class="dm-ap-presa" data-presa="${i}" title="${esc(x.entity)}">${esc(x.label
+             || this._nomeEntita(x.entity))}</button>`).join("")}
+        </div>` : ""}
         <div class="dm-ap-top-row">
           <div class="dm-ap-hero">${hero}</div>
           ${righe ? `<div class="dm-ap-cycle-side">
@@ -21540,7 +21450,7 @@ class CasaElettrodomestico extends HTMLElement {
               <div class="dm-ap-bar"><i style="width:0%"></i></div>
             </div>
             ${this._barreExtra().map((b, i) => `<div class="dm-ap-meter">
-              <div class="dm-ap-meter-row"><span>${esc(b.label)}</span><strong class="dm-ap-extra-val" data-b="${i}">0 W</strong></div>
+              <div class="dm-ap-meter-row"><span class="dm-ap-extra-name" data-b="${i}">${esc(b.label)}</span><strong class="dm-ap-extra-val" data-b="${i}">0 W</strong></div>
               <div class="dm-ap-bar"><i class="dm-ap-extra-bar" data-b="${i}" style="width:0%"></i></div>
             </div>`).join("")}
             ${
@@ -21564,6 +21474,16 @@ class CasaElettrodomestico extends HTMLElement {
       e.stopPropagation();
       history.pushState(null, "", this._config.notification_path);
       window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
+    });
+    // i tastini delle prese di una ciabatta
+    (this._config.interruttori || []).forEach((x, i) => {
+      const b = this._root.querySelector(`.dm-ap-presa[data-presa="${i}"]`);
+      if (!b || b._agganciato) return;
+      b._agganciato = true;
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this._hass?.callService(x.entity.split(".")[0], "toggle", { entity_id: x.entity });
+      });
     });
     // i due interruttori: quello grande e quello delle USB
     [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
@@ -21722,11 +21642,6 @@ class CasaElettrodomestico extends HTMLElement {
     }
   }
 
-  _fmtNum(v, digits = 1) {
-    const n = Number(v);
-    return Number.isFinite(n) ? (numero(n, digits) ?? n.toFixed(digits)) : "\u2014";
-  }
-
   _cycleAttr(hass, key) {
     const cfg = this._config;
     if (cfg.cycle_sensor && cfg.cycle_attrs?.[key]) {
@@ -21873,6 +21788,7 @@ class CasaElettrodomestico extends HTMLElement {
     const CYCLE_SOURCE = {
       today: [s.cycles_today, null],
       yesterday: [s.cycles_today, "last_period"],
+      week: [s.cycles_week, null],
       month: [s.cycles_month, null],
       month_prev: [s.cycles_month, "last_period"],
       year: [s.cycles_year, null],
@@ -22230,7 +22146,6 @@ class CasaElettrodomestico extends HTMLElement {
         return;
       }
       const p = Number(this._hass.states[this._config.prezzo_entita]?.state);
-      const GIORNI = ["dom", "lun", "mar", "mer", "gio", "ven", "sab"];
       const chiave = (d) => d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
       const trovati = {};
       punti.forEach((x) => { trovati[chiave(x.t)] = (trovati[chiave(x.t)] || 0) + x.value; });
@@ -22243,7 +22158,7 @@ class CasaElettrodomestico extends HTMLElement {
       }
       box.innerHTML = giorni.map((x) => {
         const d = x.t;
-        const etichetta = GIORNI[d.getDay()] + " " + String(d.getDate()).padStart(2, "0")
+        const etichetta = WEEKDAY_ABBR_IT[d.getDay()] + " " + String(d.getDate()).padStart(2, "0")
           + "/" + String(d.getMonth() + 1).padStart(2, "0");
         const costo = Number.isFinite(p) && p > 0 ? `${numero(x.value * p, 2)} \u20ac` : "\u2014";
         return `<div class="dm-ap-week-row">
@@ -22475,6 +22390,18 @@ class CasaElettrodomestico extends HTMLElement {
     { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-cost"); if (x) x.textContent = Number.isFinite(Number(cost)) ? `${numero(Number(cost), 2)} \u20ac` : "\u2014"; }
 
+    (cfg.interruttori || []).forEach((x, i) => {
+      const b = this._root.querySelector(`.dm-ap-presa[data-presa="${i}"]`);
+      if (!b) return;
+      // il nome vero: a setConfig `hass` non c'era ancora e restava l'id
+      if (!x.label) {
+        const nome = this._nomeEntita(x.entity);
+        if (b.textContent !== nome) b.textContent = nome;
+      }
+      const st = hass.states[x.entity]?.state;
+      b.classList.toggle("acceso", st === "on");
+      b.classList.toggle("assente", !st || ["unavailable", "unknown"].includes(st));
+    });
     [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
       const t = this._root.querySelector(sel);
       if (!t) return;
@@ -22533,6 +22460,9 @@ class CasaElettrodomestico extends HTMLElement {
       const barra = this._root.querySelector(`.dm-ap-extra-bar[data-b="${i}"]`);
       const scritta = this._root.querySelector(`.dm-ap-extra-val[data-b="${i}"]`);
       if (!barra || !scritta) return;
+      // anche qui il nome arriva solo adesso, se non l'hai scritto tu
+      const nomeEl = this._root.querySelector(`.dm-ap-extra-name[data-b="${i}"]`);
+      if (nomeEl && nomeEl.textContent !== b.label) nomeEl.textContent = b.label;
       const st2 = hass.states[b.entity];
       const w2 = st2 && !["unavailable", "unknown"].includes(st2.state) ? Number(st2.state) : NaN;
       const val2 = Number.isFinite(w2) ? Math.max(0, w2) : 0;
@@ -22603,6 +22533,7 @@ const DISEGNI = [
 ];
 
 const ETICHETTE = {
+  interruttori_lista: "Piu' prese (ciabatte): una fila di tastini col loro nome",
   name: "Nome della scheda",
   artwork: "Disegno",
   power_entity: "Presa che misura (W) - o un altro numero da mostrare nella barra",
@@ -22650,6 +22581,7 @@ const SCHEMA_TUTTO = [
     { name: "stato", selector: { entity: {} } },
   ] },
   { name: "g_tasti", type: "expandable", flatten: true, title: "Tasti di accensione", schema: [
+    { name: "interruttori_lista", selector: { entity: { multiple: true, domain: ["switch", "light", "input_boolean"] } } },
     { name: "interruttore", selector: { entity: {} } },
     { name: "interruttore_usb", selector: { entity: {} } },
   ] },
@@ -22714,7 +22646,9 @@ class CasaElettrodomesticoEditor extends HTMLElement {
       vivo_trascorso: (c.ciclo_live && c.ciclo_live.elapsed_entity) || "",
       vivo_residuo: (c.ciclo_live && c.ciclo_live.remaining_entity) || "",
       vivo_programma: (c.ciclo_live && c.ciclo_live.program_entity) || "",
-      vivo_fase: (c.ciclo_live && c.ciclo_live.phase_entity) || "" };
+      vivo_fase: (c.ciclo_live && c.ciclo_live.phase_entity) || "",
+      // le prese di una ciabatta: nel form sono un semplice elenco di entita'
+      interruttori_lista: (c.interruttori || []).map((x) => x && x.entity).filter(Boolean) };
   }
 
   // i colori si scrivono in esadecimale (#1b2430), il selettore di Home
@@ -22741,6 +22675,14 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
       if (k in v) v[k] = this._versoHex(v[k]);
     });
+    if ("interruttori_lista" in v) {
+      const prima = {};
+      (this._config.interruttori || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x.label; });
+      const lista = (v.interruttori_lista || []).map((e) => ({ entity: e, label: prima[e] || "" }));
+      v = { ...v };
+      delete v.interruttori_lista;
+      v.interruttori = lista.length ? lista : "";
+    }
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
       if (k === "stato" || k === "avanzamento" || k.startsWith("vivo_")) return;
@@ -22780,7 +22722,6 @@ class CasaElettrodomesticoEditor extends HTMLElement {
   _proponiDalDisegno(disegno) {
     const esito = this._esito;
     if (esito) { esito.hidden = false; esito.classList.remove("male"); }
-    const sel = this.querySelector(".ce-capisci-ent");
     if (!esito || !this._hass) return;
     const trovati = trovaPerDisegno(this._hass, disegno);
     if (!trovati.length) {
@@ -22803,7 +22744,11 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     barre.forEach((b, i) => {
       const riga = document.createElement("div");
       riga.className = "ce-riga";
-      riga.innerHTML = `<span class="ent">${b.entity}</span>`;
+      riga.innerHTML = "";
+      const ent = document.createElement("span");
+      ent.className = "ent";
+      ent.textContent = b.entity;
+      riga.appendChild(ent);
       const nome = document.createElement("input");
       nome.className = "nome";
       nome.placeholder = "nome della barra";
@@ -22857,33 +22802,22 @@ class CasaElettrodomesticoEditor extends HTMLElement {
     return (st && st.attributes && st.attributes.friendly_name) || "";
   }
 
-  // il contatore in kWh dello stesso dispositivo della presa, se c'e'
-  _kWhDelDispositivo() {
-    const h = this._hass;
-    const potenza = this._config.power_entity;
-    if (!h || !potenza) return "";
-    const reg = h.entities || {};
-    const dev = reg[potenza] && reg[potenza].device_id;
-    if (!dev) return "";
-    return Object.keys(reg).find((k) => reg[k].device_id === dev && k.startsWith("sensor.")
-      && ((h.states[k] || {}).attributes || {}).device_class === "energy") || "";
-  }
-
   _disegnaRighe() {
     if (!this._righe) return;
     disegnaRighe(this._righe, RIGHE_CICLO, this._config, (c) => {
       this._config = c;
       this._emetti();
       this._disegnaRighe();
+    });
     this._disegnaBarre();
     this.querySelectorAll(".ce-v-energia").forEach((x) => {
       if (x._agganciato) return;
       x._agganciato = true;
       x.addEventListener("input", () => this._aggiornaTotale());
     });
+    // il sceglitore di "Compila da solo" senza `hass` resta vuoto e non cerca
     const sceglitore = this.querySelector(".ce-capisci-ent");
     if (sceglitore) sceglitore.hass = this._hass;
-    });
   }
 
   // le scelte del riquadro "Crea i sensori base" sono configurazione: le scrivo
@@ -23177,7 +23111,9 @@ class CasaElettrodomesticoEditor extends HTMLElement {
           <div class="ce-aiuto">I due campi <b>Tasto \u23fb</b> e <b>USB</b> qui sopra mettono un tastino tondo
             nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne,
             e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare.
-            Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.</div>
+            Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.<br>
+            Se invece hai una <b>ciabatta</b> con tre o quattro prese, usa <b>Piu' prese</b>:
+            diventano una fila di tastini col nome di ognuna, verdi quando danno corrente.</div>
         </details>
         <details class="ce-sez"><summary class="ce-tit">Nomi delle barre in piu'</summary>
           <div class="ce-aiuto">Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto

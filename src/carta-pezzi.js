@@ -3,7 +3,7 @@
 
 import { T } from './lingua.js';
 import { nomeAttrezzo } from './aiuti.js';
-import { nomeTasto, segno } from './segni.js';
+import { nomeTasto } from './segni.js';
 
 export const ConPezzi = (Base) => class extends Base {
   // I pezzi che ha spostato lui: li poso dove ha detto, in percentuale

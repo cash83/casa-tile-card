@@ -4,7 +4,6 @@
 import { T, TH } from './lingua.js';
 import { SCHEDA_APERTA, soloDalPallino } from './aiuti.js';
 import { SCHEDA_MANO, SCHEDE_ALTRE, SCHEDE_PRONTE, SEZIONI, nomeScheda } from './schema.js';
-import { segno } from './segni.js';
 import { aYaml, daYaml } from './yaml.js';
 
 // UNA SCHEDA MIA O DI UN ALTRO? La misura in punti ("casa_misura") e' roba
@@ -748,8 +747,8 @@ export const ConSchede = (Base) => class extends Base {
           const l = this._schede().slice();
           l[i] = nuova;
           const tec = String(nuova.type || "?");
-      tipo.querySelector(".chiaro").textContent = nomeScheda(tec);
-      tipo.querySelector(".piccolo").textContent = tec.replace("custom:", "");
+          tipo.querySelector(".chiaro").textContent = nomeScheda(tec);
+          tipo.querySelector(".piccolo").textContent = tec.replace("custom:", "");
           this._salvaSchede(l, false);
         };
         this._riempiEditorScheda(box, card, aggiorna, i);

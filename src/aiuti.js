@@ -2,7 +2,6 @@
 // Aiuti di servizio: tempi, misure, parole, memorie condivise.
 
 import { T } from './lingua.js';
-import { segno } from './segni.js';
 
 // come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
 // "pieno". Serve per dargli un posto suo nella disposizione.

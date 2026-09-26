@@ -2,7 +2,6 @@
 // La casella dentro al riquadro delle impostazioni.
 
 import { SCHEDA_APERTA, SEGNI_ANTEPRIMA } from './aiuti.js';
-import { segno } from './segni.js';
 
 export const ConAnteprima = (Base) => class extends Base {
   // Dove mi trovo? Invece di cercare il nome del riquadro di anteprima

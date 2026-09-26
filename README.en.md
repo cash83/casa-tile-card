@@ -252,6 +252,59 @@ entity tracking the total costs"** and pick:
 
 The full bill, line by line, stays in the casa-energia card.
 
+## What's new in 2.90
+
+**Power strips: one small button per socket.** A multi-socket strip has three or
+four switches and a single button is not enough. With `interruttori` the card
+shows a row of small buttons, one per socket, green when they are live:
+
+```yaml
+interruttori:
+  - entity: switch.strip_socket_1
+    label: Modem
+  - entity: switch.strip_usb
+    label: USB
+```
+
+They can also be picked in the editor, under *Tasti di accensione* (this
+editor is still Italian only). Without a `label`
+they use the name from Home Assistant; an unreachable socket fades out and stops
+responding, so you don't press it for nothing.
+
+**"Work it out for me" no longer grabs the neighbour's meters.** It matched
+sensors by name similarity, taking every word longer than three letters: two
+sockets called *Bed side A* and *bed side B* share "side", and that was
+enough for the first to adopt the second's meters — two cards reading the same
+counter, invisibly. It now looks at the **device** first, and a socket's meters
+live on the socket. The name is only a fallback, and then only the longest word
+counts — the one that tells them apart.
+
+**And a pass over every file.** Done file by file with real checks instead of by
+eye: the most important result is a brace in the wrong place inside the appliance
+editor. Three things that should run when the editor opens — the entity field of
+*Work it out for me*, the bar-names box and the tariff total — were running inside
+the "row changed" callback instead: **they only worked after ticking a row**. That's
+why the field opened empty and without search.
+
+Along with it:
+
+* **button and bar names**: the card wrote them before Home Assistant handed it the
+  data, so without a hand-written label you read `switch.socket_one` instead of
+  "Modem". The name now arrives when the data does;
+* `cicli settimana`: the helper was created and **nobody read it** (the card only
+  knew today, month and year). The Week row now shows it;
+* the **energy price** helper was created with two different steps depending on which
+  button made it: with the coarse one you couldn't even type `0.1657`;
+* the **meter-unit warning** looked at the states from *before* the meters were
+  created, so it never appeared in the very case it was written for;
+* helper names in the "which ones to delete" list went into the HTML **unescaped**:
+  a name with an `&` broke the list;
+* weekday names were written **twice**, and the same dialog said "Ven 26/09" at the
+  top and "ven 26/09" below;
+* **dead code**: two twin functions under different names, three methods nobody
+  called, an element long gone from the markup and still looked up, 17 icons and a
+  table that drew nothing any more, ten imports pulled in for nothing.
+
 ## What's new in 2.89
 
 **One message box, always in the same place.** There were three, scattered across

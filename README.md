@@ -258,6 +258,7 @@ della lavatrice usi quel sensore come presa.
 | `cycle_sensor`, `cycle_attrs` | l'ultimo ciclo: attributi `terminato`, `tempo_ciclo`, `consumo_ciclo`, `costo_ciclo` |
 | `period_attrs` | tempi e costi per oggi / ieri / mese / mese prima |
 | `stats.cycles_today`, `stats.cycles_month` | quanti cicli |
+| `interruttori` | più prese su una ciabatta: `entity` e `label` di ognuna, diventano una fila di tastini |
 | `reset_script` | lo script del tasto «Reset contatori»: riceve le entità della scheda, quindi uno solo basta per tutte |
 | `ciclo` | l'ultimo ciclo fatto dalla scheda: `fine`, `durata`, `consumo`, `contatore`, `inizio` |
 | `soglia_acceso` | il binary_sensor «sta lavorando» che fa da sveglia al ciclo |
@@ -276,6 +277,59 @@ fisse. In **Impostazioni → Plance → Energia → Rete → costo** puoi scegli
 - `sensor.costo_energia_pura` per vedere **solo l'energia**, senza tasse.
 
 Il conto completo, diviso nelle voci, resta nella scheda casa-energia.
+
+## Novità della 2.90
+
+**Le ciabatte: un tastino per ogni presa.** Una presa multipla ha tre o quattro
+interruttori e un tasto solo non basta. Con `interruttori` la scheda mette una
+fila di tastini col nome di ognuna, verdi quando danno corrente:
+
+```yaml
+interruttori:
+  - entity: switch.ciabatta_presa_1
+    label: Modem
+  - entity: switch.ciabatta_usb
+    label: USB
+```
+
+Si scelgono anche dall'editor, sotto *Tasti di accensione*. Senza `label` usano il
+nome che hanno in Home Assistant; una presa irraggiungibile impallidisce e non
+risponde, così non premi a vuoto.
+
+**«Compila da solo» non sbaglia più vicino di casa.** Cercava i sensori per
+somiglianza di nome, prendendo ogni parola più lunga di tre lettere: due prese
+chiamate *Lato letto A* e *lato letto B* hanno in comune «letto», ed è bastato
+perché la prima si prendesse i contatori della seconda — due schede che leggevano
+lo stesso contatore, senza che si vedesse. Adesso guarda prima il **dispositivo**,
+e i contatori di una presa stanno sulla presa. Il nome resta solo come ripiego, e
+allora vale la parola più lunga, quella che distingue.
+
+**E un giro di controlli su tutti i file.** Fatto file per file, con dei controlli
+veri invece che a occhio: il risultato più importante è una graffa finita nel posto
+sbagliato dentro l'editor dei consumi. Tre cose che dovevano partire all'apertura —
+il campo entità di *Compila da solo*, il riquadro dei nomi delle barre e il totale
+della tariffa — giravano dentro alla richiamata del «cambia riga»: **funzionavano
+solo dopo aver toccato una spunta**. Per questo il campo si apriva vuoto e senza
+ricerca.
+
+Con lei sono venuti via:
+
+* i **nomi dei tastini e delle barre**: la scheda li scriveva prima che Home
+  Assistant le passasse i dati, così senza un nome scritto a mano si leggeva
+  `switch.presa_uno` invece di «Modem». Adesso il nome arriva quando arrivano i dati;
+* `cicli settimana`: l'aiutante nasceva e **non lo leggeva nessuno** (la scheda
+  conosceva solo oggi, mese e anno). Adesso la riga Settimana lo mostra;
+* il **prezzo dell'energia** nasceva con due passi diversi a seconda di quale tasto
+  lo creava: con quello grosso `0,1657` non si riusciva nemmeno a scrivere;
+* l'**avviso sull'unità dei contatori** guardava gli stati di *prima* di crearli,
+  quindi non compariva mai proprio nel caso per cui era stato scritto;
+* i nomi degli aiutanti nella lista «quali cancellare» finivano nell'HTML **senza
+  essere ripuliti**: un nome con una `&` rompeva la lista;
+* i giorni della settimana erano scritti **due volte**, e nella stessa finestra si
+  leggeva «Ven 26/09» sopra e «ven 26/09» sotto;
+* **codice morto**: due funzioni gemelle con nomi diversi, tre metodi che nessuno
+  chiamava, un elemento sparito dal disegno e ancora cercato, 17 icone e una tabella
+  che non disegnavano più niente, dieci import tirati dentro per niente.
 
 ## Novità della 2.89
 

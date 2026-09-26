@@ -3,9 +3,11 @@
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
 // da un secondo file. Da qui in poi e' codice nostro.
 
-import { mirinoGrafico, numero, unitaBella } from './elettro-comune.js';
 import { scegliLingua } from './lingua.js';
 import {
+  mirinoGrafico,
+  numero,
+  unitaBella,
   HERO_BUILDERS,
   CHIP_SVGS,
   ICON_GEAR,
@@ -796,15 +798,12 @@ export class CasaEnergia extends HTMLElement {
       fvEl.title = "risparmio di oggi / del mese";
     }
     const kwhOggi = pOggi ? Number((hass.states[pOggi.energy] || {}).state) : NaN;
-    const kwhMese = pMese ? Number((hass.states[pMese.energy] || {}).state) : NaN;
     const senzaEl = this._root.querySelector(".dm-e-senzafv");
     if (senzaEl) {
       const b = hass.states[cfg.bill_today];
       if (b) {
         const a = b.attributes || {};
         senzaEl.textContent = this._euro(Number(b.state) + Number(a.risparmio_fotovoltaico || 0));
-        const senzaEn = this._root.querySelector(".dm-e-senzafv-en");
-        if (senzaEn) senzaEn.textContent = this._euro(Number(a.energia || 0) + Number(a.risparmio_fotovoltaico_energia || 0));
       } else if (Number.isFinite(kwhOggi) && tariffa.totale > 0) {
         // quello che pagheresti oggi se i pannelli non ci fossero
         const risp = Number((hass.states[cfg.risparmio_oggi] || {}).state) || 0;

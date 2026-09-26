@@ -209,7 +209,17 @@ export function preparaElettrodomestico(hass, cfg) {
   pulisci(cfg.name || "").split("_").forEach((x) => { if (x.length > 3) radici.push(x); });
   (String(cfg.entity || "").split(".")[1] || "").split("_").forEach((x) => { if (x.length > 3) radici.push(x); });
   radici.sort((x, y) => y.length - x.length);
-  const suoi = tuttiSensori.filter((x) => radici.some((r) => x.includes(r)));
+  // prima strada, quella sicura: gli altri sensori dello STESSO dispositivo
+  const reg = (hass && hass.entities) || {};
+  const devDi = (x) => (reg[x] || {}).device_id;
+  const mioDev = devDi(cfg.entity);
+  let suoi = mioDev ? tuttiSensori.filter((x) => devDi(x) === mioDev) : [];
+  if (!suoi.length && radici.length) {
+    // ripiego: il nome. Ma solo la parola piu' lunga, se no "lato" prende
+    // anche la presa del vicino di letto
+    const radice = radici[0];
+    suoi = tuttiSensori.filter((x) => x.includes(radice));
+  }
   const classeDi = (x) => ((hass.states[x] || {}).attributes || {}).device_class;
   const unita = (x) => String(((hass.states[x] || {}).attributes || {}).unit_of_measurement || "");
   const trova = (quando, tipo) => suoi.find((x) => quando.test(x)

@@ -7,7 +7,7 @@ import { RIGHE_CICLO } from './elettro-elettrodomestico.js';
 import { VERSIONE } from './versione.js';
 import { preparaElettrodomestico, trovaPerDisegno } from './elettro-prepara.js';
 import { quali_cancellare, STILE_EDITOR, disegnaRighe } from './elettro-righe-editor.js';
-import { cancellaQuesti, scollegaEntita, creaCicli, prezzoDellaCasa, INGREDIENTE, creaSensoriElettrodomestico, cancellaSensoriElettrodomestico, aiutantiVeri, prezziDelKWh } from './elettro-crea.js';
+import { cancellaQuesti, scollegaEntita, creaCicli, prezzoDellaCasa, INGREDIENTE, creaSensoriElettrodomestico, aiutantiVeri, prezziDelKWh } from './elettro-crea.js';
 
 const DISEGNI = [
   ["washer", "Lavatrice"],
@@ -38,6 +38,7 @@ const DISEGNI = [
 ];
 
 const ETICHETTE = {
+  interruttori_lista: "Piu' prese (ciabatte): una fila di tastini col loro nome",
   name: "Nome della scheda",
   artwork: "Disegno",
   power_entity: "Presa che misura (W) - o un altro numero da mostrare nella barra",
@@ -85,6 +86,7 @@ const SCHEMA_TUTTO = [
     { name: "stato", selector: { entity: {} } },
   ] },
   { name: "g_tasti", type: "expandable", flatten: true, title: "Tasti di accensione", schema: [
+    { name: "interruttori_lista", selector: { entity: { multiple: true, domain: ["switch", "light", "input_boolean"] } } },
     { name: "interruttore", selector: { entity: {} } },
     { name: "interruttore_usb", selector: { entity: {} } },
   ] },
@@ -149,7 +151,9 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
       vivo_trascorso: (c.ciclo_live && c.ciclo_live.elapsed_entity) || "",
       vivo_residuo: (c.ciclo_live && c.ciclo_live.remaining_entity) || "",
       vivo_programma: (c.ciclo_live && c.ciclo_live.program_entity) || "",
-      vivo_fase: (c.ciclo_live && c.ciclo_live.phase_entity) || "" };
+      vivo_fase: (c.ciclo_live && c.ciclo_live.phase_entity) || "",
+      // le prese di una ciabatta: nel form sono un semplice elenco di entita'
+      interruttori_lista: (c.interruttori || []).map((x) => x && x.entity).filter(Boolean) };
   }
 
   // i colori si scrivono in esadecimale (#1b2430), il selettore di Home
@@ -176,6 +180,14 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
     ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
       if (k in v) v[k] = this._versoHex(v[k]);
     });
+    if ("interruttori_lista" in v) {
+      const prima = {};
+      (this._config.interruttori || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x.label; });
+      const lista = (v.interruttori_lista || []).map((e) => ({ entity: e, label: prima[e] || "" }));
+      v = { ...v };
+      delete v.interruttori_lista;
+      v.interruttori = lista.length ? lista : "";
+    }
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
       if (k === "stato" || k === "avanzamento" || k.startsWith("vivo_")) return;
@@ -215,7 +227,6 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
   _proponiDalDisegno(disegno) {
     const esito = this._esito;
     if (esito) { esito.hidden = false; esito.classList.remove("male"); }
-    const sel = this.querySelector(".ce-capisci-ent");
     if (!esito || !this._hass) return;
     const trovati = trovaPerDisegno(this._hass, disegno);
     if (!trovati.length) {
@@ -238,7 +249,11 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
     barre.forEach((b, i) => {
       const riga = document.createElement("div");
       riga.className = "ce-riga";
-      riga.innerHTML = `<span class="ent">${b.entity}</span>`;
+      riga.innerHTML = "";
+      const ent = document.createElement("span");
+      ent.className = "ent";
+      ent.textContent = b.entity;
+      riga.appendChild(ent);
       const nome = document.createElement("input");
       nome.className = "nome";
       nome.placeholder = "nome della barra";
@@ -292,33 +307,22 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
     return (st && st.attributes && st.attributes.friendly_name) || "";
   }
 
-  // il contatore in kWh dello stesso dispositivo della presa, se c'e'
-  _kWhDelDispositivo() {
-    const h = this._hass;
-    const potenza = this._config.power_entity;
-    if (!h || !potenza) return "";
-    const reg = h.entities || {};
-    const dev = reg[potenza] && reg[potenza].device_id;
-    if (!dev) return "";
-    return Object.keys(reg).find((k) => reg[k].device_id === dev && k.startsWith("sensor.")
-      && ((h.states[k] || {}).attributes || {}).device_class === "energy") || "";
-  }
-
   _disegnaRighe() {
     if (!this._righe) return;
     disegnaRighe(this._righe, RIGHE_CICLO, this._config, (c) => {
       this._config = c;
       this._emetti();
       this._disegnaRighe();
+    });
     this._disegnaBarre();
     this.querySelectorAll(".ce-v-energia").forEach((x) => {
       if (x._agganciato) return;
       x._agganciato = true;
       x.addEventListener("input", () => this._aggiornaTotale());
     });
+    // il sceglitore di "Compila da solo" senza `hass` resta vuoto e non cerca
     const sceglitore = this.querySelector(".ce-capisci-ent");
     if (sceglitore) sceglitore.hass = this._hass;
-    });
   }
 
   // le scelte del riquadro "Crea i sensori base" sono configurazione: le scrivo
@@ -612,7 +616,9 @@ export class CasaElettrodomesticoEditor extends HTMLElement {
           <div class="ce-aiuto">I due campi <b>Tasto \u23fb</b> e <b>USB</b> qui sopra mettono un tastino tondo
             nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne,
             e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare.
-            Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.</div>
+            Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.<br>
+            Se invece hai una <b>ciabatta</b> con tre o quattro prese, usa <b>Piu' prese</b>:
+            diventano una fila di tastini col nome di ognuna, verdi quando danno corrente.</div>
         </details>
         <details class="ce-sez"><summary class="ce-tit">Nomi delle barre in piu'</summary>
           <div class="ce-aiuto">Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto

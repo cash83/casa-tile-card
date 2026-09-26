@@ -4,7 +4,7 @@
 import { miaScheda, misuraStandard } from './editor-schede.js';
 import { T, TH } from './lingua.js';
 import { nomeAttrezzo } from './aiuti.js';
-import { metti, nomeTasto, segno } from './segni.js';
+import { nomeTasto } from './segni.js';
 import { aYaml, daYaml } from './yaml.js';
 
 // LA DISPOSIZIONE MESSA DA PARTE. Gli appunti del browser sulla sua

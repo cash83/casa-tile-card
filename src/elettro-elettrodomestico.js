@@ -3,9 +3,11 @@
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
 // da un secondo file. Da qui in poi e' codice nostro.
 
-import { mirinoGrafico, numero, unitaBella } from './elettro-comune.js';
 import { scegliLingua } from './lingua.js';
 import {
+  mirinoGrafico,
+  numero,
+  unitaBella,
   HERO_BUILDERS,
   CHIP_SVGS,
   ICON_GEAR,
@@ -152,6 +154,11 @@ export class CasaElettrodomestico extends HTMLElement {
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
           </span>
         </div>
+        ${(this._config.interruttori || []).length ? `<div class="dm-ap-prese">
+          ${(this._config.interruttori || []).map((x, i) => `<button type="button"
+             class="dm-ap-presa" data-presa="${i}" title="${esc(x.entity)}">${esc(x.label
+             || this._nomeEntita(x.entity))}</button>`).join("")}
+        </div>` : ""}
         <div class="dm-ap-top-row">
           <div class="dm-ap-hero">${hero}</div>
           ${righe ? `<div class="dm-ap-cycle-side">
@@ -170,7 +177,7 @@ export class CasaElettrodomestico extends HTMLElement {
               <div class="dm-ap-bar"><i style="width:0%"></i></div>
             </div>
             ${this._barreExtra().map((b, i) => `<div class="dm-ap-meter">
-              <div class="dm-ap-meter-row"><span>${esc(b.label)}</span><strong class="dm-ap-extra-val" data-b="${i}">0 W</strong></div>
+              <div class="dm-ap-meter-row"><span class="dm-ap-extra-name" data-b="${i}">${esc(b.label)}</span><strong class="dm-ap-extra-val" data-b="${i}">0 W</strong></div>
               <div class="dm-ap-bar"><i class="dm-ap-extra-bar" data-b="${i}" style="width:0%"></i></div>
             </div>`).join("")}
             ${
@@ -194,6 +201,16 @@ export class CasaElettrodomestico extends HTMLElement {
       e.stopPropagation();
       history.pushState(null, "", this._config.notification_path);
       window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
+    });
+    // i tastini delle prese di una ciabatta
+    (this._config.interruttori || []).forEach((x, i) => {
+      const b = this._root.querySelector(`.dm-ap-presa[data-presa="${i}"]`);
+      if (!b || b._agganciato) return;
+      b._agganciato = true;
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this._hass?.callService(x.entity.split(".")[0], "toggle", { entity_id: x.entity });
+      });
     });
     // i due interruttori: quello grande e quello delle USB
     [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
@@ -352,11 +369,6 @@ export class CasaElettrodomestico extends HTMLElement {
     }
   }
 
-  _fmtNum(v, digits = 1) {
-    const n = Number(v);
-    return Number.isFinite(n) ? (numero(n, digits) ?? n.toFixed(digits)) : "\u2014";
-  }
-
   _cycleAttr(hass, key) {
     const cfg = this._config;
     if (cfg.cycle_sensor && cfg.cycle_attrs?.[key]) {
@@ -503,6 +515,7 @@ export class CasaElettrodomestico extends HTMLElement {
     const CYCLE_SOURCE = {
       today: [s.cycles_today, null],
       yesterday: [s.cycles_today, "last_period"],
+      week: [s.cycles_week, null],
       month: [s.cycles_month, null],
       month_prev: [s.cycles_month, "last_period"],
       year: [s.cycles_year, null],
@@ -860,7 +873,6 @@ export class CasaElettrodomestico extends HTMLElement {
         return;
       }
       const p = Number(this._hass.states[this._config.prezzo_entita]?.state);
-      const GIORNI = ["dom", "lun", "mar", "mer", "gio", "ven", "sab"];
       const chiave = (d) => d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
       const trovati = {};
       punti.forEach((x) => { trovati[chiave(x.t)] = (trovati[chiave(x.t)] || 0) + x.value; });
@@ -873,7 +885,7 @@ export class CasaElettrodomestico extends HTMLElement {
       }
       box.innerHTML = giorni.map((x) => {
         const d = x.t;
-        const etichetta = GIORNI[d.getDay()] + " " + String(d.getDate()).padStart(2, "0")
+        const etichetta = WEEKDAY_ABBR_IT[d.getDay()] + " " + String(d.getDate()).padStart(2, "0")
           + "/" + String(d.getMonth() + 1).padStart(2, "0");
         const costo = Number.isFinite(p) && p > 0 ? `${numero(x.value * p, 2)} \u20ac` : "\u2014";
         return `<div class="dm-ap-week-row">
@@ -1105,6 +1117,18 @@ export class CasaElettrodomestico extends HTMLElement {
     { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-cost"); if (x) x.textContent = Number.isFinite(Number(cost)) ? `${numero(Number(cost), 2)} \u20ac` : "\u2014"; }
 
+    (cfg.interruttori || []).forEach((x, i) => {
+      const b = this._root.querySelector(`.dm-ap-presa[data-presa="${i}"]`);
+      if (!b) return;
+      // il nome vero: a setConfig `hass` non c'era ancora e restava l'id
+      if (!x.label) {
+        const nome = this._nomeEntita(x.entity);
+        if (b.textContent !== nome) b.textContent = nome;
+      }
+      const st = hass.states[x.entity]?.state;
+      b.classList.toggle("acceso", st === "on");
+      b.classList.toggle("assente", !st || ["unavailable", "unknown"].includes(st));
+    });
     [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
       const t = this._root.querySelector(sel);
       if (!t) return;
@@ -1163,6 +1187,9 @@ export class CasaElettrodomestico extends HTMLElement {
       const barra = this._root.querySelector(`.dm-ap-extra-bar[data-b="${i}"]`);
       const scritta = this._root.querySelector(`.dm-ap-extra-val[data-b="${i}"]`);
       if (!barra || !scritta) return;
+      // anche qui il nome arriva solo adesso, se non l'hai scritto tu
+      const nomeEl = this._root.querySelector(`.dm-ap-extra-name[data-b="${i}"]`);
+      if (nomeEl && nomeEl.textContent !== b.label) nomeEl.textContent = b.label;
       const st2 = hass.states[b.entity];
       const w2 = st2 && !["unavailable", "unknown"].includes(st2.state) ? Number(st2.state) : NaN;
       const val2 = Number.isFinite(w2) ? Math.max(0, w2) : 0;

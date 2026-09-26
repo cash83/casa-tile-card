@@ -737,7 +737,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     // senza entita' l'unica cosa sensata e' aprire il pop-up
     if (!c.entity) {
       if (c.azione === "servizio") { this._chiamaServizio(); return; }
-    if (c.azione === "mappa") { this._apriMappa(); return; }
+      if (c.azione === "mappa") { this._apriMappa(); return; }
       if (c.azione === "link" && c.indirizzo_web) {
         window.open(c.indirizzo_web, "_blank", "noopener");
         return;
@@ -1254,30 +1254,6 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       this._guardaFuori();
       this._render();
     }
-  }
-
-  // Sto dentro alla finestra "Configurazione scheda"? Me lo guardo da solo
-  // risalendo i genitori: mi appoggiavo a un controllo fatto altrove, che
-  // pero' non e' sempre gia' stato eseguito quando serve qui.
-  _dentroSportello() {
-    if (this._inSportello !== undefined) return this._inSportello;
-    let n = this;
-    this._inSportello = false;
-    for (let i = 0; i < 40; i += 1) {
-      n = n.parentNode || n.host;
-      if (!n) break;
-      const nome = String(n.localName || "");
-      const classi = n.classList;
-      // i nomi con cui Home Assistant chiama l'anteprima delle
-      // impostazioni cambiano di versione in versione: li accetto tutti
-      if (nome === "hui-dialog-edit-card" || nome === "hui-card-preview"
-          || nome === "hui-card-element-editor" || nome === "ha-dialog"
-          || (classi && classi.contains && classi.contains("element-preview"))) {
-        this._inSportello = true;
-        break;
-      }
-    }
-    return this._inSportello;
   }
 
   _guardaFuori() {

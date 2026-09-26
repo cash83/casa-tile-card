@@ -5,7 +5,7 @@ import { T } from './lingua.js';
 import { PARENTI, PAROLE, riempiRiquadro } from './aiuti.js';
 import { METEO } from './colori.js';
 import { ICONA_METEO, ICONE, aspiraFuori, disegnoAspira, disegnoBatteria, disegnoMdi, disegnoTapparella, disegnoTermometro, iconaAutomatica, tagliaTapparella } from './icone.js';
-import { segno, valoreScritto } from './segni.js';
+import { valoreScritto } from './segni.js';
 
 export const ConDisegni = (Base) => class extends Base {
   _datiBatteria(st) {

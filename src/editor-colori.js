@@ -5,7 +5,7 @@ import { soloDalPallino } from './aiuti.js';
 import { daRgb } from './colori.js';
 import { T } from './lingua.js';
 import { DIPENDE, ETICHETTE, SOLO_AZIONE, SOLO_PER } from './schema.js';
-import { hslARgb, hslATesto, metti, rgbAHsl } from './segni.js';
+import { hslARgb, hslATesto, rgbAHsl } from './segni.js';
 
 export const ConColori = (Base) => class extends Base {
   // dai un nome tuo a ogni misura: "Scarica", "Uscita casa"... senza questo
