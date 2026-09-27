@@ -9980,7 +9980,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.94.0";
+const VERSIONE = "2.94.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -22020,6 +22020,46 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   }
   // --- fine aggiunta ----------------------------------------------------
 
+  // La tariffa scritta nel riquadro "La tua tariffa". Gli aiutanti hanno un
+  // nome fisso: li crea la scheda, e i conti si fanno qui senza sensori.
+  _tariffa() {
+    const n = (id) => Number((this._hass.states[id] || {}).state);
+    return {
+      energia: n("input_number.prezzo_luce_energia"),
+      totale: n("input_number.prezzo_energia"),
+      quota: n("input_number.quota_fissa_energia_giorno"),
+    };
+  }
+
+  // Quanti giorni durava il periodo appena finito. Non lo indovino dal nome:
+  // lo dice il contatore, che sa quando si e' azzerato e quando lo rifara'.
+  // Un mese pero' non dura sempre uguale, quindi quello lo conto all'indietro.
+  _giorniDelPeriodo(entityId) {
+    const a = (this._hass.states[entityId] || {}).attributes || {};
+    if (!a.last_reset || !a.next_reset) return 0;
+    const da = new Date(a.last_reset);
+    const a_ = new Date(a.next_reset);
+    if (isNaN(da) || isNaN(a_)) return 0;
+    const giorni = (a_ - da) / 86400000;
+    if (giorni >= 27) {
+      const prima = new Date(da);
+      prima.setMonth(prima.getMonth() - 1);
+      return Math.round((da - prima) / 86400000);
+    }
+    return Math.round(giorni);
+  }
+
+  // Il costo di un periodo finito quando nessun sensore se l'e' segnato:
+  // i kWh per il prezzo, piu' la quota fissa dei giorni che e' durato.
+  _costoRicavato(p) {
+    const st = p.energy ? this._hass.states[p.energy] : null;
+    if (!st) return "\u2014";
+    const k = Number(p.energy_attr ? (st.attributes || {})[p.energy_attr] : st.state);
+    const t = this._tariffa();
+    if (!Number.isFinite(k) || !(t.totale > 0)) return "\u2014";
+    return this._euro(k * t.totale + (t.quota || 0) * this._giorniDelPeriodo(p.energy));
+  }
+
   _openStats() {
     const hass = this._hass;
     const cfg = this._config;
@@ -22030,7 +22070,12 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       .join("");
 
     const prevHtml = (cfg.periods_prev || [])
-      .map((p) => this._statRow2(p.label, val(p.energy, 2, p.energy_attr), val(p.cost, 2, p.cost_attr)))
+      .map((p) => {
+        // se il sensore del costo non tiene il periodo precedente, lo ricavo
+        const costo = val(p.cost, 2, p.cost_attr);
+        return this._statRow2(p.label, val(p.energy, 2, p.energy_attr),
+          costo === "\u2014" ? this._costoRicavato(p) : costo);
+      })
       .join("");
 
     const weekEntries = Object.entries(cfg.weekdays || {});
