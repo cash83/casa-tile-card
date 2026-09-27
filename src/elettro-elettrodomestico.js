@@ -10,11 +10,7 @@ import {
   unitaBella,
   HERO_BUILDERS,
   CHIP_SVGS,
-  ICON_GEAR,
   ICON_CHART,
-  ICON_POWER,
-  ICON_USB,
-  ICON_RESTART,
   ICON_NOTIFCENTER,
   ICON_BOLT,
   ICON_FLAG,
@@ -45,7 +41,6 @@ export const RIGHE_CICLO = [
   { id: "costo_mese", nome: "Costo del mese", etichetta: "Costo mese", colore: "#a283f2" },
 ];
 
-const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
 
 export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
   // Le righe dell'Ultimo ciclo, nell'ordine e coi nomi della configurazione.
@@ -56,7 +51,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       consumo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-c-energy">\u2014</b></div>`,
       costo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo</small></span><b class="dm-c-cost">\u2014</b></div>`,
       oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Oggi</small></span><b class="dm-c-oggi">\u2014</b></div>`,
-      costo_oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore dm-forte" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo oggi</small></span><b class="dm-c-costo-oggi">\u2014</b></div>`,
+      costo_oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo oggi</small></span><b class="dm-c-costo-oggi">\u2014</b></div>`,
       settimana: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#4fb0d8"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Settimana</small></span><b class="dm-c-settimana">\u2014</b></div>`,
       costo_settimana: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#d8a13c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo settimana</small></span><b class="dm-c-costo-settimana">\u2014</b></div>`,
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3f8fea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Mese</small></span><b class="dm-c-mese">\u2014</b></div>`,
@@ -116,16 +111,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       max_power: 2200,
       label: "",
       state_map: DEFAULT_STATE_MAP,
-      settings_sections: [],
       warn_entities: [],
-      period_labels: {
-        today: "Oggi",
-        yesterday: "Ieri",
-        month: "Mese",
-        month_prev: "Mese Precedente",
-        year: "Anno",
-        year_prev: "Anno Precedente",
-      },
       ...config,
     };
     this._activePeriod = "today";
@@ -149,17 +135,11 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
           <span class="dm-ap-badge"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label"></span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
-            ${this._config.interruttore ? `<button type="button" class="dm-ap-tool dm-ap-power" title="Accendi / spegni">${ICON_POWER}</button>` : ""}
-            ${this._config.interruttore_usb ? `<button type="button" class="dm-ap-tool dm-ap-usb" title="USB">${ICON_USB}</button>` : ""}
-            <button type="button" class="dm-ap-tool dm-ap-settings" title="Impostazioni">${ICON_GEAR}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
+            <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
         </div>
-        ${(this._config.interruttori || []).length ? `<div class="dm-ap-prese">
-          ${(this._config.interruttori || []).map((x, i) => `<button type="button"
-             class="dm-ap-presa" data-presa="${i}" title="${esc(x.entity)}">${esc(x.label
-             || this._nomeEntita(x.entity))}</button>`).join("")}
-        </div>` : ""}
+        ${this._tastiHtml()}
         <div class="dm-ap-top-row">
           <div class="dm-ap-hero">${hero}</div>
           ${righe ? `<div class="dm-ap-cycle-side">
@@ -203,37 +183,21 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       history.pushState(null, "", this._config.notification_path);
       window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
     });
-    // i tastini delle prese di una ciabatta
-    (this._config.interruttori || []).forEach((x, i) => {
-      const b = this._root.querySelector(`.dm-ap-presa[data-presa="${i}"]`);
-      if (!b || b._agganciato) return;
-      b._agganciato = true;
-      b.addEventListener("click", (e) => {
-        e.stopPropagation();
-        this._hass?.callService(x.entity.split(".")[0], "toggle", { entity_id: x.entity });
-      });
-    });
-    // i due interruttori: quello grande e quello delle USB
-    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
-      this._root.querySelector(sel)?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const eid = this._config[chiave];
-        this._hass?.callService(eid.split(".")[0], "toggle", { entity_id: eid });
-      });
-    });
-    this._root.querySelector(".dm-ap-settings").addEventListener("click", (e) => {
-      e.stopPropagation();
-      this._openSettings();
-    });
+    this._tastiAggancia();
     this._root.querySelector(".dm-ap-stats").addEventListener("click", (e) => {
       e.stopPropagation();
-      this._openStats();
+      this._openWeek();
     });
+    this._root.querySelector(".dm-ap-consumi").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._openPowerHistory();
+    });
+    // la foto dell'apparecchio: com'e' messo adesso
     const heroEl = this._root.querySelector(".dm-ap-hero");
     if (heroEl) {
       heroEl.addEventListener("click", (e) => {
         e.stopPropagation();
-        this._openWeek();
+        this._openStats();
       });
     }
     const powerEl = this._root.querySelector(".dm-ap-power-open");
@@ -241,87 +205,6 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       powerEl.addEventListener("click", (e) => {
         e.stopPropagation();
         this._openPowerHistory();
-      });
-    }
-  }
-
-  _fireMoreInfo(entityId) {
-    const e = new Event("hass-more-info", { bubbles: true, composed: true });
-    e.detail = { entityId };
-    this.dispatchEvent(e);
-  }
-
-  _openSettings() {
-    const hass = this._hass;
-    const sections = (this._config.settings_sections || [])
-      .map((sec) => {
-        const righe = (sec.rows || []).map((row) => this._settingsRowHtml(hass, row)).join("");
-        if ((sec.rows || []).length <= 3 && !sec.chiuso) {
-          return `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">${esc(sec.title)}</div>${righe}</div>`;
-        }
-        // il numero da mettere nel titolo: l'ultima riga (di solito il totale)
-        const ultima = sec.rows[sec.rows.length - 1];
-        const st = ultima && hass.states[ultima.entity];
-        const valore = st ? `${st.state}${st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : ""}` : "";
-        return `<details class="dm-ap-sec dm-ap-sec-chiusa">
-          <summary class="dm-ap-sec-cap">${esc(sec.title)}${valore ? ` \u00b7 <b>${esc(valore)}</b>` : ""}</summary>
-          ${righe}
-        </details>`;
-      })
-      .join("");
-
-    const resetBtn = this._config.reset_script
-      ? `<div class="dm-ap-sec">
-           <div class="dm-ap-sec-cap">Manutenzione</div>
-           <button type="button" class="dm-ap-reset-btn" data-reset-script="${esc(this._config.reset_script)}">${ICON_RESTART} Reset contatori</button>
-           ${this._config.reset_date_entity ? `<div class="dm-ap-reset-note">Ultimo reset: ${esc(hass.states[this._config.reset_date_entity]?.state || "\u2014")}</div>` : ""}
-         </div>`
-      : "";
-
-    // il prezzo scelto per i costi: e' l'unica impostazione che questa scheda
-    // ha sempre, e senza di lei l'ingranaggio apriva una finestra vuota
-    const prezzo = this._config.prezzo_entita && hass.states[this._config.prezzo_entita]
-      ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Prezzo dei costi</div>`
-        + this._settingsRowHtml(hass, { entity: this._config.prezzo_entita,
-          label: hass.states[this._config.prezzo_entita].attributes.friendly_name || "Prezzo (\u20ac/kWh)" })
-        + `</div>`
-      : "";
-    const dentro = `${sections}${prezzo}${resetBtn}`;
-    const overlay = this._openDialog("Impostazioni", dentro.trim() ? dentro : VUOTO);
-
-    overlay.querySelectorAll("[data-entity]").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const entity = btn.dataset.entity;
-        const domain = entity.split(".")[0];
-        hass.callService(domain, "toggle", { entity_id: entity });
-        setTimeout(() => this._openSettings(), 200);
-      });
-    });
-    overlay.querySelectorAll("[data-open-entity]").forEach((row) => {
-      row.addEventListener("click", () => this._fireMoreInfo(row.dataset.openEntity));
-    });
-    const reset = overlay.querySelector("[data-reset-script]");
-    if (reset) {
-      reset.addEventListener("click", () => {
-        const cfg = this._config;
-        const pe = cfg.period_entities || {};
-        const ci = cfg.ciclo || {};
-        // quello che lo script deve azzerare glielo dico io: cosi' basta uno
-        // script solo per tutta la casa, non uno per apparecchio
-        const variables = {
-          scheda: cfg.name || "",
-          oggi: cfg.oggi_energia || (pe.today || {}).energy || "",
-          settimana: cfg.settimana_energia || (pe.week || {}).energy || "",
-          mese: cfg.mese_energia || (pe.month || {}).energy || "",
-          ciclo_contatore: ci.contatore || "",
-          ciclo_kwh: ci.consumo || "",
-          ciclo_minuti: ci.durata || "",
-          ciclo_fine: ci.fine || "",
-        };
-        hass.callService("script", "turn_on",
-          { entity_id: reset.dataset.resetScript, variables });
-        overlay.hidden = true;
       });
     }
   }
@@ -372,9 +255,10 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const k = Number(leggi(c.consumo));
       return Number.isFinite(k) && k > 0 ? numero(k, 2) + " kWh" : null;
     }
-    if (key === "cost") {
+    if (key === "cost" || key === "cost_pieno") {
       const k = Number(leggi(c.consumo));
-      const p = Number((hass.states[this._config.prezzo_entita] || {}).state);
+      const p = key === "cost_pieno" ? this._prezzoPieno(hass)
+        : Number((hass.states[this._config.prezzo_entita] || {}).state);
       if (!Number.isFinite(k) || !Number.isFinite(p) || p <= 0) return null;
       return k * p;
     }
@@ -411,6 +295,8 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         out.energy = `${numero(k, 2)} kWh`;
         const p = Number(hass.states[this._config.prezzo_entita]?.state);
         if (Number.isFinite(p) && p > 0) out.cost = k * p;
+        const pieno = this._prezzoPieno(hass);
+        if (pieno > 0) out.cost_pieno = k * pieno;
       }
     }
     // da quanto va: dalla partenza segnata, se c'e' (regge le intermittenze),
@@ -446,6 +332,8 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       out.energy = `${numero(kwh, 2)} kWh`;
       const prezzo = Number(hass.states[this._config.prezzo_entita]?.state);
       if (Number.isFinite(prezzo)) out.cost = kwh * prezzo;
+      const pieno = this._prezzoPieno(hass);
+      if (pieno > 0) out.cost_pieno = kwh * pieno;
     }
     const tr = buono(c.elapsed_entity);
     if (tr) out.duration = this._tempoLeggibile(tr);
@@ -458,6 +346,36 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     out.sub = [buono(c.program_entity), buono(c.phase_entity)]
       .map((st) => st && st.state).filter(Boolean).join(" · ");
     return out;
+  }
+
+  // I periodi da far vedere: quelli della configurazione piu' quelli finiti,
+  // che la scheda si ricava da sola dall'attributo `last_period` del
+  // contatore. Niente da configurare e nessun aiutante in piu'.
+  _periodi() {
+    const cfg = this._config;
+    const hass = this._hass;
+    const fuori = { ...(cfg.period_entities || {}) };
+    const primaDi = (ora, prima) => {
+      if (fuori[prima] || !fuori[ora] || !fuori[ora].energy) return;
+      const st = hass && hass.states[fuori[ora].energy];
+      const v = st && st.attributes ? st.attributes.last_period : undefined;
+      if (v === undefined || v === null || v === "") return;
+      if (!Number.isFinite(Number(v))) return;
+      fuori[prima] = { energy: fuori[ora].energy, energy_attr: "last_period" };
+    };
+    primaDi("today", "yesterday");
+    primaDi("month", "month_prev");
+    return fuori;
+  }
+
+  // l'ordine in cui si leggono, non quello in cui capitano
+  _periodiInOrdine() {
+    const quali = { ...(this._config.period_attrs || {}), ...this._periodi() };
+    const ordine = ["today", "yesterday", "week", "month", "month_prev", "year", "year_prev"];
+    const fuori = [];
+    ordine.forEach((k) => { if (quali[k]) fuori.push(k); });
+    Object.keys(quali).forEach((k) => { if (!ordine.includes(k)) fuori.push(k); });
+    return fuori;
   }
 
   _renderPeriodRow(hass, periodKey) {
@@ -483,12 +401,19 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     const cycles = cyclesSt ? (cyclesAttr ? (cyclesSt.attributes?.[cyclesAttr] ?? "\u2014") : cyclesSt.state) : "\u2014";
     // se la scheda ha entita' sue per questo periodo (tempo, costo), comandano
     // quelle: sono gli helper che crea il tasto "Crea i sensori base"
-    const pEnt = cfg.period_entities?.[periodKey] || {};
+    const pEnt = this._periodi()[periodKey] || {};
     const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time])
       : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
-    const kwhNum = pEnt.energy ? Number(hass.states[pEnt.energy]?.state) : NaN;
+    // un periodo finito - ieri, il mese scorso - non e' un'entita' sua: e'
+    // l'attributo `last_period` del contatore di quello in corso
+    const daEntita = (eid, attributo) => {
+      const st = eid ? hass.states[eid] : null;
+      if (!st) return undefined;
+      return attributo ? (st.attributes || {})[attributo] : st.state;
+    };
+    const kwhNum = pEnt.energy ? Number(daEntita(pEnt.energy, pEnt.energy_attr)) : NaN;
     const kwhTxt = Number.isFinite(kwhNum) ? `${numero(kwhNum, 2)} kWh` : "\u2014";
-    let cost = pEnt.cost ? hass.states[pEnt.cost]?.state
+    let cost = pEnt.cost ? daEntita(pEnt.cost, pEnt.cost_attr)
       : (pAttrs.cost ? attrs[pAttrs.cost] : null);
     // senza un sensore del costo il conto lo faccio qui: kWh per il prezzo.
     // Attenzione: Number(null) vale 0, quindi "manca" va chiesto per bene.
@@ -678,8 +603,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
   _openWeek() {
     const hass = this._hass;
-    const periods = Object.keys({ ...(this._config.period_attrs || {}),
-      ...(this._config.period_entities || {}) });
+    const periods = this._periodiInOrdine();
     const periodRows = periods.map((p) => this._renderPeriodRow(hass, p)).join("");
 
     const daAttributo = this._settimanaDaAttributo(hass);
@@ -727,15 +651,18 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     if (!bars.length) return `<div class="dm-ap-chart-empty">Nessun dato</div>`;
     const width = 300;
     const height = 90;
-    const plotX0 = 24;
+    const plotX0 = 30;
     const plotW = width - plotX0;
-    // Spazio riservato in alto per il valore numerico, ruotato di 90 gradi
-    // (si legge inclinando la testa/il monitor verso destra), come chiesto.
-    const labelSpace = 22;
-    const barAreaH = height - labelSpace;
     const max = Math.max(...bars.map((b) => b.value), 0.01);
     const gap = 3;
     const barW = (plotW - gap * (bars.length - 1)) / bars.length;
+    // Il numero sopra alla barra: solo se la barra e' larga abbastanza da
+    // tenerlo per diritto. Su un mese intero sono 27 barre da 7 punti: girati
+    // di 90 gradi non si leggevano comunque, e quanto vale la piu' alta lo
+    // dice gia' l'asse.
+    const conNumeri = barW >= 16;
+    const labelSpace = conNumeri ? 11 : 4;
+    const barAreaH = height - labelSpace;
     const fmt = (v) => {
       if (!(v > 0)) return "";
       const s = v.toFixed(1);
@@ -747,18 +674,19 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         const x = (plotX0 + i * (barW + gap)).toFixed(1);
         const y = (height - h).toFixed(1);
         const cx = (plotX0 + i * (barW + gap) + barW / 2).toFixed(1);
-        const labelY = (height - h - 4).toFixed(1);
         const label = fmt(b.value);
-        const text = label
-          ? `<text x="${cx}" y="${labelY}" transform="rotate(-90 ${cx} ${labelY})" text-anchor="start" font-size="10" font-weight="800" fill="#94a3b8">${label}</text>`
+        const text = conNumeri && label
+          ? `<text x="${cx}" y="${(height - h - 3).toFixed(1)}" text-anchor="middle" font-size="7" font-weight="800" fill="#94a3b8">${label}</text>`
           : "";
-        return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${color}"/>${text}`;
+        // il fumetto: il numero c'e' sempre, anche quando non ci sta scritto
+        const fumetto = (b.label ? b.label + ": " : "") + label;
+        return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${color}"><title>${esc(fumetto)}</title></rect>${text}`;
       })
       .join("");
     const axis = `<line x1="${plotX0}" y1="${labelSpace}" x2="${plotX0}" y2="${height}" stroke="#94a3b840" stroke-width="1"/>
-      <text x="${plotX0 - 4}" y="${labelSpace + 6}" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
-      <text x="${plotX0 - 4}" y="${height - 1}" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">0</text>`;
-    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg" preserveAspectRatio="none">${axis}${parts}</svg>`;
+      <text x="${plotX0 - 4}" y="${labelSpace + 6}" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
+      <text x="${plotX0 - 4}" y="${height - 1}" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">0</text>`;
+    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg">${axis}${parts}</svg>`;
   }
 
   // I sette giorni presi dallo storico del contatore: una riga per giorno,
@@ -822,7 +750,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     const energyEntity = cfg.energy_stat_entity;
 
     this._openDialog(
-      "Andamento potenza",
+      "Consumi",
       `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultime 24 ore</div><div class="dm-ap-chart-loading" data-chart="24h">Caricamento...</div></div>
        ${energyEntity ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Questo mese</div><div class="dm-ap-chart-loading" data-chart="month">Caricamento...</div></div>` : ""}
        ${energyEntity ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Quest'anno</div><div class="dm-ap-chart-loading" data-chart="year">Caricamento...</div></div>` : ""}`,
@@ -857,7 +785,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         .then((rows) => {
           const el = slot("month");
           if (!el) return;
-          const bars = rows.map((r) => ({ value: r.value }));
+          const bars = rows.map((r) => ({ value: r.value, label: String(r.t.getDate()) }));
           const dayLabels = this._labelSpans(rows, 8, (r) => r.t.getDate());
           el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars, "#0ea5e9")}${dayLabels}</div>`;
         })
@@ -872,7 +800,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         .then((rows) => {
           const el = slot("year");
           if (!el) return;
-          const bars = rows.map((r) => ({ value: r.value }));
+          const bars = rows.map((r) => ({ value: r.value, label: meseBreve(r.t) }));
           const labels = `<div class="dm-ap-chart-labels">${rows.map((r) => `<span>${meseBreve(r.t)}</span>`).join("")}</div>`;
           el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars, "#0ea5e9")}${labels}</div>`;
         })
@@ -915,6 +843,11 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     const watts = powerState ? Number(powerState.state) : null;
     const powerUnavailable = !powerState || ["unavailable", "unknown"].includes(powerState.state);
 
+    // c'e', risponde, ma non e' un numero: una scritta tipo "1:20". Da qui in
+    // giu' ogni confronto con la soglia e' falso, e senza accorgersene si
+    // finiva su "SPENTO" mentre l'apparecchio lavorava.
+    const powerIlleggibile = !!powerState && !powerUnavailable && !Number.isFinite(watts);
+
     let mode = "off";
     let label = "SPENTO";
     const liveStateEntity = cfg.live?.state_entity;
@@ -923,7 +856,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     if (mapped) {
       mode = mapped.mode;
       label = mapped.label;
-    } else if (powerUnavailable) {
+    } else if (powerUnavailable || powerIlleggibile) {
       mode = "unavailable";
       label = "N/D";
     } else if (watts >= cfg.threshold_run) {
@@ -989,6 +922,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     let duration = this._cycleAttr(hass, "duration");
     let energy = this._cycleAttr(hass, "energy");
     let cost = this._cycleAttr(hass, "cost");
+    let costPieno = this._cycleAttr(hass, "cost_pieno");
     const sogliaOn = cfg.soglia_acceso
       && hass.states[cfg.soglia_acceso]?.state === "on";
     const vivo = (mode === "running" || sogliaOn) ? this._cicloVivo(hass) : null;
@@ -1006,30 +940,14 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       if (vivo.duration !== undefined) duration = vivo.duration;
       if (vivo.energy !== undefined) energy = vivo.energy;
       if (vivo.cost !== undefined) cost = vivo.cost;
+      if (vivo.cost_pieno !== undefined) costPieno = vivo.cost_pieno;
     }
     { const x = this._root.querySelector(".dm-c-end"); if (x) x.textContent = end ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-duration"); if (x) x.textContent = duration ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
-    { const x = this._root.querySelector(".dm-c-cost"); if (x) x.textContent = Number.isFinite(Number(cost)) ? `${numero(Number(cost), 2)} \u20ac` : "\u2014"; }
+    this._scriviCosto(this._root.querySelector(".dm-c-cost"), cost, costPieno);
 
-    (cfg.interruttori || []).forEach((x, i) => {
-      const b = this._root.querySelector(`.dm-ap-presa[data-presa="${i}"]`);
-      if (!b) return;
-      // il nome vero: a setConfig `hass` non c'era ancora e restava l'id
-      if (!x.label) {
-        const nome = this._nomeEntita(x.entity);
-        if (b.textContent !== nome) b.textContent = nome;
-      }
-      const st = hass.states[x.entity]?.state;
-      b.classList.toggle("acceso", st === "on");
-      b.classList.toggle("assente", !st || ["unavailable", "unknown"].includes(st));
-    });
-    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
-      const t = this._root.querySelector(sel);
-      if (!t) return;
-      const st = hass.states[cfg[chiave]]?.state;
-      t.classList.toggle("acceso", !!st && !["off", "unavailable", "unknown"].includes(st));
-    });
+    this._tastiAggiorna(hass);
 
     // le quattro righe "da presa": kWh e costo di oggi e del mese
     const numeroDi = (eid, unita, dec) => {
@@ -1045,13 +963,20 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     // prezzo lo tiene la scheda principale. Se un sensore del costo c'e' lo uso
     // (magari l'hai fatto tu), se no il conto lo faccio qui e non creo niente.
     const prezzo = Number((hass.states[cfg.prezzo_entita] || {}).state);
+    // il secondo prezzo: quello pieno della bolletta, energia piu' rete,
+    // accise e IVA. Lo usano le righe "In bolletta", che fanno vedere quanto
+    // ti costa davvero; le altre fanno vedere la sola energia.
+    const prezzoPieno = this._prezzoPieno(hass);
     const costoDa = (eidCosto, eidKwh) => {
-      if (eidCosto && hass.states[eidCosto]) return numeroDi(eidCosto, " \u20ac", 2);
       const st = eidKwh ? hass.states[eidKwh] : null;
-      if (!st || ["unavailable", "unknown"].includes(st.state)) return "\u2014";
-      const k = Number(st.state);
-      if (!Number.isFinite(k) || !Number.isFinite(prezzo) || prezzo <= 0) return "\u2014";
-      return `${numero(k * prezzo, 2)} \u20ac`;
+      const k = st && !["unavailable", "unknown"].includes(st.state) ? Number(st.state) : NaN;
+      // se un sensore del costo ce l'hai gia' (magari l'hai fatto tu) quello
+      // vince sulla moltiplicazione; il secondo numero glielo metto lo stesso
+      const uno = eidCosto && hass.states[eidCosto]
+        ? Number(hass.states[eidCosto].state)
+        : (Number.isFinite(k) && prezzo > 0 ? k * prezzo : NaN);
+      const due = Number.isFinite(k) && prezzoPieno > 0 ? k * prezzoPieno : NaN;
+      return [uno, due];
     };
     const kwhOggi = cfg.oggi_energia || (pe.today || {}).energy;
     const kwhSett = cfg.settimana_energia || (pe.week || {}).energy;
@@ -1074,7 +999,8 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const x = this._root.querySelector(sel);
       if (!x) return;
       if (eidCosto || eidKwh) hoPeriodi = true;
-      x.textContent = costoDa(eidCosto, eidKwh);
+      const [uno, due] = costoDa(eidCosto, eidKwh);
+      this._scriviCosto(x, uno, due);
     });
     if (cap && !vivo && !cfg.cycle_sensor && !cfg.ciclo && hoPeriodi) cap.textContent = T("Consumi");
 
@@ -1096,6 +1022,13 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     const activeWarnings = (cfg.warn_entities || [])
       .filter((w) => hass.states[w.entity]?.state === w.on_state)
       .map((w) => w.label);
+    // il guasto lo dice la scheda, invece di far finta di niente. Con
+    // un'entita' di stato non serve: da quella lo stato si sa lo stesso.
+    if (powerIlleggibile && !liveStateEntity) {
+      const nome = (powerState.attributes || {}).friendly_name || cfg.power_entity;
+      activeWarnings.unshift(nome + " = «" + powerState.state + "» · "
+        + T("non e' un numero, cosi' non posso sapere se sta lavorando"));
+    }
     if (activeWarnings.length) {
       warnEl.hidden = false;
       warnEl.textContent = "\u26a0 " + activeWarnings.join(" \u00b7 ");

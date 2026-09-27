@@ -10,10 +10,7 @@ import {
   unitaBella,
   HERO_BUILDERS,
   CHIP_SVGS,
-  ICON_GEAR,
   ICON_CHART,
-  ICON_POWER,
-  ICON_USB,
   ICON_NOTIFCENTER,
   ICON_BOLT,
   ICON_EURO,
@@ -24,7 +21,7 @@ import {
   vestiFinestra,
 } from './elettro-comune.js';
 const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
-import { ESCLUSI_DI_SERIE } from './elettro-prepara.js';
+import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
 import { ConFinestrelle } from './elettro-condivisi.js';
 
@@ -43,7 +40,6 @@ export const RIGHE_OGGI = [
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
 
-const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
 
 export class CasaEnergia extends ConFinestrelle(HTMLElement) {
   // Le righe del riquadro Oggi, nell'ordine della configurazione (`righe`).
@@ -88,9 +84,6 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
       periods_prev: [],
       weekdays: {},
       circuits: [],
-      switches: [],
-      actions: [],
-      settings_sections: [],
       ...config,
     };
     vestiFinestra(this, this._config);
@@ -108,13 +101,11 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
           <span class="dm-ap-badge run"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label">ONLINE</span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
-            ${this._config.interruttore ? `<button type="button" class="dm-ap-tool dm-ap-power" title="Accendi / spegni">${ICON_POWER}</button>` : ""}
-            ${this._config.interruttore_usb ? `<button type="button" class="dm-ap-tool dm-ap-usb" title="USB">${ICON_USB}</button>` : ""}
-            <button type="button" class="dm-ap-tool dm-ap-settings" title="Impostazioni">${ICON_GEAR}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
-            <button type="button" class="dm-ap-tool dm-ap-consumi" title="Circuiti">${ICON_BOLT}</button>
+            <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
         </div>
+        ${this._tastiHtml()}
         <div class="dm-ap-top-row">
           <div class="dm-ap-hero">${hero}</div>
           <div class="dm-ap-cycle-side">
@@ -124,7 +115,6 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
             </div>
           </div>
         </div>
-        <div class="dm-ap-warn" hidden></div>
         <div class="dm-ap-panel">
           <div class="dm-ap-meters"></div>
         </div>
@@ -157,23 +147,7 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
       window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
     });
     // i due interruttori della presa: quello grande e quello delle USB
-    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
-      this._root.querySelector(sel)?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const eid = this._config[chiave];
-        this._hass?.callService(eid.split(".")[0], "toggle", { entity_id: eid });
-      });
-    });
-    this._root.querySelector(".dm-ap-settings").addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (this._config.legacy_settings_popup) {
-        const event = new Event("ll-custom", { bubbles: true, composed: true });
-        event.detail = { browser_mod: this._config.legacy_settings_popup };
-        this.dispatchEvent(event);
-      } else {
-        this._openSettings();
-      }
-    });
+    this._tastiAggancia();
     if (this._config.bill_today || this._config.bill_month) {
       const lato = this._root.querySelector(".dm-ap-cycle-side");
       lato.style.cursor = "pointer";
@@ -196,85 +170,11 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
     });
   }
 
-  _actionRowHtml(row) {
-    const target = row.service ? row.service : row.entity;
-    return `<div class="dm-ap-row">
-      <span class="dm-ap-row-label">${esc(row.label)}</span>
-      <button type="button" class="dm-ap-action-btn" data-action-target="${esc(target)}" data-action-kind="${row.service ? "service" : "script"}" data-confirm="${esc(row.confirm || "")}">Esegui</button>
-    </div>`;
-  }
-
-  _openSettings() {
-    const hass = this._hass;
-    const sections = (this._config.settings_sections || [])
-      .map((sec) => {
-        const righe = (sec.rows || []).map((row) => this._settingsRowHtml(hass, row)).join("");
-        if ((sec.rows || []).length <= 3 && !sec.chiuso) {
-          return `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">${esc(sec.title)}</div>${righe}</div>`;
-        }
-        // il numero da mettere nel titolo: l'ultima riga (di solito il totale)
-        const ultima = sec.rows[sec.rows.length - 1];
-        const st = ultima && hass.states[ultima.entity];
-        const valore = st ? `${st.state}${st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : ""}` : "";
-        return `<details class="dm-ap-sec dm-ap-sec-chiusa">
-          <summary class="dm-ap-sec-cap">${esc(sec.title)}${valore ? ` \u00b7 <b>${esc(valore)}</b>` : ""}</summary>
-          ${righe}
-        </details>`;
-      })
-      .join("");
-
-    const switchesHtml = (this._config.switches || [])
-      .map((s) => this._settingsRowHtml(hass, s))
-      .join("");
-
-    const actions = this._config.actions || [];
-    const actionsHtml = actions.length
-      ? `<div class="dm-ap-sec">
-           <div class="dm-ap-sec-cap">Strumenti</div>
-           ${actions.map((a) => this._actionRowHtml(a)).join("")}
-         </div>`
-      : "";
-
-    const dentro = `${sections}${switchesHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Interruttori</div>${switchesHtml}</div>` : ""}${actionsHtml}`;
-    const overlay = this._openDialog(
-      "Impostazioni",
-      dentro.trim() ? dentro : VUOTO,
-    );
-
-    overlay.querySelectorAll("[data-entity]").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const entity = btn.dataset.entity;
-        const domain = entity.split(".")[0];
-        hass.callService(domain, "toggle", { entity_id: entity });
-        setTimeout(() => this._openSettings(), 200);
-      });
-    });
-    overlay.querySelectorAll("[data-open-entity]").forEach((row) => {
-      row.addEventListener("click", () => {
-        const e = new Event("hass-more-info", { bubbles: true, composed: true });
-        e.detail = { entityId: row.dataset.openEntity };
-        this.dispatchEvent(e);
-      });
-    });
-    overlay.querySelectorAll("[data-action-target]").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const confirmText = btn.dataset.confirm;
-        if (confirmText && !window.confirm(confirmText)) return;
-        if (btn.dataset.actionKind === "service") {
-          const [domain, service] = btn.dataset.actionTarget.split(".");
-          hass.callService(domain, service, {});
-        } else {
-          hass.callService("script", "turn_on", { entity_id: btn.dataset.actionTarget });
-        }
-      });
-    });
-  }
-
   // questa scheda addolcisce la linea del grafico
   get _morbida() { return true; }
 
+  // Quale prezzo apre l'ingranaggio: quello scelto nella scheda, se no la
+  // prima riga delle impostazioni, se no il totale della bolletta.
   _statRow(label, value) {
     return this._row(label, `<span class="dm-ap-row-val">${esc(value)}</span>`);
   }
@@ -428,31 +328,9 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
   // quelli che contengono una delle parole di top_exclude (produzione, batterie...).
   _autoLoads(hass) {
     const cfg = this._config;
-    // `top_exclude` SOSTITUISCE l'elenco di serie; `top_exclude_piu` ci si
-    // aggiunge, che e' quasi sempre quello che uno vuole
-    const excl = (cfg.top_exclude || ESCLUSI_DI_SERIE)
-      .concat(cfg.top_exclude_piu || [])
-      .map((p) => String(p).toLowerCase());
-    const incl = new Set(cfg.top_include || []);
-    const loads = [];
-    Object.values(hass.states).forEach((st) => {
-      const id = st.entity_id;
-      if (!id.startsWith("sensor.") || id === cfg.power_entity) return;
-      const a = st.attributes || {};
-      if (!incl.has(id)) {
-        if (a.device_class !== "power") return;
-        if (excl.some((p) => id.toLowerCase().includes(p))) return;
-      }
-      let w = Number(st.state);
-      if (!Number.isFinite(w)) return;
-      const unit = String(a.unit_of_measurement || "W");
-      if (unit === "kW") w *= 1000;
-      else if (unit !== "W") return;
-      const label = String(a.friendly_name || id)
-        .replace(/\s+(potenza|power)\s*$/i, "").replace(/\s{2,}/g, " ").trim();
-      loads.push({ label, entity: id, live: Math.max(0, w) });
-    });
-    loads.sort((x, y) => y.live - x.live);
+    const loads = preseDiCasa(hass)
+      .filter((x) => contaNelTop(cfg, x.entity))
+      .map((x) => ({ label: x.nome, entity: x.entity, live: x.w }));
     const tot = Number(hass.states[cfg.power_entity]?.state);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
     const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;
@@ -463,6 +341,7 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
     const doppione = Number.isFinite(tot) && misurato > tot + Math.max(20, tot * 0.05);
     return { loads, non, tot, doppione, misurato };
   }
+
 
   // Quali barre far vedere adesso: o quelle scritte nell'editor, o - se hai
   // scelto "le piu' accese" - le prime della casa in questo momento.
@@ -722,26 +601,8 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
       bar.style.background = meterSeverityColor(pct);
     });
 
-    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
-      const t = this._root.querySelector(sel);
-      if (!t) return;
-      const st = hass.states[cfg[chiave]]?.state;
-      t.classList.toggle("acceso", !!st && !["off", "unavailable", "unknown"].includes(st));
-    });
+    this._tastiAggiorna(hass);
 
-    const warnEl = this._root.querySelector(".dm-ap-warn");
-    const soglia = cfg.soglia_entity ? Number(hass.states[cfg.soglia_entity]?.state) : null;
-    const card = this._root.querySelector(".dm-ap-card");
-    // un sensore non disponibile da' NaN: "NaN != null" e' vero e il
-    // confronto sotto e' sempre falso, cosi' l'avviso non sarebbe mai scattato
-    if (Number.isFinite(soglia) && wattVal > soglia) {
-      warnEl.hidden = false;
-      warnEl.textContent = `\u26a0 Soglia superata: ${numero(wattVal, 0)} W (limite ${numero(soglia, 0)} W)`;
-      card.classList.add("has-alarm");
-    } else {
-      warnEl.hidden = true;
-      card.classList.remove("has-alarm");
-    }
   }
 
 }

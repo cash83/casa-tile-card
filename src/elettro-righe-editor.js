@@ -5,6 +5,45 @@
 // ({id: "nome"}; vuoto = nome di serie).
 
 import { T, TH } from './lingua.js';
+import { ICONE, MDI_PAROLE, NOMI_ICONE, NOMI_MDI, SINONIMI, disegnoMdi } from './icone.js';
+
+// Sette disegni a tratto, che prendono il colore della striscia. Quelli
+// della casella sono colorati e sfumati: a 18 pixel dentro a un titolo
+// diventano una macchia.
+const TRATTI = {
+  bacchetta: '<path d="M4 20 14 10"/><path d="M16 4v4M20 8h-4"/><path d="M18 12l1.6 1.6"/><path d="M15 7l2 2"/>',
+  contatore: '<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',
+  accensione: '<path d="M12 3v8"/><path d="M17.5 6.5a8 8 0 1 1-11 0"/>',
+  lista: '<path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',
+  barre: '<path d="M5 19V11M10 19V6M15 19v-5M20 19v-9"/>',
+  clessidra: '<path d="M7 3h10M7 21h10"/><path d="M8 3v3.2a4 4 0 0 0 1.6 3.2L12 12l-2.4 2.6A4 4 0 0 0 8 17.8V21"/><path d="M16 3v3.2a4 4 0 0 1-1.6 3.2L12 12l2.4 2.6a4 4 0 0 1 1.6 3.2V21"/>',
+  tachimetro: '<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',
+  tavolozza: '<path d="M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.8 1.8-1.6 0-1.6 1-2.2 2.2-2.2H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"/><circle cx="8" cy="10" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="15.8" cy="10" r="1.1" fill="currentColor" stroke="none"/>',
+};
+
+// il titolo di una tendina: icona, nome, riassunto e riga di spiegazione
+export function titoloSez(v, testo) {
+  v = v || [];
+  return icoSez(v[0]) + '<span class="ce-sez-testo">' + testo
+    + '<span class="ce-riassunto"></span>'
+    + (v[2] ? '<small class="ce-sotto">' + T(v[2]) + "</small>" : "")
+    + "</span>";
+}
+
+export function icoSez(nome) {
+  const d = TRATTI[nome];
+  if (!d) return "";
+  return '<span class="ce-sez-ico"><svg viewBox="0 0 24 24" fill="none"'
+    + ' stroke="currentColor" stroke-width="1.9" stroke-linecap="round"'
+    + ' stroke-linejoin="round">' + d + "</svg></span>";
+}
+
+// la striscia di colore a sinistra della tendina
+export function vestiSez(box, veste) {
+  if (!box || !veste || !veste[1]) return;
+  box.dataset.c = "1";
+  box.style.setProperty("--c", veste[1]);
+}
 
 export const STILE_EDITOR = `
 .ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
@@ -26,6 +65,16 @@ export const STILE_EDITOR = `
 
   .ce-sez{margin-top:18px;padding:12px;border-radius:12px;border:1px solid var(--divider-color,#444)}
   .ce-tit{font-weight:600;margin-bottom:4px}
+  /* ogni tendina si riconosce: la sua striscia, la sua icona, la sua riga
+     di spiegazione sotto al titolo. Chiuse erano otto rettangoli uguali. */
+  .ce-sez[data-c]{border-left:3px solid var(--c)}
+  details.ce-sez>summary.ce-tit{display:flex;align-items:flex-start;gap:8px}
+  .ce-sez-ico{flex:0 0 auto;width:18px;height:18px;margin-top:1px;color:var(--c,var(--secondary-text-color))}
+  .ce-sez-ico svg{width:18px;height:18px;display:block}
+  .ce-sez-testo{min-width:0;flex:1 1 auto}
+  .ce-sotto{display:block;font-weight:400;font-size:12px;line-height:1.35;
+    color:var(--secondary-text-color);margin-top:1px}
+  details.ce-sez[open] .ce-sotto{display:none}
   .ce-aiuto{font-size:12.5px;color:var(--secondary-text-color);margin-bottom:10px}
   .ce-riga{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;margin-bottom:4px;background:var(--secondary-background-color,#222)}
   .ce-riga.spenta{opacity:.5}
@@ -41,11 +90,26 @@ export const STILE_EDITOR = `
   .ce-tutto-riga{cursor:pointer;margin:6px 0 10px;gap:10px;font-size:13px}
   details.ce-sez>summary{cursor:pointer;list-style:none}
   details.ce-sez>summary::-webkit-details-marker{display:none}
-  details.ce-sez>summary:before{content:'\\25b8 ';opacity:.6}
+  details.ce-sez>summary:before{content:'\\25b8 ';opacity:.6;flex:0 0 auto}
   details.ce-sez[open]>summary:before{content:'\\25be ';opacity:.6}
   .ce-esito{margin-top:10px;font-size:12.5px;white-space:pre-wrap;color:var(--secondary-text-color)}
   .ce-esito.male{color:var(--error-color,#e46)}
   .ce-riga select{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
+  .ce-tasto{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .ce-tasto .chi{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+  .ce-tasto button{border:1px solid var(--divider-color,#555);background:none;color:inherit;border-radius:9px;cursor:pointer;padding:3px}
+  .ce-tasto .icona{width:38px;height:38px;display:grid;place-items:center}
+  .ce-tasto .icona svg{width:30px;height:30px}
+  .ce-tasto .via{width:30px;height:30px;opacity:.7;font-size:15px}
+  .ce-catalogo{margin:4px 0 10px;padding:8px;border:1px solid var(--divider-color,#555);border-radius:10px}
+  .ce-catalogo input{width:100%;box-sizing:border-box;padding:6px 8px;border-radius:8px;
+    border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit}
+  .ce-icone{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:4px;margin-top:8px;
+    max-height:240px;overflow:auto}
+  .ce-icone button{border:1px solid transparent;background:none;border-radius:8px;cursor:pointer;padding:3px}
+  .ce-icone button:hover{border-color:var(--primary-color)}
+  .ce-icone button.scelta{border-color:var(--primary-color);background:rgba(127,127,127,.15)}
+  .ce-icone svg{width:34px;height:34px;display:block}
   .ce-prepara{margin-top:10px;border:1px solid var(--primary-color);background:none;color:var(--primary-color);border-radius:9px;padding:7px 12px;cursor:pointer}
 `;
 
@@ -200,4 +264,91 @@ export function quali_cancellare(box, elenco, hass, poi) {
     box.innerHTML = "";
     if (scelti.length) poi(scelti);
   });
+}
+
+// ---------------------------------------------------------------- i tasti
+// Il catalogo delle icone, lo stesso della casella: quelle disegnate piu'
+// tutte le MDI. Si cerca per nome e per sinonimo ("spina" trova la presa).
+function catalogo(cerca) {
+  const tutte = NOMI_ICONE.concat(NOMI_MDI);
+  const q = String(cerca || "").trim().toLowerCase();
+  if (!q) return tutte.slice(0, 160);
+  const parole = (n) => (n + " " + (SINONIMI[n] || "") + " " + (MDI_PAROLE[n] || "")).toLowerCase();
+  return tutte.filter((n) => parole(n).includes(q)).slice(0, 160);
+}
+
+function disegnaCatalogo(box, scelta, poi) {
+  box.innerHTML = "";
+  const cerca = document.createElement("input");
+  cerca.type = "search";
+  cerca.placeholder = T("Cerca l'icona: presa, luce, spina...");
+  const griglia = document.createElement("div");
+  griglia.className = "ce-icone";
+  box.appendChild(cerca);
+  box.appendChild(griglia);
+  const riempi = () => {
+    griglia.innerHTML = catalogo(cerca.value).map((n) => `<button type="button" data-n="${n}"
+      class="${n === scelta ? "scelta" : ""}" title="${n}"><svg viewBox="0 0 64 64">${
+      ICONE[n] || disegnoMdi(n) || ""}</svg></button>`).join("");
+  };
+  riempi();
+  cerca.addEventListener("input", riempi);
+  griglia.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-n]");
+    if (b) poi(b.dataset.n);
+  });
+  setTimeout(() => cerca.focus(), 0);
+}
+
+/**
+ * Il riquadro dei tasti di accensione: una riga per tasto (icona, nome,
+ * cestino) e in fondo "Aggiungi". `scrivi(elenco)` riceve l'elenco nuovo.
+ */
+export function disegnaTasti(box, elenco, hass, scrivi) {
+  const nome = (eid) => {
+    const st = hass && hass.states[eid];
+    return (st && st.attributes && st.attributes.friendly_name) || eid;
+  };
+  box.innerHTML = "";
+  (elenco || []).forEach((t, i) => {
+    const riga = document.createElement("div");
+    riga.className = "ce-tasto";
+    riga.innerHTML = `<button type="button" class="icona" title="${T("Scegli l'icona")}">
+        <svg viewBox="0 0 64 64">${ICONE[t.icona] || disegnoMdi(t.icona) || ICONE.presa || ""}</svg>
+      </button><span class="chi"></span>
+      <button type="button" class="via" title="${T("Togli questo tasto")}">\u00d7</button>`;
+    riga.querySelector(".chi").textContent = nome(t.entity);
+    const sotto = document.createElement("div");
+    sotto.className = "ce-catalogo";
+    sotto.hidden = true;
+    riga.querySelector(".icona").addEventListener("click", () => {
+      if (!sotto.hidden) { sotto.hidden = true; return; }
+      sotto.hidden = false;
+      disegnaCatalogo(sotto, t.icona, (scelto) => {
+        const n = (elenco || []).map((x, k) => (k === i ? { ...x, icona: scelto } : x));
+        scrivi(n);
+      });
+    });
+    riga.querySelector(".via").addEventListener("click", () => {
+      scrivi((elenco || []).filter((x, k) => k !== i));
+    });
+    box.appendChild(riga);
+    box.appendChild(sotto);
+  });
+  const riga = document.createElement("div");
+  riga.className = "ce-riga";
+  riga.innerHTML = `<span class="ent">${T("Aggiungi un tasto")}</span>`;
+  const sceglitore = document.createElement("ha-entity-picker");
+  sceglitore.allowCustomEntity = true;
+  if (hass) sceglitore.hass = hass;
+  sceglitore.includeDomains = ["switch", "light", "input_boolean", "fan", "humidifier", "script"];
+  sceglitore.addEventListener("value-changed", (ev) => {
+    ev.stopPropagation();
+    const id = ev.detail.value;
+    sceglitore.value = "";
+    if (!id || (elenco || []).some((x) => x.entity === id)) return;
+    scrivi((elenco || []).concat([{ entity: id, icona: "" }]));
+  });
+  riga.appendChild(sceglitore);
+  box.appendChild(riga);
 }

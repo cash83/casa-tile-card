@@ -133,6 +133,61 @@ export function idDellaVoce(hass, v) {
 }
 export const ID_TOTALE = "input_number.prezzo_energia";
 
+// LO SCRIPT DELL'AZZERAMENTO. Uno per tutta la casa: non sa quali apparecchi
+// hai, gli arrivano le entita' come variabili dal tasto della scheda. Cosi'
+// non va riscritto per ogni elettrodomestico, e chi installa non deve
+// scriverselo. Il mese lo lascia stare se non glielo chiedi.
+export const ID_AZZERA = "casa_tile_azzera";
+
+function passoAzzera(titolo, quale, servizio, valore) {
+  return {
+    alias: titolo,
+    if: [{ condition: "template",
+      value_template: "{{ " + quale + " | default('', true) != ''"
+        + " and states(" + quale + ") not in ['unknown', 'unavailable'] }}" }],
+    then: [{ action: servizio, target: { entity_id: "{{ " + quale + " }}" }, data: valore }],
+  };
+}
+
+export async function creaScriptAzzera(hass, dillo) {
+  const parla = dillo || (() => {});
+  const eid = "script." + ID_AZZERA;
+  if (hass.states[eid]) return eid;
+  parla("Creo lo script dell'azzeramento...");
+  const mese = passoAzzera("Il mese, solo se lo hai chiesto", "mese",
+    "utility_meter.calibrate", { value: "0" });
+  mese.if[0].value_template = "{{ anche_il_mese | default(false)"
+    + " and mese | default('', true) != ''"
+    + " and states(mese) not in ['unknown', 'unavailable'] }}";
+  const conf = {
+    alias: "Azzera i contatori di un apparecchio",
+    icon: "mdi:restart",
+    mode: "single",
+    description: "Lo chiama il tasto \u00abAzzera i contatori\u00bb delle schede"
+      + " casa-elettrodomestico, che gli passa le entita' di quell'apparecchio."
+      + " Uno solo basta per tutta la casa. Lo storico gia' registrato non si tocca.",
+    fields: {
+      anche_il_mese: {
+        name: "Azzera anche il mese",
+        description: "Spento azzera oggi, la settimana e l'ultimo ciclo",
+        default: false,
+        selector: { boolean: {} },
+      },
+    },
+    sequence: [
+      passoAzzera("Il contatore di oggi", "oggi", "utility_meter.calibrate", { value: "0" }),
+      passoAzzera("Il contatore della settimana", "settimana", "utility_meter.calibrate", { value: "0" }),
+      mese,
+      passoAzzera("Il contatore del ciclo in corso", "ciclo_contatore", "utility_meter.calibrate", { value: "0" }),
+      passoAzzera("I kWh dell'ultimo ciclo", "ciclo_kwh", "input_number.set_value", { value: 0 }),
+      passoAzzera("I minuti dell'ultimo ciclo", "ciclo_minuti", "input_number.set_value", { value: 0 }),
+    ],
+  };
+  await hass.callApi("POST", "config/script/config/" + ID_AZZERA, conf);
+  parla("Script dell'azzeramento: " + eid);
+  return eid;
+}
+
 // Il prezzo che la scheda della casa tiene per tutti: la SOLA energia, quella
 // che va sugli apparecchi e sulle prese. Se non c'e', il totale.
 export function prezzoDellaCasa(hass) {
@@ -386,7 +441,6 @@ export async function creaSensoriBase(hass, opzioni, dillo) {
     if (costi.ieri) ieri.cost = costi.ieri;
     patch.periods_prev = [ieri];
   }
-  patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
   dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'."
     + (rimessi ? " " + rimessi + " sono ripartiti dal valore di prima." : ""));
   return patch;
@@ -952,10 +1006,17 @@ export async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   if (Object.keys(memoria).length) patch.helper_memoria = null;
   // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"
   if (kwh) patch.energy_stat_entity = kwh;
+  // il tasto "Azzera i contatori" vuole uno script: se non ne hai gia' uno tuo
+  // glielo faccio io, ed e' lo stesso per tutta la casa
+  if (!opzioni.reset_script) {
+    try {
+      patch.reset_script = await creaScriptAzzera(hass, dillo);
+      conto.creati = conto.creati + (hass.states[patch.reset_script] ? 0 : 1);
+    } catch (e) { dillo("Lo script dell'azzeramento non sono riuscito a crearlo: " + (e.message || e)); }
+  }
   if (cicli.oggi) patch.stats.cycles_today = cicli.oggi;
   if (cicli.settimana) patch.stats.cycles_week = cicli.settimana;
   if (cicli.mese) patch.stats.cycles_month = cicli.mese;
-  patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
   dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'.");
   return patch;
 }

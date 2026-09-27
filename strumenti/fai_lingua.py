@@ -567,6 +567,89 @@ VOCI = {
 # quindi non passano dall'estrattore. Le tengo qui, indicizzate per
 # frase italiana come le LIBERE.
 ELETTRO = {
+    "parti da un'entita' e riempio io il resto":
+        "start from one entity and I fill in the rest",
+    "i kWh, il prezzo, i cicli e l'azzeramento":
+        "the kWh, the price, the cycles and the reset",
+    "le prese e le luci che accendi dalla scheda":
+        "the sockets and lights you switch from the card",
+    "quali numeri si vedono nel riquadro, e in che ordine":
+        "which numbers show in the box, and in what order",
+    "il nome e il fondo scala delle barre in piu'":
+        "the name and full scale of the extra bars",
+    "sopra quanti watt sta lavorando, e il fondo scala":
+        "above how many watts it is running, and the full scale",
+    "se un'integrazione ti da' gia' il ciclo finito":
+        "if an integration already gives you the finished cycle",
+    "programma, tempo e fase mentre sta lavorando":
+        "programme, time and phase while it is running",
+    "un'altra misura sotto alla potenza":
+        "another reading under the power bar",
+    "colori, trasparenza e velo della finestrella":
+        "colours, transparency and the veil of the dialog",
+    "quanto paghi la luce, voce per voce":
+        "what you pay for electricity, item by item",
+    "i kWh della casa, e i costi che ne vengono":
+        "the home's kWh, and the costs that come from them",
+    "chi sta consumando di piu' in questo momento":
+        "what is using the most right now",
+    "le barre dei circuiti sotto alla scheda":
+        "the circuit bars under the card",
+    "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. Qui c'e' anche il fondo scala della barra e il suo nome. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'.":
+        "Above how many watts the card says <b>running</b>, and below how many <b>standby</b>. The bar's full scale and its name are here too. If the appliance has its own integration telling the real state, put it at the bottom: that one wins and the thresholds stop mattering.",
+    "Serve solo se un'integrazione o un pacchetto ti da' <b>gia' pronto</b> un sensore con dentro l'ultimo ciclo (fine, durata e consumo negli attributi). In quel caso la scheda legge quello invece dei contatori che si crea da sola. Se non ce l'hai, lascia vuoto.":
+        "Only needed if an integration or a package gives you a <b>ready-made</b> sensor holding the last cycle (end, duration and energy in its attributes). Then the card reads that instead of the counters it creates itself. If you don't have one, leave it empty.",
+    "Le entita' che parlano <b>mentre l'apparecchio lavora</b>: quanto ha gia' consumato, da quanto va, quanto manca, il programma e la fase. Sono quelle che riempiono il riquadro <i>Ciclo in corso</i>. Anche queste le da' l'integrazione dell'apparecchio, non la presa.":
+        "The entities that speak <b>while the appliance is working</b>: how much it has used, how long it has been going, how long is left, the programme and the phase. They fill the <i>Cycle running</i> box. These also come from the appliance's integration, not from the socket.",
+    "Una seconda barra sotto a quella della potenza: un'altra misura in watt, oppure un avanzamento da 0 a 100 (il programma, l'umidita'...). Il nome e il fondo scala di ognuna si scrivono nella tendina <i>Nomi delle barre in piu'</i>.":
+        "A second bar under the power one: another reading in watts, or a progress from 0 to 100 (the programme, the humidity...). The name and full scale of each are written in the <i>Names of the extra bars</i> drawer.",
+    "Come si veste la finestrella che si apre dai tondini: tinta, trasparenza, colore delle scritte, e quanto scurisce e sfoca quello che c'e' dietro. In piu' la pagina delle notifiche, se ne hai una.":
+        "How the dialog the round buttons open is dressed: tint, transparency, text colour, and how much it darkens and blurs what is behind. Plus the notifications page, if you have one.",
+    "tasto": "button",
+    "agganciato": "wired up",
+    "accesa": "on",
+    "barra": "bar",
+    "nessuna": "none",
+    "Capisci da solo l'apparecchio": "Work out the appliance by yourself",
+    "Scegli <b>una qualsiasi</b> entita' dell'apparecchio - la presa, l'interruttore, lo stato - e premi il tasto. Guardo tutte le altre entita' dello <b>stesso dispositivo</b> e riempio io quello che trovo. Niente e' definitivo: si cambia tutto qui sotto.": "Pick <b>any</b> entity of the appliance - the socket, the switch, the state - and press the button. I look at every other entity of the <b>same device</b> and fill in what I find. Nothing is final: it can all be changed below.",
+    "Azzera i contatori": "Reset the meters",
+    "Azzero i contatori di questa scheda. Vado?": "I will reset this card's meters. Go ahead?",
+    "Azzerati.": "Reset done.",
+    "Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto <i>Seconda barra</i>.": "The name and full scale (W) of every bar you picked in the <i>Second bar</i> drawer.",
+    "A un apparecchio o a una presa servono <b>due aiutanti</b>: i kWh di oggi e i kWh del mese. Il <b>costo non ha un sensore</b>: sono i kWh per il prezzo, e il conto lo fa la scheda mentre lo guardi. Il prezzo si scrive una volta sola nella scheda <i>Energia Casa</i>: qui vale la <b>sola energia</b>, se no le tasse le paghi due volte.": "An appliance or a socket needs <b>two helpers</b>: today's kWh and this month's kWh. The <b>cost has no sensor of its own</b>: it is the kWh times the price, and the card works it out while you look at it. The price is written once, in the <i>Energia Casa</i> card: here only the <b>energy alone</b> counts, otherwise you pay the taxes twice.",
+    "tasti": "buttons",
+    "accese": "on",
+    "spento": "off",
+    "le piu' accese": "the busiest",
+    "barre": "bars",
+    "agganciati": "wired up",
+    "da fare": "to do",
+    "Mostra altre impostazioni": "Show other settings",
+    "Prese contate": "Sockets counted",
+    "su": "of",
+    "La riga che dice chi sta consumando di piu' in questo momento.": "The row that says who is using the most right now.",
+    "Cerca da sola tutte le prese che misurano": "Find every measuring socket by itself",
+    "Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare.": "These are the ones it found: untick the ones you don't want counted.",
+    "Non l'ha trovata? Aggiungila": "Didn't it find it? Add it",
+    "Non ho trovato nessuna presa che misuri i Watt.": "I found no socket that measures watts.",
+    "il totale della casa": "the house total",
+    "Fondo scala di serie (W)": "Default full scale (W)",
+    "Quanto vale la barra piena, per le barre che non hanno un fondo scala loro.": "What a full bar is worth, for the bars that have no full scale of their own.",
+    # i tasti con l'icona e il Top consumo in una riga
+    "Ogni tasto e' un tondino nella barra in alto della scheda: premuto accende o spegne, e resta verde finche' e' acceso. Aggiungi quello che vuoi - una presa, una luce, una ventola - e scegli la sua icona.": "Each button is a small round one in the card's top bar: pressed it switches on or off, and stays green while it is on. Add whatever you like - a socket, a light, a fan - and pick its icon.",
+    "Scegli l'icona": "Pick the icon",
+    "Togli questo tasto": "Remove this button",
+    "Aggiungi un tasto": "Add a button",
+    "Cerca l'icona: presa, luce, spina...": "Search the icon: socket, light, plug...",
+    # l'editor della principale, rifatto: tre cose in vista
+    "Scrivi i prezzi come stanno in bolletta: il totale lo faccio io. Si scrive qui una volta sola - gli apparecchi, le prese e le luci lo leggono da qui.": "Write the prices as they are on your bill: I work out the total. You write it here once - appliances, sockets and lights read it from here.",
+    "I contatori": "The meters",
+    "Dimmi da quale sensore dei kWh parte la casa e faccio io il resto: i contatori di ora, oggi, settimana, mese e ieri, e il costo di ognuno. Quelli che ci sono gia' li riuso.": "Tell me which kWh sensor the house starts from and I do the rest: the meters for hour, today, week, month and yesterday, and the cost of each. The ones that already exist I reuse.",
+    "Pannelli e batteria sono facoltativi: se li metti faccio anche i loro kWh di oggi e del mese, e le righe <i>Dai pannelli</i> e <i>Dalla batteria</i>. Della batteria scegli il sensore che dice <b>quanto ha dato alla casa</b>, non la percentuale.": "Panels and battery are optional: add them and I also make their kWh for today and this month, and the <i>From the panels</i> and <i>From the battery</i> rows. For the battery pick the sensor that says <b>how much it gave to the house</b>, not the percentage.",
+    "Spunta quelle da vedere e trascinale dalla maniglia ⠿ per metterle in ordine. Nome e colore sono facoltativi (vuoto = quelli di serie).": "Tick the ones to show and drag them by the ⠿ handle to put them in order. Name and colour are optional (empty = the built-in ones).",
+    "Le barre sotto la scheda": "The bars under the card",
+    "Se non sai quali mettere, <b>Proponi da solo</b> guarda le prese di casa e ti mette le quattro che consumano di piu'.": "If you don't know which ones to use, <b>Work them out for me</b> looks at the sockets in the house and gives you the four that use the most.",
+    "Icona": "Icon",
     # i nomi dei campi
     "Piu' prese (ciabatte): una fila di tastini col loro nome": "Several sockets (power strips): a row of small buttons with their names",
     "Nome della scheda": "Card name",
@@ -604,13 +687,6 @@ ELETTRO = {
     "Sensore degli EURO di oggi (i kWh per il prezzo)": "Today's COST sensor (those kWh times the price)",
     "Contatore dei kWh del MESE (stesso aiutante, ciclo mensile)": "This MONTH's kWh meter (same helper, monthly cycle)",
     "Sensore degli EURO del mese": "This month's COST sensor",
-    "Entità con la soglia d'allarme (facoltativa)": "Entity holding the alarm threshold (optional)",
-    "Interruttori da mettere nelle impostazioni": "Switches to put in the settings",
-    "Fondo scala della barra (W, es. 3300 con 3 kW)": "Bar full scale (W, e.g. 3300 on a 3 kW supply)",
-    "Circuiti da mostrare con la barra (prese o sensori in W)": "Circuits to show with a bar (sockets or sensors in W)",
-    "Top consumo automatico (cerca da solo tutte le prese che misurano)": "Automatic top consumer (finds every measuring socket by itself)",
-    "Sotto questi W non e' «top»": "Below these watts it does not count as «top»",
-    "Nome della voce «Non misurato»": "Name of the «Unmeasured» entry",
     "Prese da contare sempre (anche se escluse qui sotto)": "Sockets to always count (even if excluded below)",
     "Parole che fanno escludere un sensore (batterie, inverter...)": "Words that make a sensor excluded (batteries, inverters...)",
     "Conto di oggi voce per voce (es. sensor.costi_luce_oggi)": "Today's itemised bill (e.g. sensor.power_costs_today)",
@@ -621,8 +697,6 @@ ELETTRO = {
     # gli aiutini sotto ai campi
     "Vuoto = valgono le parole di serie (batterie, inverter, fotovoltaico, solar, grid...): ": "Empty = the built-in words apply (batteries, inverters, photovoltaic, solar, grid...): ",
     "Vuoto = nessuna forzatura. Serve solo per una presa che una parola qui sopra escluderebbe.": "Empty = nothing forced. Only needed for a socket that one of the words above would exclude.",
-    "Vuoto = 5 W. Sotto questa soglia un apparecchio non vale come 'top'.": "Empty = 5 W. Below this an appliance does not count as 'top'.",
-    "Vuoto = «Non misurato»: quanto consuma la casa fuori dalle prese che misurano.": "Empty = «Unmeasured»: what the house uses outside the sockets that measure.",
     # i titoli dei cassetti
     "Quando e' acceso (soglie e barra)": "When it is on (thresholds and bar)",
     "Tasti di accensione": "Power buttons",
@@ -631,8 +705,6 @@ ELETTRO = {
     "Seconda barra": "Second bar",
     "Aspetto e finestra del pop-up": "Look and pop-up window",
     "Tasti e interruttori": "Buttons and switches",
-    "Barre dei circuiti": "Circuit bars",
-    "Top consumo (chi consuma di piu')": "Top consumer (who uses the most)",
     # le voci degli elenchi
     "Lavatrice": "Washing machine",
     "Lavastoviglie": "Dishwasher",
@@ -740,6 +812,11 @@ ELETTRO = {
 # browser nella lingua di chi guarda ("Mar" in italiano e' sia martedi'
 # sia marzo, nel dizionario non ci starebbero entrambi).
 ELETTRO_SCHEDE = {
+    "prima la sola energia, poi quanto costa in bolletta":
+        "energy only first, then what it costs on the bill",
+    "non e' un numero, cosi' non posso sapere se sta lavorando":
+        "is not a number, so I cannot tell whether it is running",
+    "Prezzo della luce": "Electricity price",
     "Fine del ciclo (data e ora)": "Cycle end (date and time)",
     "Durata del ciclo": "Cycle duration",
     "Consumo del ciclo (kWh)": "Cycle energy (kWh)",

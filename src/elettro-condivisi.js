@@ -13,13 +13,95 @@
 // casella (ConMusica(ConPezzi(...))). Quello che le due schede fanno davvero
 // in modo diverso (le loro finestre, i loro conti) resta nei loro file.
 
-import { esc, unitaBella, ICON_CLOSE } from './elettro-comune.js';
+import { esc, numero, tastiDi, ICON_CLOSE } from './elettro-comune.js';
+import { ICONE, disegnoMdi } from './icone.js';
 import { scegliLingua, T, TH } from './lingua.js';
-import { aiutantiVeri, cancellaQuesti, scollegaEntita } from './elettro-crea.js';
+import { aiutantiVeri, cancellaQuesti, scollegaEntita, ID_TOTALE } from './elettro-crea.js';
 import { quali_cancellare } from './elettro-righe-editor.js';
 
 // ---------------------------------------------------------------- le schede
+// Il disegno di un tasto: l'icona scelta (le stesse della casella). Se non
+// ne hai scelta una non metto niente: il tasto e' il suo nome e basta.
+function svgTasto(icona) {
+  const dentro = icona ? (ICONE[icona] || disegnoMdi(icona) || "") : "";
+  if (!dentro) return "";
+  return '<svg viewBox="0 0 64 64" width="14" height="14">' + dentro + "</svg>";
+}
+
 export const ConFinestrelle = (Base) => class extends Base {
+  // La fila dei tasti, uguale per le due schede: si disegna una volta, si
+  // accende e si spegne al clic. Si leggono per nome - i tondini muti in
+  // alto erano indovinelli, e chi aveva le prese le vedeva pure due volte.
+  _tastiHtml() {
+    const lista = tastiDi(this._config);
+    if (!lista.length) return "";
+    return `<div class="dm-ap-prese">` + lista.map((t, i) => `<button type="button"
+      class="dm-ap-presa dm-ap-tasto" data-tasto="${i}"
+      title="${esc(t.nome || t.entity)}">${svgTasto(t.icona)}<span
+      class="dm-ap-tasto-nome">${esc(t.nome || t.entity)}</span></button>`).join("") + `</div>`;
+  }
+
+  _tastiAggancia() {
+    tastiDi(this._config).forEach((t, i) => {
+      const b = this._root.querySelector(`.dm-ap-tasto[data-tasto="${i}"]`);
+      if (!b || b._agganciato) return;
+      b._agganciato = true;
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this._hass?.callService(t.entity.split(".")[0], "toggle", { entity_id: t.entity });
+      });
+    });
+  }
+
+  _tastiAggiorna(hass) {
+    tastiDi(this._config).forEach((t, i) => {
+      const b = this._root.querySelector(`.dm-ap-tasto[data-tasto="${i}"]`);
+      if (!b) return;
+      const stato = hass.states[t.entity] || {};
+      const st = stato.state;
+      // il nome vero. A setConfig `hass` non c'era ancora e restava l'id
+      if (!t.nome) {
+        const nome = (stato.attributes || {}).friendly_name || t.entity;
+        if (b.title !== nome) b.title = nome;
+        const eti = b.querySelector(".dm-ap-tasto-nome");
+        if (eti && eti.textContent !== nome) eti.textContent = nome;
+      }
+      b.classList.toggle("acceso", !!st && !["off", "unavailable", "unknown"].includes(st));
+      b.classList.toggle("assente", !st || ["unavailable", "unknown"].includes(st));
+    });
+  }
+
+  // Il prezzo PIENO della bolletta - energia piu' rete, accise e IVA. Non si
+  // configura: la scheda grande lo scrive sempre nello stesso aiutante, ed e'
+  // la convenzione con cui in questo progetto le schede si passano la tariffa.
+  // Se non c'e', o se e' lo stesso di quello della sola energia, non c'e'
+  // niente da far vedere in piu' e la riga del costo resta com'era.
+  _prezzoPieno(hass) {
+    const p = Number((hass.states[ID_TOTALE] || {}).state);
+    const solo = Number((hass.states[this._config.prezzo_entita] || {}).state);
+    if (!Number.isFinite(p) || p <= 0) return 0;
+    if (Number.isFinite(solo) && Math.abs(p - solo) < 0.0005) return 0;
+    return p;
+  }
+
+  // Il costo su una riga sola: la sola energia e, staccata, quanto ti costa
+  // in bolletta. Due righe per dire due numeri erano troppe, ma attaccate
+  // sembravano un numero lungo: la seconda va piu' piccola e piu' chiara.
+  _scriviCosto(el, solo, pieno) {
+    if (!el) return;
+    el.textContent = Number.isFinite(Number(solo))
+      ? `${numero(Number(solo), 2)} \u20ac` : "\u2014";
+    if (Number.isFinite(Number(solo)) && Number.isFinite(Number(pieno)) && Number(pieno) > 0) {
+      const due = document.createElement("span");
+      due.className = "dm-ap-due";
+      due.textContent = `${numero(Number(pieno), 2)} \u20ac`;
+      el.appendChild(due);
+      el.title = T("prima la sola energia, poi quanto costa in bolletta");
+    } else {
+      el.removeAttribute("title");
+    }
+  }
+
   // una riga "nome ..... valore" dentro a una finestrella
   _row(label, valueHtml) {
     return `<div class="dm-ap-row"><span class="dm-ap-row-label">${esc(label)}</span>${valueHtml}</div>`;
@@ -50,30 +132,15 @@ export const ConFinestrelle = (Base) => class extends Base {
     return overlay;
   }
 
-  // una riga delle impostazioni: un interruttore se si accende, se no il
-  // valore che si apre nel pop-up di Home Assistant
-  _settingsRowHtml(hass, row) {
-    const st = hass.states[row.entity];
-    if (!st) return this._row(row.label, `<span class="dm-ap-row-val">${T("n/d")}</span>`);
-    const domain = row.entity.split(".")[0];
-    if (["input_boolean", "automation", "switch"].includes(domain)) {
-      const on = st.state === "on";
-      return this._row(
-        row.label,
-        `<button type="button" class="dm-ap-switch${on ? " on" : ""}" data-entity="${esc(row.entity)}" aria-pressed="${on}"></button>`,
-      );
-    }
-    // il simbolo al posto del codice della moneta (EUR -> €), come fa HA
-    const unit = unitaBella(st.attributes?.unit_of_measurement);
-    return `<div class="dm-ap-row" data-open-entity="${esc(row.entity)}" style="cursor:pointer">
-      <span class="dm-ap-row-label">${esc(row.label)}</span>
-      <span class="dm-ap-row-val">${esc(st.state)}${unit ? " " + esc(unit) : ""}</span>
-    </div>`;
-  }
-
   // -- i grafici, disegnati a mano: nessuna libreria ------------------------
   _fmtAxis(v) {
     if (!Number.isFinite(v)) return "0";
+    // da mille in su si accorcia: "2,5k" sta nel margine, "2500" no
+    if (Math.abs(v) >= 1000) {
+      const k = v / 1000;
+      const s = (Math.abs(k) >= 10 ? k.toFixed(0) : k.toFixed(1)).replace(".", ",");
+      return (s.endsWith(",0") ? s.slice(0, -2) : s) + "k";
+    }
     const s = Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1);
     return s.endsWith(".0") ? s.slice(0, -2) : s;
   }
@@ -120,7 +187,7 @@ export const ConFinestrelle = (Base) => class extends Base {
     const width = 300;
     const height = 90;
     // asse sinistro: riserva spazio per i valori min/max, riferimento comune ai 3 grafici
-    const plotX0 = 24;
+    const plotX0 = 30;
     const plotW = width - plotX0;
     const values = points.map((p) => p.y);
     // Con una scala fissa (basata sul picco storico reale) il minimo resta
@@ -130,8 +197,12 @@ export const ConFinestrelle = (Base) => class extends Base {
     const min = fixedMax ? 0 : Math.min(...values, 0);
     const max = fixedMax ? Math.max(fixedMax, ...values) : Math.max(...values, min + 1);
     const range = max - min || 1;
-    const stepX = points.length > 1 ? plotW / (points.length - 1) : 0;
-    const coords = points.map((p, i) => [plotX0 + i * stepX, height - ((p.y - min) / range) * (height - 6) - 3]);
+    const alt = (y) => height - ((y - min) / range) * (height - 6) - 3;
+    // un punto solo (sensore fermo da ore): e' una riga dritta per tutta la
+    // larghezza, non un disegno vuoto
+    const coords = points.length > 1
+      ? points.map((p, i) => [plotX0 + (i * plotW) / (points.length - 1), alt(p.y)])
+      : [[plotX0, alt(points[0].y)], [width, alt(points[0].y)]];
     let linea;
     let area;
     if (this._morbida) {
@@ -142,10 +213,10 @@ export const ConFinestrelle = (Base) => class extends Base {
       linea = `M ${punti.split(" ").join(" L ")}`;
       area = `${linea} L ${coords[coords.length - 1][0].toFixed(1)},${height} L ${coords[0][0].toFixed(1)},${height} Z`;
     }
-    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg" preserveAspectRatio="none">
+    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg">
       <line x1="${plotX0}" y1="3" x2="${plotX0}" y2="${height - 3}" stroke="#94a3b840" stroke-width="1"/>
-      <text x="${plotX0 - 4}" y="8" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
-      <text x="${plotX0 - 4}" y="${height - 3}" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(min)}</text>
+      <text x="${plotX0 - 4}" y="8" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
+      <text x="${plotX0 - 4}" y="${height - 3}" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(min)}</text>
       <path d="${area}" fill="${color}" opacity="0.14"/>
       <path d="${linea}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
     </svg>`;
@@ -194,11 +265,17 @@ export const ConEditor = (Base) => class extends Base {
   }
 
   set hass(hass) {
+    const primo = !this._hass;
     this._hass = hass;
     // la lingua la chiedo io: un editor si puo' aprire prima che una scheda
     // sia stata disegnata, e li' nessuno l'avrebbe ancora scelta
     scegliLingua(hass);
-    if (this._form) this._form.hass = hass;
+    // a TUTTI i moduli, non solo a quello in cima: un ha-form senza `hass`
+    // non disegna un bel niente, e il cassetto si apriva vuoto
+    (this._moduli || (this._form ? [this._form] : [])).forEach((f) => { f.hass = hass; });
+    // se `hass` arriva dopo la configurazione, gli elenchi che si leggono da
+    // casa (i kWh, i prezzi, i tasti, il sceglitore) erano rimasti vuoti
+    if (primo && this._costruito) this._disegna();
   }
 
   _emetti() {

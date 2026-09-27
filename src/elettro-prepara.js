@@ -15,6 +15,41 @@ export const ESCLUSI_DI_SERIE = [
   "landbook", "hub_1200", "ace_1500", "ab1000", "zendure_manager",
 ];
 
+// Tutte le prese di casa che misurano dei Watt, col valore di adesso e il
+// nome senza la coda "potenza". Le usa la scheda per il Top consumo e
+// l'editor per farti togliere la spunta a quelle che non vuoi: e' la stessa
+// ricerca, fatta in un posto solo.
+export function preseDiCasa(hass) {
+  const st = (hass && hass.states) || {};
+  const fuori = [];
+  Object.keys(st).forEach((id) => {
+    if (!id.startsWith("sensor.")) return;
+    const a = st[id].attributes || {};
+    if (a.device_class !== "power") return;
+    let w = Number(st[id].state);
+    if (!Number.isFinite(w)) return;
+    const u = String(a.unit_of_measurement || "W");
+    if (u === "kW") w *= 1000;
+    else if (u !== "W") return;
+    const nome = String(a.friendly_name || id)
+      .replace(/\s+(potenza|power)\s*$/i, "").replace(/\s{2,}/g, " ").trim();
+    fuori.push({ entity: id, nome, w: Math.max(0, w) });
+  });
+  return fuori.sort((x, y) => y.w - x.w);
+}
+
+// Questa presa conta nel Top consumo? Chi e' spuntato a mano vince su tutto,
+// poi chi e' tolto a mano, poi le parole.
+export function contaNelTop(cfg, id) {
+  const c = cfg || {};
+  if ((c.top_include || []).includes(id)) return true;
+  if ((c.top_exclude_entita || []).includes(id)) return false;
+  if (id === c.power_entity) return false;
+  const parole = (c.top_exclude || ESCLUSI_DI_SERIE).concat(c.top_exclude_piu || [])
+    .map((x) => String(x).toLowerCase());
+  return !parole.some((x) => id.toLowerCase().includes(x));
+}
+
 // Stati scritti in italiano dalle integrazioni (es. LG in LAN), oltre a
 // quelli inglesi che la scheda conosce gia' da sola.
 const STATI_ITALIANI = {
@@ -269,13 +304,6 @@ export function preparaEnergia(hass, cfg) {
   // il conto voce per voce e il risparmio del fotovoltaico, se ci sono
   if (st["sensor.costi_luce_oggi"]) scheda.bill_today = "sensor.costi_luce_oggi";
   if (st["sensor.costi_luce_mese"]) scheda.bill_month = "sensor.costi_luce_mese";
-  if (st["input_number.prezzo_energia"]) {
-    const righe = [{ entity: "input_number.prezzo_energia", label: "Prezzo energia (€/kWh)" }];
-    if (st["input_number.quota_fissa_energia_giorno"]) {
-      righe.push({ entity: "input_number.quota_fissa_energia_giorno", label: "Quota fissa (€/giorno)" });
-    }
-    scheda.settings_sections = [{ title: "Costi", rows: righe }];
-  }
   return scheda;
 }
 

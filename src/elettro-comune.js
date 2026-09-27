@@ -621,18 +621,10 @@ const CHIP_SVGS = {
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="24" y="8" width="48" height="80" rx="8" fill="#0f2942"/><rect x="34" y="20" width="28" height="46" rx="4" fill="none" stroke="#8be2ff" stroke-width="3"/><rect x="38" y="26" width="20" height="34" rx="2" fill="#38bdf8"/><circle cx="48" cy="76" r="3" fill="#22c55e"/></svg>',
 };
 
-const ICON_GEAR =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
-const ICON_POWER =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>';
-const ICON_USB =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="20" r="1.6"/><path d="M12 18.4V4"/><path d="M9 7l3-3 3 3"/><path d="M12 12l4-2.5v-2"/><circle cx="16" cy="7" r="1.4"/><path d="M12 14.5 8 12V9.5"/><rect x="6.6" y="7.6" width="2.8" height="2.4" rx=".6"/></svg>';
 const ICON_CHART =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="9"/></svg>';
 const ICON_CLOSE =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
-const ICON_RESTART =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>';
 const ICON_NOTIFCENTER =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l4 4V6l-4 4H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>';
 const ICON_BOLT =
@@ -687,11 +679,13 @@ const STYLE = `
 .dm-ap-tool:hover{border-color:#bae6fd;color:var(--dm-blue-deep)}
 .dm-ap-prese{display:flex;flex-wrap:wrap;gap:6px;margin:0 12px 8px}
 .dm-ap-presa{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.2px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;
   padding:4px 10px;border-radius:999px;border:1px solid var(--divider-color);
   background:rgba(127,127,127,.10);color:var(--secondary-text-color);line-height:1.5}
 .dm-ap-presa.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.14)}
 .dm-ap-presa.assente{opacity:.45;cursor:default}
 .dm-ap-presa:active{transform:scale(.97)}
+.dm-ap-presa svg{flex:0 0 auto}
 .dm-ap-tool.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.12)}
 .dm-ap-top-row{display:flex;align-items:stretch;gap:10px;margin:0 13px}
 .dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
@@ -732,11 +726,15 @@ const STYLE = `
 .dm-ap-cycle-row-b{padding:4px 6px;border-radius:9px;border:1px solid var(--dm-border);background:var(--dm-card);align-items:center}
 .dm-ap-cycle-label{display:flex;align-items:center;gap:5px;min-width:0;flex:1 1 auto;overflow:hidden}
 .dm-ap-cycle-label small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
-.dm-ap-cycle-row-b b{flex:0 1 auto;max-width:none}
+/* il numero non si accorcia: a stringere e' il nome, che si legge
+   comunque. Con due cifre nella riga del costo il valore finiva in
+   "0,52 . 0,7..." su una colonna stretta */
+.dm-ap-cycle-row-b b{flex:0 0 auto;max-width:none}
 .dm-ap-cycle-ic{display:flex;align-items:center;flex:0 0 auto;color:var(--dm-blue)}
 .dm-colore{border-left:3px solid var(--c)!important;border-radius:4px 9px 9px 4px!important}
 .dm-colore small,.dm-colore b,.dm-colore .dm-ap-cycle-ic,.dm-colore .dm-ap-row-label,.dm-colore .dm-ap-row-val{color:var(--c)!important}
 .dm-colore.dm-forte b,.dm-colore.dm-forte .dm-ap-row-val{font-size:15.5px;font-weight:700}
+.dm-ap-due{margin-left:9px;font-size:.8em;font-weight:600;opacity:.6;letter-spacing:.1px}
 .dm-ap-panel{display:flex;align-items:center;gap:14px;margin:10px 13px 13px;padding:13px 14px;border-radius:16px;background:var(--dm-soft)}
 .dm-ap-meters{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
 .dm-c-meter-clickable{cursor:pointer;border-radius:8px;transition:background .12s ease}
@@ -750,7 +748,7 @@ const STYLE = `
 .dm-ap-bar i.dm-ap-progress-bar{background:linear-gradient(90deg,#4ade80,#16a34a)}
 .dm-ap-power-open{cursor:pointer}
 .dm-ap-power-open:hover{filter:brightness(1.04)}
-.dm-ap-chart-svg{width:100%;height:100px;display:block}
+.dm-ap-chart-svg{width:100%;height:auto;display:block;overflow:visible}
 .dm-ap-chart-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
 .dm-ap-chart-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dm-ap-mirino-box{position:relative;touch-action:none}
@@ -764,9 +762,9 @@ const STYLE = `
 .dm-ap-warn[hidden]{display:none}
 .dm-test-flag{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#0369a1;background:rgba(14,165,233,.14);border-radius:8px;padding:4px 8px}
 
-.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:var(--dm-velo,rgba(15,23,42,.55));display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,6px))}
+.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:var(--dm-velo,transparent);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
 .dm-ap-overlay[hidden]{display:none}
-.dm-ap-dialog{width:min(440px,100%);max-height:min(84vh,720px);overflow:auto;background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.3)}
+.dm-ap-dialog{width:min(560px,100%);max-height:min(86vh,760px);overflow:auto;background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 26px 80px rgba(15,23,42,.45)}
 .dm-ap-dialog-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 10px;background:var(--dm-finestra,var(--dm-card));border-bottom:1px solid var(--dm-border);z-index:1}
 .dm-ap-dialog-head h3{margin:0;font-size:17px;font-weight:900}
 .dm-ap-dialog-close{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border:0;border-radius:10px;background:var(--dm-soft);color:var(--dm-dim);cursor:pointer}
@@ -817,7 +815,7 @@ details.dm-ap-sec-chiusa>summary b{color:var(--dm-text);font-weight:800}
 .dm-ap-reset-note{font-size:12px;color:var(--dm-dim);text-align:center;margin-top:4px}
 
 @media (max-width:600px){
-  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(var(--dm-velo-sfoca,4px))}
+  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
   .dm-ap-dialog{width:100%;max-width:100%;height:94vh;max-height:94vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column}
   .dm-ap-dialog-body{flex:1}
 }
@@ -828,9 +826,9 @@ details.dm-ap-sec-chiusa>summary b{color:var(--dm-text);font-weight:800}
 // non tocco il foglio: se un'opzione non c'e' resta il vestito di serie.
 // IL MIRINO DEL GRAFICO DEL POP-UP. `box` e' il riquadro che contiene l'svg,
 // `punti` i dati disegnati, `scrivi(punto)` la scritta del cartellino.
-// L'svg ha viewBox 0 0 300 90 e preserveAspectRatio="none", quindi la x in
-// punti-svg e' la stessa frazione della larghezza vera: i dati cominciano dopo
-// l'asse (24 su 300) e arrivano in fondo. Col mouse basta passarci sopra, col
+// L'svg ha viewBox 0 0 300 90 e riempie la larghezza del riquadro, quindi la
+// x in punti-svg e' la stessa frazione della larghezza vera: i dati cominciano
+// dopo l'asse (30 su 300) e arrivano in fondo. Col mouse basta passarci sopra, col
 // dito si tiene premuto e si trascina (touch-action: none), e alzandolo va via.
 export function mirinoGrafico(box, punti, scrivi) {
   if (!box || !punti || punti.length < 2) return;
@@ -840,7 +838,7 @@ export function mirinoGrafico(box, punti, scrivi) {
   mirino.innerHTML = "<i></i><b></b>";
   box.appendChild(mirino);
   const cartellino = mirino.querySelector("b");
-  const ASSE = 24 / 300;
+  const ASSE = 30 / 300;
 
   const muovi = (ev) => {
     const q = box.getBoundingClientRect();
@@ -876,6 +874,24 @@ export function mirinoGrafico(box, punti, scrivi) {
 // parte e "0.29 €" dall'altra.
 // Il simbolo al posto del codice della moneta, come fa Home Assistant.
 const SIMBOLI = { EUR: "\u20ac", USD: "$", GBP: "\u00a3", CHF: "CHF" };
+// I tasti di accensione della scheda, da qualunque forma vengano.
+// `tasti` e' quella nuova (entita' + icona); `interruttori` era la fila di
+// tastini col nome; `interruttore`/`interruttore_usb` i due campi di prima.
+// Le metto tutte in un elenco solo, cosi' la scheda ha una strada sola.
+export function tastiDi(cfg) {
+  const c = cfg || {};
+  const fuori = [];
+  const metti = (entity, icona, nome) => {
+    if (!entity || fuori.some((x) => x.entity === entity)) return;
+    fuori.push({ entity, icona: icona || "", nome: nome || "" });
+  };
+  (c.tasti || []).forEach((t) => metti(t && t.entity, t && t.icona, t && t.nome));
+  (c.interruttori || []).forEach((t) => metti(t && t.entity, t && t.icona, t && t.label));
+  metti(c.interruttore, "", "");
+  metti(c.interruttore_usb, "usb", "");
+  return fuori;
+}
+
 // Il giorno e il mese scritti nella lingua di chi guarda: "Mar" in italiano
 // e' sia martedi' sia marzo, quindi nel dizionario non ci starebbero entrambi -
 // e comunque il browser lo sa fare meglio.
@@ -951,12 +967,8 @@ function meterSeverityColor(pct) {
 export {
   HERO_BUILDERS,
   CHIP_SVGS,
-  ICON_GEAR,
   ICON_CHART,
-  ICON_POWER,
-  ICON_USB,
   ICON_CLOSE,
-  ICON_RESTART,
   ICON_NOTIFCENTER,
   ICON_BOLT,
   ICON_FLAG,
@@ -964,7 +976,6 @@ export {
   ICON_EURO,
   ICON_TREND,
   WEEKDAY_FULL_IT,
-  WEEKDAY_ABBR_IT,
   DEFAULT_STATE_MAP,
   STYLE,
   esc,

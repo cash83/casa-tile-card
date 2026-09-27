@@ -653,6 +653,67 @@ const EN = {
   "oppure l'indirizzo: /local/mia.gif": "or the address: /local/mine.gif",
   "pronto: tocca un pezzo qui sopra": "ready: tap a piece above",
   "si apre qui di fianco - chiudila con la X o con Esc": "it opens right here - close it with the X or with Esc",
+  "parti da un'entita' e riempio io il resto": "start from one entity and I fill in the rest",
+  "i kWh, il prezzo, i cicli e l'azzeramento": "the kWh, the price, the cycles and the reset",
+  "le prese e le luci che accendi dalla scheda": "the sockets and lights you switch from the card",
+  "quali numeri si vedono nel riquadro, e in che ordine": "which numbers show in the box, and in what order",
+  "il nome e il fondo scala delle barre in piu'": "the name and full scale of the extra bars",
+  "sopra quanti watt sta lavorando, e il fondo scala": "above how many watts it is running, and the full scale",
+  "se un'integrazione ti da' gia' il ciclo finito": "if an integration already gives you the finished cycle",
+  "programma, tempo e fase mentre sta lavorando": "programme, time and phase while it is running",
+  "un'altra misura sotto alla potenza": "another reading under the power bar",
+  "colori, trasparenza e velo della finestrella": "colours, transparency and the veil of the dialog",
+  "quanto paghi la luce, voce per voce": "what you pay for electricity, item by item",
+  "i kWh della casa, e i costi che ne vengono": "the home's kWh, and the costs that come from them",
+  "chi sta consumando di piu' in questo momento": "what is using the most right now",
+  "le barre dei circuiti sotto alla scheda": "the circuit bars under the card",
+  "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. Qui c'e' anche il fondo scala della barra e il suo nome. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'.": "Above how many watts the card says <b>running</b>, and below how many <b>standby</b>. The bar's full scale and its name are here too. If the appliance has its own integration telling the real state, put it at the bottom: that one wins and the thresholds stop mattering.",
+  "Serve solo se un'integrazione o un pacchetto ti da' <b>gia' pronto</b> un sensore con dentro l'ultimo ciclo (fine, durata e consumo negli attributi). In quel caso la scheda legge quello invece dei contatori che si crea da sola. Se non ce l'hai, lascia vuoto.": "Only needed if an integration or a package gives you a <b>ready-made</b> sensor holding the last cycle (end, duration and energy in its attributes). Then the card reads that instead of the counters it creates itself. If you don't have one, leave it empty.",
+  "Le entita' che parlano <b>mentre l'apparecchio lavora</b>: quanto ha gia' consumato, da quanto va, quanto manca, il programma e la fase. Sono quelle che riempiono il riquadro <i>Ciclo in corso</i>. Anche queste le da' l'integrazione dell'apparecchio, non la presa.": "The entities that speak <b>while the appliance is working</b>: how much it has used, how long it has been going, how long is left, the programme and the phase. They fill the <i>Cycle running</i> box. These also come from the appliance's integration, not from the socket.",
+  "Una seconda barra sotto a quella della potenza: un'altra misura in watt, oppure un avanzamento da 0 a 100 (il programma, l'umidita'...). Il nome e il fondo scala di ognuna si scrivono nella tendina <i>Nomi delle barre in piu'</i>.": "A second bar under the power one: another reading in watts, or a progress from 0 to 100 (the programme, the humidity...). The name and full scale of each are written in the <i>Names of the extra bars</i> drawer.",
+  "Come si veste la finestrella che si apre dai tondini: tinta, trasparenza, colore delle scritte, e quanto scurisce e sfoca quello che c'e' dietro. In piu' la pagina delle notifiche, se ne hai una.": "How the dialog the round buttons open is dressed: tint, transparency, text colour, and how much it darkens and blurs what is behind. Plus the notifications page, if you have one.",
+  "tasto": "button",
+  "agganciato": "wired up",
+  "accesa": "on",
+  "barra": "bar",
+  "nessuna": "none",
+  "Capisci da solo l'apparecchio": "Work out the appliance by yourself",
+  "Scegli <b>una qualsiasi</b> entita' dell'apparecchio - la presa, l'interruttore, lo stato - e premi il tasto. Guardo tutte le altre entita' dello <b>stesso dispositivo</b> e riempio io quello che trovo. Niente e' definitivo: si cambia tutto qui sotto.": "Pick <b>any</b> entity of the appliance - the socket, the switch, the state - and press the button. I look at every other entity of the <b>same device</b> and fill in what I find. Nothing is final: it can all be changed below.",
+  "Azzera i contatori": "Reset the meters",
+  "Azzero i contatori di questa scheda. Vado?": "I will reset this card's meters. Go ahead?",
+  "Azzerati.": "Reset done.",
+  "Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto <i>Seconda barra</i>.": "The name and full scale (W) of every bar you picked in the <i>Second bar</i> drawer.",
+  "A un apparecchio o a una presa servono <b>due aiutanti</b>: i kWh di oggi e i kWh del mese. Il <b>costo non ha un sensore</b>: sono i kWh per il prezzo, e il conto lo fa la scheda mentre lo guardi. Il prezzo si scrive una volta sola nella scheda <i>Energia Casa</i>: qui vale la <b>sola energia</b>, se no le tasse le paghi due volte.": "An appliance or a socket needs <b>two helpers</b>: today's kWh and this month's kWh. The <b>cost has no sensor of its own</b>: it is the kWh times the price, and the card works it out while you look at it. The price is written once, in the <i>Energia Casa</i> card: here only the <b>energy alone</b> counts, otherwise you pay the taxes twice.",
+  "tasti": "buttons",
+  "accese": "on",
+  "spento": "off",
+  "le piu' accese": "the busiest",
+  "barre": "bars",
+  "agganciati": "wired up",
+  "da fare": "to do",
+  "Mostra altre impostazioni": "Show other settings",
+  "Prese contate": "Sockets counted",
+  "su": "of",
+  "La riga che dice chi sta consumando di piu' in questo momento.": "The row that says who is using the most right now.",
+  "Cerca da sola tutte le prese che misurano": "Find every measuring socket by itself",
+  "Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare.": "These are the ones it found: untick the ones you don't want counted.",
+  "Non l'ha trovata? Aggiungila": "Didn't it find it? Add it",
+  "Non ho trovato nessuna presa che misuri i Watt.": "I found no socket that measures watts.",
+  "il totale della casa": "the house total",
+  "Fondo scala di serie (W)": "Default full scale (W)",
+  "Quanto vale la barra piena, per le barre che non hanno un fondo scala loro.": "What a full bar is worth, for the bars that have no full scale of their own.",
+  "Ogni tasto e' un tondino nella barra in alto della scheda: premuto accende o spegne, e resta verde finche' e' acceso. Aggiungi quello che vuoi - una presa, una luce, una ventola - e scegli la sua icona.": "Each button is a small round one in the card's top bar: pressed it switches on or off, and stays green while it is on. Add whatever you like - a socket, a light, a fan - and pick its icon.",
+  "Scegli l'icona": "Pick the icon",
+  "Togli questo tasto": "Remove this button",
+  "Aggiungi un tasto": "Add a button",
+  "Cerca l'icona: presa, luce, spina...": "Search the icon: socket, light, plug...",
+  "Scrivi i prezzi come stanno in bolletta: il totale lo faccio io. Si scrive qui una volta sola - gli apparecchi, le prese e le luci lo leggono da qui.": "Write the prices as they are on your bill: I work out the total. You write it here once - appliances, sockets and lights read it from here.",
+  "I contatori": "The meters",
+  "Dimmi da quale sensore dei kWh parte la casa e faccio io il resto: i contatori di ora, oggi, settimana, mese e ieri, e il costo di ognuno. Quelli che ci sono gia' li riuso.": "Tell me which kWh sensor the house starts from and I do the rest: the meters for hour, today, week, month and yesterday, and the cost of each. The ones that already exist I reuse.",
+  "Pannelli e batteria sono facoltativi: se li metti faccio anche i loro kWh di oggi e del mese, e le righe <i>Dai pannelli</i> e <i>Dalla batteria</i>. Della batteria scegli il sensore che dice <b>quanto ha dato alla casa</b>, non la percentuale.": "Panels and battery are optional: add them and I also make their kWh for today and this month, and the <i>From the panels</i> and <i>From the battery</i> rows. For the battery pick the sensor that says <b>how much it gave to the house</b>, not the percentage.",
+  "Spunta quelle da vedere e trascinale dalla maniglia ⠿ per metterle in ordine. Nome e colore sono facoltativi (vuoto = quelli di serie).": "Tick the ones to show and drag them by the ⠿ handle to put them in order. Name and colour are optional (empty = the built-in ones).",
+  "Le barre sotto la scheda": "The bars under the card",
+  "Se non sai quali mettere, <b>Proponi da solo</b> guarda le prese di casa e ti mette le quattro che consumano di piu'.": "If you don't know which ones to use, <b>Work them out for me</b> looks at the sockets in the house and gives you the four that use the most.",
   "Piu' prese (ciabatte): una fila di tastini col loro nome": "Several sockets (power strips): a row of small buttons with their names",
   "Nome della scheda": "Card name",
   "Disegno": "Artwork",
@@ -689,13 +750,6 @@ const EN = {
   "Sensore degli EURO di oggi (i kWh per il prezzo)": "Today's COST sensor (those kWh times the price)",
   "Contatore dei kWh del MESE (stesso aiutante, ciclo mensile)": "This MONTH's kWh meter (same helper, monthly cycle)",
   "Sensore degli EURO del mese": "This month's COST sensor",
-  "Entità con la soglia d'allarme (facoltativa)": "Entity holding the alarm threshold (optional)",
-  "Interruttori da mettere nelle impostazioni": "Switches to put in the settings",
-  "Fondo scala della barra (W, es. 3300 con 3 kW)": "Bar full scale (W, e.g. 3300 on a 3 kW supply)",
-  "Circuiti da mostrare con la barra (prese o sensori in W)": "Circuits to show with a bar (sockets or sensors in W)",
-  "Top consumo automatico (cerca da solo tutte le prese che misurano)": "Automatic top consumer (finds every measuring socket by itself)",
-  "Sotto questi W non e' «top»": "Below these watts it does not count as «top»",
-  "Nome della voce «Non misurato»": "Name of the «Unmeasured» entry",
   "Prese da contare sempre (anche se escluse qui sotto)": "Sockets to always count (even if excluded below)",
   "Parole che fanno escludere un sensore (batterie, inverter...)": "Words that make a sensor excluded (batteries, inverters...)",
   "Conto di oggi voce per voce (es. sensor.costi_luce_oggi)": "Today's itemised bill (e.g. sensor.power_costs_today)",
@@ -705,8 +759,6 @@ const EN = {
   "Pagina delle notifiche (facoltativa, es. /lovelace/notifiche)": "Notifications page (optional, e.g. /lovelace/notifications)",
   "Vuoto = valgono le parole di serie (batterie, inverter, fotovoltaico, solar, grid...): ": "Empty = the built-in words apply (batteries, inverters, photovoltaic, solar, grid...): ",
   "Vuoto = nessuna forzatura. Serve solo per una presa che una parola qui sopra escluderebbe.": "Empty = nothing forced. Only needed for a socket that one of the words above would exclude.",
-  "Vuoto = 5 W. Sotto questa soglia un apparecchio non vale come 'top'.": "Empty = 5 W. Below this an appliance does not count as 'top'.",
-  "Vuoto = «Non misurato»: quanto consuma la casa fuori dalle prese che misurano.": "Empty = «Unmeasured»: what the house uses outside the sockets that measure.",
   "Quando e' acceso (soglie e barra)": "When it is on (thresholds and bar)",
   "Tasti di accensione": "Power buttons",
   "Sensore dell'ultimo ciclo": "Last-cycle sensor",
@@ -714,8 +766,6 @@ const EN = {
   "Seconda barra": "Second bar",
   "Aspetto e finestra del pop-up": "Look and pop-up window",
   "Tasti e interruttori": "Buttons and switches",
-  "Barre dei circuiti": "Circuit bars",
-  "Top consumo (chi consuma di piu')": "Top consumer (who uses the most)",
   "Lavatrice": "Washing machine",
   "Lavastoviglie": "Dishwasher",
   "Asciugatrice": "Tumble dryer",
@@ -811,6 +861,9 @@ const EN = {
   "Il prezzo l'hai gia' scritto qui sopra: qui scegli solo <b>da quale sensore dei kWh</b> parte la casa. Creo io i contatori (ora, oggi, settimana, mese e ieri) e il costo di ogni periodo, e li aggancio alla scheda; quelli che ci sono gia' li riuso.<br> Il conto voce per voce della bolletta, i cicli degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: stanno nella guida, in <i>esempi/luce</i>.": "You already wrote the price above: here you only pick <b>which kWh sensor</b> the house starts from. I create the meters (hour, today, week, month and yesterday) and the cost of each period, and I wire them to the card; the ones that already exist I reuse.<br> The itemised bill, the appliance cycles and the solar saving are not made from here: they are in the guide, under <i>esempi/luce</i>.",
   "Dei pannelli e della batteria faccio i kWh di oggi e del mese, e li metto nelle righe <i>Dai pannelli</i> e <i>Dalla batteria</i> (spuntale qui sopra). Va bene sia un sensore in kWh sia uno in Watt. Per la batteria scegli quello che dice <b>quanto ha dato alla casa</b> (la scarica), non la percentuale.": "Out of the panels and the battery I make today's and this month's kWh, and I put them in the <i>From the panels</i> and <i>From the battery</i> rows (tick them above). A sensor in kWh is fine, and so is one in watts. For the battery pick the one that says <b>how much it gave to the house</b> (the discharge), not the percentage.",
   "Spunta quelli da buttare. Lo storico che hanno raccolto si perde; la presa e i sensori del dispositivo non si toccano. Ci sono anche le <b>memorie dell'ultimo ciclo</b> e l'<b>automazione</b> che le riempie: se butti quelle, il riquadro dell'ultimo ciclo resta vuoto.": "Tick the ones to throw away. The history they collected is lost; the socket and the device's own sensors are never touched. There are also the <b>last-cycle memories</b> and the <b>automation</b> that fills them: throw those away and the last-cycle box stays empty.",
+  "prima la sola energia, poi quanto costa in bolletta": "energy only first, then what it costs on the bill",
+  "non e' un numero, cosi' non posso sapere se sta lavorando": "is not a number, so I cannot tell whether it is running",
+  "Prezzo della luce": "Electricity price",
   "Fine del ciclo (data e ora)": "Cycle end (date and time)",
   "Durata del ciclo": "Cycle duration",
   "Consumo del ciclo (kWh)": "Cycle energy (kWh)",
@@ -3984,18 +4037,10 @@ const CHIP_SVGS = {
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="24" y="8" width="48" height="80" rx="8" fill="#0f2942"/><rect x="34" y="20" width="28" height="46" rx="4" fill="none" stroke="#8be2ff" stroke-width="3"/><rect x="38" y="26" width="20" height="34" rx="2" fill="#38bdf8"/><circle cx="48" cy="76" r="3" fill="#22c55e"/></svg>',
 };
 
-const ICON_GEAR =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
-const ICON_POWER =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>';
-const ICON_USB =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="20" r="1.6"/><path d="M12 18.4V4"/><path d="M9 7l3-3 3 3"/><path d="M12 12l4-2.5v-2"/><circle cx="16" cy="7" r="1.4"/><path d="M12 14.5 8 12V9.5"/><rect x="6.6" y="7.6" width="2.8" height="2.4" rx=".6"/></svg>';
 const ICON_CHART =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="9"/></svg>';
 const ICON_CLOSE =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
-const ICON_RESTART =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>';
 const ICON_NOTIFCENTER =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l4 4V6l-4 4H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>';
 const ICON_BOLT =
@@ -4050,11 +4095,13 @@ const STYLE = `
 .dm-ap-tool:hover{border-color:#bae6fd;color:var(--dm-blue-deep)}
 .dm-ap-prese{display:flex;flex-wrap:wrap;gap:6px;margin:0 12px 8px}
 .dm-ap-presa{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.2px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;
   padding:4px 10px;border-radius:999px;border:1px solid var(--divider-color);
   background:rgba(127,127,127,.10);color:var(--secondary-text-color);line-height:1.5}
 .dm-ap-presa.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.14)}
 .dm-ap-presa.assente{opacity:.45;cursor:default}
 .dm-ap-presa:active{transform:scale(.97)}
+.dm-ap-presa svg{flex:0 0 auto}
 .dm-ap-tool.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.12)}
 .dm-ap-top-row{display:flex;align-items:stretch;gap:10px;margin:0 13px}
 .dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
@@ -4095,11 +4142,15 @@ const STYLE = `
 .dm-ap-cycle-row-b{padding:4px 6px;border-radius:9px;border:1px solid var(--dm-border);background:var(--dm-card);align-items:center}
 .dm-ap-cycle-label{display:flex;align-items:center;gap:5px;min-width:0;flex:1 1 auto;overflow:hidden}
 .dm-ap-cycle-label small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
-.dm-ap-cycle-row-b b{flex:0 1 auto;max-width:none}
+/* il numero non si accorcia: a stringere e' il nome, che si legge
+   comunque. Con due cifre nella riga del costo il valore finiva in
+   "0,52 . 0,7..." su una colonna stretta */
+.dm-ap-cycle-row-b b{flex:0 0 auto;max-width:none}
 .dm-ap-cycle-ic{display:flex;align-items:center;flex:0 0 auto;color:var(--dm-blue)}
 .dm-colore{border-left:3px solid var(--c)!important;border-radius:4px 9px 9px 4px!important}
 .dm-colore small,.dm-colore b,.dm-colore .dm-ap-cycle-ic,.dm-colore .dm-ap-row-label,.dm-colore .dm-ap-row-val{color:var(--c)!important}
 .dm-colore.dm-forte b,.dm-colore.dm-forte .dm-ap-row-val{font-size:15.5px;font-weight:700}
+.dm-ap-due{margin-left:9px;font-size:.8em;font-weight:600;opacity:.6;letter-spacing:.1px}
 .dm-ap-panel{display:flex;align-items:center;gap:14px;margin:10px 13px 13px;padding:13px 14px;border-radius:16px;background:var(--dm-soft)}
 .dm-ap-meters{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
 .dm-c-meter-clickable{cursor:pointer;border-radius:8px;transition:background .12s ease}
@@ -4113,7 +4164,7 @@ const STYLE = `
 .dm-ap-bar i.dm-ap-progress-bar{background:linear-gradient(90deg,#4ade80,#16a34a)}
 .dm-ap-power-open{cursor:pointer}
 .dm-ap-power-open:hover{filter:brightness(1.04)}
-.dm-ap-chart-svg{width:100%;height:100px;display:block}
+.dm-ap-chart-svg{width:100%;height:auto;display:block;overflow:visible}
 .dm-ap-chart-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
 .dm-ap-chart-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dm-ap-mirino-box{position:relative;touch-action:none}
@@ -4127,9 +4178,9 @@ const STYLE = `
 .dm-ap-warn[hidden]{display:none}
 .dm-test-flag{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#0369a1;background:rgba(14,165,233,.14);border-radius:8px;padding:4px 8px}
 
-.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:var(--dm-velo,rgba(15,23,42,.55));display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,6px))}
+.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:var(--dm-velo,transparent);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
 .dm-ap-overlay[hidden]{display:none}
-.dm-ap-dialog{width:min(440px,100%);max-height:min(84vh,720px);overflow:auto;background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.3)}
+.dm-ap-dialog{width:min(560px,100%);max-height:min(86vh,760px);overflow:auto;background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 26px 80px rgba(15,23,42,.45)}
 .dm-ap-dialog-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 10px;background:var(--dm-finestra,var(--dm-card));border-bottom:1px solid var(--dm-border);z-index:1}
 .dm-ap-dialog-head h3{margin:0;font-size:17px;font-weight:900}
 .dm-ap-dialog-close{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border:0;border-radius:10px;background:var(--dm-soft);color:var(--dm-dim);cursor:pointer}
@@ -4180,7 +4231,7 @@ details.dm-ap-sec-chiusa>summary b{color:var(--dm-text);font-weight:800}
 .dm-ap-reset-note{font-size:12px;color:var(--dm-dim);text-align:center;margin-top:4px}
 
 @media (max-width:600px){
-  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(var(--dm-velo-sfoca,4px))}
+  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
   .dm-ap-dialog{width:100%;max-width:100%;height:94vh;max-height:94vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column}
   .dm-ap-dialog-body{flex:1}
 }
@@ -4191,9 +4242,9 @@ details.dm-ap-sec-chiusa>summary b{color:var(--dm-text);font-weight:800}
 // non tocco il foglio: se un'opzione non c'e' resta il vestito di serie.
 // IL MIRINO DEL GRAFICO DEL POP-UP. `box` e' il riquadro che contiene l'svg,
 // `punti` i dati disegnati, `scrivi(punto)` la scritta del cartellino.
-// L'svg ha viewBox 0 0 300 90 e preserveAspectRatio="none", quindi la x in
-// punti-svg e' la stessa frazione della larghezza vera: i dati cominciano dopo
-// l'asse (24 su 300) e arrivano in fondo. Col mouse basta passarci sopra, col
+// L'svg ha viewBox 0 0 300 90 e riempie la larghezza del riquadro, quindi la
+// x in punti-svg e' la stessa frazione della larghezza vera: i dati cominciano
+// dopo l'asse (30 su 300) e arrivano in fondo. Col mouse basta passarci sopra, col
 // dito si tiene premuto e si trascina (touch-action: none), e alzandolo va via.
 function mirinoGrafico(box, punti, scrivi) {
   if (!box || !punti || punti.length < 2) return;
@@ -4203,7 +4254,7 @@ function mirinoGrafico(box, punti, scrivi) {
   mirino.innerHTML = "<i></i><b></b>";
   box.appendChild(mirino);
   const cartellino = mirino.querySelector("b");
-  const ASSE = 24 / 300;
+  const ASSE = 30 / 300;
 
   const muovi = (ev) => {
     const q = box.getBoundingClientRect();
@@ -4239,6 +4290,24 @@ function mirinoGrafico(box, punti, scrivi) {
 // parte e "0.29 €" dall'altra.
 // Il simbolo al posto del codice della moneta, come fa Home Assistant.
 const SIMBOLI = { EUR: "\u20ac", USD: "$", GBP: "\u00a3", CHF: "CHF" };
+// I tasti di accensione della scheda, da qualunque forma vengano.
+// `tasti` e' quella nuova (entita' + icona); `interruttori` era la fila di
+// tastini col nome; `interruttore`/`interruttore_usb` i due campi di prima.
+// Le metto tutte in un elenco solo, cosi' la scheda ha una strada sola.
+function tastiDi(cfg) {
+  const c = cfg || {};
+  const fuori = [];
+  const metti = (entity, icona, nome) => {
+    if (!entity || fuori.some((x) => x.entity === entity)) return;
+    fuori.push({ entity, icona: icona || "", nome: nome || "" });
+  };
+  (c.tasti || []).forEach((t) => metti(t && t.entity, t && t.icona, t && t.nome));
+  (c.interruttori || []).forEach((t) => metti(t && t.entity, t && t.icona, t && t.label));
+  metti(c.interruttore, "", "");
+  metti(c.interruttore_usb, "usb", "");
+  return fuori;
+}
+
 // Il giorno e il mese scritti nella lingua di chi guarda: "Mar" in italiano
 // e' sia martedi' sia marzo, quindi nel dizionario non ci starebbero entrambi -
 // e comunque il browser lo sa fare meglio.
@@ -4326,6 +4395,41 @@ const ESCLUSI_DI_SERIE = [
   "battery", "batteria", "grid", "power_production", "produzione",
   "landbook", "hub_1200", "ace_1500", "ab1000", "zendure_manager",
 ];
+
+// Tutte le prese di casa che misurano dei Watt, col valore di adesso e il
+// nome senza la coda "potenza". Le usa la scheda per il Top consumo e
+// l'editor per farti togliere la spunta a quelle che non vuoi: e' la stessa
+// ricerca, fatta in un posto solo.
+function preseDiCasa(hass) {
+  const st = (hass && hass.states) || {};
+  const fuori = [];
+  Object.keys(st).forEach((id) => {
+    if (!id.startsWith("sensor.")) return;
+    const a = st[id].attributes || {};
+    if (a.device_class !== "power") return;
+    let w = Number(st[id].state);
+    if (!Number.isFinite(w)) return;
+    const u = String(a.unit_of_measurement || "W");
+    if (u === "kW") w *= 1000;
+    else if (u !== "W") return;
+    const nome = String(a.friendly_name || id)
+      .replace(/\s+(potenza|power)\s*$/i, "").replace(/\s{2,}/g, " ").trim();
+    fuori.push({ entity: id, nome, w: Math.max(0, w) });
+  });
+  return fuori.sort((x, y) => y.w - x.w);
+}
+
+// Questa presa conta nel Top consumo? Chi e' spuntato a mano vince su tutto,
+// poi chi e' tolto a mano, poi le parole.
+function contaNelTop(cfg, id) {
+  const c = cfg || {};
+  if ((c.top_include || []).includes(id)) return true;
+  if ((c.top_exclude_entita || []).includes(id)) return false;
+  if (id === c.power_entity) return false;
+  const parole = (c.top_exclude || ESCLUSI_DI_SERIE).concat(c.top_exclude_piu || [])
+    .map((x) => String(x).toLowerCase());
+  return !parole.some((x) => id.toLowerCase().includes(x));
+}
 
 // Stati scritti in italiano dalle integrazioni (es. LG in LAN), oltre a
 // quelli inglesi che la scheda conosce gia' da sola.
@@ -4581,13 +4685,6 @@ function preparaEnergia(hass, cfg) {
   // il conto voce per voce e il risparmio del fotovoltaico, se ci sono
   if (st["sensor.costi_luce_oggi"]) scheda.bill_today = "sensor.costi_luce_oggi";
   if (st["sensor.costi_luce_mese"]) scheda.bill_month = "sensor.costi_luce_mese";
-  if (st["input_number.prezzo_energia"]) {
-    const righe = [{ entity: "input_number.prezzo_energia", label: "Prezzo energia (€/kWh)" }];
-    if (st["input_number.quota_fissa_energia_giorno"]) {
-      righe.push({ entity: "input_number.quota_fissa_energia_giorno", label: "Quota fissa (€/giorno)" });
-    }
-    scheda.settings_sections = [{ title: "Costi", rows: righe }];
-  }
   return scheda;
 }
 
@@ -9187,7 +9284,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.91.1";
+const VERSIONE = "2.92.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -18702,6 +18799,44 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
 // ({id: "nome"}; vuoto = nome di serie).
 
 
+// Sette disegni a tratto, che prendono il colore della striscia. Quelli
+// della casella sono colorati e sfumati: a 18 pixel dentro a un titolo
+// diventano una macchia.
+const TRATTI = {
+  bacchetta: '<path d="M4 20 14 10"/><path d="M16 4v4M20 8h-4"/><path d="M18 12l1.6 1.6"/><path d="M15 7l2 2"/>',
+  contatore: '<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',
+  accensione: '<path d="M12 3v8"/><path d="M17.5 6.5a8 8 0 1 1-11 0"/>',
+  lista: '<path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',
+  barre: '<path d="M5 19V11M10 19V6M15 19v-5M20 19v-9"/>',
+  clessidra: '<path d="M7 3h10M7 21h10"/><path d="M8 3v3.2a4 4 0 0 0 1.6 3.2L12 12l-2.4 2.6A4 4 0 0 0 8 17.8V21"/><path d="M16 3v3.2a4 4 0 0 1-1.6 3.2L12 12l2.4 2.6a4 4 0 0 1 1.6 3.2V21"/>',
+  tachimetro: '<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',
+  tavolozza: '<path d="M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.8 1.8-1.6 0-1.6 1-2.2 2.2-2.2H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"/><circle cx="8" cy="10" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="15.8" cy="10" r="1.1" fill="currentColor" stroke="none"/>',
+};
+
+// il titolo di una tendina: icona, nome, riassunto e riga di spiegazione
+function titoloSez(v, testo) {
+  v = v || [];
+  return icoSez(v[0]) + '<span class="ce-sez-testo">' + testo
+    + '<span class="ce-riassunto"></span>'
+    + (v[2] ? '<small class="ce-sotto">' + T(v[2]) + "</small>" : "")
+    + "</span>";
+}
+
+function icoSez(nome) {
+  const d = TRATTI[nome];
+  if (!d) return "";
+  return '<span class="ce-sez-ico"><svg viewBox="0 0 24 24" fill="none"'
+    + ' stroke="currentColor" stroke-width="1.9" stroke-linecap="round"'
+    + ' stroke-linejoin="round">' + d + "</svg></span>";
+}
+
+// la striscia di colore a sinistra della tendina
+function vestiSez(box, veste) {
+  if (!box || !veste || !veste[1]) return;
+  box.dataset.c = "1";
+  box.style.setProperty("--c", veste[1]);
+}
+
 const STILE_EDITOR = `
 .ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
   border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;
@@ -18722,6 +18857,16 @@ const STILE_EDITOR = `
 
   .ce-sez{margin-top:18px;padding:12px;border-radius:12px;border:1px solid var(--divider-color,#444)}
   .ce-tit{font-weight:600;margin-bottom:4px}
+  /* ogni tendina si riconosce: la sua striscia, la sua icona, la sua riga
+     di spiegazione sotto al titolo. Chiuse erano otto rettangoli uguali. */
+  .ce-sez[data-c]{border-left:3px solid var(--c)}
+  details.ce-sez>summary.ce-tit{display:flex;align-items:flex-start;gap:8px}
+  .ce-sez-ico{flex:0 0 auto;width:18px;height:18px;margin-top:1px;color:var(--c,var(--secondary-text-color))}
+  .ce-sez-ico svg{width:18px;height:18px;display:block}
+  .ce-sez-testo{min-width:0;flex:1 1 auto}
+  .ce-sotto{display:block;font-weight:400;font-size:12px;line-height:1.35;
+    color:var(--secondary-text-color);margin-top:1px}
+  details.ce-sez[open] .ce-sotto{display:none}
   .ce-aiuto{font-size:12.5px;color:var(--secondary-text-color);margin-bottom:10px}
   .ce-riga{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;margin-bottom:4px;background:var(--secondary-background-color,#222)}
   .ce-riga.spenta{opacity:.5}
@@ -18737,11 +18882,26 @@ const STILE_EDITOR = `
   .ce-tutto-riga{cursor:pointer;margin:6px 0 10px;gap:10px;font-size:13px}
   details.ce-sez>summary{cursor:pointer;list-style:none}
   details.ce-sez>summary::-webkit-details-marker{display:none}
-  details.ce-sez>summary:before{content:'\\25b8 ';opacity:.6}
+  details.ce-sez>summary:before{content:'\\25b8 ';opacity:.6;flex:0 0 auto}
   details.ce-sez[open]>summary:before{content:'\\25be ';opacity:.6}
   .ce-esito{margin-top:10px;font-size:12.5px;white-space:pre-wrap;color:var(--secondary-text-color)}
   .ce-esito.male{color:var(--error-color,#e46)}
   .ce-riga select{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
+  .ce-tasto{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .ce-tasto .chi{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+  .ce-tasto button{border:1px solid var(--divider-color,#555);background:none;color:inherit;border-radius:9px;cursor:pointer;padding:3px}
+  .ce-tasto .icona{width:38px;height:38px;display:grid;place-items:center}
+  .ce-tasto .icona svg{width:30px;height:30px}
+  .ce-tasto .via{width:30px;height:30px;opacity:.7;font-size:15px}
+  .ce-catalogo{margin:4px 0 10px;padding:8px;border:1px solid var(--divider-color,#555);border-radius:10px}
+  .ce-catalogo input{width:100%;box-sizing:border-box;padding:6px 8px;border-radius:8px;
+    border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit}
+  .ce-icone{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:4px;margin-top:8px;
+    max-height:240px;overflow:auto}
+  .ce-icone button{border:1px solid transparent;background:none;border-radius:8px;cursor:pointer;padding:3px}
+  .ce-icone button:hover{border-color:var(--primary-color)}
+  .ce-icone button.scelta{border-color:var(--primary-color);background:rgba(127,127,127,.15)}
+  .ce-icone svg{width:34px;height:34px;display:block}
   .ce-prepara{margin-top:10px;border:1px solid var(--primary-color);background:none;color:var(--primary-color);border-radius:9px;padding:7px 12px;cursor:pointer}
 `;
 
@@ -18898,6 +19058,93 @@ function quali_cancellare(box, elenco, hass, poi) {
   });
 }
 
+// ---------------------------------------------------------------- i tasti
+// Il catalogo delle icone, lo stesso della casella: quelle disegnate piu'
+// tutte le MDI. Si cerca per nome e per sinonimo ("spina" trova la presa).
+function catalogo(cerca) {
+  const tutte = NOMI_ICONE.concat(NOMI_MDI);
+  const q = String(cerca || "").trim().toLowerCase();
+  if (!q) return tutte.slice(0, 160);
+  const parole = (n) => (n + " " + (SINONIMI[n] || "") + " " + (MDI_PAROLE[n] || "")).toLowerCase();
+  return tutte.filter((n) => parole(n).includes(q)).slice(0, 160);
+}
+
+function disegnaCatalogo(box, scelta, poi) {
+  box.innerHTML = "";
+  const cerca = document.createElement("input");
+  cerca.type = "search";
+  cerca.placeholder = T("Cerca l'icona: presa, luce, spina...");
+  const griglia = document.createElement("div");
+  griglia.className = "ce-icone";
+  box.appendChild(cerca);
+  box.appendChild(griglia);
+  const riempi = () => {
+    griglia.innerHTML = catalogo(cerca.value).map((n) => `<button type="button" data-n="${n}"
+      class="${n === scelta ? "scelta" : ""}" title="${n}"><svg viewBox="0 0 64 64">${
+      ICONE[n] || disegnoMdi(n) || ""}</svg></button>`).join("");
+  };
+  riempi();
+  cerca.addEventListener("input", riempi);
+  griglia.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-n]");
+    if (b) poi(b.dataset.n);
+  });
+  setTimeout(() => cerca.focus(), 0);
+}
+
+/**
+ * Il riquadro dei tasti di accensione: una riga per tasto (icona, nome,
+ * cestino) e in fondo "Aggiungi". `scrivi(elenco)` riceve l'elenco nuovo.
+ */
+function disegnaTasti(box, elenco, hass, scrivi) {
+  const nome = (eid) => {
+    const st = hass && hass.states[eid];
+    return (st && st.attributes && st.attributes.friendly_name) || eid;
+  };
+  box.innerHTML = "";
+  (elenco || []).forEach((t, i) => {
+    const riga = document.createElement("div");
+    riga.className = "ce-tasto";
+    riga.innerHTML = `<button type="button" class="icona" title="${T("Scegli l'icona")}">
+        <svg viewBox="0 0 64 64">${ICONE[t.icona] || disegnoMdi(t.icona) || ICONE.presa || ""}</svg>
+      </button><span class="chi"></span>
+      <button type="button" class="via" title="${T("Togli questo tasto")}">\u00d7</button>`;
+    riga.querySelector(".chi").textContent = nome(t.entity);
+    const sotto = document.createElement("div");
+    sotto.className = "ce-catalogo";
+    sotto.hidden = true;
+    riga.querySelector(".icona").addEventListener("click", () => {
+      if (!sotto.hidden) { sotto.hidden = true; return; }
+      sotto.hidden = false;
+      disegnaCatalogo(sotto, t.icona, (scelto) => {
+        const n = (elenco || []).map((x, k) => (k === i ? { ...x, icona: scelto } : x));
+        scrivi(n);
+      });
+    });
+    riga.querySelector(".via").addEventListener("click", () => {
+      scrivi((elenco || []).filter((x, k) => k !== i));
+    });
+    box.appendChild(riga);
+    box.appendChild(sotto);
+  });
+  const riga = document.createElement("div");
+  riga.className = "ce-riga";
+  riga.innerHTML = `<span class="ent">${T("Aggiungi un tasto")}</span>`;
+  const sceglitore = document.createElement("ha-entity-picker");
+  sceglitore.allowCustomEntity = true;
+  if (hass) sceglitore.hass = hass;
+  sceglitore.includeDomains = ["switch", "light", "input_boolean", "fan", "humidifier", "script"];
+  sceglitore.addEventListener("value-changed", (ev) => {
+    ev.stopPropagation();
+    const id = ev.detail.value;
+    sceglitore.value = "";
+    if (!id || (elenco || []).some((x) => x.entity === id)) return;
+    scrivi((elenco || []).concat([{ entity: id, icona: "" }]));
+  });
+  riga.appendChild(sceglitore);
+  box.appendChild(riga);
+}
+
 // Il tasto "Crea i sensori base" dell'editor di casa-energia.
 //
 // Crea in Home Assistant, al posto tuo, la parte noiosa: i contatori
@@ -19032,6 +19279,61 @@ function idDellaVoce(hass, v) {
   return altro || v.id;
 }
 const ID_TOTALE = "input_number.prezzo_energia";
+
+// LO SCRIPT DELL'AZZERAMENTO. Uno per tutta la casa: non sa quali apparecchi
+// hai, gli arrivano le entita' come variabili dal tasto della scheda. Cosi'
+// non va riscritto per ogni elettrodomestico, e chi installa non deve
+// scriverselo. Il mese lo lascia stare se non glielo chiedi.
+const ID_AZZERA = "casa_tile_azzera";
+
+function passoAzzera(titolo, quale, servizio, valore) {
+  return {
+    alias: titolo,
+    if: [{ condition: "template",
+      value_template: "{{ " + quale + " | default('', true) != ''"
+        + " and states(" + quale + ") not in ['unknown', 'unavailable'] }}" }],
+    then: [{ action: servizio, target: { entity_id: "{{ " + quale + " }}" }, data: valore }],
+  };
+}
+
+async function creaScriptAzzera(hass, dillo) {
+  const parla = dillo || (() => {});
+  const eid = "script." + ID_AZZERA;
+  if (hass.states[eid]) return eid;
+  parla("Creo lo script dell'azzeramento...");
+  const mese = passoAzzera("Il mese, solo se lo hai chiesto", "mese",
+    "utility_meter.calibrate", { value: "0" });
+  mese.if[0].value_template = "{{ anche_il_mese | default(false)"
+    + " and mese | default('', true) != ''"
+    + " and states(mese) not in ['unknown', 'unavailable'] }}";
+  const conf = {
+    alias: "Azzera i contatori di un apparecchio",
+    icon: "mdi:restart",
+    mode: "single",
+    description: "Lo chiama il tasto \u00abAzzera i contatori\u00bb delle schede"
+      + " casa-elettrodomestico, che gli passa le entita' di quell'apparecchio."
+      + " Uno solo basta per tutta la casa. Lo storico gia' registrato non si tocca.",
+    fields: {
+      anche_il_mese: {
+        name: "Azzera anche il mese",
+        description: "Spento azzera oggi, la settimana e l'ultimo ciclo",
+        default: false,
+        selector: { boolean: {} },
+      },
+    },
+    sequence: [
+      passoAzzera("Il contatore di oggi", "oggi", "utility_meter.calibrate", { value: "0" }),
+      passoAzzera("Il contatore della settimana", "settimana", "utility_meter.calibrate", { value: "0" }),
+      mese,
+      passoAzzera("Il contatore del ciclo in corso", "ciclo_contatore", "utility_meter.calibrate", { value: "0" }),
+      passoAzzera("I kWh dell'ultimo ciclo", "ciclo_kwh", "input_number.set_value", { value: 0 }),
+      passoAzzera("I minuti dell'ultimo ciclo", "ciclo_minuti", "input_number.set_value", { value: 0 }),
+    ],
+  };
+  await hass.callApi("POST", "config/script/config/" + ID_AZZERA, conf);
+  parla("Script dell'azzeramento: " + eid);
+  return eid;
+}
 
 // Il prezzo che la scheda della casa tiene per tutti: la SOLA energia, quella
 // che va sugli apparecchi e sulle prese. Se non c'e', il totale.
@@ -19286,7 +19588,6 @@ async function creaSensoriBase(hass, opzioni, dillo) {
     if (costi.ieri) ieri.cost = costi.ieri;
     patch.periods_prev = [ieri];
   }
-  patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
   dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'."
     + (rimessi ? " " + rimessi + " sono ripartiti dal valore di prima." : ""));
   return patch;
@@ -19852,10 +20153,17 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   if (Object.keys(memoria).length) patch.helper_memoria = null;
   // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"
   if (kwh) patch.energy_stat_entity = kwh;
+  // il tasto "Azzera i contatori" vuole uno script: se non ne hai gia' uno tuo
+  // glielo faccio io, ed e' lo stesso per tutta la casa
+  if (!opzioni.reset_script) {
+    try {
+      patch.reset_script = await creaScriptAzzera(hass, dillo);
+      conto.creati = conto.creati + (hass.states[patch.reset_script] ? 0 : 1);
+    } catch (e) { dillo("Lo script dell'azzeramento non sono riuscito a crearlo: " + (e.message || e)); }
+  }
   if (cicli.oggi) patch.stats.cycles_today = cicli.oggi;
   if (cicli.settimana) patch.stats.cycles_week = cicli.settimana;
   if (cicli.mese) patch.stats.cycles_month = cicli.mese;
-  patch.settings_sections = [{ title: "Costi", rows: [{ entity: prezzo, label: "Prezzo energia (€/kWh)" }] }];
   dillo("Fatto: " + conto.creati + " creati, " + conto.riusati + " c'erano gia'.");
   return patch;
 }
@@ -20048,7 +20356,88 @@ function scollegaEntita(cfg, spariti) {
 
 
 // ---------------------------------------------------------------- le schede
+// Il disegno di un tasto: l'icona scelta (le stesse della casella). Se non
+// ne hai scelta una non metto niente: il tasto e' il suo nome e basta.
+function svgTasto(icona) {
+  const dentro = icona ? (ICONE[icona] || disegnoMdi(icona) || "") : "";
+  if (!dentro) return "";
+  return '<svg viewBox="0 0 64 64" width="14" height="14">' + dentro + "</svg>";
+}
+
 const ConFinestrelle = (Base) => class extends Base {
+  // La fila dei tasti, uguale per le due schede: si disegna una volta, si
+  // accende e si spegne al clic. Si leggono per nome - i tondini muti in
+  // alto erano indovinelli, e chi aveva le prese le vedeva pure due volte.
+  _tastiHtml() {
+    const lista = tastiDi(this._config);
+    if (!lista.length) return "";
+    return `<div class="dm-ap-prese">` + lista.map((t, i) => `<button type="button"
+      class="dm-ap-presa dm-ap-tasto" data-tasto="${i}"
+      title="${esc(t.nome || t.entity)}">${svgTasto(t.icona)}<span
+      class="dm-ap-tasto-nome">${esc(t.nome || t.entity)}</span></button>`).join("") + `</div>`;
+  }
+
+  _tastiAggancia() {
+    tastiDi(this._config).forEach((t, i) => {
+      const b = this._root.querySelector(`.dm-ap-tasto[data-tasto="${i}"]`);
+      if (!b || b._agganciato) return;
+      b._agganciato = true;
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this._hass?.callService(t.entity.split(".")[0], "toggle", { entity_id: t.entity });
+      });
+    });
+  }
+
+  _tastiAggiorna(hass) {
+    tastiDi(this._config).forEach((t, i) => {
+      const b = this._root.querySelector(`.dm-ap-tasto[data-tasto="${i}"]`);
+      if (!b) return;
+      const stato = hass.states[t.entity] || {};
+      const st = stato.state;
+      // il nome vero. A setConfig `hass` non c'era ancora e restava l'id
+      if (!t.nome) {
+        const nome = (stato.attributes || {}).friendly_name || t.entity;
+        if (b.title !== nome) b.title = nome;
+        const eti = b.querySelector(".dm-ap-tasto-nome");
+        if (eti && eti.textContent !== nome) eti.textContent = nome;
+      }
+      b.classList.toggle("acceso", !!st && !["off", "unavailable", "unknown"].includes(st));
+      b.classList.toggle("assente", !st || ["unavailable", "unknown"].includes(st));
+    });
+  }
+
+  // Il prezzo PIENO della bolletta - energia piu' rete, accise e IVA. Non si
+  // configura: la scheda grande lo scrive sempre nello stesso aiutante, ed e'
+  // la convenzione con cui in questo progetto le schede si passano la tariffa.
+  // Se non c'e', o se e' lo stesso di quello della sola energia, non c'e'
+  // niente da far vedere in piu' e la riga del costo resta com'era.
+  _prezzoPieno(hass) {
+    const p = Number((hass.states[ID_TOTALE] || {}).state);
+    const solo = Number((hass.states[this._config.prezzo_entita] || {}).state);
+    if (!Number.isFinite(p) || p <= 0) return 0;
+    if (Number.isFinite(solo) && Math.abs(p - solo) < 0.0005) return 0;
+    return p;
+  }
+
+  // Il costo su una riga sola: la sola energia e, staccata, quanto ti costa
+  // in bolletta. Due righe per dire due numeri erano troppe, ma attaccate
+  // sembravano un numero lungo: la seconda va piu' piccola e piu' chiara.
+  _scriviCosto(el, solo, pieno) {
+    if (!el) return;
+    el.textContent = Number.isFinite(Number(solo))
+      ? `${numero(Number(solo), 2)} \u20ac` : "\u2014";
+    if (Number.isFinite(Number(solo)) && Number.isFinite(Number(pieno)) && Number(pieno) > 0) {
+      const due = document.createElement("span");
+      due.className = "dm-ap-due";
+      due.textContent = `${numero(Number(pieno), 2)} \u20ac`;
+      el.appendChild(due);
+      el.title = T("prima la sola energia, poi quanto costa in bolletta");
+    } else {
+      el.removeAttribute("title");
+    }
+  }
+
   // una riga "nome ..... valore" dentro a una finestrella
   _row(label, valueHtml) {
     return `<div class="dm-ap-row"><span class="dm-ap-row-label">${esc(label)}</span>${valueHtml}</div>`;
@@ -20079,30 +20468,15 @@ const ConFinestrelle = (Base) => class extends Base {
     return overlay;
   }
 
-  // una riga delle impostazioni: un interruttore se si accende, se no il
-  // valore che si apre nel pop-up di Home Assistant
-  _settingsRowHtml(hass, row) {
-    const st = hass.states[row.entity];
-    if (!st) return this._row(row.label, `<span class="dm-ap-row-val">${T("n/d")}</span>`);
-    const domain = row.entity.split(".")[0];
-    if (["input_boolean", "automation", "switch"].includes(domain)) {
-      const on = st.state === "on";
-      return this._row(
-        row.label,
-        `<button type="button" class="dm-ap-switch${on ? " on" : ""}" data-entity="${esc(row.entity)}" aria-pressed="${on}"></button>`,
-      );
-    }
-    // il simbolo al posto del codice della moneta (EUR -> €), come fa HA
-    const unit = unitaBella(st.attributes?.unit_of_measurement);
-    return `<div class="dm-ap-row" data-open-entity="${esc(row.entity)}" style="cursor:pointer">
-      <span class="dm-ap-row-label">${esc(row.label)}</span>
-      <span class="dm-ap-row-val">${esc(st.state)}${unit ? " " + esc(unit) : ""}</span>
-    </div>`;
-  }
-
   // -- i grafici, disegnati a mano: nessuna libreria ------------------------
   _fmtAxis(v) {
     if (!Number.isFinite(v)) return "0";
+    // da mille in su si accorcia: "2,5k" sta nel margine, "2500" no
+    if (Math.abs(v) >= 1000) {
+      const k = v / 1000;
+      const s = (Math.abs(k) >= 10 ? k.toFixed(0) : k.toFixed(1)).replace(".", ",");
+      return (s.endsWith(",0") ? s.slice(0, -2) : s) + "k";
+    }
     const s = Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1);
     return s.endsWith(".0") ? s.slice(0, -2) : s;
   }
@@ -20149,7 +20523,7 @@ const ConFinestrelle = (Base) => class extends Base {
     const width = 300;
     const height = 90;
     // asse sinistro: riserva spazio per i valori min/max, riferimento comune ai 3 grafici
-    const plotX0 = 24;
+    const plotX0 = 30;
     const plotW = width - plotX0;
     const values = points.map((p) => p.y);
     // Con una scala fissa (basata sul picco storico reale) il minimo resta
@@ -20159,8 +20533,12 @@ const ConFinestrelle = (Base) => class extends Base {
     const min = fixedMax ? 0 : Math.min(...values, 0);
     const max = fixedMax ? Math.max(fixedMax, ...values) : Math.max(...values, min + 1);
     const range = max - min || 1;
-    const stepX = points.length > 1 ? plotW / (points.length - 1) : 0;
-    const coords = points.map((p, i) => [plotX0 + i * stepX, height - ((p.y - min) / range) * (height - 6) - 3]);
+    const alt = (y) => height - ((y - min) / range) * (height - 6) - 3;
+    // un punto solo (sensore fermo da ore): e' una riga dritta per tutta la
+    // larghezza, non un disegno vuoto
+    const coords = points.length > 1
+      ? points.map((p, i) => [plotX0 + (i * plotW) / (points.length - 1), alt(p.y)])
+      : [[plotX0, alt(points[0].y)], [width, alt(points[0].y)]];
     let linea;
     let area;
     if (this._morbida) {
@@ -20171,10 +20549,10 @@ const ConFinestrelle = (Base) => class extends Base {
       linea = `M ${punti.split(" ").join(" L ")}`;
       area = `${linea} L ${coords[coords.length - 1][0].toFixed(1)},${height} L ${coords[0][0].toFixed(1)},${height} Z`;
     }
-    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg" preserveAspectRatio="none">
+    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg">
       <line x1="${plotX0}" y1="3" x2="${plotX0}" y2="${height - 3}" stroke="#94a3b840" stroke-width="1"/>
-      <text x="${plotX0 - 4}" y="8" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
-      <text x="${plotX0 - 4}" y="${height - 3}" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(min)}</text>
+      <text x="${plotX0 - 4}" y="8" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
+      <text x="${plotX0 - 4}" y="${height - 3}" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(min)}</text>
       <path d="${area}" fill="${color}" opacity="0.14"/>
       <path d="${linea}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
     </svg>`;
@@ -20223,11 +20601,17 @@ const ConEditor = (Base) => class extends Base {
   }
 
   set hass(hass) {
+    const primo = !this._hass;
     this._hass = hass;
     // la lingua la chiedo io: un editor si puo' aprire prima che una scheda
     // sia stata disegnata, e li' nessuno l'avrebbe ancora scelta
     scegliLingua(hass);
-    if (this._form) this._form.hass = hass;
+    // a TUTTI i moduli, non solo a quello in cima: un ha-form senza `hass`
+    // non disegna un bel niente, e il cassetto si apriva vuoto
+    (this._moduli || (this._form ? [this._form] : [])).forEach((f) => { f.hass = hass; });
+    // se `hass` arriva dopo la configurazione, gli elenchi che si leggono da
+    // casa (i kWh, i prezzi, i tasti, il sceglitore) erano rimasti vuoti
+    if (primo && this._costruito) this._disegna();
   }
 
   _emetti() {
@@ -20341,7 +20725,6 @@ const RIGHE_OGGI = [
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
 
-const VUOTO$1 = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
 
 class CasaEnergia extends ConFinestrelle(HTMLElement) {
   // Le righe del riquadro Oggi, nell'ordine della configurazione (`righe`).
@@ -20386,9 +20769,6 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
       periods_prev: [],
       weekdays: {},
       circuits: [],
-      switches: [],
-      actions: [],
-      settings_sections: [],
       ...config,
     };
     vestiFinestra(this, this._config);
@@ -20406,13 +20786,11 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
           <span class="dm-ap-badge run"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label">ONLINE</span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
-            ${this._config.interruttore ? `<button type="button" class="dm-ap-tool dm-ap-power" title="Accendi / spegni">${ICON_POWER}</button>` : ""}
-            ${this._config.interruttore_usb ? `<button type="button" class="dm-ap-tool dm-ap-usb" title="USB">${ICON_USB}</button>` : ""}
-            <button type="button" class="dm-ap-tool dm-ap-settings" title="Impostazioni">${ICON_GEAR}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
-            <button type="button" class="dm-ap-tool dm-ap-consumi" title="Circuiti">${ICON_BOLT}</button>
+            <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
         </div>
+        ${this._tastiHtml()}
         <div class="dm-ap-top-row">
           <div class="dm-ap-hero">${hero}</div>
           <div class="dm-ap-cycle-side">
@@ -20422,7 +20800,6 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
             </div>
           </div>
         </div>
-        <div class="dm-ap-warn" hidden></div>
         <div class="dm-ap-panel">
           <div class="dm-ap-meters"></div>
         </div>
@@ -20455,23 +20832,7 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
       window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
     });
     // i due interruttori della presa: quello grande e quello delle USB
-    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
-      this._root.querySelector(sel)?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const eid = this._config[chiave];
-        this._hass?.callService(eid.split(".")[0], "toggle", { entity_id: eid });
-      });
-    });
-    this._root.querySelector(".dm-ap-settings").addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (this._config.legacy_settings_popup) {
-        const event = new Event("ll-custom", { bubbles: true, composed: true });
-        event.detail = { browser_mod: this._config.legacy_settings_popup };
-        this.dispatchEvent(event);
-      } else {
-        this._openSettings();
-      }
-    });
+    this._tastiAggancia();
     if (this._config.bill_today || this._config.bill_month) {
       const lato = this._root.querySelector(".dm-ap-cycle-side");
       lato.style.cursor = "pointer";
@@ -20494,85 +20855,11 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
     });
   }
 
-  _actionRowHtml(row) {
-    const target = row.service ? row.service : row.entity;
-    return `<div class="dm-ap-row">
-      <span class="dm-ap-row-label">${esc(row.label)}</span>
-      <button type="button" class="dm-ap-action-btn" data-action-target="${esc(target)}" data-action-kind="${row.service ? "service" : "script"}" data-confirm="${esc(row.confirm || "")}">Esegui</button>
-    </div>`;
-  }
-
-  _openSettings() {
-    const hass = this._hass;
-    const sections = (this._config.settings_sections || [])
-      .map((sec) => {
-        const righe = (sec.rows || []).map((row) => this._settingsRowHtml(hass, row)).join("");
-        if ((sec.rows || []).length <= 3 && !sec.chiuso) {
-          return `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">${esc(sec.title)}</div>${righe}</div>`;
-        }
-        // il numero da mettere nel titolo: l'ultima riga (di solito il totale)
-        const ultima = sec.rows[sec.rows.length - 1];
-        const st = ultima && hass.states[ultima.entity];
-        const valore = st ? `${st.state}${st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : ""}` : "";
-        return `<details class="dm-ap-sec dm-ap-sec-chiusa">
-          <summary class="dm-ap-sec-cap">${esc(sec.title)}${valore ? ` \u00b7 <b>${esc(valore)}</b>` : ""}</summary>
-          ${righe}
-        </details>`;
-      })
-      .join("");
-
-    const switchesHtml = (this._config.switches || [])
-      .map((s) => this._settingsRowHtml(hass, s))
-      .join("");
-
-    const actions = this._config.actions || [];
-    const actionsHtml = actions.length
-      ? `<div class="dm-ap-sec">
-           <div class="dm-ap-sec-cap">Strumenti</div>
-           ${actions.map((a) => this._actionRowHtml(a)).join("")}
-         </div>`
-      : "";
-
-    const dentro = `${sections}${switchesHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Interruttori</div>${switchesHtml}</div>` : ""}${actionsHtml}`;
-    const overlay = this._openDialog(
-      "Impostazioni",
-      dentro.trim() ? dentro : VUOTO$1,
-    );
-
-    overlay.querySelectorAll("[data-entity]").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const entity = btn.dataset.entity;
-        const domain = entity.split(".")[0];
-        hass.callService(domain, "toggle", { entity_id: entity });
-        setTimeout(() => this._openSettings(), 200);
-      });
-    });
-    overlay.querySelectorAll("[data-open-entity]").forEach((row) => {
-      row.addEventListener("click", () => {
-        const e = new Event("hass-more-info", { bubbles: true, composed: true });
-        e.detail = { entityId: row.dataset.openEntity };
-        this.dispatchEvent(e);
-      });
-    });
-    overlay.querySelectorAll("[data-action-target]").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const confirmText = btn.dataset.confirm;
-        if (confirmText && !window.confirm(confirmText)) return;
-        if (btn.dataset.actionKind === "service") {
-          const [domain, service] = btn.dataset.actionTarget.split(".");
-          hass.callService(domain, service, {});
-        } else {
-          hass.callService("script", "turn_on", { entity_id: btn.dataset.actionTarget });
-        }
-      });
-    });
-  }
-
   // questa scheda addolcisce la linea del grafico
   get _morbida() { return true; }
 
+  // Quale prezzo apre l'ingranaggio: quello scelto nella scheda, se no la
+  // prima riga delle impostazioni, se no il totale della bolletta.
   _statRow(label, value) {
     return this._row(label, `<span class="dm-ap-row-val">${esc(value)}</span>`);
   }
@@ -20726,31 +21013,9 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
   // quelli che contengono una delle parole di top_exclude (produzione, batterie...).
   _autoLoads(hass) {
     const cfg = this._config;
-    // `top_exclude` SOSTITUISCE l'elenco di serie; `top_exclude_piu` ci si
-    // aggiunge, che e' quasi sempre quello che uno vuole
-    const excl = (cfg.top_exclude || ESCLUSI_DI_SERIE)
-      .concat(cfg.top_exclude_piu || [])
-      .map((p) => String(p).toLowerCase());
-    const incl = new Set(cfg.top_include || []);
-    const loads = [];
-    Object.values(hass.states).forEach((st) => {
-      const id = st.entity_id;
-      if (!id.startsWith("sensor.") || id === cfg.power_entity) return;
-      const a = st.attributes || {};
-      if (!incl.has(id)) {
-        if (a.device_class !== "power") return;
-        if (excl.some((p) => id.toLowerCase().includes(p))) return;
-      }
-      let w = Number(st.state);
-      if (!Number.isFinite(w)) return;
-      const unit = String(a.unit_of_measurement || "W");
-      if (unit === "kW") w *= 1000;
-      else if (unit !== "W") return;
-      const label = String(a.friendly_name || id)
-        .replace(/\s+(potenza|power)\s*$/i, "").replace(/\s{2,}/g, " ").trim();
-      loads.push({ label, entity: id, live: Math.max(0, w) });
-    });
-    loads.sort((x, y) => y.live - x.live);
+    const loads = preseDiCasa(hass)
+      .filter((x) => contaNelTop(cfg, x.entity))
+      .map((x) => ({ label: x.nome, entity: x.entity, live: x.w }));
     const tot = Number(hass.states[cfg.power_entity]?.state);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
     const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;
@@ -20761,6 +21026,7 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
     const doppione = Number.isFinite(tot) && misurato > tot + Math.max(20, tot * 0.05);
     return { loads, non, tot, doppione, misurato };
   }
+
 
   // Quali barre far vedere adesso: o quelle scritte nell'editor, o - se hai
   // scelto "le piu' accese" - le prime della casa in questo momento.
@@ -21020,26 +21286,8 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
       bar.style.background = meterSeverityColor(pct);
     });
 
-    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
-      const t = this._root.querySelector(sel);
-      if (!t) return;
-      const st = hass.states[cfg[chiave]]?.state;
-      t.classList.toggle("acceso", !!st && !["off", "unavailable", "unknown"].includes(st));
-    });
+    this._tastiAggiorna(hass);
 
-    const warnEl = this._root.querySelector(".dm-ap-warn");
-    const soglia = cfg.soglia_entity ? Number(hass.states[cfg.soglia_entity]?.state) : null;
-    const card = this._root.querySelector(".dm-ap-card");
-    // un sensore non disponibile da' NaN: "NaN != null" e' vero e il
-    // confronto sotto e' sempre falso, cosi' l'avviso non sarebbe mai scattato
-    if (Number.isFinite(soglia) && wattVal > soglia) {
-      warnEl.hidden = false;
-      warnEl.textContent = `\u26a0 Soglia superata: ${numero(wattVal, 0)} W (limite ${numero(soglia, 0)} W)`;
-      card.classList.add("has-alarm");
-    } else {
-      warnEl.hidden = true;
-      card.classList.remove("has-alarm");
-    }
   }
 
 }
@@ -21051,14 +21299,8 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
 // sensore, e chi li ha gia' configurati a mano li ritrova come erano.
 
 
-// quello che si legge sotto al campo, per i tre che sembrano vuoti e rotti
-const AIUTI = {
-  top_exclude: "Vuoto = valgono le parole di serie (batterie, inverter, fotovoltaico, solar, grid...): "
-    + ESCLUSI_DI_SERIE.slice(0, 8).join(", ") + "...",
-  top_include: "Vuoto = nessuna forzatura. Serve solo per una presa che una parola qui sopra escluderebbe.",
-  top_min_w: "Vuoto = 5 W. Sotto questa soglia un apparecchio non vale come 'top'.",
-  unmeasured_label: "Vuoto = «Non misurato»: quanto consuma la casa fuori dalle prese che misurano.",
-};
+// quello che si legge sotto al campo
+const AIUTI = {};
 
 // il campo tiene una lista: quello che c'era prima (un'entita' sola) vale uguale
 const lista = (v) => (Array.isArray(v) ? v : (v ? [v] : []));
@@ -21066,17 +21308,14 @@ const lista = (v) => (Array.isArray(v) ? v : (v ? [v] : []));
 const ETICHETTE$1 = {
   name: "Nome della scheda",
   power_entity: "Potenza della casa (W) - obbligatoria",
-  artwork: "Disegno",
+  artwork: "Icona",
   interruttore: "Tasto \u23fb nella barra in alto: cosa accende e spegne",
   interruttore_usb: "Secondo tasto per le prese USB (se ci sono)",
   oggi_energia: "Contatore dei kWh di OGGI (aiutante «contatore di utenza», ciclo giornaliero)",
   oggi_costo: "Sensore degli EURO di oggi (i kWh per il prezzo)",
   mese_energia: "Contatore dei kWh del MESE (stesso aiutante, ciclo mensile)",
   mese_costo: "Sensore degli EURO del mese",
-  soglia_entity: "Entit\u00e0 con la soglia d'allarme (facoltativa)",
-  switches: "Interruttori da mettere nelle impostazioni",
   max_power: "Fondo scala della barra (W, es. 3300 con 3 kW)",
-  circuiti: "Circuiti da mostrare con la barra (prese o sensori in W)",
   top_auto: "Top consumo automatico (cerca da solo tutte le prese che misurano)",
   top_min_w: "Sotto questi W non e' «top»",
   unmeasured_label: "Nome della voce «Non misurato»",
@@ -21123,23 +21362,6 @@ const SCHEMA_TUTTO$1 = [
     { value: "nas", label: "NAS" },
     { value: "fritzbox", label: "Router" },
     { value: "proxmox", label: "Proxmox" }] } } },
-  { name: "g_tasti", type: "expandable", flatten: true, title: "Tasti e interruttori", schema: [
-    { name: "interruttore", selector: { entity: {} } },
-    { name: "interruttore_usb", selector: { entity: {} } },
-    { name: "switches", selector: { entity: { multiple: true } } },
-    { name: "soglia_entity", selector: { entity: {} } },
-  ] },
-  { name: "g_barre", type: "expandable", flatten: true, title: "Barre dei circuiti", schema: [
-    { name: "circuiti", selector: { entity: { multiple: true, domain: "sensor", device_class: "power" } } },
-    { name: "max_power", selector: { number: { min: 500, max: 30000, step: 100, mode: "box", unit_of_measurement: "W" } } },
-  ] },
-  { name: "g_top", type: "expandable", flatten: true, title: "Top consumo (chi consuma di piu')", schema: [
-    { name: "top_auto", selector: { boolean: {} } },
-    { name: "top_min_w", selector: { number: { min: 0, max: 1000, step: 1, mode: "box", unit_of_measurement: "W" } } },
-    { name: "top_include", selector: { entity: { multiple: true, domain: "sensor" } } },
-    { name: "top_exclude", selector: { text: { multiple: true } } },
-    { name: "unmeasured_label", selector: { text: {} } },
-  ] },
   { name: "g_aspetto", type: "expandable", flatten: true, title: "Aspetto e finestra del pop-up", schema: [
     { name: "notification_path", selector: { text: {} } },
     { name: "finestra_sfondo", selector: { color_rgb: {} } },
@@ -21150,11 +21372,32 @@ const SCHEMA_TUTTO$1 = [
   ] },
 ];
 
-// appena apri vedi solo l'essenziale; il resto con l'interruttore
-const SCHEMA_SEMPLICE$1 = ["name", "power_entity", "artwork"]
+// Appena apri vedi solo questi tre. Il resto sta in fondo, dietro a "Mostra
+// tutte le impostazioni": e' un secondo modulo, cosi' i tre di sopra non si
+// muovono e non si perde di vista quello che conta.
+const SEMPLICI$1 = ["name", "power_entity", "artwork"];
+const SCHEMA_SEMPLICE$1 = SEMPLICI$1
   .map((n) => SCHEMA_TUTTO$1.find((x) => x.name === n))
   .filter(Boolean);
+// i campi lisci, senza il cassetto dell'ha-form: il cassetto lo faccio io,
+// cosi' sta in riga con gli altri riquadri invece di vestirsi da solo
+const SCHEMA_RESTO = SCHEMA_TUTTO$1
+  .filter((x) => !SEMPLICI$1.includes(x.name))
+  .flatMap((x) => (Array.isArray(x.schema) ? x.schema : [x]));
 
+
+// Come si riconosce ogni tendina quando e' chiusa: icona, striscia di colore
+// e una riga che dice cosa c'e' dentro. Le stesse regole dell'editor degli
+// elettrodomestici: i disegni e il titolo li fa `elettro-righe-editor.js`.
+const VESTITO$1 = {
+  tariffa: ["contatore", "#2fbfb0", "quanto paghi la luce, voce per voce"],
+  contatori: ["contatore", "#7cc4ff", "i kWh della casa, e i costi che ne vengono"],
+  tasti: ["accensione", "#43b86a", "le prese e le luci che accendi dalla scheda"],
+  righe: ["lista", "#e2ad1c", "quali numeri si vedono nel riquadro, e in che ordine"],
+  top: ["tachimetro", "#f06e82", "chi sta consumando di piu' in questo momento"],
+  barre: ["barre", "#4fb0d8", "le barre dei circuiti sotto alla scheda"],
+  aspetto: ["tavolozza", "#f06e82", "colori, trasparenza e velo della finestrella"],
+};
 
 class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   // i quattro sensori dei conti stanno dentro `periods`: li tiro fuori per
@@ -21172,9 +21415,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       mese_energia: this._periodo("mese").energy || "",
       mese_costo: this._periodo("mese").cost || "",
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
-      finestra_scritta: this._versoRgb(c.finestra_scritta), top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false,
-      switches: (c.switches || []).map((x) => x && x.entity).filter(Boolean),
-      circuiti: (c.circuits || []).map((x) => x && x.entity).filter(Boolean) };
+      finestra_scritta: this._versoRgb(c.finestra_scritta),
+      top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false };
   }
 
   // rimette i quattro sensori dentro periods/periods_prev. "Ieri" e "mese
@@ -21206,21 +21448,10 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     });
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
-      if (k === "circuiti" || k === "switches") return;
       if (v[k] === "" || v[k] === undefined || v[k] === null) delete c[k];
       else c[k] = v[k];
     });
-    // i circuiti: tengo quelli gia' configurati (nome e fondo scala scelti a
-    // mano), aggiungo i nuovi col nome del sensore
-    const prima = {};
-    (this._config.circuits || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x; });
-    c.circuits = (v.circuiti || []).map((eid) => prima[eid] || { label: this._nomeDi(eid), entity: eid, max: 2500 });
     // gli interruttori del pop-up: la scheda li vuole come {entity, label}
-    const primaSw = {};
-    (this._config.switches || []).forEach((x) => { if (x && x.entity) primaSw[x.entity] = x; });
-    if (v.switches && v.switches.length) {
-      c.switches = v.switches.map((eid) => primaSw[eid] || { label: this._nomeDi(eid), entity: eid });
-    } else delete c.switches;
     this._rimettiPeriodi(c, v);
     this._config = c;
     this._emetti();
@@ -21232,6 +21463,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       this._config = c;
       this._emetti();
       this._disegnaRighe();
+      this._riassunti();
     });
     { const v = this.querySelector(".ce-barre-vive");
       if (v) v.checked = !!this._config.barre_vive;
@@ -21374,6 +21606,111 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     sel.value = lista(this._config.batteria_entita);
   }
 
+  // Il Top consumo: una riga di parole (separate da virgola) invece di
+  // diciotto caselle, piu' due elenchi di prese - una per lasciarle fuori,
+  // una per contarle comunque.
+  // i tasti: la lista con "Aggiungi" e l'icona di ognuno
+  _disegnaTasti() {
+    const box = this.querySelector(".ce-tasti");
+    if (!box) return;
+    disegnaTasti(box, tastiDi(this._config), this._hass, (elenco) => {
+      const c = { ...this._config, tasti: elenco };
+      // le tre vecchie strade non servono piu': adesso e' una sola
+      delete c.interruttore;
+      delete c.interruttore_usb;
+      delete c.interruttori;
+      if (!elenco.length) delete c.tasti;
+      this._config = c;
+      this._emetti();
+      this._disegnaTasti();
+      this._riassunti();
+    });
+  }
+
+  // L'elenco delle prese trovate, con la spunta. Togliere la spunta vuol
+  // dire "non contarla": la metto fra quelle da saltare. Rimetterla a una che
+  // una parola escluderebbe vuol dire "questa pero' contala": la metto fra
+  // quelle da contare sempre, che vincono sulle parole.
+  _disegnaPrese() {
+    const box = this.querySelector(".ce-prese");
+    if (!box || !this._hass) return;
+    const auto = this.querySelector(".ce-top-auto");
+    if (auto) {
+      if (!auto._agganciato) {
+        auto._agganciato = true;
+        auto.addEventListener("change", () => {
+          this._scriviScelta("top_auto", auto.checked);
+          this._disegnaPrese();
+          this._riassunti();
+        });
+      }
+      auto.checked = this._config.top_auto !== false;
+    }
+    box.hidden = this._config.top_auto === false;
+    const prese = preseDiCasa(this._hass);
+    box.innerHTML = "";
+    // la scritta della tendina chiusa: quante ne conta su quante ne ha trovate
+    const quante = this.querySelector(".ce-quante-prese");
+    if (quante) {
+      const contate = prese.filter((x) => contaNelTop(this._config, x.entity)).length;
+      quante.textContent = T("Prese contate") + ": " + contate + " " + T("su") + " " + prese.length;
+    }
+    prese.forEach((x) => {
+      // il totale della casa non si spunta: conterebbe due volte se stesso
+      const casa = x.entity === this._config.power_entity;
+      const conta = contaNelTop(this._config, x.entity);
+      const riga = document.createElement("label");
+      riga.className = "ce-riga ce-presa";
+      riga.innerHTML = `<input type="checkbox" ${conta ? "checked" : ""} ${casa ? "disabled" : ""}>
+        <span class="chi"></span><span class="dett">${casa ? T("il totale della casa")
+          : Math.round(x.w) + " W"}</span>`;
+      riga.querySelector(".chi").textContent = x.nome;
+      if (!casa) {
+        riga.querySelector("input").addEventListener("change", (e) => {
+          this._scegliPresa(x.entity, e.target.checked);
+        });
+      }
+      box.appendChild(riga);
+    });
+    if (!prese.length) {
+      box.innerHTML = `<div class="ce-aiuto">${T("Non ho trovato nessuna presa che misuri i Watt.")}</div>`;
+    }
+    const sceglitore = this.querySelector(".ce-presa-nuova");
+    if (sceglitore) {
+      sceglitore.hass = this._hass;
+      if (!sceglitore._agganciato) {
+        sceglitore._agganciato = true;
+        sceglitore.includeDomains = ["sensor"];
+        sceglitore.addEventListener("value-changed", (ev) => {
+          ev.stopPropagation();
+          const id = ev.detail.value;
+          sceglitore.value = "";
+          if (id) this._scegliPresa(id, true);
+        });
+      }
+    }
+  }
+
+  _scegliPresa(id, conta) {
+    const c = { ...this._config };
+    const senza = (k) => (c[k] || []).filter((x) => x !== id);
+    if (conta) {
+      c.top_exclude_entita = senza("top_exclude_entita");
+      c.top_include = senza("top_include");
+      // se una parola la escluderebbe, la metto fra quelle da contare sempre
+      if (!contaNelTop(c, id)) c.top_include = c.top_include.concat([id]);
+    } else {
+      c.top_include = senza("top_include");
+      c.top_exclude_entita = senza("top_exclude_entita").concat([id]);
+    }
+    ["top_include", "top_exclude_entita"].forEach((k) => {
+      if (!c[k] || !c[k].length) delete c[k];
+    });
+    this._config = c;
+    this._emetti();
+    this._disegnaPrese();
+  }
+
   _disegnaPannelli() {
     const sel = this.querySelector(".ce-pannelli-pick");
     if (!sel || !this._hass) return;
@@ -21430,12 +21767,42 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._totaleTariffa();
   }
 
+  // quello che si legge su ogni tendina CHIUSA, senza doverla aprire
+  _riassunti() {
+    const metti = (sel, testo) => {
+      const x = this.querySelector(sel + " .ce-riassunto");
+      if (x) x.textContent = testo ? " \u00b7 " + testo : "";
+    };
+    const t = (this.querySelector(".ce-t-totale") || {}).textContent || "";
+    metti(".ce-sez-tariffa", t && t !== "\u2014" ? t : "");
+    const quanti = (this._config.periods || []).filter((x) => x && x.energy).length;
+    metti(".ce-sez-contatori", quanti ? quanti + " " + T(quanti === 1 ? "agganciato" : "agganciati") : T("da fare"));
+    const tasti = tastiDi(this._config).length;
+    metti(".ce-sez-tasti", tasti ? tasti + " " + T(tasti === 1 ? "tasto" : "tasti") : T("nessuno"));
+    // le righe accese: dalla configurazione, non dal disegno (il disegno
+    // potrebbe non esserci ancora)
+    const accese = Array.isArray(this._config.righe)
+      ? this._config.righe.length : RIGHE_OGGI.length;
+    metti(".ce-sez-righe", accese + " " + T(accese === 1 ? "accesa" : "accese"));
+    if (this._hass) {
+      const prese = preseDiCasa(this._hass);
+      const contate = prese.filter((x) => contaNelTop(this._config, x.entity)).length;
+      metti(".ce-sez-top", this._config.top_auto === false ? T("spento")
+        : contate + " " + T("su") + " " + prese.length);
+    }
+    const barre = this._config.barre_vive
+      ? T("le piu' accese") : ((this._config.circuits || []).length + " "
+        + T((this._config.circuits || []).length === 1 ? "barra" : "barre"));
+    metti(".ce-sez-barre", barre);
+  }
+
   _totaleTariffa() {
     const n = (c) => Number((this.querySelector(".ce-t-" + c) || {}).value) || 0;
     const t = this.querySelector(".ce-t-totale");
     if (!t) return 0;
     const v = Math.round((n("energia") + n("rete") + n("accise")) * (1 + n("iva") / 100) * 10000) / 10000;
     t.textContent = v ? v.toFixed(4) + " \u20ac/kWh" : "\u2014";
+    this._riassunti();
     return v;
   }
 
@@ -21477,38 +21844,21 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   }
 
   _proponiBarre() {
-    const st = (this._hass || {}).states || {};
-    const escl = (this._config.top_exclude || ESCLUSI_DI_SERIE).map((x) => String(x).toLowerCase());
-    const buoni = Object.keys(st).filter((id) => {
-      if (!id.startsWith("sensor.") || id === this._config.power_entity) return false;
-      const a = st[id].attributes || {};
-      if (a.device_class !== "power") return false;
-      const u = String(a.unit_of_measurement || "").toLowerCase();
-      if (u !== "w" && u !== "kw") return false;
-      return !escl.some((x) => id.toLowerCase().includes(x));
-    });
+    // le quattro prese piu' accese, con la stessa ricerca del Top consumo
+    const buoni = preseDiCasa(this._hass)
+      .filter((x) => contaNelTop(this._config, x.entity))
+      .slice(0, 4);
     if (!buoni.length) {
-      window.alert("Non ho trovato prese che misurano i Watt, a parte quelle escluse.");
+      this._dillo("Non ho trovato prese che misurino i Watt.", true);
       return;
     }
-    // il fondo scala: il massimo visto di recente, arrotondato in su
-    const scala = (v) => {
-      const n = Math.max(500, Math.ceil((Number(v) || 0) * 1.3 / 500) * 500);
-      return Math.min(3500, n);
-    };
-    const barre = buoni
-      .map((id) => ({
-        entity: id,
-        live: Number(st[id].state) || 0,
-        label: String(st[id].attributes.friendly_name || id)
-          .replace(/\s+(potenza|power)\s*$/i, "").replace(/\s{2,}/g, " ").trim(),
-      }))
-      .sort((a, b) => b.live - a.live)
-      .slice(0, 6)
-      .map((x) => ({ label: x.label, entity: x.entity, max: scala(x.live || 1000) }));
-    this._config = { ...this._config, circuits: barre };
+    const scala = (w) => Math.min(3500, Math.max(500, Math.ceil((w || 0) * 1.3 / 500) * 500));
+    this._config = { ...this._config,
+      circuits: buoni.map((x) => ({ label: x.nome, entity: x.entity, max: scala(x.w) })) };
     this._emetti();
     this._disegnaCircuiti();
+    this._dillo("Messe " + buoni.length + " barre: " + buoni.map((x) => x.nome).join(", ")
+      + ". Nome e fondo scala si cambiano qui sotto.");
   }
 
   async _creaSensori() {
@@ -21536,6 +21886,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       if (patch.helper_memoria === null) delete this._config.helper_memoria;
       this._emetti();
       this._form.data = this._datiForm();
+    if (this._formTutto) this._formTutto.data = this._datiForm();
       // i kWh delle due fonti: pannelli e batteria
       for (const [chiave, sel, nome] of [["pannelli", ".ce-pannelli-pick", "Pannelli energia"],
         ["batteria", ".ce-batteria-pick", "Batteria energia"]]) {
@@ -21566,40 +21917,11 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
-      this.innerHTML = `<style>${STILE_EDITOR}</style>` + TH(`<label class="ce-riga ce-tutto-riga"><input type="checkbox" class="ce-tutto">
-          <span>Mostra tutte le impostazioni</span></label>
-        <div class="ce-versione">casa-energia \u00b7 casa-tile v${VERSIONE}</div>
+      this.innerHTML = `<style>${STILE_EDITOR}</style>` + TH(`<div class="ce-versione">casa-energia \u00b7 casa-tile v${VERSIONE}</div>
         <div class="ce-form"></div>
-        <div class="ce-sez">
-          <div class="ce-tit">${T("I sensori dei conti")}</div>
-          <div class="ce-aiuto">${T("I quattro campi <b>kWh di oggi / euro di oggi / kWh del mese / euro del mese</b> vogliono i sensori fatti con gli aiutanti: i due <b>contatori di utenza</b> (uno a ciclo <i>giornaliero</i>, uno <i>mensile</i>) sopra al kWh dell'apparecchio, e i due sensori che moltiplicano quei kWh per il prezzo. <b>Ieri</b> e <b>mese scorso</b> non vanno messi: li legge da solo dal periodo appena chiuso degli stessi contatori.")}</div>
-        </div>
-        <div class="ce-sez">
-          <div class="ce-tit">${T("Tasti di accensione")}</div>
-          <div class="ce-aiuto">${T("I due campi <b>Tasto \u23fb</b> e <b>USB</b> qui sopra mettono un tastino tondo nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne, e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare. Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.")}</div>
-        </div>
-        <div class="ce-sez">
-          <div class="ce-tit">${T("Righe del riquadro «Oggi»")}</div>
-          <div class="ce-aiuto">${T("Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi, scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).")}</div>
-          <div class="ce-righe"></div>
-        </div>
-        <div class="ce-sez">
-          <div class="ce-tit">${T("Nomi dei circuiti")}</div>
-          <div class="ce-aiuto">${T("Le barre sotto la scheda. Se non sai quali mettere, <b>Proponi da solo</b> guarda le prese di casa e ti mette le quattro che consumano di piu' (batterie, inverter e pannelli restano fuori). Poi cambi nome e fondo scala come vuoi.")}</div>
-          <button type="button" class="ce-prepara ce-barre-auto">Proponi da solo</button>
-          <div class="ce-aiuto">${T("Il nome e il fondo scala (W) di ogni barra.")}</div>
-          <div class="ce-riga"><span class="ent">Aggiungi una barra</span><ha-entity-picker class="ce-barra-nuova" allow-custom-entity></ha-entity-picker></div>
-          <label class="ce-riga"><input type="checkbox" class="ce-barre-vive">
-            <span>${T("<b>Scegli le barre da sola</b>: fa vedere le prese piu' accese del momento. Se parte il forno, il forno compare. L'elenco qui sotto non serve piu'.")}</span></label>
-          <div class="ce-riga ce-quante" hidden><span class="ent">Quante barre</span>
-            <input type="number" class="ce-barre-quante max" min="2" max="10" step="1" value="6"></div>
-          <label class="ce-riga"><input type="checkbox" class="ce-barre-ordine" checked>
-            <span>Mettile in fila da sole, la piu' accesa in cima (se la togli resta l'ordine di qui sotto)</span></label>
-          <div class="ce-circuiti"></div>
-        </div>
-        <div class="ce-sez">
-          <div class="ce-tit">${T("La tua tariffa")}</div>
-          <div class="ce-aiuto">${T("Questa e' la scheda <b>principale</b>: il prezzo si scrive qui, una volta sola. Gli apparecchi, le prese e le luci lo leggono da qui, non lo richiedono.<br> Scrivi le voci come stanno in bolletta: il totale lo faccio io, ed e' quello che uso per la spesa della casa. Sugli apparecchi invece vale la <b>sola energia</b>, se no le tasse le paghi due volte.")}</div>
+        <details class="ce-sez ce-tendina ce-sez-tariffa" data-c="1" style="--c:#2fbfb0">
+          <summary class="ce-tit">${titoloSez(VESTITO$1.tariffa, T("La tua tariffa"))}</summary>
+          <div class="ce-aiuto">${T("Scrivi i prezzi come stanno in bolletta: il totale lo faccio io. Si scrive qui una volta sola - gli apparecchi, le prese e le luci lo leggono da qui.")}</div>
           <div class="ce-riga"><span class="ent">Energia &euro;/kWh</span><input type="number" class="ce-t-energia max" step="0.0001" min="0" placeholder="0.1657"></div>
           <div class="ce-riga"><span class="ent">Rete e oneri &euro;/kWh</span><input type="number" class="ce-t-rete max" step="0.0001" min="0" placeholder="0.045"></div>
           <div class="ce-riga"><span class="ent">Accise &euro;/kWh</span><input type="number" class="ce-t-accise max" step="0.0001" min="0" placeholder="0.0093"></div>
@@ -21607,39 +21929,91 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
           <div class="ce-riga"><span class="ent">Quota fissa &euro; al giorno</span><input type="number" class="ce-t-quota max" step="0.0001" min="0" placeholder="0.542"></div>
           <div class="ce-riga"><span class="ent">Totale della bolletta</span><b class="ce-t-totale">&mdash;</b></div>
           <button type="button" class="ce-prepara ce-scrivi-tariffa">Scrivi la tariffa</button>
-        </div>
-        <div class="ce-sez">
-          <div class="ce-tit">${T("Crea i sensori base")}</div>
-          <div class="ce-aiuto">${T("Il prezzo l'hai gia' scritto qui sopra: qui scegli solo <b>da quale sensore dei kWh</b> parte la casa. Creo io i contatori (ora, oggi, settimana, mese e ieri) e il costo di ogni periodo, e li aggancio alla scheda; quelli che ci sono gia' li riuso.<br> Il conto voce per voce della bolletta, i cicli degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: stanno nella guida, in <i>esempi/luce</i>.")}</div>
+        </details>
+        <details class="ce-sez ce-tendina ce-sez-contatori" data-c="1" style="--c:#7cc4ff">
+          <summary class="ce-tit">${titoloSez(VESTITO$1.contatori, T("I contatori"))}</summary>
+          <div class="ce-aiuto">${T("Dimmi da quale sensore dei kWh parte la casa e faccio io il resto: i contatori di ora, oggi, settimana, mese e ieri, e il costo di ognuno. Quelli che ci sono gia' li riuso.")}</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
+          <div class="ce-aiuto">${T("Pannelli e batteria sono facoltativi: se li metti faccio anche i loro kWh di oggi e del mese, e le righe <i>Dai pannelli</i> e <i>Dalla batteria</i>. Della batteria scegli il sensore che dice <b>quanto ha dato alla casa</b>, non la percentuale.")}</div>
           <div class="ce-riga"><span class="ent">Sensore dei pannelli (se ce l'hai)</span><ha-entities-picker class="ce-pannelli-pick"></ha-entities-picker></div>
           <button type="button" class="ce-prepara ce-pannelli-tutti">Prendile tutte</button>
           <div class="ce-riga"><span class="ent">Sensore della batteria (se ce l'hai)</span><ha-entities-picker class="ce-batteria-pick"></ha-entities-picker></div>
           <button type="button" class="ce-prepara ce-batteria-tutti">Prendile tutte</button>
-          <div class="ce-aiuto">${T("Dei pannelli e della batteria faccio i kWh di oggi e del mese, e li metto nelle righe <i>Dai pannelli</i> e <i>Dalla batteria</i> (spuntale qui sopra). Va bene sia un sensore in kWh sia uno in Watt. Per la batteria scegli quello che dice <b>quanto ha dato alla casa</b> (la scarica), non la percentuale.")}</div>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
-        </div>
-        <div class="ce-esito" hidden></div>`);
-      const form = document.createElement("ha-form");
-      form.schema = traduciSchema(this._tutto ? SCHEMA_TUTTO$1 : SCHEMA_SEMPLICE$1);
-      form.computeLabel = (x) => T(x.title || ETICHETTE$1[x.name] || x.name);
-      form.computeHelper = (x) => T(AIUTI[x.name] || "");
+        </details>
+        <div class="ce-esito" hidden></div>
+        <label class="ce-riga ce-tutto-riga"><input type="checkbox" class="ce-tutto">
+          <span>Mostra altre impostazioni</span></label>
+        <div class="ce-avanzate" hidden>
+          <details class="ce-sez ce-tendina ce-sez-tasti" data-c="1" style="--c:#43b86a">
+            <summary class="ce-tit">${titoloSez(VESTITO$1.tasti, T("Tasti di accensione"))}</summary>
+            <div class="ce-aiuto">${T("Ogni tasto e' un tondino nella barra in alto della scheda: premuto accende o spegne, e resta verde finche' e' acceso. Aggiungi quello che vuoi - una presa, una luce, una ventola - e scegli la sua icona.")}</div>
+            <div class="ce-tasti"></div>
+          </details>
+          <details class="ce-sez ce-tendina ce-sez-righe" data-c="1" style="--c:#e2ad1c">
+            <summary class="ce-tit">${titoloSez(VESTITO$1.righe, T("Righe del riquadro \u00abOggi\u00bb"))}</summary>
+            <div class="ce-aiuto">${T("Spunta quelle da vedere e trascinale dalla maniglia \u283f per metterle in ordine. Nome e colore sono facoltativi (vuoto = quelli di serie).")}</div>
+            <div class="ce-righe"></div>
+          </details>
+          <details class="ce-sez ce-tendina ce-sez-top" data-c="1" style="--c:#f06e82">
+            <summary class="ce-tit">${titoloSez(VESTITO$1.top, T("Top consumo"))}</summary>
+            <div class="ce-aiuto">${T("La riga che dice chi sta consumando di piu' in questo momento.")}</div>
+            <label class="ce-riga"><input type="checkbox" class="ce-top-auto">
+              <span>${T("Cerca da sola tutte le prese che misurano")}</span></label>
+            <div class="ce-aiuto">${T("Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare.")}</div>
+            <div class="ce-prese"></div>
+            <div class="ce-riga"><span class="ent">${T("Non l'ha trovata? Aggiungila")}</span><ha-entity-picker class="ce-presa-nuova" allow-custom-entity></ha-entity-picker></div>
+          </details>
+          <details class="ce-sez ce-tendina ce-sez-barre" data-c="1" style="--c:#4fb0d8">
+            <summary class="ce-tit">${titoloSez(VESTITO$1.barre, T("Le barre sotto la scheda"))}</summary>
+            <div class="ce-aiuto">${T("Se non sai quali mettere, <b>Proponi da solo</b> guarda le prese di casa e ti mette le quattro che consumano di piu'.")}</div>
+            <button type="button" class="ce-prepara ce-barre-auto">Proponi da solo</button>
+            <div class="ce-riga"><span class="ent">Aggiungi una barra</span><ha-entity-picker class="ce-barra-nuova" allow-custom-entity></ha-entity-picker></div>
+            <label class="ce-riga"><input type="checkbox" class="ce-barre-vive">
+              <span>${T("<b>Scegli le barre da sola</b>: fa vedere le prese piu' accese del momento. Se parte il forno, il forno compare. L'elenco qui sotto non serve piu'.")}</span></label>
+            <div class="ce-riga ce-quante" hidden><span class="ent">Quante barre</span>
+              <input type="number" class="ce-barre-quante max" min="2" max="10" step="1" value="6"></div>
+            <label class="ce-riga"><input type="checkbox" class="ce-barre-ordine" checked>
+              <span>Mettile in fila da sole, la piu' accesa in cima (se la togli resta l'ordine di qui sotto)</span></label>
+            <div class="ce-circuiti"></div>
+            <div class="ce-riga"><span class="ent">${T("Fondo scala di serie (W)")}</span>
+              <input type="number" class="ce-barre-max max" min="500" max="30000" step="100" placeholder="4500"></div>
+            <div class="ce-aiuto">${T("Quanto vale la barra piena, per le barre che non hanno un fondo scala loro.")}</div>
+          </details>
+          <details class="ce-sez ce-tendina" data-c="1" style="--c:#f06e82"><summary class="ce-tit">${titoloSez(VESTITO$1.aspetto, T("Aspetto e finestra del pop-up"))}</summary>
+            <div class="ce-form-tutto"></div>
+          </details>
+        </div>`);
+      // due moduli: quello di sopra ha sempre e solo i tre campi che contano,
+      // quello di sotto tutto il resto e si vede solo con la spunta
+      const faiModulo = (schema, dove) => {
+        const f = document.createElement("ha-form");
+        f.schema = traduciSchema(schema);
+        f.computeLabel = (x) => T(x.title || ETICHETTE$1[x.name] || x.name);
+        f.computeHelper = (x) => T(AIUTI[x.name] || "");
+        f.addEventListener("value-changed", (e) => {
+          e.stopPropagation();
+          this._cambiatoForm(e.detail.value || {});
+        });
+        this.querySelector(dove).appendChild(f);
+        return f;
+      };
+      const form = faiModulo(SCHEMA_SEMPLICE$1, ".ce-form");
+      const formTutto = faiModulo(SCHEMA_RESTO, ".ce-form-tutto");
+      this._avanzate = this.querySelector(".ce-avanzate");
       const spunta = this.querySelector(".ce-tutto");
       if (spunta) {
         spunta.checked = !!this._tutto;
+        this._avanzate.hidden = !this._tutto;
         spunta.addEventListener("change", () => {
           this._tutto = spunta.checked;
-          form.schema = traduciSchema(this._tutto ? SCHEMA_TUTTO$1 : SCHEMA_SEMPLICE$1);
-          form.data = this._datiForm();
+          this._avanzate.hidden = !this._tutto;
+          formTutto.data = this._datiForm();
         });
       }
-      form.addEventListener("value-changed", (e) => {
-        e.stopPropagation();
-        this._cambiatoForm(e.detail.value || {});
-      });
-      this.querySelector(".ce-form").appendChild(form);
       this._form = form;
+      this._formTutto = formTutto;
       this._righe = this.querySelector(".ce-righe");
       this._circuiti = this.querySelector(".ce-circuiti");
       this._esito = this.querySelector(".ce-esito");
@@ -21710,11 +22084,15 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     }
     if (this._hass) this._form.hass = this._hass;
     this._disegnaKwh();
+    this._riassunti();
+    this._disegnaTasti();
+    this._disegnaPrese();
     this._disegnaPannelli();
     this._disegnaBatteria();
     this._disegnaPrezzo();
     this._disegnaTariffa();
     this._form.data = this._datiForm();
+    if (this._formTutto) this._formTutto.data = this._datiForm();
     this._disegnaRighe();
   }
 }
@@ -21739,7 +22117,6 @@ const RIGHE_CICLO = [
   { id: "costo_mese", nome: "Costo del mese", etichetta: "Costo mese", colore: "#a283f2" },
 ];
 
-const VUOTO = '<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Niente da impostare</div><div class="dm-ap-reset-note">Qui compaiono i prezzi e gli interruttori che leghi alla scheda: si scelgono nel suo editor, dalla matita della plancia.</div></div>';
 
 class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
   // Le righe dell'Ultimo ciclo, nell'ordine e coi nomi della configurazione.
@@ -21750,7 +22127,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       consumo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-c-energy">\u2014</b></div>`,
       costo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo</small></span><b class="dm-c-cost">\u2014</b></div>`,
       oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Oggi</small></span><b class="dm-c-oggi">\u2014</b></div>`,
-      costo_oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore dm-forte" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo oggi</small></span><b class="dm-c-costo-oggi">\u2014</b></div>`,
+      costo_oggi: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo oggi</small></span><b class="dm-c-costo-oggi">\u2014</b></div>`,
       settimana: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#4fb0d8"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Settimana</small></span><b class="dm-c-settimana">\u2014</b></div>`,
       costo_settimana: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#d8a13c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Costo settimana</small></span><b class="dm-c-costo-settimana">\u2014</b></div>`,
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3f8fea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Mese</small></span><b class="dm-c-mese">\u2014</b></div>`,
@@ -21810,16 +22187,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       max_power: 2200,
       label: "",
       state_map: DEFAULT_STATE_MAP,
-      settings_sections: [],
       warn_entities: [],
-      period_labels: {
-        today: "Oggi",
-        yesterday: "Ieri",
-        month: "Mese",
-        month_prev: "Mese Precedente",
-        year: "Anno",
-        year_prev: "Anno Precedente",
-      },
       ...config,
     };
     this._activePeriod = "today";
@@ -21843,17 +22211,11 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
           <span class="dm-ap-badge"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label"></span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
-            ${this._config.interruttore ? `<button type="button" class="dm-ap-tool dm-ap-power" title="Accendi / spegni">${ICON_POWER}</button>` : ""}
-            ${this._config.interruttore_usb ? `<button type="button" class="dm-ap-tool dm-ap-usb" title="USB">${ICON_USB}</button>` : ""}
-            <button type="button" class="dm-ap-tool dm-ap-settings" title="Impostazioni">${ICON_GEAR}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
+            <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
         </div>
-        ${(this._config.interruttori || []).length ? `<div class="dm-ap-prese">
-          ${(this._config.interruttori || []).map((x, i) => `<button type="button"
-             class="dm-ap-presa" data-presa="${i}" title="${esc(x.entity)}">${esc(x.label
-             || this._nomeEntita(x.entity))}</button>`).join("")}
-        </div>` : ""}
+        ${this._tastiHtml()}
         <div class="dm-ap-top-row">
           <div class="dm-ap-hero">${hero}</div>
           ${righe ? `<div class="dm-ap-cycle-side">
@@ -21897,37 +22259,21 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       history.pushState(null, "", this._config.notification_path);
       window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
     });
-    // i tastini delle prese di una ciabatta
-    (this._config.interruttori || []).forEach((x, i) => {
-      const b = this._root.querySelector(`.dm-ap-presa[data-presa="${i}"]`);
-      if (!b || b._agganciato) return;
-      b._agganciato = true;
-      b.addEventListener("click", (e) => {
-        e.stopPropagation();
-        this._hass?.callService(x.entity.split(".")[0], "toggle", { entity_id: x.entity });
-      });
-    });
-    // i due interruttori: quello grande e quello delle USB
-    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
-      this._root.querySelector(sel)?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const eid = this._config[chiave];
-        this._hass?.callService(eid.split(".")[0], "toggle", { entity_id: eid });
-      });
-    });
-    this._root.querySelector(".dm-ap-settings").addEventListener("click", (e) => {
-      e.stopPropagation();
-      this._openSettings();
-    });
+    this._tastiAggancia();
     this._root.querySelector(".dm-ap-stats").addEventListener("click", (e) => {
       e.stopPropagation();
-      this._openStats();
+      this._openWeek();
     });
+    this._root.querySelector(".dm-ap-consumi").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._openPowerHistory();
+    });
+    // la foto dell'apparecchio: com'e' messo adesso
     const heroEl = this._root.querySelector(".dm-ap-hero");
     if (heroEl) {
       heroEl.addEventListener("click", (e) => {
         e.stopPropagation();
-        this._openWeek();
+        this._openStats();
       });
     }
     const powerEl = this._root.querySelector(".dm-ap-power-open");
@@ -21935,87 +22281,6 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       powerEl.addEventListener("click", (e) => {
         e.stopPropagation();
         this._openPowerHistory();
-      });
-    }
-  }
-
-  _fireMoreInfo(entityId) {
-    const e = new Event("hass-more-info", { bubbles: true, composed: true });
-    e.detail = { entityId };
-    this.dispatchEvent(e);
-  }
-
-  _openSettings() {
-    const hass = this._hass;
-    const sections = (this._config.settings_sections || [])
-      .map((sec) => {
-        const righe = (sec.rows || []).map((row) => this._settingsRowHtml(hass, row)).join("");
-        if ((sec.rows || []).length <= 3 && !sec.chiuso) {
-          return `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">${esc(sec.title)}</div>${righe}</div>`;
-        }
-        // il numero da mettere nel titolo: l'ultima riga (di solito il totale)
-        const ultima = sec.rows[sec.rows.length - 1];
-        const st = ultima && hass.states[ultima.entity];
-        const valore = st ? `${st.state}${st.attributes.unit_of_measurement ? " " + st.attributes.unit_of_measurement : ""}` : "";
-        return `<details class="dm-ap-sec dm-ap-sec-chiusa">
-          <summary class="dm-ap-sec-cap">${esc(sec.title)}${valore ? ` \u00b7 <b>${esc(valore)}</b>` : ""}</summary>
-          ${righe}
-        </details>`;
-      })
-      .join("");
-
-    const resetBtn = this._config.reset_script
-      ? `<div class="dm-ap-sec">
-           <div class="dm-ap-sec-cap">Manutenzione</div>
-           <button type="button" class="dm-ap-reset-btn" data-reset-script="${esc(this._config.reset_script)}">${ICON_RESTART} Reset contatori</button>
-           ${this._config.reset_date_entity ? `<div class="dm-ap-reset-note">Ultimo reset: ${esc(hass.states[this._config.reset_date_entity]?.state || "\u2014")}</div>` : ""}
-         </div>`
-      : "";
-
-    // il prezzo scelto per i costi: e' l'unica impostazione che questa scheda
-    // ha sempre, e senza di lei l'ingranaggio apriva una finestra vuota
-    const prezzo = this._config.prezzo_entita && hass.states[this._config.prezzo_entita]
-      ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Prezzo dei costi</div>`
-        + this._settingsRowHtml(hass, { entity: this._config.prezzo_entita,
-          label: hass.states[this._config.prezzo_entita].attributes.friendly_name || "Prezzo (\u20ac/kWh)" })
-        + `</div>`
-      : "";
-    const dentro = `${sections}${prezzo}${resetBtn}`;
-    const overlay = this._openDialog("Impostazioni", dentro.trim() ? dentro : VUOTO);
-
-    overlay.querySelectorAll("[data-entity]").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const entity = btn.dataset.entity;
-        const domain = entity.split(".")[0];
-        hass.callService(domain, "toggle", { entity_id: entity });
-        setTimeout(() => this._openSettings(), 200);
-      });
-    });
-    overlay.querySelectorAll("[data-open-entity]").forEach((row) => {
-      row.addEventListener("click", () => this._fireMoreInfo(row.dataset.openEntity));
-    });
-    const reset = overlay.querySelector("[data-reset-script]");
-    if (reset) {
-      reset.addEventListener("click", () => {
-        const cfg = this._config;
-        const pe = cfg.period_entities || {};
-        const ci = cfg.ciclo || {};
-        // quello che lo script deve azzerare glielo dico io: cosi' basta uno
-        // script solo per tutta la casa, non uno per apparecchio
-        const variables = {
-          scheda: cfg.name || "",
-          oggi: cfg.oggi_energia || (pe.today || {}).energy || "",
-          settimana: cfg.settimana_energia || (pe.week || {}).energy || "",
-          mese: cfg.mese_energia || (pe.month || {}).energy || "",
-          ciclo_contatore: ci.contatore || "",
-          ciclo_kwh: ci.consumo || "",
-          ciclo_minuti: ci.durata || "",
-          ciclo_fine: ci.fine || "",
-        };
-        hass.callService("script", "turn_on",
-          { entity_id: reset.dataset.resetScript, variables });
-        overlay.hidden = true;
       });
     }
   }
@@ -22066,9 +22331,10 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const k = Number(leggi(c.consumo));
       return Number.isFinite(k) && k > 0 ? numero(k, 2) + " kWh" : null;
     }
-    if (key === "cost") {
+    if (key === "cost" || key === "cost_pieno") {
       const k = Number(leggi(c.consumo));
-      const p = Number((hass.states[this._config.prezzo_entita] || {}).state);
+      const p = key === "cost_pieno" ? this._prezzoPieno(hass)
+        : Number((hass.states[this._config.prezzo_entita] || {}).state);
       if (!Number.isFinite(k) || !Number.isFinite(p) || p <= 0) return null;
       return k * p;
     }
@@ -22105,6 +22371,8 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         out.energy = `${numero(k, 2)} kWh`;
         const p = Number(hass.states[this._config.prezzo_entita]?.state);
         if (Number.isFinite(p) && p > 0) out.cost = k * p;
+        const pieno = this._prezzoPieno(hass);
+        if (pieno > 0) out.cost_pieno = k * pieno;
       }
     }
     // da quanto va: dalla partenza segnata, se c'e' (regge le intermittenze),
@@ -22140,6 +22408,8 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       out.energy = `${numero(kwh, 2)} kWh`;
       const prezzo = Number(hass.states[this._config.prezzo_entita]?.state);
       if (Number.isFinite(prezzo)) out.cost = kwh * prezzo;
+      const pieno = this._prezzoPieno(hass);
+      if (pieno > 0) out.cost_pieno = kwh * pieno;
     }
     const tr = buono(c.elapsed_entity);
     if (tr) out.duration = this._tempoLeggibile(tr);
@@ -22152,6 +22422,36 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     out.sub = [buono(c.program_entity), buono(c.phase_entity)]
       .map((st) => st && st.state).filter(Boolean).join(" · ");
     return out;
+  }
+
+  // I periodi da far vedere: quelli della configurazione piu' quelli finiti,
+  // che la scheda si ricava da sola dall'attributo `last_period` del
+  // contatore. Niente da configurare e nessun aiutante in piu'.
+  _periodi() {
+    const cfg = this._config;
+    const hass = this._hass;
+    const fuori = { ...(cfg.period_entities || {}) };
+    const primaDi = (ora, prima) => {
+      if (fuori[prima] || !fuori[ora] || !fuori[ora].energy) return;
+      const st = hass && hass.states[fuori[ora].energy];
+      const v = st && st.attributes ? st.attributes.last_period : undefined;
+      if (v === undefined || v === null || v === "") return;
+      if (!Number.isFinite(Number(v))) return;
+      fuori[prima] = { energy: fuori[ora].energy, energy_attr: "last_period" };
+    };
+    primaDi("today", "yesterday");
+    primaDi("month", "month_prev");
+    return fuori;
+  }
+
+  // l'ordine in cui si leggono, non quello in cui capitano
+  _periodiInOrdine() {
+    const quali = { ...(this._config.period_attrs || {}), ...this._periodi() };
+    const ordine = ["today", "yesterday", "week", "month", "month_prev", "year", "year_prev"];
+    const fuori = [];
+    ordine.forEach((k) => { if (quali[k]) fuori.push(k); });
+    Object.keys(quali).forEach((k) => { if (!ordine.includes(k)) fuori.push(k); });
+    return fuori;
   }
 
   _renderPeriodRow(hass, periodKey) {
@@ -22177,12 +22477,19 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     const cycles = cyclesSt ? (cyclesAttr ? (cyclesSt.attributes?.[cyclesAttr] ?? "\u2014") : cyclesSt.state) : "\u2014";
     // se la scheda ha entita' sue per questo periodo (tempo, costo), comandano
     // quelle: sono gli helper che crea il tasto "Crea i sensori base"
-    const pEnt = cfg.period_entities?.[periodKey] || {};
+    const pEnt = this._periodi()[periodKey] || {};
     const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time])
       : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
-    const kwhNum = pEnt.energy ? Number(hass.states[pEnt.energy]?.state) : NaN;
+    // un periodo finito - ieri, il mese scorso - non e' un'entita' sua: e'
+    // l'attributo `last_period` del contatore di quello in corso
+    const daEntita = (eid, attributo) => {
+      const st = eid ? hass.states[eid] : null;
+      if (!st) return undefined;
+      return attributo ? (st.attributes || {})[attributo] : st.state;
+    };
+    const kwhNum = pEnt.energy ? Number(daEntita(pEnt.energy, pEnt.energy_attr)) : NaN;
     const kwhTxt = Number.isFinite(kwhNum) ? `${numero(kwhNum, 2)} kWh` : "\u2014";
-    let cost = pEnt.cost ? hass.states[pEnt.cost]?.state
+    let cost = pEnt.cost ? daEntita(pEnt.cost, pEnt.cost_attr)
       : (pAttrs.cost ? attrs[pAttrs.cost] : null);
     // senza un sensore del costo il conto lo faccio qui: kWh per il prezzo.
     // Attenzione: Number(null) vale 0, quindi "manca" va chiesto per bene.
@@ -22372,8 +22679,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
   _openWeek() {
     const hass = this._hass;
-    const periods = Object.keys({ ...(this._config.period_attrs || {}),
-      ...(this._config.period_entities || {}) });
+    const periods = this._periodiInOrdine();
     const periodRows = periods.map((p) => this._renderPeriodRow(hass, p)).join("");
 
     const daAttributo = this._settimanaDaAttributo(hass);
@@ -22421,15 +22727,18 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     if (!bars.length) return `<div class="dm-ap-chart-empty">Nessun dato</div>`;
     const width = 300;
     const height = 90;
-    const plotX0 = 24;
+    const plotX0 = 30;
     const plotW = width - plotX0;
-    // Spazio riservato in alto per il valore numerico, ruotato di 90 gradi
-    // (si legge inclinando la testa/il monitor verso destra), come chiesto.
-    const labelSpace = 22;
-    const barAreaH = height - labelSpace;
     const max = Math.max(...bars.map((b) => b.value), 0.01);
     const gap = 3;
     const barW = (plotW - gap * (bars.length - 1)) / bars.length;
+    // Il numero sopra alla barra: solo se la barra e' larga abbastanza da
+    // tenerlo per diritto. Su un mese intero sono 27 barre da 7 punti: girati
+    // di 90 gradi non si leggevano comunque, e quanto vale la piu' alta lo
+    // dice gia' l'asse.
+    const conNumeri = barW >= 16;
+    const labelSpace = conNumeri ? 11 : 4;
+    const barAreaH = height - labelSpace;
     const fmt = (v) => {
       if (!(v > 0)) return "";
       const s = v.toFixed(1);
@@ -22441,18 +22750,19 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         const x = (plotX0 + i * (barW + gap)).toFixed(1);
         const y = (height - h).toFixed(1);
         const cx = (plotX0 + i * (barW + gap) + barW / 2).toFixed(1);
-        const labelY = (height - h - 4).toFixed(1);
         const label = fmt(b.value);
-        const text = label
-          ? `<text x="${cx}" y="${labelY}" transform="rotate(-90 ${cx} ${labelY})" text-anchor="start" font-size="10" font-weight="800" fill="#94a3b8">${label}</text>`
+        const text = conNumeri && label
+          ? `<text x="${cx}" y="${(height - h - 3).toFixed(1)}" text-anchor="middle" font-size="7" font-weight="800" fill="#94a3b8">${label}</text>`
           : "";
-        return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${color}"/>${text}`;
+        // il fumetto: il numero c'e' sempre, anche quando non ci sta scritto
+        const fumetto = (b.label ? b.label + ": " : "") + label;
+        return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${color}"><title>${esc(fumetto)}</title></rect>${text}`;
       })
       .join("");
     const axis = `<line x1="${plotX0}" y1="${labelSpace}" x2="${plotX0}" y2="${height}" stroke="#94a3b840" stroke-width="1"/>
-      <text x="${plotX0 - 4}" y="${labelSpace + 6}" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
-      <text x="${plotX0 - 4}" y="${height - 1}" text-anchor="end" font-size="10" font-weight="800" fill="#94a3b8">0</text>`;
-    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg" preserveAspectRatio="none">${axis}${parts}</svg>`;
+      <text x="${plotX0 - 4}" y="${labelSpace + 6}" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
+      <text x="${plotX0 - 4}" y="${height - 1}" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">0</text>`;
+    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg">${axis}${parts}</svg>`;
   }
 
   // I sette giorni presi dallo storico del contatore: una riga per giorno,
@@ -22516,7 +22826,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     const energyEntity = cfg.energy_stat_entity;
 
     this._openDialog(
-      "Andamento potenza",
+      "Consumi",
       `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultime 24 ore</div><div class="dm-ap-chart-loading" data-chart="24h">Caricamento...</div></div>
        ${energyEntity ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Questo mese</div><div class="dm-ap-chart-loading" data-chart="month">Caricamento...</div></div>` : ""}
        ${energyEntity ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Quest'anno</div><div class="dm-ap-chart-loading" data-chart="year">Caricamento...</div></div>` : ""}`,
@@ -22551,7 +22861,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         .then((rows) => {
           const el = slot("month");
           if (!el) return;
-          const bars = rows.map((r) => ({ value: r.value }));
+          const bars = rows.map((r) => ({ value: r.value, label: String(r.t.getDate()) }));
           const dayLabels = this._labelSpans(rows, 8, (r) => r.t.getDate());
           el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars, "#0ea5e9")}${dayLabels}</div>`;
         })
@@ -22566,7 +22876,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         .then((rows) => {
           const el = slot("year");
           if (!el) return;
-          const bars = rows.map((r) => ({ value: r.value }));
+          const bars = rows.map((r) => ({ value: r.value, label: meseBreve(r.t) }));
           const labels = `<div class="dm-ap-chart-labels">${rows.map((r) => `<span>${meseBreve(r.t)}</span>`).join("")}</div>`;
           el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars, "#0ea5e9")}${labels}</div>`;
         })
@@ -22609,6 +22919,11 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     const watts = powerState ? Number(powerState.state) : null;
     const powerUnavailable = !powerState || ["unavailable", "unknown"].includes(powerState.state);
 
+    // c'e', risponde, ma non e' un numero: una scritta tipo "1:20". Da qui in
+    // giu' ogni confronto con la soglia e' falso, e senza accorgersene si
+    // finiva su "SPENTO" mentre l'apparecchio lavorava.
+    const powerIlleggibile = !!powerState && !powerUnavailable && !Number.isFinite(watts);
+
     let mode = "off";
     let label = "SPENTO";
     const liveStateEntity = cfg.live?.state_entity;
@@ -22617,7 +22932,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     if (mapped) {
       mode = mapped.mode;
       label = mapped.label;
-    } else if (powerUnavailable) {
+    } else if (powerUnavailable || powerIlleggibile) {
       mode = "unavailable";
       label = "N/D";
     } else if (watts >= cfg.threshold_run) {
@@ -22683,6 +22998,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     let duration = this._cycleAttr(hass, "duration");
     let energy = this._cycleAttr(hass, "energy");
     let cost = this._cycleAttr(hass, "cost");
+    let costPieno = this._cycleAttr(hass, "cost_pieno");
     const sogliaOn = cfg.soglia_acceso
       && hass.states[cfg.soglia_acceso]?.state === "on";
     const vivo = (mode === "running" || sogliaOn) ? this._cicloVivo(hass) : null;
@@ -22700,30 +23016,14 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       if (vivo.duration !== undefined) duration = vivo.duration;
       if (vivo.energy !== undefined) energy = vivo.energy;
       if (vivo.cost !== undefined) cost = vivo.cost;
+      if (vivo.cost_pieno !== undefined) costPieno = vivo.cost_pieno;
     }
     { const x = this._root.querySelector(".dm-c-end"); if (x) x.textContent = end ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-duration"); if (x) x.textContent = duration ?? "\u2014"; }
     { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
-    { const x = this._root.querySelector(".dm-c-cost"); if (x) x.textContent = Number.isFinite(Number(cost)) ? `${numero(Number(cost), 2)} \u20ac` : "\u2014"; }
+    this._scriviCosto(this._root.querySelector(".dm-c-cost"), cost, costPieno);
 
-    (cfg.interruttori || []).forEach((x, i) => {
-      const b = this._root.querySelector(`.dm-ap-presa[data-presa="${i}"]`);
-      if (!b) return;
-      // il nome vero: a setConfig `hass` non c'era ancora e restava l'id
-      if (!x.label) {
-        const nome = this._nomeEntita(x.entity);
-        if (b.textContent !== nome) b.textContent = nome;
-      }
-      const st = hass.states[x.entity]?.state;
-      b.classList.toggle("acceso", st === "on");
-      b.classList.toggle("assente", !st || ["unavailable", "unknown"].includes(st));
-    });
-    [[".dm-ap-power", "interruttore"], [".dm-ap-usb", "interruttore_usb"]].forEach(([sel, chiave]) => {
-      const t = this._root.querySelector(sel);
-      if (!t) return;
-      const st = hass.states[cfg[chiave]]?.state;
-      t.classList.toggle("acceso", !!st && !["off", "unavailable", "unknown"].includes(st));
-    });
+    this._tastiAggiorna(hass);
 
     // le quattro righe "da presa": kWh e costo di oggi e del mese
     const numeroDi = (eid, unita, dec) => {
@@ -22739,13 +23039,20 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     // prezzo lo tiene la scheda principale. Se un sensore del costo c'e' lo uso
     // (magari l'hai fatto tu), se no il conto lo faccio qui e non creo niente.
     const prezzo = Number((hass.states[cfg.prezzo_entita] || {}).state);
+    // il secondo prezzo: quello pieno della bolletta, energia piu' rete,
+    // accise e IVA. Lo usano le righe "In bolletta", che fanno vedere quanto
+    // ti costa davvero; le altre fanno vedere la sola energia.
+    const prezzoPieno = this._prezzoPieno(hass);
     const costoDa = (eidCosto, eidKwh) => {
-      if (eidCosto && hass.states[eidCosto]) return numeroDi(eidCosto, " \u20ac", 2);
       const st = eidKwh ? hass.states[eidKwh] : null;
-      if (!st || ["unavailable", "unknown"].includes(st.state)) return "\u2014";
-      const k = Number(st.state);
-      if (!Number.isFinite(k) || !Number.isFinite(prezzo) || prezzo <= 0) return "\u2014";
-      return `${numero(k * prezzo, 2)} \u20ac`;
+      const k = st && !["unavailable", "unknown"].includes(st.state) ? Number(st.state) : NaN;
+      // se un sensore del costo ce l'hai gia' (magari l'hai fatto tu) quello
+      // vince sulla moltiplicazione; il secondo numero glielo metto lo stesso
+      const uno = eidCosto && hass.states[eidCosto]
+        ? Number(hass.states[eidCosto].state)
+        : (Number.isFinite(k) && prezzo > 0 ? k * prezzo : NaN);
+      const due = Number.isFinite(k) && prezzoPieno > 0 ? k * prezzoPieno : NaN;
+      return [uno, due];
     };
     const kwhOggi = cfg.oggi_energia || (pe.today || {}).energy;
     const kwhSett = cfg.settimana_energia || (pe.week || {}).energy;
@@ -22768,7 +23075,8 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const x = this._root.querySelector(sel);
       if (!x) return;
       if (eidCosto || eidKwh) hoPeriodi = true;
-      x.textContent = costoDa(eidCosto, eidKwh);
+      const [uno, due] = costoDa(eidCosto, eidKwh);
+      this._scriviCosto(x, uno, due);
     });
     if (cap && !vivo && !cfg.cycle_sensor && !cfg.ciclo && hoPeriodi) cap.textContent = T("Consumi");
 
@@ -22790,6 +23098,13 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     const activeWarnings = (cfg.warn_entities || [])
       .filter((w) => hass.states[w.entity]?.state === w.on_state)
       .map((w) => w.label);
+    // il guasto lo dice la scheda, invece di far finta di niente. Con
+    // un'entita' di stato non serve: da quella lo stato si sa lo stesso.
+    if (powerIlleggibile && !liveStateEntity) {
+      const nome = (powerState.attributes || {}).friendly_name || cfg.power_entity;
+      activeWarnings.unshift(nome + " = «" + powerState.state + "» · "
+        + T("non e' un numero, cosi' non posso sapere se sta lavorando"));
+    }
     if (activeWarnings.length) {
       warnEl.hidden = false;
       warnEl.textContent = "\u26a0 " + activeWarnings.join(" \u00b7 ");
@@ -22838,7 +23153,7 @@ const DISEGNI = [
 const ETICHETTE = {
   interruttori_lista: "Piu' prese (ciabatte): una fila di tastini col loro nome",
   name: "Nome della scheda",
-  artwork: "Disegno",
+  artwork: "Icona",
   power_entity: "Presa che misura (W) - o un altro numero da mostrare nella barra",
   threshold_run: "Sopra questi W e' «in funzione»",
   threshold_standby: "Sopra questi W e' «in standby»",
@@ -22883,11 +23198,6 @@ const SCHEMA_TUTTO = [
     { name: "power_unit", selector: { text: {} } },
     { name: "stato", selector: { entity: {} } },
   ] },
-  { name: "g_tasti", type: "expandable", flatten: true, title: "Tasti di accensione", schema: [
-    { name: "interruttori_lista", selector: { entity: { multiple: true, domain: ["switch", "light", "input_boolean"] } } },
-    { name: "interruttore", selector: { entity: {} } },
-    { name: "interruttore_usb", selector: { entity: {} } },
-  ] },
   { name: "g_conti", type: "expandable", flatten: true, title: "Sensore dell'ultimo ciclo", schema: [
     { name: "cycle_sensor", selector: { entity: { domain: "sensor" } } },
   ] },
@@ -22915,9 +23225,37 @@ const SCHEMA_TUTTO = [
 
 // Quello che si vede appena apri: tre campi e due cassetti. Il resto sta in
 // SCHEMA_TUTTO e compare solo con l'interruttore "mostra tutto".
-const SCHEMA_SEMPLICE = ["artwork", "power_entity", "interruttore", "name"]
+// Appena apri vedi questi tre. Ogni altro cassetto diventa un riquadro suo,
+// coi campi lisci dentro: cosi' stanno tutti in riga invece di vestirsi da
+// soli come fa l'ha-form.
+// Come si riconosce ogni tendina quando e' chiusa: l'icona, la striscia di
+// colore a sinistra e una riga che dice in poche parole cosa c'e' dentro.
+// Chiuse erano otto rettangoli col titolo, e per trovarne una le aprivi tutte.
+const VESTITO = {
+  capisci: ["bacchetta", "#7cc4ff", "parti da un'entita' e riempio io il resto"],
+  contatori: ["contatore", "#2fbfb0", "i kWh, il prezzo, i cicli e l'azzeramento"],
+  tasti: ["accensione", "#43b86a", "le prese e le luci che accendi dalla scheda"],
+  righe: ["lista", "#e2ad1c", "quali numeri si vedono nel riquadro, e in che ordine"],
+  barre: ["barre", "#4fb0d8", "il nome e il fondo scala delle barre in piu'"],
+  g_acceso: ["tachimetro", "#f28c3c", "sopra quanti watt sta lavorando, e il fondo scala",
+    "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. Qui c'e' anche il fondo scala della barra e il suo nome. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'."],
+  g_conti: ["contatore", "#a283f2", "se un'integrazione ti da' gia' il ciclo finito",
+    "Serve solo se un'integrazione o un pacchetto ti da' <b>gia' pronto</b> un sensore con dentro l'ultimo ciclo (fine, durata e consumo negli attributi). In quel caso la scheda legge quello invece dei contatori che si crea da sola. Se non ce l'hai, lascia vuoto."],
+  g_vivo: ["clessidra", "#3fb4ea", "programma, tempo e fase mentre sta lavorando",
+    "Le entita' che parlano <b>mentre l'apparecchio lavora</b>: quanto ha gia' consumato, da quanto va, quanto manca, il programma e la fase. Sono quelle che riempiono il riquadro <i>Ciclo in corso</i>. Anche queste le da' l'integrazione dell'apparecchio, non la presa."],
+  g_barre: ["barre", "#4fb0d8", "un'altra misura sotto alla potenza",
+    "Una seconda barra sotto a quella della potenza: un'altra misura in watt, oppure un avanzamento da 0 a 100 (il programma, l'umidita'...). Il nome e il fondo scala di ognuna si scrivono nella tendina <i>Nomi delle barre in piu'</i>."],
+  g_aspetto: ["tavolozza", "#f06e82", "colori, trasparenza e velo della finestrella",
+    "Come si veste la finestrella che si apre dai tondini: tinta, trasparenza, colore delle scritte, e quanto scurisce e sfoca quello che c'e' dietro. In piu' la pagina delle notifiche, se ne hai una."],
+};
+
+const SEMPLICI = ["name", "power_entity", "artwork"];
+const SCHEMA_SEMPLICE = SEMPLICI
   .map((n) => SCHEMA_TUTTO.find((x) => x.name === n))
   .filter(Boolean);
+const GRUPPI = SCHEMA_TUTTO
+  .filter((x) => Array.isArray(x.schema))
+  .map((x) => ({ chiave: x.name, titolo: x.title, schema: x.schema }));
 
 
 class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
@@ -23013,8 +23351,11 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     const box = this.querySelector(".ce-barre");
     if (!box) return;
     const barre = this._config.barre || [];
-    box.innerHTML = barre.length ? ""
-        : "<div class='ce-aiuto'>" + T("Nessuna barra in piu'.") + "</div>";
+    // niente barre in piu' = niente cassetto: era un riquadro che diceva
+    // solo "qui non c'e' niente"
+    const cassetto = box.closest(".ce-sez");
+    if (cassetto) cassetto.hidden = !barre.length;
+    box.innerHTML = "";
     barre.forEach((b, i) => {
       const riga = document.createElement("div");
       riga.className = "ce-riga";
@@ -23076,9 +23417,90 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     return (st && st.attributes && st.attributes.friendly_name) || "";
   }
 
+  // i dati a tutti i moduli (quello in cima e i cassetti)
+  _datiAiModuli() {
+    const dati = this._datiForm();
+    (this._moduli || []).forEach((f) => { f.data = dati; });
+  }
+
+  // i tasti: la lista con "Aggiungi" e l'icona di ognuno
+  // Azzera i contatori chiamando lo script che dice la configurazione, e
+  // gli passa quali contatori sono: cosi' basta uno script per tutta la casa.
+  _azzera() {
+    const cfg = this._config;
+    const pe = cfg.period_entities || {};
+    const ci = cfg.ciclo || {};
+    if (!cfg.reset_script) return;
+    if (!window.confirm(T("Azzero i contatori di questa scheda. Vado?"))) return;
+    this._hass.callService("script", "turn_on", {
+      entity_id: cfg.reset_script,
+      variables: {
+        scheda: cfg.name || "",
+        oggi: cfg.oggi_energia || (pe.today || {}).energy || "",
+        settimana: cfg.settimana_energia || (pe.week || {}).energy || "",
+        mese: cfg.mese_energia || (pe.month || {}).energy || "",
+        ciclo_contatore: ci.contatore || "",
+        ciclo_kwh: ci.consumo || "",
+        ciclo_minuti: ci.durata || "",
+        ciclo_fine: ci.fine || "",
+      },
+    });
+    this._dillo(T("Azzerati."));
+  }
+
+  _disegnaTasti() {
+    const box = this.querySelector(".ce-tasti");
+    if (!box) return;
+    disegnaTasti(box, tastiDi(this._config), this._hass, (elenco) => {
+      const c = { ...this._config, tasti: elenco };
+      delete c.interruttore;
+      delete c.interruttore_usb;
+      delete c.interruttori;
+      if (!elenco.length) delete c.tasti;
+      this._config = c;
+      this._emetti();
+      this._disegnaTasti();
+      this._riassunti();
+    });
+  }
+
+  // quello che si legge su ogni tendina chiusa
+  _riassunti() {
+    const metti = (sel, testo) => {
+      const x = this.querySelector(sel + " .ce-riassunto");
+      if (x) x.textContent = testo ? " \u00b7 " + testo : "";
+    };
+    const c = this._config;
+    metti(".ce-sez-capisci", c.power_entity ? this._nomeDi(c.power_entity) : T("da fare"));
+    const pe = c.period_entities || {};
+    const quanti = Object.keys(pe).filter((k) => (pe[k] || {}).energy).length
+      || [c.oggi_energia, c.mese_energia].filter(Boolean).length;
+    metti(".ce-sez-contatori", quanti ? quanti + " " + T(quanti === 1 ? "agganciato" : "agganciati") : T("da fare"));
+    const tasti = tastiDi(c).length;
+    metti(".ce-sez-tasti", tasti ? tasti + " " + T(tasti === 1 ? "tasto" : "tasti") : T("nessuno"));
+    const righe = Array.isArray(c.righe) ? c.righe.length : this._righeDaOffrire().length;
+    metti(".ce-sez-righe", righe + " " + T(righe === 1 ? "accesa" : "accese"));
+    const barre = (c.barre || []).length;
+    metti(".ce-sez-barre", barre ? barre + " " + T(barre === 1 ? "barra" : "barre") : T("nessuna"));
+  }
+
+  // Le righe che ha senso proporre. Se la scheda segue i cicli, "kWh di oggi"
+  // e "Costo di oggi" ripetono il ciclo ogni volta che di cicli ne fai uno al
+  // giorno, e il totale del giorno sta comunque nelle Statistiche. Quindi non
+  // le propongo - a meno che tu non le abbia gia' accese, se no non potresti
+  // piu' toglierle.
+  _righeDaOffrire() {
+    const c = this._config || {};
+    const haCicli = !!(c.cycle_sensor || c.ciclo || c.ciclo_live);
+    if (!haCicli) return RIGHE_CICLO;
+    const accese = Array.isArray(c.righe) ? c.righe : [];
+    return RIGHE_CICLO.filter((r) => !(["oggi", "costo_oggi"].includes(r.id)
+      && !accese.includes(r.id)));
+  }
+
   _disegnaRighe() {
     if (!this._righe) return;
-    disegnaRighe(this._righe, RIGHE_CICLO, this._config, (c) => {
+    disegnaRighe(this._righe, this._righeDaOffrire(), this._config, (c) => {
       this._config = c;
       this._emetti();
       this._disegnaRighe();
@@ -23094,8 +23516,6 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     if (sceglitore) sceglitore.hass = this._hass;
   }
 
-  // i sensori in kWh che potrebbero essere di questo elettrodomestico
-  // la tendina dei prezzi: uno per ogni aiutante in \u20ac/kWh che hai in casa
   _disegnaPrezzo() {
     const sel = this.querySelector(".ce-prezzo-ent");
     const campo = this.querySelector(".ce-prezzo");
@@ -23212,10 +23632,38 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     }
   }
 
+  // Guarda l'entita' della potenza prima di creare qualunque cosa: vera se
+  // adesso e' un numero E se e' una misura in Watt (device_class `power`,
+  // oppure l'unita' W/kW - la stessa regola con cui la scheda cerca le prese
+  // di casa). Un'entita' non disponibile non blocca niente: e' solo un
+  // apparecchio staccato in questo momento, non un errore di chi configura.
+  _potenzaVera(potenza) {
+    const st = ((this._hass || {}).states || {})[potenza];
+    if (!st) return true;
+    const a = st.attributes || {};
+    const nome = "«" + this._nomeDi(potenza) + "»";
+    if (["unavailable", "unknown", ""].includes(String(st.state))) return true;
+    if (!Number.isFinite(Number(st.state))) {
+      this._dillo(nome + " adesso vale «" + st.state + "», che non e' un numero."
+        + " Qui va la presa che misura i Watt.", true);
+      return false;
+    }
+    const u = String(a.unit_of_measurement || "");
+    if (a.device_class !== "power" && u !== "W" && u !== "kW") {
+      this._dillo(nome + " non misura in Watt" + (u ? " (è in " + u + ")" : "") + "."
+        + " La soglia «sta lavorando» e i kWh nascono da li': con un'altra cosa"
+        + " restano bloccati senza dirlo. Se l'apparecchio non ha una presa che misura,"
+        + " qui non c'e' niente da creare.", true);
+      return false;
+    }
+    return true;
+  }
+
   async _creaSensori() {
     const tasto = this.querySelector(".ce-crea");
     const potenza = this._config.power_entity;
     if (!potenza) { this._dillo("Prima scegli la presa che misura i Watt.", true); return; }
+    if (!this._potenzaVera(potenza)) return;
     const kwh = (this.querySelector(".ce-kwh-pick") || {}).value || this._config.energia_kwh;
     const prezzoScelto = (this.querySelector(".ce-prezzo-ent") || {}).value;
     if (!prezzoScelto) {
@@ -23240,6 +23688,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     try {
       const patch = await creaSensoriElettrodomestico(this._hass, {
         memoria: this._config.helper_memoria || {},
+        reset_script: this._config.reset_script,
         // i contatori che la scheda gia' usa: quelli si riusano, non si rifanno
         gia: {
           oggi: this._config.oggi_energia || ((this._config.period_entities || {}).today || {}).energy,
@@ -23272,7 +23721,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         this._config = { ...this._config, ...piu };
       }
       this._emetti();
-      this._form.data = this._datiForm();
+      this._datiAiModuli();
       this._dillo("Le statistiche sono agganciate. Salva e chiudi.");
     } catch (e) {
       this._dillo("Non ce l'ho fatta: " + (e && e.message ? e.message : e), true);
@@ -23283,78 +23732,110 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
-      this.innerHTML = `<style>${STILE_EDITOR}</style>` + TH(`<label class="ce-riga ce-tutto-riga"><input type="checkbox" class="ce-tutto">
-          <span>Mostra tutte le impostazioni (soglie, barre, ciclo in corso, colori)</span></label>
-        <div class="ce-versione">casa-elettrodomestico \u00b7 casa-tile v${VERSIONE}</div>
+      this.innerHTML = `<style>${STILE_EDITOR}</style>` + TH(`<div class="ce-versione">casa-elettrodomestico \u00b7 casa-tile v${VERSIONE}</div>
         <div class="ce-form"></div>
-        <div class="ce-sez">
-          <div class="ce-tit">${T("Come si fa, in tre mosse")}</div>
-          <div class="ce-aiuto">${T("<b>1.</b> Qui sotto scegli <b>una</b> entita' dell'apparecchio e premi <b>Compila da solo</b>: riempio io quello che trovo.<br> <b>2.</b> Guarda l'<b>anteprima a destra</b>. Quello che vedi e' quello che avrai. Se un numero dice \"&mdash;\", apri il cassetto che lo riguarda (sono qui sopra, chiusi) e scegli il sensore.<br> <b>3.</b> Se i contatori non esistono ancora, in fondo c'e' <b>Crea statistiche e costi</b>: te li creo io e poi li aggancio.<br> Il resto e' facoltativo: tasti, barre in piu', colori. Se non li tocchi, non compaiono.")}</div>
-        </div>
-        <div class="ce-sez">
-          <div class="ce-tit">${T("1. Capisci da solo l'apparecchio")}</div>
-          <div class="ce-aiuto">${T("Scegli <b>una qualsiasi</b> entita' dell'apparecchio - la presa, l'interruttore, lo stato - e premi il tasto. Guardo tutte le altre entita' dello <b>stesso dispositivo</b> e riempio io: i <b>watt</b>, lo <b>stato</b>, l'<b>interruttore</b> e quello <b>USB</b>, i sensori del <b>ciclo in corso</b> e il <b>disegno</b> che mi sembra giusto dal nome. Niente e' definitivo: tutto quello che trovo si cambia qui sotto, disegno compreso.")}</div>
-          <div class="ce-riga"><span class="ent">Entita' da cui partire</span><ha-entity-picker class="ce-capisci-ent" allow-custom-entity></ha-entity-picker></div>
+        <details class="ce-sez ce-tendina ce-sez-capisci" data-c="1" style="--c:#7cc4ff">
+          <summary class="ce-tit">${titoloSez(VESTITO.capisci, T("Capisci da solo l\u0027apparecchio"))}</summary>
+          <div class="ce-aiuto">${T("Scegli <b>una qualsiasi</b> entita\u0027 dell\u0027apparecchio - la presa, l\u0027interruttore, lo stato - e premi il tasto. Guardo tutte le altre entita\u0027 dello <b>stesso dispositivo</b> e riempio io quello che trovo. Niente e\u0027 definitivo: si cambia tutto qui sotto.")}</div>
+          <div class="ce-riga"><span class="ent">${T("Entita\u0027 da cui partire")}</span><ha-entity-picker class="ce-capisci-ent" allow-custom-entity></ha-entity-picker></div>
           <button type="button" class="ce-prepara">Compila da solo</button>
-        </div>
-        
-        <details class="ce-sez"><summary class="ce-tit">${T("Due modi di contare: scegli il tuo")}</summary>
-          <div class="ce-aiuto">${T("Questa scheda va bene per <b>tutti e due</b> i casi, e capisce da sola quale e' il tuo da quello che compili:<br> &bull; <b>Ha dei cicli</b> (lavatrice, lavastoviglie, forno): dagli il <i>sensore dell'ultimo ciclo</i> e il riquadro fa vedere <i>fine, durata, consumo e costo</i> dell'ultimo lavaggio.<br> &bull; <b>Sta sempre acceso</b> (una presa, un PC, un frigo): lascia stare il ciclo e dagli i <i>quattro sensori dei kWh e dei costi</i> qui sopra; il riquadro diventa <b>Consumi</b> e fa vedere oggi e il mese. Le righe si spuntano qui sotto.")}</div>
         </details>
-        <details class="ce-sez"><summary class="ce-tit">${T("A cosa servono i tasti di accensione")}</summary>
-          <div class="ce-aiuto">${T("I due campi <b>Tasto \u23fb</b> e <b>USB</b> qui sopra mettono un tastino tondo nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne, e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare. Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.<br> Se invece hai una <b>ciabatta</b> con tre o quattro prese, usa <b>Piu' prese</b>: diventano una fila di tastini col nome di ognuna, verdi quando danno corrente.")}</div>
-        </details>
-        <details class="ce-sez"><summary class="ce-tit">${T("Nomi delle barre in piu'")}</summary>
-          <div class="ce-aiuto">${T("Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto <i>Seconda barra</i>. Servono per far vedere insieme piu' misure: per esempio quanto prende dalla rete e quanto manda a casa.")}</div>
-          <div class="ce-barre"></div>
-        </details>
-        <div class="ce-sez">
-          <div class="ce-tit">${T("Righe dell'«Ultimo ciclo»")}</div>
-          <div class="ce-aiuto">${T("Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi, scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).")}</div>
-          <div class="ce-righe"></div>
-        </div>
-        <details class="ce-sez" open><summary class="ce-tit">${T("Crea i sensori base (se non ce li hai)")}</summary>
-          <div class="ce-aiuto">${T("A un apparecchio o a una presa servono <b>due aiutanti</b>: i kWh di oggi e i kWh del mese. Il <b>costo non ha un sensore</b>: sono i kWh per il prezzo, e il conto lo fa la scheda mentre lo guardi. Il prezzo lo scrivi una volta sola nella scheda <i>Energia Casa</i>, che e' la principale: qui vale la <b>sola energia</b>, se no le tasse le paghi due volte.<br> Se la presa non conta i kWh da sola ne serve un terzo, che li calcola dai Watt.")}</div>
-          <div class="ce-riga"><span class="ent">Sensore dei kWh</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
+        <details class="ce-sez ce-tendina ce-sez-contatori" data-c="1" style="--c:#2fbfb0">
+          <summary class="ce-tit">${titoloSez(VESTITO.contatori, T("I contatori"))}</summary>
+          <div class="ce-aiuto">${T("A un apparecchio o a una presa servono <b>due aiutanti</b>: i kWh di oggi e i kWh del mese. Il <b>costo non ha un sensore</b>: sono i kWh per il prezzo, e il conto lo fa la scheda mentre lo guardi. Il prezzo si scrive una volta sola nella scheda <i>Energia Casa</i>: qui vale la <b>sola energia</b>, se no le tasse le paghi due volte.")}</div>
+          <div class="ce-riga"><span class="ent">${T("Sensore dei kWh")}</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
           <div class="ce-aiuto ce-nota-kwh"></div>
           <div class="ce-riga"><span class="ent ce-soglia-eti">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> <span class="ce-soglia-un">W</span></div>
-          <div class="ce-riga"><span class="ent">Prezzo dei sensori che creo</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
+          <div class="ce-riga"><span class="ent">${T("Prezzo dei sensori che creo")}</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
           <div class="ce-riga ce-voci" hidden><span class="ent">Quanto paghi l'energia, &euro;/kWh</span><input type="number" class="ce-v-energia max" step="0.0001" min="0" placeholder="0.1657"></div>
-          <div class="ce-riga ce-voci ce-voci-nota" hidden><span class="ent">${T("Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia' la scheda grande della casa.")}</span></div>
+          <div class="ce-riga ce-voci ce-voci-nota" hidden><span class="ent">${T("Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia\u0027 la scheda grande della casa.")}</span></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-cicli">
-            <span>${T("Segui i <b>cicli</b>: quando finisce, quanto e' durato, quanto ha consumato (6 aiutanti e 1 automazione, una volta sola)")}</span></label></div>
+            <span>${T("Segui i <b>cicli</b>: quando finisce, quanto e\u0027 durato, quanto ha consumato (6 aiutanti e 1 automazione, una volta sola)")}</span></label></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-tempi">
-            <span>${T("Conta anche <b>quante volte parte</b> e <b>per quanto</b> (2 aiutanti per ogni periodo, piu' la soglia)")}</span></label></div>
-          <div class="ce-riga"><span class="ent">Periodi da creare</span>
+            <span>${T("Conta anche <b>quante volte parte</b> e <b>per quanto</b> (2 aiutanti per ogni periodo, piu\u0027 la soglia)")}</span></label></div>
+          <div class="ce-riga"><span class="ent">${T("Periodi da creare")}</span>
             <label><input type="checkbox" class="ce-p-oggi" checked> oggi</label>
             <label><input type="checkbox" class="ce-p-settimana"> settimana</label>
             <label><input type="checkbox" class="ce-p-mese" checked> mese</label></div>
           <button type="button" class="ce-prepara ce-crea">Crea statistiche e costi</button>
+          <button type="button" class="ce-prepara ce-azzera" hidden>${T("Azzera i contatori")}</button>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
         </details>
-        <div class="ce-esito" hidden></div>`);
-      const form = document.createElement("ha-form");
-      form.schema = traduciSchema(this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE);
-      form.computeLabel = (x) => T(x.title || ETICHETTE[x.name] || x.name);
+        <div class="ce-esito" hidden></div>
+        <label class="ce-riga ce-tutto-riga"><input type="checkbox" class="ce-tutto">
+          <span>Mostra altre impostazioni</span></label>
+        <div class="ce-avanzate" hidden>
+          <details class="ce-sez ce-tendina ce-sez-tasti" data-c="1" style="--c:#43b86a">
+            <summary class="ce-tit">${titoloSez(VESTITO.tasti, T("Tasti di accensione"))}</summary>
+            <div class="ce-aiuto">${T("Ogni tasto e\u0027 un tondino nella barra in alto della scheda: premuto accende o spegne, e resta verde finche\u0027 e\u0027 acceso. Aggiungi quello che vuoi - una presa, una luce, una ventola - e scegli la sua icona.")}</div>
+            <div class="ce-tasti"></div>
+          </details>
+          <details class="ce-sez ce-tendina ce-sez-righe" data-c="1" style="--c:#e2ad1c">
+            <summary class="ce-tit">${titoloSez(VESTITO.righe, T("Righe dell\u0027\u00abUltimo ciclo\u00bb"))}</summary>
+            <div class="ce-aiuto">${T("Spunta quelle da vedere e trascinale dalla maniglia \u283f per metterle in ordine. Nome e colore sono facoltativi (vuoto = quelli di serie).")}</div>
+            <div class="ce-righe"></div>
+          </details>
+          <details class="ce-sez ce-tendina ce-sez-barre" data-c="1" style="--c:#4fb0d8">
+            <summary class="ce-tit">${titoloSez(VESTITO.barre, T("Nomi delle barre in piu\u0027"))}</summary>
+            <div class="ce-aiuto">${T("Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto <i>Seconda barra</i>.")}</div>
+            <div class="ce-barre"></div>
+          </details>
+          <div class="ce-gruppi"></div>
+        </div>`);
+      // un modulo per i tre campi di sempre, e uno per ogni cassetto: cosi'
+      // ogni cassetto e' un riquadro come gli altri invece di vestirsi da solo
+      const faiModulo = (schema, dove) => {
+        const f = document.createElement("ha-form");
+        f.schema = traduciSchema(schema);
+        f.computeLabel = (x) => T(x.title || ETICHETTE[x.name] || x.name);
+        f.addEventListener("value-changed", (e) => {
+          e.stopPropagation();
+          this._cambiatoForm(e.detail.value || {});
+        });
+        dove.appendChild(f);
+        return f;
+      };
+      const form = faiModulo(SCHEMA_SEMPLICE, this.querySelector(".ce-form"));
+      this._form = form;
+      this._moduli = [form];
+      const cassetti = this.querySelector(".ce-gruppi");
+      GRUPPI.forEach((g) => {
+        const box = document.createElement("details");
+        box.className = "ce-sez ce-tendina";
+        const veste = VESTITO[g.chiave] || [];
+        vestiSez(box, veste);
+        const cap = document.createElement("summary");
+        cap.className = "ce-tit";
+        // il titolo e' del dizionario, la spiegazione anche: niente da proteggere
+        cap.innerHTML = titoloSez(veste, T(g.titolo));
+        box.appendChild(cap);
+        // la spiegazione lunga: aperta, ogni tendina dice cosa fa, come le altre
+        if (veste[3]) {
+          const aiuto = document.createElement("div");
+          aiuto.className = "ce-aiuto";
+          aiuto.innerHTML = TH(veste[3]);
+          box.appendChild(aiuto);
+        }
+        cassetti.appendChild(box);
+        this._moduli.push(faiModulo(g.schema, box));
+      });
+      this._avanzate = this.querySelector(".ce-avanzate");
       const spunta = this.querySelector(".ce-tutto");
       if (spunta) {
         spunta.checked = !!this._tutto;
+        this._avanzate.hidden = !this._tutto;
         spunta.addEventListener("change", () => {
           this._tutto = spunta.checked;
-          form.schema = traduciSchema(this._tutto ? SCHEMA_TUTTO : SCHEMA_SEMPLICE);
-          form.data = this._datiForm();
+          this._avanzate.hidden = !this._tutto;
+          this._datiAiModuli();
         });
       }
-      form.addEventListener("value-changed", (e) => {
-        e.stopPropagation();
-        this._cambiatoForm(e.detail.value || {});
-      });
-      this.querySelector(".ce-form").appendChild(form);
-      this._form = form;
       this._righe = this.querySelector(".ce-righe");
       this._esito = this.querySelector(".ce-esito");
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
       this.querySelector(".ce-cancella").addEventListener("click", () => this._cancellaSensori());
+      // l'azzeramento: stava nell'ingranaggio della scheda, adesso e' qui
+      this.querySelector(".ce-azzera").addEventListener("click", () => this._azzera());
       ["oggi", "settimana", "mese"].forEach((k) => {
         const c = this.querySelector(".ce-p-" + k);
         if (!c) return;
@@ -23373,7 +23854,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         this._scriviScelta("prezzo_entita", e.target.value));
       this.querySelector(".ce-soglia").addEventListener("change", (e) => {
         this._scriviScelta("threshold_run", Number(e.target.value));
-        this._form.data = this._datiForm();
+        this._datiAiModuli();
       });
       this.querySelector(".ce-prepara").addEventListener("click", () => {
         const c0 = this._config;
@@ -23390,7 +23871,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         });
         this._config = { type: c0.type, ...pronta, ...tieni };
         this._emetti();
-        this._form.data = this._datiForm();
+        this._datiAiModuli();
         this._disegnaRighe();
         const c = this._config;
         const trovate = ["power_entity", "interruttore", "interruttore_usb", "cycle_sensor"].filter((x) => c[x]);
@@ -23400,11 +23881,15 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           "Trovato: " + trovate.join(", ") + ". Disegno scelto: \u00ab" + c.artwork + "\u00bb.";
       });
     }
-    if (this._hass) this._form.hass = this._hass;
+    if (this._hass) (this._moduli || []).forEach((f) => { f.hass = this._hass; });
+    const azzera = this.querySelector(".ce-azzera");
+    if (azzera) azzera.hidden = !this._config.reset_script;
     this._disegnaKwh();
     this._disegnaPrezzo();
-    this._form.data = this._datiForm();
+    this._disegnaTasti();
+    this._datiAiModuli();
     this._disegnaRighe();
+    this._riassunti();
   }
 }
 
