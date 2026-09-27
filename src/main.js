@@ -56,8 +56,8 @@ window.customCards.push({
 [
   ["casa-elettrodomestico", "Casa \u00b7 consumi",
    "Una scheda per elettrodomestici E prese: watt, acceso/spento, ultimo ciclo oppure kWh e costi di oggi e del mese. Capisce da sola le entita' del dispositivo."],
-  // casa-energia resta viva per le schede gia' in giro (la grande della casa,
-  // con bolletta e top consumo) ma non si propone piu' nell'elenco: una sola.
+  ["casa-energia", "Casa · energia di tutta la casa",
+   "La scheda grande: watt adesso, consumi e costi per ora, oggi, settimana, mese e bolletta, chi consuma di piu', risparmio dei pannelli. Di solito ne basta una."],
 ].forEach(([type, name, description]) => {
   if (!window.customCards.some((x) => x && x.type === type)) {
     window.customCards.push({ type, name, description });

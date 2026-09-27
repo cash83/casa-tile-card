@@ -160,6 +160,47 @@ casa** e riceve le entità dell'apparecchio, quindi un apparecchio nuovo funzion
 subito. Azzera oggi, la settimana, il ciclo e le memorie dell'ultimo ciclo; il
 mese lo tocca solo se glielo chiedi.
 
+### I disegni
+
+Quarantasei, tutti disegnati a mano. Si scelgono a clic dall'editor, voce
+**Icona**. Il numero dei Watt dentro al disegno e' quello vero della presa, e i
+pezzi che si muovono - il cestello, le pale, la fiamma, il vapore, le bollicine -
+si muovono **solo mentre l'apparecchio lavora**. A scheda spenta il disegno
+diventa grigio.
+
+![I disegni](immagini/disegni.png)
+
+Oltre agli apparecchi ci sono i disegni per le **linee intere**: *Cucina (tutta
+la linea)* per una pinza amperometrica sul quadro, *Contatore della luce* per il
+generale.
+
+### «Compila da solo»
+
+Nell'editor, riquadro **Capisci da solo l'apparecchio**: dai una qualsiasi
+entita' dell'apparecchio - la presa, l'interruttore, lo stato - e premi il tasto.
+La scheda guarda **tutte le altre entita' dello stesso dispositivo** e riempie
+quello che trova.
+
+Quello che cerca, e come lo riconosce:
+
+| Riempie | Come lo trova |
+|---|---|
+| la presa che misura | un'entita' dello stesso dispositivo con `device_class: power` |
+| il disegno | le parole nel nome (`lavatric`, `forno`, `frigo`, `cucina`...) |
+| i tasti di accensione | gli `switch.` del dispositivo, e quello con `usb` nel nome va nel secondo tasto |
+| i contatori di oggi e del mese | se esistono gia' contatori che si chiamano come l'apparecchio |
+| **Ciclo in corso** | cinque nomi: `energia_ciclo`/`cycle_energy`, `tempo_trascorso`/`elapsed`, `tempo_residuo`/`remain`, `programma`/`program`/`course`, `fase`/`phase`/`run_state` |
+
+Il **Ciclo in corso** lo riempie solo se ne trova **almeno due**: un campo solo,
+pescato per somiglianza di nome, farebbe piu' confusione che altro. Quei cinque
+sensori li ha l'integrazione dell'apparecchio (una LG, una Bosch), non la presa:
+su una presa smart o una pinza restano vuoti, ed e' giusto cosi'.
+
+**Quello che NON tocca**: il prezzo, lo script di azzeramento, il tema, la
+disposizione, la finestrella, e le righe che hai scelto tu. Non sono cose che si
+guardano nel dispositivo - le hai messe tu - quindi puoi premere il tasto anche
+su una scheda gia' finita senza rifare niente.
+
 ### Come si aggiungono
 
 Nell'editor della casella, linguetta **Tocco** → *Apri la scheda elettrodomestico

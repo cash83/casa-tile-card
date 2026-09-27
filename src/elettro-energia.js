@@ -24,8 +24,12 @@ const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" s
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
 import { ConFinestrelle } from './elettro-condivisi.js';
+import { ConGrafico } from './elettro-grafico.js';
 
 // Le righe che puo' avere il riquadro Oggi, con il nome che si vede nell'editor.
+const ICON_ANDAMENTO =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>';
+
 export const RIGHE_OGGI = [
   { id: "consumo", nome: "Consumo (kWh presi dalla rete)", etichetta: "Consumo", colore: "#3fb4ea" },
   { id: "consumo_mese", nome: "Consumo del mese (kWh)", etichetta: "Consumo mese", colore: "#3f8fea" },
@@ -41,7 +45,7 @@ export const RIGHE_OGGI = [
 ];
 
 
-export class CasaEnergia extends ConFinestrelle(HTMLElement) {
+export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // Le righe del riquadro Oggi, nell'ordine della configurazione (`righe`).
   // Una riga che non e' nell'elenco non si vede.
   _righeOggi() {
@@ -92,7 +96,7 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
     const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.energy)(this._heroId);
     const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.energy;
     this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
-      <article class="dm-ap-card is-run">
+      <article class="dm-ap-card ${this._config.layout === "centrato" ? "centrato" : ""} is-run">
         <div class="dm-ap-top">
           <span class="dm-ap-chip">${chip}</span>
           <span class="dm-ap-headings">
@@ -101,6 +105,7 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
           <span class="dm-ap-badge run"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label">ONLINE</span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
+            <button type="button" class="dm-ap-tool dm-ap-andamento" title="Andamento">${ICON_ANDAMENTO}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
             <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
@@ -158,16 +163,38 @@ export class CasaEnergia extends ConFinestrelle(HTMLElement) {
     }
     this._root.querySelector(".dm-ap-stats").addEventListener("click", (e) => {
       e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
       this._openStats();
+    });
+    this._root.querySelector(".dm-ap-andamento").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
+      this._apriGrafico(this._curveDellaCasa(), "Andamento");
     });
     this._root.querySelector(".dm-ap-consumi").addEventListener("click", (e) => {
       e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
       this._openConsumi();
     });
     this._root.querySelector(".dm-ap-hero").addEventListener("click", (e) => {
       e.stopPropagation();
       this._openConsumi();
     });
+  }
+
+  // Le curve del grafico: il Generale, poi i circuiti che hai gia' messo
+  // nella scheda. Nessuna entita' nuova da indicare.
+  _curveDellaCasa() {
+    const cfg = this._config;
+    const tinte = ["#f28c3c", "#43b86a", "#a283f2", "#3fb4ea", "#f06e82", "#2fbfb0"];
+    const fuori = [{ nome: cfg.power_label || "Generale", entity: cfg.power_entity,
+      colore: "#0ea5e9", unita: "W" }];
+    (cfg.circuits || []).forEach((c, i) => {
+      if (!c || !c.entity) return;
+      fuori.push({ nome: c.label || c.entity, entity: c.entity,
+        colore: tinte[i % tinte.length], unita: "W" });
+    });
+    return fuori;
   }
 
   // questa scheda addolcisce la linea del grafico

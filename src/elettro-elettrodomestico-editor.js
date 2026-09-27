@@ -6,23 +6,46 @@
 import { RIGHE_CICLO } from './elettro-elettrodomestico.js';
 import { VERSIONE } from './versione.js';
 import { ConEditor } from './elettro-condivisi.js';
-import { tastiDi } from './elettro-comune.js';
+import { esc, tastiDi } from './elettro-comune.js';
 import { T, TH, traduciSchema } from './lingua.js';
 import { preparaElettrodomestico, trovaPerDisegno } from './elettro-prepara.js';
-import { STILE_EDITOR, disegnaRighe, disegnaTasti, titoloSez, vestiSez } from './elettro-righe-editor.js';
+import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez, vestiSez } from './elettro-righe-editor.js';
 import { creaCicli, prezzoDellaCasa, INGREDIENTE, creaSensoriElettrodomestico, prezziDelKWh } from './elettro-crea.js';
 
+// Le voci che "Compila da solo" deve lasciare stare: non le trova guardando
+// il dispositivo, le hai messe tu.
+const MIE_NON_DEL_DISPOSITIVO = [
+  "name", "righe", "nomi_righe", "notification_path", "grid_options", "casa_misura",
+  "prezzo_entita", "reset_script", "helper_memoria", "ciclo_attesa_sec", "label",
+  "tema", "layout", "finestra_apertura", "finestra_apertura_durata", "finestra_largo",
+  "finestra_immagine", "finestra_sfondo", "finestra_trasparenza", "finestra_scritta",
+  "velo_scuro", "velo_sfoca",
+];
+
 const DISEGNI = [
+  ["cucina", "Cucina (tutta la linea)"],
   ["washer", "Lavatrice"],
   ["dishwasher", "Lavastoviglie"],
   ["dryer", "Asciugatrice"],
   ["oven", "Forno"],
   ["microonde", "Microonde"],
+  ["piano_cottura", "Piano cottura a induzione"],
+  ["cappa", "Cappa aspirante"],
+  ["caffe", "Macchina del caffe\'"],
+  ["bollitore", "Bollitore"],
+  ["tostapane", "Tostapane"],
+  ["friggitrice", "Friggitrice ad aria"],
+  ["congelatore", "Congelatore"],
   ["frigorifero", "Frigorifero"],
   ["dehumidifier", "Deumidificatore"],
   ["condizionatore", "Condizionatore"],
   ["ventilatore", "Ventilatore"],
   ["boiler", "Boiler / scaldabagno"],
+  ["termoventilatore", "Termoventilatore"],
+  ["pompa_calore", "Pompa di calore"],
+  ["pellet", "Stufa a pellet"],
+  ["radiatore", "Radiatore elettrico"],
+  ["scaldasalviette", "Scaldasalviette"],
   ["luce", "Luce"],
   ["lampada", "Lampada"],
   ["tv", "Televisore"],
@@ -31,6 +54,14 @@ const DISEGNI = [
   ["minipc", "Mini PC (Home Assistant)"],
   ["presa", "Presa smart"],
   ["ciabatta", "Ciabatta / multipresa"],
+  ["robot", "Robot aspirapolvere"],
+  ["asciugacapelli", "Asciugacapelli"],
+  ["ferro", "Ferro da stiro"],
+  ["pompa", "Pompa dell\'acqua"],
+  ["acquario", "Acquario"],
+  ["stampante3d", "Stampante 3D"],
+  ["console", "Console da gioco"],
+  ["colonnina", "Colonnina di ricarica"],
   ["powerstation", "Powerstation"],
   ["energy", "Contatore della luce"],
   ["ups", "Gruppo di continuita'"],
@@ -44,12 +75,13 @@ const ETICHETTE = {
   interruttori_lista: "Piu' prese (ciabatte): una fila di tastini col loro nome",
   name: "Nome della scheda",
   artwork: "Icona",
-  power_entity: "Presa che misura (W) - o un altro numero da mostrare nella barra",
+  power_entity: "Barra principale: il sensore che legge (i W della presa, o un altro numero)",
   threshold_run: "Sopra questi W e' «in funzione»",
   threshold_standby: "Sopra questi W e' «in standby»",
-  max_power: "Fondo scala della barra",
-  power_label: "Nome della barra (vuoto = Potenza attuale)",
-  power_unit: "Unita' della barra (vuoto = W)",
+  ciclo_attesa_sec: "Secondi di fermo prima di dire che ha finito (vuoto = 100)",
+  max_power: "Barra principale: fondo scala (dove arriva quando e' piena)",
+  power_label: "Barra principale: il nome (vuoto = Potenza attuale)",
+  power_unit: "Barra principale: l'unita' (vuoto = W)",
   stato: "Stato vero dell'apparecchio (facoltativo: integrazioni LG, Bosch...)",
   interruttore: "Tasto \u23fb nella barra in alto: cosa accende e spegne",
   interruttore_usb: "Secondo tasto per le prese USB (se ci sono)",
@@ -57,21 +89,26 @@ const ETICHETTE = {
   oggi_costo: "Euro di oggi: quei kWh per il prezzo",
   mese_energia: "kWh del MESE: lo stesso contatore a ciclo mensile",
   mese_costo: "Euro del mese",
-  barre_entita: "Barre in piu' (una per ogni cosa che vuoi vedere in W)",
-  cycle_sensor: "Sensore dell'ultimo ciclo (es. sensor.lavatrice_ciclo)",
-  avanzamento: "Seconda barra: un numero da 0 a 100 (avanzamento, umidita'...)",
-  progress_label: "Nome della seconda barra (vuoto = Avanzamento programma)",
+  barre_entita: "Barre in WATT: quali sensori (il nome di ognuna si scrive qui sotto)",
+  avanzamento: "Barra dell'AVANZAMENTO: quale sensore, da 0 a 100 (programma, umidita'...)",
+  progress_label: "Barra dell'AVANZAMENTO: il nome (vuoto = Avanzamento programma)",
   vivo_energia: "Ciclo in corso: energia gia' consumata (Wh o kWh)",
   vivo_trascorso: "Ciclo in corso: minuti gia' fatti",
   vivo_residuo: "Ciclo in corso: minuti che mancano (per l'ora di fine)",
   vivo_programma: "Ciclo in corso: programma scelto",
   vivo_fase: "Ciclo in corso: fase (asciugatura, risciacquo...)",
   notification_path: "Pagina delle notifiche (facoltativa)",
-  finestra_sfondo: "Tinta della finestra del pop-up",
-  finestra_trasparenza: "Trasparenza della finestra",
-  finestra_scritta: "Colore delle scritte nella finestra",
-  velo_scuro: "Quanto scurisce quello che c'e' dietro",
-  velo_sfoca: "Quanto sfoca quello che c'e' dietro",
+  layout: "Disposizione della scheda",
+  tema: "Chiaro o scuro (questa scheda soltanto)",
+  finestra_apertura: "Come si apre il pop-up",
+  finestra_apertura_durata: "Quanto dura l'apertura",
+  finestra_largo: "Larghezza del pop-up (vuoto = 560)",
+  finestra_immagine: "Foto di sfondo del pop-up (indirizzo)",
+  finestra_sfondo: "Pop-up: la tinta della finestra (vuoto = come le schede)",
+  finestra_trasparenza: "Pop-up: quanto e' trasparente la finestra",
+  finestra_scritta: "Pop-up: il colore delle scritte",
+  velo_scuro: "Pop-up: quanto scurisce quello che c'e' dietro",
+  velo_sfoca: "Pop-up: quanto sfoca quello che c'e' dietro",
 };
 
 const SCHEMA_TUTTO = [
@@ -80,16 +117,11 @@ const SCHEMA_TUTTO = [
   { name: "artwork", selector: { select: { mode: "dropdown", options: DISEGNI.map(([value, label]) => ({ value, label })) } } },
   { name: "power_entity", selector: { entity: { domain: "sensor" } } },
   // il resto in cassetti, che si aprono solo se servono
-  { name: "g_acceso", type: "expandable", flatten: true, title: "Quando e' acceso (soglie e barra)", schema: [
+  { name: "g_acceso", type: "expandable", flatten: true, title: "Quando e' acceso", schema: [
     { name: "threshold_run", selector: { number: { min: 0, max: 3000, step: 1, mode: "box", unit_of_measurement: "W" } } },
     { name: "threshold_standby", selector: { number: { min: 0, max: 500, step: 0.5, mode: "box", unit_of_measurement: "W" } } },
-    { name: "max_power", selector: { number: { min: 1, max: 10000, step: 1, mode: "box" } } },
-    { name: "power_label", selector: { text: {} } },
-    { name: "power_unit", selector: { text: {} } },
+    { name: "ciclo_attesa_sec", selector: { number: { min: 10, max: 1800, step: 5, mode: "box", unit_of_measurement: "s" } } },
     { name: "stato", selector: { entity: {} } },
-  ] },
-  { name: "g_conti", type: "expandable", flatten: true, title: "Sensore dell'ultimo ciclo", schema: [
-    { name: "cycle_sensor", selector: { entity: { domain: "sensor" } } },
   ] },
   { name: "g_vivo", type: "expandable", flatten: true, title: "Ciclo in corso (mentre lavora)", schema: [
     { name: "vivo_energia", selector: { entity: { domain: "sensor" } } },
@@ -98,13 +130,37 @@ const SCHEMA_TUTTO = [
     { name: "vivo_programma", selector: { entity: { domain: "sensor" } } },
     { name: "vivo_fase", selector: { entity: { domain: "sensor" } } },
   ] },
-  { name: "g_barre", type: "expandable", flatten: true, title: "Seconda barra", schema: [
+  { name: "g_barre", type: "expandable", flatten: true, title: "Le barre", schema: [
+    { name: "power_entity", selector: { entity: { domain: "sensor" } } },
+    { name: "power_label", selector: { text: {} } },
+    { name: "power_unit", selector: { text: {} } },
+    { name: "max_power", selector: { number: { min: 1, max: 10000, step: 1, mode: "box" } } },
     { name: "barre_entita", selector: { entity: { multiple: true, domain: "sensor" } } },
     { name: "avanzamento", selector: { entity: {} } },
     { name: "progress_label", selector: { text: {} } },
   ] },
   { name: "g_aspetto", type: "expandable", flatten: true, title: "Aspetto e finestra del pop-up", schema: [
+    { name: "layout", selector: { select: { mode: "dropdown", options: [
+      { value: "classico", label: "Classico - la foto a sinistra" },
+      { value: "centrato", label: "Centrato - la foto in mezzo, i numeri sotto" },
+    ] } } },
     { name: "notification_path", selector: { text: {} } },
+    { name: "tema", selector: { select: { mode: "dropdown", options: [
+      { value: "auto", label: "Automatico - come Home Assistant" },
+      { value: "chiaro", label: "Sempre chiaro" },
+      { value: "scuro", label: "Sempre scuro" },
+    ] } } },
+    { name: "finestra_apertura", selector: { select: { mode: "dropdown", options: [
+      { value: "sfuma", label: "Sale e sfuma - discreta" },
+      { value: "sboccia", label: "Sboccia dal tondino che hai premuto" },
+      { value: "basso", label: "Entra dal basso, come un cassetto" },
+      { value: "niente", label: "Nessuna animazione" },
+    ] } } },
+    { name: "finestra_apertura_durata",
+      selector: { number: { min: 80, max: 2000, step: 20, mode: "slider", unit_of_measurement: "ms" } } },
+    { name: "finestra_largo",
+      selector: { number: { min: 400, max: 1400, step: 20, mode: "slider", unit_of_measurement: "px" } } },
+    { name: "finestra_immagine", selector: { text: {} } },
     { name: "finestra_sfondo", selector: { color_rgb: {} } },
     { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "finestra_scritta", selector: { color_rgb: {} } },
@@ -127,22 +183,27 @@ const VESTITO = {
   tasti: ["accensione", "#43b86a", "le prese e le luci che accendi dalla scheda"],
   righe: ["lista", "#e2ad1c", "quali numeri si vedono nel riquadro, e in che ordine"],
   barre: ["barre", "#4fb0d8", "il nome e il fondo scala delle barre in piu'"],
-  g_acceso: ["tachimetro", "#f28c3c", "sopra quanti watt sta lavorando, e il fondo scala",
-    "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. Qui c'e' anche il fondo scala della barra e il suo nome. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'."],
-  g_conti: ["contatore", "#a283f2", "se un'integrazione ti da' gia' il ciclo finito",
+  g_acceso: ["tachimetro", "#f28c3c", "sopra quanti watt sta lavorando",
+    "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. I <b>secondi di fermo</b> dicono quando il ciclo e' finito davvero: il forno spegne e riaccende la resistenza, la lavatrice ha le pause dell'ammollo, e senza attesa ogni pausa sembrerebbe la fine. Finche' aspetta, l'Ultimo ciclo resta coi trattini. Cambiato il numero, ripremi <i>Crea le statistiche</i>: riscrivo l'automazione. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'."],
+  __VIA__: [
     "Serve solo se un'integrazione o un pacchetto ti da' <b>gia' pronto</b> un sensore con dentro l'ultimo ciclo (fine, durata e consumo negli attributi). In quel caso la scheda legge quello invece dei contatori che si crea da sola. Se non ce l'hai, lascia vuoto."],
   g_vivo: ["clessidra", "#3fb4ea", "programma, tempo e fase mentre sta lavorando",
     "Le entita' che parlano <b>mentre l'apparecchio lavora</b>: quanto ha gia' consumato, da quanto va, quanto manca, il programma e la fase. Sono quelle che riempiono il riquadro <i>Ciclo in corso</i>. Anche queste le da' l'integrazione dell'apparecchio, non la presa."],
-  g_barre: ["barre", "#4fb0d8", "un'altra misura sotto alla potenza",
-    "Una seconda barra sotto a quella della potenza: un'altra misura in watt, oppure un avanzamento da 0 a 100 (il programma, l'umidita'...). Il nome e il fondo scala di ognuna si scrivono nella tendina <i>Nomi delle barre in piu'</i>."],
+  g_barre: ["barre", "#4fb0d8", "la principale, quelle in watt e l'avanzamento",
+    "Tutte le barre della scheda, in ordine, e ogni campo dice di quale barra parla. <b>Barra principale</b>: quella grande in fondo, che c'e' sempre - qui c'e' tutto: il sensore che legge, il nome, l'unita' e il fondo scala. <b>Barre in watt</b>: quante ne vuoi, una per sensore; scegli i sensori e sotto compare una riga per ognuno, col suo nome e il suo fondo scala. <b>Barra dell'avanzamento</b>: una sola, e non e' in watt - e' un numero da 0 a 100, il programma che avanza o l'umidita' della stanza."],
   g_aspetto: ["tavolozza", "#f06e82", "colori, trasparenza e velo della finestrella",
     "Come si veste la finestrella che si apre dai tondini: tinta, trasparenza, colore delle scritte, e quanto scurisce e sfoca quello che c'e' dietro. In piu' la pagina delle notifiche, se ne hai una."],
 };
 
-const SEMPLICI = ["name", "power_entity", "artwork"];
-const SCHEMA_SEMPLICE = SEMPLICI
+const daSchema = (nomi) => nomi
   .map((n) => SCHEMA_TUTTO.find((x) => x.name === n))
   .filter(Boolean);
+// Le poche impostazioni: qui dentro c'e' anche la presa, se no uno che non
+// apre i cassetti non avrebbe nessun modo di sceglierla.
+const SCHEMA_SEMPLICE = daSchema(["name", "power_entity", "artwork"]);
+// Con "mostra tutto" la presa se ne va nel cassetto delle barre, insieme al
+// nome e al fondo scala di quella barra: un campo solo, in un posto solo.
+const SCHEMA_SEMPLICE_CORTO = daSchema(["name", "artwork"]);
 const GRUPPI = SCHEMA_TUTTO
   .filter((x) => Array.isArray(x.schema))
   .map((x) => ({ chiave: x.name, titolo: x.title, schema: x.schema }));
@@ -217,6 +278,12 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     }
     this._config = c;
     this._emetti();
+    // quello che si legge dalla configurazione va rifatto adesso: se no la
+    // riga di una barra appena scelta compare solo riaprendo l'editor
+    this._notaRighe();
+    this._disegnaBarre();
+    this._noteBarre();
+    this._riassunti();
   }
 
   // cerca in casa un apparecchio che somigli al disegno scelto
@@ -237,15 +304,42 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
   }
 
   // nome e fondo scala di ogni barra in piu'
+  // Quale sensore legge la barra principale, e se quello dell'avanzamento
+  // e' davvero una percentuale. Sono le due domande che il cassetto faceva
+  // venire e a cui non rispondeva.
+  _noteBarre() {
+    const box = this.querySelector(".ce-barre-nota");
+    if (!box) return;
+    const c = this._config || {};
+    const righe = [];
+    if (c.power_entity) {
+      righe.push(T("La barra principale legge") + " <b>" + esc(this._nomeDi(c.power_entity))
+        + "</b> (" + esc(c.power_entity) + ").");
+    }
+    const av = (c.live || {}).progress_entity;
+    const st = av && this._hass ? this._hass.states[av] : null;
+    if (st) {
+      const u = String((st.attributes || {}).unit_of_measurement || "");
+      const n = Number(st.state);
+      const percentuale = u === "%" || (Number.isFinite(n) && n >= 0 && n <= 100);
+      if (!percentuale) {
+        righe.push("\u26a0 " + T("La barra dell'avanzamento vuole un numero da 0 a 100.") + " <b>"
+          + esc(this._nomeDi(av)) + "</b> " + T("adesso vale") + " " + esc(st.state)
+          + (u ? " " + esc(u) : "") + ": " + T("la barra non vorrebbe dire niente."));
+      }
+    }
+    box.innerHTML = righe.map((r) => '<div class="ce-aiuto">' + r + "</div>").join("");
+  }
+
   _disegnaBarre() {
     const box = this.querySelector(".ce-barre");
     if (!box) return;
     const barre = this._config.barre || [];
-    // niente barre in piu' = niente cassetto: era un riquadro che diceva
-    // solo "qui non c'e' niente"
-    const cassetto = box.closest(".ce-sez");
-    if (cassetto) cassetto.hidden = !barre.length;
-    box.innerHTML = "";
+    // adesso l'elenco sta dentro al cassetto delle barre, che ha anche
+    // altro: non si nasconde, si svuota e basta
+    box.innerHTML = barre.length
+      ? "<div class='ce-aiuto'>" + T("Il nome e il fondo scala di ogni barra in watt scelta qui sopra.") + "</div>"
+      : "";
     barre.forEach((b, i) => {
       const riga = document.createElement("div");
       riga.className = "ce-riga";
@@ -282,17 +376,10 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     const n = (c) => Number((this.querySelector(c) || {}).value) || 0;
     const energia = n(".ce-v-energia");
     if (energia > 0) return Math.round(energia * 10000) / 10000;
-    // se hai detto "scrivo io" valgono SOLO le voci: niente numeri di scorta
-    const sel = this.querySelector(".ce-prezzo-ent");
-    if (sel && sel.value === "__mia__") return 0;
-    return Number((this.querySelector(".ce-prezzo") || {}).value) || 0;
-  }
-
-  _aggiornaTotale() {
-    const t = this.querySelector(".ce-v-totale");
-    if (!t) return;
-    const v = this._prezzoScritto();
-    t.textContent = v ? v.toFixed(4) + " \u20ac/kWh" : "\u2014";
+    // niente numeri di scorta: o la tariffa che hai scritto qui sopra, o
+    // zero e comanda l'aiutante che hai scelto dall'elenco. Prima qui
+    // c'era una casella nascosta con dentro 0.25, e usciva quello.
+    return 0;
   }
 
   // il nome buono e' quello del dispositivo ("Lavatrice"), non del sensore
@@ -307,7 +394,6 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     return (st && st.attributes && st.attributes.friendly_name) || "";
   }
 
-  // i dati a tutti i moduli (quello in cima e i cassetti)
   _datiAiModuli() {
     const dati = this._datiForm();
     (this._moduli || []).forEach((f) => { f.data = dati; });
@@ -321,7 +407,8 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     const pe = cfg.period_entities || {};
     const ci = cfg.ciclo || {};
     if (!cfg.reset_script) return;
-    if (!window.confirm(T("Azzero i contatori di questa scheda. Vado?"))) return;
+    if (!confermaDoppia(this.querySelector(".ce-azzera"),
+      T("Azzero i contatori: premi di nuovo"))) return;
     this._hass.callService("script", "turn_on", {
       entity_id: cfg.reset_script,
       variables: {
@@ -370,22 +457,28 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     metti(".ce-sez-tasti", tasti ? tasti + " " + T(tasti === 1 ? "tasto" : "tasti") : T("nessuno"));
     const righe = Array.isArray(c.righe) ? c.righe.length : this._righeDaOffrire().length;
     metti(".ce-sez-righe", righe + " " + T(righe === 1 ? "accesa" : "accese"));
-    const barre = (c.barre || []).length;
-    metti(".ce-sez-barre", barre ? barre + " " + T(barre === 1 ? "barra" : "barre") : T("nessuna"));
   }
 
-  // Le righe che ha senso proporre. Se la scheda segue i cicli, "kWh di oggi"
-  // e "Costo di oggi" ripetono il ciclo ogni volta che di cicli ne fai uno al
-  // giorno, e il totale del giorno sta comunque nelle Statistiche. Quindi non
-  // le propongo - a meno che tu non le abbia gia' accese, se no non potresti
-  // piu' toglierle.
+  // Tutte, sempre. Prima "kWh di oggi" e "Costo di oggi" le toglievo quando
+  // la scheda segue i cicli: dicono la stessa cosa del ciclo se di cicli ne
+  // fai uno al giorno. Ma toglierle voleva dire che chi le aveva spente non
+  // poteva piu' riaccenderle. Adesso le spiego e basta, vedi _notaRighe().
   _righeDaOffrire() {
+    return RIGHE_CICLO;
+  }
+
+  // La riga sotto all'elenco: compare solo se la scheda segue i cicli, che e'
+  // l'unico caso in cui quelle due righe sono un doppione.
+  _notaRighe() {
+    const box = this.querySelector(".ce-righe-nota");
+    if (!box) return;
     const c = this._config || {};
-    const haCicli = !!(c.cycle_sensor || c.ciclo || c.ciclo_live);
-    if (!haCicli) return RIGHE_CICLO;
-    const accese = Array.isArray(c.righe) ? c.righe : [];
-    return RIGHE_CICLO.filter((r) => !(["oggi", "costo_oggi"].includes(r.id)
-      && !accese.includes(r.id)));
+    const vale = !!(c.ciclo || c.ciclo_live);
+    box.hidden = !vale;
+    if (!vale) { box.innerHTML = ""; return; }
+    box.innerHTML = '<div class="ce-aiuto">'
+      + T("Questa scheda segue i <b>cicli</b>: se l'apparecchio ne fa uno al giorno, <i>kWh di oggi</i> e <i>Costo di oggi</i> dicono la stessa cosa del ciclo appena finito, e il totale del giorno sta comunque nelle Statistiche. Per questo di solito si lasciano spente - ma se ti servono, accendile pure.")
+      + "</div>";
   }
 
   _disegnaRighe() {
@@ -395,12 +488,9 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       this._emetti();
       this._disegnaRighe();
     });
+    this._notaRighe();
     this._disegnaBarre();
-    this.querySelectorAll(".ce-v-energia").forEach((x) => {
-      if (x._agganciato) return;
-      x._agganciato = true;
-      x.addEventListener("input", () => this._aggiornaTotale());
-    });
+    this._noteBarre();
     // il sceglitore di "Compila da solo" senza `hass` resta vuoto e non cerca
     const sceglitore = this.querySelector(".ce-capisci-ent");
     if (sceglitore) sceglitore.hass = this._hass;
@@ -408,12 +498,9 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
 
   _disegnaPrezzo() {
     const sel = this.querySelector(".ce-prezzo-ent");
-    const campo = this.querySelector(".ce-prezzo");
-    if (!sel || !campo) return;
+    if (!sel) return;
     const elenco = prezziDelKWh(this._hass);
     const scelto = sel.value;
-    sel.hidden = false;
-    campo.hidden = true;
     sel.innerHTML = "";
     // niente di preselezionato: il prezzo lo scegli tu
     const vuoto = document.createElement("option");
@@ -455,7 +542,6 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     const sel = this.querySelector(".ce-prezzo-ent");
     const mia = sel && sel.value === "__mia__";
     this.querySelectorAll(".ce-voci").forEach((x) => { x.hidden = !mia; });
-    this._aggiornaTotale();
   }
 
   // DIVERSA DI PROPOSITO da quella della scheda energia: qui vanno bene anche
@@ -568,9 +654,8 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       this._esito.textContent = "Hai detto \u00abscrivo io\u00bb ma le voci della tariffa sono vuote.";
       return;
     }
-    if (!window.confirm("Creo in Home Assistant gli helper delle statistiche di "
-      + (this._config.name || "questo elettrodomestico") + "." + "\n"
-      + "Quelli che ci sono gia' li riuso. Vado?")) return;
+    // la conferma la chiede il tasto: premilo due volte
+    if (!confermaDoppia(tasto, T("Creo gli aiutanti: premi di nuovo"))) return;
     tasto.disabled = true;
     this._esito.hidden = false;
     this._esito.classList.remove("male");
@@ -607,6 +692,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         const piu = await creaCicli(this._hass, {
           potenza, energia: kwhVero, nome: this._config.name,
           soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+          attesa: Number(this._config.ciclo_attesa_sec) || 100,
         }, (t) => this._dillo(t));
         this._config = { ...this._config, ...piu };
       }
@@ -636,9 +722,9 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           <div class="ce-riga"><span class="ent">${T("Sensore dei kWh")}</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
           <div class="ce-aiuto ce-nota-kwh"></div>
           <div class="ce-riga"><span class="ent ce-soglia-eti">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> <span class="ce-soglia-un">W</span></div>
-          <div class="ce-riga"><span class="ent">${T("Prezzo dei sensori che creo")}</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
+          <div class="ce-riga"><span class="ent">${T("Prezzo dei sensori che creo")}</span><select class="ce-prezzo-ent"></select></div>
           <div class="ce-riga ce-voci" hidden><span class="ent">Quanto paghi l'energia, &euro;/kWh</span><input type="number" class="ce-v-energia max" step="0.0001" min="0" placeholder="0.1657"></div>
-          <div class="ce-riga ce-voci ce-voci-nota" hidden><span class="ent">${T("Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia\u0027 la scheda grande della casa.")}</span></div>
+          <div class="ce-riga ce-voci" hidden><span class="ent">${T("Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia\u0027 la scheda grande della casa.")}</span></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-cicli">
             <span>${T("Segui i <b>cicli</b>: quando finisce, quanto e\u0027 durato, quanto ha consumato (6 aiutanti e 1 automazione, una volta sola)")}</span></label></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-tempi">
@@ -664,12 +750,10 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
             <summary class="ce-tit">${titoloSez(VESTITO.righe, T("Righe dell\u0027\u00abUltimo ciclo\u00bb"))}</summary>
             <div class="ce-aiuto">${T("Spunta quelle da vedere e trascinale dalla maniglia \u283f per metterle in ordine. Nome e colore sono facoltativi (vuoto = quelli di serie).")}</div>
             <div class="ce-righe"></div>
+            <div class="ce-righe-nota" hidden></div>
           </details>
-          <details class="ce-sez ce-tendina ce-sez-barre" data-c="1" style="--c:#4fb0d8">
-            <summary class="ce-tit">${titoloSez(VESTITO.barre, T("Nomi delle barre in piu\u0027"))}</summary>
-            <div class="ce-aiuto">${T("Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto <i>Seconda barra</i>.")}</div>
-            <div class="ce-barre"></div>
-          </details>
+          <div class="ce-barre-nota" hidden></div>
+          <div class="ce-barre" hidden></div>
           <div class="ce-gruppi"></div>
         </div>`);
       // un modulo per i tre campi di sempre, e uno per ogni cassetto: cosi'
@@ -687,6 +771,10 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       };
       const form = faiModulo(SCHEMA_SEMPLICE, this.querySelector(".ce-form"));
       this._form = form;
+      // la presa sta in cima solo finche' il cassetto delle barre e' chiuso
+      this._spostaPresa = () => {
+        form.schema = traduciSchema(this._tutto ? SCHEMA_SEMPLICE_CORTO : SCHEMA_SEMPLICE);
+      };
       this._moduli = [form];
       const cassetti = this.querySelector(".ce-gruppi");
       GRUPPI.forEach((g) => {
@@ -708,15 +796,24 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         }
         cassetti.appendChild(box);
         this._moduli.push(faiModulo(g.schema, box));
+        // i nomi delle barre vanno dove le barre si scelgono, non altrove
+        if (g.chiave === "g_barre") {
+          const nota = this.querySelector(".ce-barre-nota");
+          if (nota) { nota.hidden = false; box.appendChild(nota); }
+          const elenco = this.querySelector(".ce-barre");
+          if (elenco) { elenco.hidden = false; box.appendChild(elenco); }
+        }
       });
       this._avanzate = this.querySelector(".ce-avanzate");
       const spunta = this.querySelector(".ce-tutto");
       if (spunta) {
         spunta.checked = !!this._tutto;
         this._avanzate.hidden = !this._tutto;
+        this._spostaPresa();
         spunta.addEventListener("change", () => {
           this._tutto = spunta.checked;
           this._avanzate.hidden = !this._tutto;
+          this._spostaPresa();
           this._datiAiModuli();
         });
       }
@@ -755,8 +852,11 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           return;
         }
         const pronta = preparaElettrodomestico(this._hass, { entity: entita, name: c0.name, icona: c0.artwork });
+        // Quello che NON viene dal dispositivo non si tocca: il prezzo e lo
+        // script di azzeramento (nascono quando crei i contatori), l'aspetto,
+        // e le scelte che hai fatto tu sulle righe.
         const tieni = {};
-        ["name", "righe", "nomi_righe", "notification_path", "grid_options", "casa_misura"].forEach((k) => {
+        MIE_NON_DEL_DISPOSITIVO.forEach((k) => {
           if (c0[k] !== undefined) tieni[k] = c0[k];
         });
         this._config = { type: c0.type, ...pronta, ...tieni };
@@ -764,7 +864,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         this._datiAiModuli();
         this._disegnaRighe();
         const c = this._config;
-        const trovate = ["power_entity", "interruttore", "interruttore_usb", "cycle_sensor"].filter((x) => c[x]);
+        const trovate = ["power_entity", "interruttore", "interruttore_usb"].filter((x) => c[x]);
         if (c.ciclo_live) trovate.push("ciclo in corso");
         if (c.live && c.live.state_entity) trovate.push("stato");
         this._esito.textContent =

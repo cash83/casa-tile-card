@@ -10,7 +10,7 @@ import { ConEditor } from './elettro-condivisi.js';
 import { tastiDi } from './elettro-comune.js';
 import { T, TH, traduciSchema } from './lingua.js';
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
-import { STILE_EDITOR, disegnaRighe, disegnaTasti, titoloSez } from './elettro-righe-editor.js';
+import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez } from './elettro-righe-editor.js';
 import { creaFonte, creaRisparmio, ID_TOTALE, prezzoDellaCasa, idDellaVoce, VOCI_TARIFFA, scriviTariffa, INGREDIENTE, creaSensoriBase, prezziDelKWh } from './elettro-crea.js';
 
 // quello che si legge sotto al campo
@@ -40,11 +40,17 @@ const ETICHETTE = {
   bolletta_energia: "Contatore dei kWh del periodo della bolletta (bimestre)",
   bolletta_costo: "Contatore degli euro dello stesso periodo",
   notification_path: "Pagina delle notifiche (facoltativa, es. /lovelace/notifiche)",
-  finestra_sfondo: "Tinta della finestra del pop-up",
-  finestra_trasparenza: "Trasparenza della finestra",
-  finestra_scritta: "Colore delle scritte nella finestra",
-  velo_scuro: "Quanto scurisce quello che c'e' dietro",
-  velo_sfoca: "Quanto sfoca quello che c'e' dietro",
+  layout: "Disposizione della scheda",
+  tema: "Chiaro o scuro (questa scheda soltanto)",
+  finestra_apertura: "Come si apre il pop-up",
+  finestra_apertura_durata: "Quanto dura l'apertura",
+  finestra_largo: "Larghezza del pop-up (vuoto = 560)",
+  finestra_immagine: "Foto di sfondo del pop-up (indirizzo)",
+  finestra_sfondo: "Pop-up: la tinta della finestra (vuoto = come le schede)",
+  finestra_trasparenza: "Pop-up: quanto e' trasparente la finestra",
+  finestra_scritta: "Pop-up: il colore delle scritte",
+  velo_scuro: "Pop-up: quanto scurisce quello che c'e' dietro",
+  velo_sfoca: "Pop-up: quanto sfoca quello che c'e' dietro",
 };
 
 const SCHEMA_TUTTO = [
@@ -77,7 +83,27 @@ const SCHEMA_TUTTO = [
     { value: "fritzbox", label: "Router" },
     { value: "proxmox", label: "Proxmox" }] } } },
   { name: "g_aspetto", type: "expandable", flatten: true, title: "Aspetto e finestra del pop-up", schema: [
+    { name: "layout", selector: { select: { mode: "dropdown", options: [
+      { value: "classico", label: "Classico - la foto a sinistra" },
+      { value: "centrato", label: "Centrato - la foto in mezzo, i numeri sotto" },
+    ] } } },
+    { name: "tema", selector: { select: { mode: "dropdown", options: [
+      { value: "auto", label: "Automatico - come Home Assistant" },
+      { value: "chiaro", label: "Sempre chiaro" },
+      { value: "scuro", label: "Sempre scuro" },
+    ] } } },
     { name: "notification_path", selector: { text: {} } },
+    { name: "finestra_apertura", selector: { select: { mode: "dropdown", options: [
+      { value: "sfuma", label: "Sale e sfuma - discreta" },
+      { value: "sboccia", label: "Sboccia dal tondino che hai premuto" },
+      { value: "basso", label: "Entra dal basso, come un cassetto" },
+      { value: "niente", label: "Nessuna animazione" },
+    ] } } },
+    { name: "finestra_apertura_durata",
+      selector: { number: { min: 80, max: 2000, step: 20, mode: "slider", unit_of_measurement: "ms" } } },
+    { name: "finestra_largo",
+      selector: { number: { min: 400, max: 1400, step: 20, mode: "slider", unit_of_measurement: "px" } } },
+    { name: "finestra_immagine", selector: { text: {} } },
     { name: "finestra_sfondo", selector: { color_rgb: {} } },
     { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "finestra_scritta", selector: { color_rgb: {} } },
@@ -579,8 +605,8 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     const tasto = this.querySelector(".ce-crea");
     const sorgente = (this.querySelector(".ce-kwh-pick") || {}).value || this._config.energia_kwh;
     if (!sorgente) { this._dillo("Scegli il sensore dei kWh.", true); return; }
-    if (!window.confirm("Creo in Home Assistant i contatori (ora, oggi, settimana, mese) e i costi "
-      + "sopra a " + this._nomeDi(sorgente) + "." + "\n" + "Quelli che ci sono gia' li riuso. Vado?")) return;
+    // la conferma la chiede il tasto: premilo due volte
+    if (!confermaDoppia(tasto, T("Creo i contatori: premi di nuovo"))) return;
     tasto.disabled = true;
     this._esito.hidden = false;
     this._esito.classList.remove("male");

@@ -1,4 +1,5 @@
 import { laLocale } from './lingua.js';
+import { DISEGNI_PIU } from './elettro-disegni-piu.js';
 // Pezzi comuni delle schede energia/elettrodomestico: disegni, icone, stile.
 // Nata dalle schede di Simonz82 (github.com/Simonz82/smart-home-cards),
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
@@ -277,9 +278,9 @@ const HERO_BUILDERS = {
       <path d="M120 98c-22-14-40-12-48 2-5 9 0 18 9 23 12 7 25-5 39-25z" fill="#a6e0f8"/>
     </g>
     <circle cx="120" cy="98" r="9" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.4"/>
-    <rect x="86" y="156" width="68" height="26" rx="8" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
-    <text class="dm-e-watt" x="112" y="175" text-anchor="middle" font-size="16" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
-    <text x="138" y="175" text-anchor="middle" font-size="9" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
+    <rect x="86" y="206" width="68" height="26" rx="8" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
+    <text class="dm-e-watt" x="112" y="225" text-anchor="middle" font-size="16" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="138" y="225" text-anchor="middle" font-size="9" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
   </g>
   </svg>`,
   // Microonde: sportello, tastierino e il piatto che gira.
@@ -311,9 +312,8 @@ const HERO_BUILDERS = {
       <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
       <linearGradient id="dmh-cia-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f9fc"/><stop offset=".55" stop-color="#e2e8f0"/><stop offset="1" stop-color="#a9b6c4"/></linearGradient>
     </defs>
-    <g transform="translate(8.0,-3.5)">
+    <g transform="translate(0,-3.5)">
     <ellipse cx="120" cy="188" rx="80" ry="10" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
-    <path d="M28 120c-10 0-16-8-16-18s6-18 16-18" fill="none" stroke="#9fadbc" stroke-width="7" stroke-linecap="round"/>
     <rect x="28" y="64" width="184" height="112" rx="22" fill="url(#dmh-cia-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
     <g>
       <circle cx="72" cy="104" r="19" fill="#eef2f7" stroke="#9fb0c2" stroke-opacity=".6" stroke-width="1.4"/>
@@ -399,9 +399,8 @@ const HERO_BUILDERS = {
       <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
       <linearGradient id="dmh-box-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3c4758"/><stop offset=".5" stop-color="#27303e"/><stop offset="1" stop-color="#151c27"/></linearGradient>
     </defs>
-    <g transform="translate(0,2.5)">
+    <g transform="translate(0,-7)">
     <ellipse cx="120" cy="208" rx="74" ry="10" fill="#0f172a" opacity=".18" filter="url(#dmh-blur-${id})"/>
-    <path d="M92 52v-6c0-9 12-14 28-14s28 5 28 14v6" fill="none" stroke="#9fadbc" stroke-width="7" stroke-linecap="round"/>
     <rect x="44" y="52" width="152" height="148" rx="18" fill="url(#dmh-box-${id})" stroke="#0b1220" stroke-opacity=".55" stroke-width="1.4"/>
     <rect x="58" y="66" width="124" height="52" rx="10" fill="#061020" stroke="#38bdf8" stroke-opacity=".45" stroke-width="1.2"/>
     <text class="dm-e-watt" x="120" y="98" text-anchor="middle" font-size="27" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
@@ -563,14 +562,20 @@ const HERO_BUILDERS = {
     </g>
     <rect x="66" y="160" width="108" height="40" rx="9" fill="#0c1930"/>
     <rect x="74" y="168" width="92" height="24" rx="6" fill="url(#dmh-flame-${id})" opacity=".92" class="dmh-glow dmh-flicker"/>
-    <path d="M120 172c-6 8-10 12-10 18a10 10 0 0 0 20 0c0-4-2-7-4-10 0 4-3 6-5 5-3-1-3-6-1-9-3 1-6 3-6 6z" fill="#fff7ed" opacity=".9"/>
+    <path transform="translate(120,180) scale(.72) translate(-120,-186)" d="M120 172c-6 8-10 12-10 18a10 10 0 0 0 20 0c0-4-2-7-4-10 0 4-3 6-5 5-3-1-3-6-1-9-3 1-6 3-6 6z" fill="#fff7ed" opacity=".9"/>
     <rect x="60" y="204" width="10" height="16" rx="3" fill="#9fadbc"/>
     <rect x="170" y="204" width="10" height="16" rx="3" fill="#9fadbc"/>
     <rect x="52" y="216" width="136" height="10" rx="5" fill="#78899b"/>
   </svg>`,
 };
 
+// gli altri venti, che stanno nel file loro
+Object.assign(HERO_BUILDERS, DISEGNI_PIU);
+
+
 const CHIP_SVGS = {
+  cucina:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M20 34 27 20h30l7 14z" fill="#f8fafc"/><rect x="22" y="34" width="40" height="4" rx="2" fill="#ffd27a"/><rect x="68" y="18" width="12" height="60" rx="4" fill="#f8fafc"/><path d="M68 46h12" stroke="#0f2942" stroke-width="2.4"/><rect x="18" y="52" width="44" height="6" rx="3" fill="#f8fafc"/><ellipse cx="30" cy="51" rx="8" ry="3" fill="#f97316"/><ellipse cx="50" cy="51" rx="7" ry="2.6" fill="#38bdf8"/><rect x="18" y="60" width="44" height="20" rx="4" fill="#f8fafc"/><path d="M40 60v20" stroke="#0f2942" stroke-width="2.2"/></svg>',
   dishwasher:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><rect x="20" y="16" width="56" height="14" rx="5" fill="#f8fafc"/><circle cx="28" cy="23" r="3" fill="#0ea5e9"/><rect x="20" y="36" width="56" height="41" rx="6" fill="#f8fafc"/><path fill="none" stroke="#0f2942" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M27 49h42M30 64h36M33 49v15M44 49v15M55 49v15M66 49v15"/><path fill="#8be2ff" d="M23 67c9-6 16 5 25-2 8-6 14 4 25-1v10H23Z"/></svg>',
   dryer:
@@ -610,7 +615,7 @@ const CHIP_SVGS = {
   lampada:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M28 44 37 20h22l9 24z" fill="#f8fafc"/><rect x="26" y="44" width="44" height="6" rx="3" fill="#8be2ff"/><rect x="45" y="50" width="6" height="22" rx="3" fill="#f8fafc"/><rect x="30" y="72" width="36" height="8" rx="4" fill="#38bdf8"/></svg>',
   powerstation:
-    '<svg viewBox="0 0 96 96" width="27" height="27"><path d="M36 22v-3c0-5 5-8 12-8s12 3 12 8v3" fill="none" stroke="#0f2942" stroke-width="6" stroke-linecap="round"/><rect x="14" y="22" width="68" height="64" rx="10" fill="#0f2942"/><rect x="21" y="29" width="54" height="22" rx="5" fill="#f8fafc"/><rect x="27" y="36" width="42" height="8" rx="4" fill="#38bdf8"/><circle cx="34" cy="66" r="9" fill="#f8fafc"/><circle cx="34" cy="66" r="4" fill="#0f2942"/><circle cx="58" cy="66" r="9" fill="#f8fafc"/><circle cx="58" cy="66" r="4" fill="#0f2942"/><rect x="70" y="60" width="8" height="12" rx="3" fill="#8be2ff"/></svg>',
+    '<svg viewBox="0 0 96 96" width="27" height="27"><g transform="translate(0,-5)"><rect x="14" y="22" width="68" height="64" rx="10" fill="#0f2942"/><rect x="21" y="29" width="54" height="22" rx="5" fill="#f8fafc"/><rect x="27" y="36" width="42" height="8" rx="4" fill="#38bdf8"/><circle cx="34" cy="66" r="9" fill="#f8fafc"/><circle cx="34" cy="66" r="4" fill="#0f2942"/><circle cx="58" cy="66" r="9" fill="#f8fafc"/><circle cx="58" cy="66" r="4" fill="#0f2942"/><rect x="70" y="60" width="8" height="12" rx="3" fill="#8be2ff"/></g></svg>',
   presa:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="18" y="8" width="60" height="80" rx="16" fill="#0f2942"/><circle cx="48" cy="38" r="21" fill="#f8fafc"/><rect x="39" y="30" width="6" height="15" rx="3" fill="#0f2942"/><rect x="51" y="30" width="6" height="15" rx="3" fill="#0f2942"/><rect x="42" y="50" width="12" height="4" rx="2" fill="#0f2942"/><rect x="28" y="66" width="40" height="16" rx="5" fill="#38bdf8"/></svg>',
   minipc:
@@ -657,11 +662,21 @@ const DEFAULT_STATE_MAP = {
 
 const STYLE = `
 :host{display:block;--dm-blue:#0ea5e9;--dm-blue-deep:#0369a1;--dm-dim:var(--secondary-text-color,#64748b);--dm-card:var(--card-background-color,#ffffff);--dm-border:var(--divider-color,#e6ecf4);--dm-soft:rgba(148,163,184,.10);--dm-text:var(--primary-text-color,#0f172a)}
+/* Chiaro o scuro per questa scheda soltanto. Senza attributo non si scrive
+   niente e restano le variabili di Home Assistant, cioe' il suo tema. I colori
+   sono quelli dei temi di serie di HA, cosi' una scheda forzata non stona
+   accanto alle altre. */
+:host([data-tema="chiaro"]){--dm-card:#ffffff;--dm-text:#0f172a;--dm-dim:#64748b;--dm-border:#e6ecf4}
+:host([data-tema="scuro"]){--dm-card:#1c1c1c;--dm-text:#e1e1e1;--dm-dim:#9b9b9b;--dm-border:rgba(225,225,225,.12)}
+:host([data-tema]){color:var(--dm-text)}
 .dm-ap-card{position:relative;display:flex;flex-direction:column;border:1px solid var(--dm-border);border-radius:22px;background:var(--dm-card);box-shadow:0 12px 30px rgba(15,23,42,.06);overflow:hidden}
 .dm-ap-card.is-run{border-color:rgba(34,197,94,.28)}
 .dm-ap-card.has-alarm{border-color:rgba(239,68,68,.4)}
 .dm-ap-top{display:flex;align-items:center;gap:7px;padding:12px 12px 9px}
-.dm-ap-chip{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:11px;background:#eff6ff;box-shadow:inset 0 0 0 1px rgba(59,130,246,.10)}
+/* l'icona in cima alla scheda: NUDA. Aveva dietro un riquadrino azzurrino,
+   e si vedeva come un cerchietto dietro all'icona. La misura resta 34x34 per
+   non spostare il titolo di fianco. */
+.dm-ap-chip{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center}
 .dm-ap-chip svg{width:27px;height:27px}
 .dm-ap-headings{display:flex;flex-direction:column;min-width:0;flex:1;gap:1px}
 .dm-ap-name{font-size:14.5px;font-weight:900;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dm-text)}
@@ -671,7 +686,7 @@ const STYLE = `
 .dm-ap-badge.standby{background:#dbeafe;color:#2563eb}
 .dm-ap-badge.off{background:#f1f5f9;color:#64748b}
 .dm-ap-badge.unavailable{background:#fee2e2;color:#b91c1c}
-[data-theme-dark] .dm-ap-badge.off,:host-context([data-theme="dark"]) .dm-ap-badge.off{background:rgba(148,163,184,.16);color:#94a3b8}
+[data-theme-dark] .dm-ap-badge.off,:host-context([data-theme="dark"]) .dm-ap-badge.off,:host([data-tema="scuro"]) .dm-ap-badge.off{background:rgba(148,163,184,.16);color:#94a3b8}
 .dm-ap-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
 .dm-ap-tools{display:flex;gap:4px;flex:0 0 auto}
 .dm-ap-tool{width:37px;height:37px;display:grid;place-items:center;border:1px solid var(--dm-border);border-radius:11px;background:var(--dm-card);color:var(--dm-dim);cursor:pointer}
@@ -691,8 +706,11 @@ const STYLE = `
 .dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
 .dm-ap-card.is-run .dm-ap-hero{background:radial-gradient(120% 90% at 50% 8%,rgba(186,230,253,.85),rgba(224,242,254,.35) 62%,transparent)}
 .dm-ap-hero svg{width:100%;height:100%;display:block}
-.dm-ap-card.is-off .dm-ap-hero,.dm-ap-card.is-unavailable .dm-ap-hero{filter:grayscale(.55) opacity(.62)}
-.dm-ap-card.is-standby .dm-ap-hero{filter:saturate(.85)}
+/* spenta o non raggiungibile: sbiadisce il DISEGNO, non il riquadro.
+   Prima il filtro stava sul riquadro e si portava via anche l'alone,
+   cosi' la scheda spenta era un rettangolo grigio e piatto. */
+.dm-ap-card.is-off .dm-ap-hero>svg,.dm-ap-card.is-unavailable .dm-ap-hero>svg{filter:grayscale(.55) opacity(.62)}
+.dm-ap-card.is-standby .dm-ap-hero>svg{filter:saturate(.85)}
 @keyframes dmh-spin{to{transform:rotate(360deg)}}
 @keyframes dmh-glow{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes dmh-flicker{0%,100%{opacity:.85}30%{opacity:.5}55%{opacity:1}80%{opacity:.6}}
@@ -715,11 +733,40 @@ const STYLE = `
 .dm-ap-card.is-run .dmh-onda{animation:dmh-onda 3.4s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-glow{animation:dmh-glow 1.7s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-flicker{animation:dmh-flicker 1.5s ease-in-out infinite}
+/* la ruota libera: il centro lo dice il disegno con uno style="", cosi' una
+   sola regola va bene per la ventola, la girante e la spazzola del robot */
+.dmh-gira{transform-box:view-box}
+.dm-ap-card.is-run .dmh-gira{animation:dmh-spin 1.8s linear infinite}
+.dm-ap-card.is-run .dmh-gira-piano{animation-duration:4.2s}
+@keyframes dmh-vapore{0%{opacity:0;transform:translateY(6px) scale(.9)}30%{opacity:.85}100%{opacity:0;transform:translateY(-18px) scale(1.2)}}
+.dmh-vapore{opacity:0;transform-box:view-box}
+.dm-ap-card.is-run .dmh-vapore{animation:dmh-vapore 2.4s ease-out infinite}
+.dm-ap-card.is-run .dmh-vapore2{animation-delay:.8s}
+.dm-ap-card.is-run .dmh-vapore3{animation-delay:1.6s}
+@keyframes dmh-bolla{0%{opacity:0;transform:translateY(0)}15%{opacity:.9}100%{opacity:0;transform:translateY(-44px)}}
+.dmh-bolla{opacity:0;transform-box:view-box}
+.dm-ap-card.is-run .dmh-bolla{animation:dmh-bolla 2.8s linear infinite}
+.dm-ap-card.is-run .dmh-bolla2{animation-delay:.9s}
+.dm-ap-card.is-run .dmh-bolla3{animation-delay:1.8s}
 .dm-ap-cycle-side{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;padding:11px 10px;border-radius:16px;background:var(--dm-soft)}
 .dm-ap-cycle-cap{display:flex;align-items:center;gap:6px;margin-top:-3px;margin-bottom:15px;font-size:11px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-cycle-sub{margin-top:-11px;margin-bottom:11px;font-size:11.5px;font-weight:600;color:var(--dm-text);opacity:.72;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dm-ap-cycle-side.ha-sub .dm-ap-cycle-cap{margin-bottom:6px}
 .dm-ap-cycle-list{display:flex;flex-direction:column;flex:1;justify-content:flex-start;gap:4px}
+/* CENTRATO: la foto si mette in mezzo, larga quanto la scheda, e i numeri
+   le vanno sotto su due colonne. E' la stessa scheda, cambia la
+   disposizione - si sceglie dall'editor, riquadro Aspetto. */
+.dm-ap-card.centrato .dm-ap-top-row{flex-direction:column;gap:12px}
+.dm-ap-card.centrato .dm-ap-hero{flex:0 0 auto;width:100%;height:196px}
+.dm-ap-card.centrato .dm-ap-cycle-side{flex:0 0 auto;width:100%}
+.dm-ap-card.centrato .dm-ap-cycle-list{display:grid;grid-template-columns:1fr 1fr;
+  align-content:start;gap:4px 8px}
+/* una riga dispari in fondo si prende tutta la larghezza, invece di
+   lasciare un buco accanto */
+.dm-ap-card.centrato .dm-ap-cycle-list>*:last-child:nth-child(odd){grid-column:1 / -1}
+@media (max-width:480px){
+  .dm-ap-card.centrato .dm-ap-cycle-list{grid-template-columns:1fr}
+}
 .dm-ap-cycle-row{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0}
 .dm-ap-cycle-row small{flex:0 0 auto;font-size:10.5px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-cycle-row b{min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:400;letter-spacing:-.1px;color:var(--dm-text)}
@@ -734,7 +781,9 @@ const STYLE = `
 .dm-colore{border-left:3px solid var(--c)!important;border-radius:4px 9px 9px 4px!important}
 .dm-colore small,.dm-colore b,.dm-colore .dm-ap-cycle-ic,.dm-colore .dm-ap-row-label,.dm-colore .dm-ap-row-val{color:var(--c)!important}
 .dm-colore.dm-forte b,.dm-colore.dm-forte .dm-ap-row-val{font-size:15.5px;font-weight:700}
-.dm-ap-due{margin-left:9px;font-size:.8em;font-weight:600;opacity:.6;letter-spacing:.1px}
+/* la seconda cifra e' un numero come il primo: stessa grandezza, stesso
+   colore. A separarle basta lo spazio. */
+.dm-ap-due{margin-left:10px}
 .dm-ap-panel{display:flex;align-items:center;gap:14px;margin:10px 13px 13px;padding:13px 14px;border-radius:16px;background:var(--dm-soft)}
 .dm-ap-meters{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
 .dm-c-meter-clickable{cursor:pointer;border-radius:8px;transition:background .12s ease}
@@ -751,53 +800,92 @@ const STYLE = `
 .dm-ap-chart-svg{width:100%;height:auto;display:block;overflow:visible}
 .dm-ap-chart-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
 .dm-ap-chart-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dm-ap-mirino-box{position:relative;touch-action:none}
-.dm-ap-mirino{position:absolute;top:0;bottom:0;width:0;pointer-events:none;opacity:0;transition:opacity .08s}
-.dm-ap-mirino.si{opacity:1}
-.dm-ap-mirino i{position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--dm-dim,#94a3b8);opacity:.6}
-.dm-ap-mirino b{position:absolute;top:2px;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:800;padding:2px 6px;border-radius:7px;background:var(--dm-finestra,var(--dm-card,#fff));color:var(--dm-finestra-testo,var(--dm-text,#0f172a));border:1px solid var(--dm-border,#cbd5e1);box-shadow:0 4px 14px rgba(15,23,42,.18)}
+/* LA FINESTRA DEL GRAFICO: le pastiglie dei periodi, le date a scelta, i
+   chip delle curve e la riga minimo/media/massimo. Su telefono le pastiglie
+   scorrono invece di andare a capo, e le date vanno una sotto l'altra. */
+.dm-ap-periodi{display:flex;gap:6px;margin:0 0 10px;overflow-x:auto;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.dm-ap-periodi::-webkit-scrollbar{display:none}
+.dm-ap-per{flex:0 0 auto;font:inherit;font-size:12px;font-weight:700;cursor:pointer;
+  padding:5px 13px;border-radius:999px;border:1px solid var(--divider-color);
+  background:rgba(127,127,127,.10);color:var(--secondary-text-color)}
+.dm-ap-per.scelto{color:#0284c7;border-color:#7dd3fc;background:rgba(14,165,233,.14)}
+/* display:flex batte [hidden]: la riga delle date resta visibile anche
+   quando non sei su "Da... a". Stessa trappola gia' pagata sulle righe. */
+.dm-ap-date[hidden]{display:none}
+.dm-ap-date{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;
+  font-size:12px;color:var(--secondary-text-color)}
+.dm-ap-date input{font:inherit;padding:4px 7px;border-radius:8px;
+  border:1px solid var(--divider-color);background:var(--dm-card);color:var(--dm-text)}
+.dm-ap-applica{font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:5px 12px;
+  border-radius:9px;border:1px solid #7dd3fc;background:rgba(14,165,233,.14);color:#0284c7}
+.dm-ap-chip-riga{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.dm-ap-chipc{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:11.5px;
+  font-weight:700;cursor:pointer;padding:4px 10px;border-radius:999px;
+  border:1px solid var(--divider-color);background:rgba(127,127,127,.10);
+  color:var(--secondary-text-color);opacity:.55}
+.dm-ap-chipc i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.dm-ap-chipc.scelto{opacity:1;border-color:#bae6fd;background:rgba(14,165,233,.12);
+  color:var(--dm-text)}
+.dm-ap-mmm{display:flex;gap:8px;margin:10px 0 2px}
+.dm-ap-mmm>div{flex:1 1 0;min-width:0;text-align:center;padding:7px 4px;border-radius:11px;
+  border:1px solid var(--divider-color);background:rgba(127,127,127,.06)}
+.dm-ap-mmm small{display:block;font-size:10px;font-weight:900;letter-spacing:.6px;
+  text-transform:uppercase;color:var(--dm-dim)}
+.dm-ap-mmm b{font-size:13.5px;font-weight:700;color:var(--dm-text)}
+@media (max-width:480px){
+  .dm-ap-date{flex-direction:column;align-items:stretch}
+  .dm-ap-date label{display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .dm-ap-mmm b{font-size:12.5px}
+}
 .dm-ap-chart-empty{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-chart-loading{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-warn{display:flex;align-items:center;gap:6px;margin:0 13px 12px;padding:9px 12px;border-radius:13px;background:#fee2e2;color:#b91c1c;font-size:13px;font-weight:800}
 .dm-ap-warn[hidden]{display:none}
 .dm-test-flag{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#0369a1;background:rgba(14,165,233,.14);border-radius:8px;padding:4px 8px}
 
-.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:var(--dm-velo,transparent);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
+.dm-ap-overlay{position:fixed;inset:0;overscroll-behavior:contain;z-index:2147483000;background:var(--dm-velo,transparent);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
 .dm-ap-overlay[hidden]{display:none}
-.dm-ap-dialog{width:min(560px,100%);max-height:min(86vh,760px);overflow:auto;background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 26px 80px rgba(15,23,42,.45)}
+.dm-ap-dialog{width:min(var(--dm-fin-largo,560px),100%);max-height:84vh;overflow:auto;box-sizing:border-box;overscroll-behavior:contain;
+  background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));
+  border:1px solid var(--dm-border);
+  border-radius:26px;padding:18px;box-shadow:0 30px 80px rgba(0,0,0,.6);
+  background-size:cover;background-position:center;
+  animation:dm-ap-sfuma var(--dm-fin-dur,220ms) cubic-bezier(.2,.7,.3,1)}
+/* COME SI APRE: gli stessi quattro modi della casella. "Sboccia" parte dal
+   punto dove sta il tondino che hai premuto, e quel punto glielo calcolo
+   quando apro: qui c'e' solo dove metterlo. */
+@keyframes dm-ap-sfuma{from{transform:translateY(12px);opacity:0}}
+@keyframes dm-ap-sboccia{from{transform:scale(.22);opacity:0}}
+@keyframes dm-ap-basso{from{transform:translateY(64%);opacity:0}}
+@keyframes dm-ap-velo{from{opacity:0}}
+@keyframes dm-ap-chiude{to{transform:translateY(10px);opacity:0}}
+.dm-ap-overlay[apertura="sboccia"] .dm-ap-dialog{
+  animation-name:dm-ap-sboccia;transform-origin:var(--dm-nasce,50% 50%)}
+.dm-ap-overlay[apertura="basso"] .dm-ap-dialog{
+  animation-name:dm-ap-basso;transform-origin:50% 100%}
+.dm-ap-overlay[apertura="niente"] .dm-ap-dialog,
+.dm-ap-overlay[apertura="niente"]{animation:none}
+.dm-ap-overlay{animation:dm-ap-velo var(--dm-fin-dur,220ms) ease-out}
+/* chiudere deve sembrare piu' svelto che aprire: due terzi del tempo */
+.dm-ap-overlay[chiude] .dm-ap-dialog{
+  animation:dm-ap-chiude calc(var(--dm-fin-dur,220ms) * .66) ease-in forwards}
+.dm-ap-overlay[chiude]{
+  animation:dm-ap-velo calc(var(--dm-fin-dur,220ms) * .66) ease-in reverse forwards}
+@media (prefers-reduced-motion: reduce){
+  .dm-ap-dialog,.dm-ap-overlay{animation:none !important}
+}
 .dm-ap-dialog-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 10px;background:var(--dm-finestra,var(--dm-card));border-bottom:1px solid var(--dm-border);z-index:1}
 .dm-ap-dialog-head h3{margin:0;font-size:17px;font-weight:900}
 .dm-ap-dialog-close{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border:0;border-radius:10px;background:var(--dm-soft);color:var(--dm-dim);cursor:pointer}
 .dm-ap-dialog-body{padding:12px 16px 18px;display:flex;flex-direction:column;gap:16px}
-details.dm-ap-sec-chiusa>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
-details.dm-ap-sec-chiusa>summary::-webkit-details-marker{display:none}
-details.dm-ap-sec-chiusa>summary:after{content:'▸';margin-left:auto;opacity:.6}
-details.dm-ap-sec-chiusa[open]>summary:after{content:'▾'}
-details.dm-ap-sec-chiusa>summary b{color:var(--dm-text);font-weight:800}
 .dm-ap-sec-cap{font-size:11.5px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--dm-blue-deep);margin:0 0 8px;padding-bottom:5px;border-bottom:2px solid var(--dm-border)}
 .dm-ap-sec{display:flex;flex-direction:column;gap:6px}
 .dm-ap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:13px;background:var(--dm-soft)}
 .dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text)}
 .dm-ap-row-val{font-size:14.5px;font-weight:500;color:var(--dm-dim)}
-.dm-ap-switch{position:relative;width:38px;height:22px;flex:0 0 auto;border-radius:999px;border:0;background:#cbd5e1;cursor:pointer;transition:background .15s ease}
-.dm-ap-switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s ease;box-shadow:0 1px 3px rgba(0,0,0,.3)}
-.dm-ap-switch.on{background:#22c55e}
-.dm-ap-row-group{display:flex;flex-direction:column;gap:9px;padding:10px 12px;border-radius:13px;background:var(--dm-soft)}
-.dm-ap-row-group-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.dm-ap-row-group-label{display:flex;align-items:center;gap:8px;min-width:0;font-size:14.5px;font-weight:750;color:var(--dm-text)}
-.dm-ap-row-group-ic{flex:0 0 auto;display:flex;align-items:center;color:var(--dm-blue)}
-.dm-ap-row-chips{display:flex;flex-wrap:wrap;gap:6px}
-.dm-ap-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;letter-spacing:.2px;padding:5px 10px;border-radius:999px;background:var(--dm-card);border:1px solid var(--dm-border);color:var(--dm-dim);cursor:pointer;line-height:1}
-.dm-ap-chip svg{flex:0 0 auto}
-.dm-ap-chip b{color:var(--dm-text);font-weight:800}
-.dm-ap-chip.on{background:#dcfce7;border-color:#86efac;color:#15803d}
-.dm-ap-chip-action{background:var(--dm-blue);border-color:var(--dm-blue);color:#fff}
-.dm-ap-sub-back{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:800;color:var(--dm-blue);cursor:pointer;margin:0 0 10px}
-.dm-ap-switch.on::after{transform:translateX(16px)}
 .dm-ap-action-btn{flex:0 0 auto;border:0;border-radius:10px;padding:0 14px;height:26px;background:var(--dm-blue);color:#fff;font-size:13px;font-weight:850;cursor:pointer}
 .dm-ap-action-btn:active{filter:brightness(.92)}
-.dm-ap-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.dm-ap-stat-grid.cols4{grid-template-columns:repeat(4,1fr)}
 .dm-ap-stat{display:flex;flex-direction:column;gap:2px;padding:9px 10px;border-radius:13px;background:var(--dm-soft)}
 .dm-ap-stat small{font-size:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-stat b{font-size:15px;font-weight:900;color:var(--dm-text)}
@@ -811,13 +899,14 @@ details.dm-ap-sec-chiusa>summary b{color:var(--dm-text);font-weight:800}
 .dm-ap-week-stat small{font-size:9px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-week-stat b{font-size:13px;font-weight:850;color:var(--dm-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 .dm-ap-hero{cursor:pointer}
-.dm-ap-reset-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:10px;border:0;border-radius:13px;background:var(--dm-blue);color:#fff;font-size:14px;font-weight:850;cursor:pointer}
 .dm-ap-reset-note{font-size:12px;color:var(--dm-dim);text-align:center;margin-top:4px}
 
-@media (max-width:600px){
-  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
-  .dm-ap-dialog{width:100%;max-width:100%;height:94vh;max-height:94vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column}
-  .dm-ap-dialog-body{flex:1}
+/* Sul telefono resta la stessa finestra del PC, solo coi margini piu'
+   stretti: e' quello che fa la casella. Prima diventava un cassetto alto
+   quanto lo schermo, cioe' un altro pop-up per la stessa scheda. */
+@media (max-width:480px){
+  .dm-ap-overlay{padding:8px}
+  .dm-ap-dialog{border-radius:20px;padding:14px;max-height:88vh}
 }
 `;
 
@@ -909,6 +998,13 @@ export function meseBreve(d) {
   } catch (e) { return String(d.getMonth() + 1); }
 }
 
+export function meseLungo(d) {
+  try {
+    const t = d.toLocaleDateString(laLocale(), { month: "long" });
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  } catch (e) { return String(d.getMonth() + 1); }
+}
+
 export function unitaBella(u) {
   const t = String(u || "").trim();
   return SIMBOLI[t.toUpperCase()] || t;
@@ -927,6 +1023,9 @@ export function numero(v, decimali) {
 
 export function vestiFinestra(host, cfg) {
   const c = cfg || {};
+  // chiaro o scuro: senza attributo comanda il tema di Home Assistant
+  if (c.tema === "chiaro" || c.tema === "scuro") host.setAttribute("data-tema", c.tema);
+  else host.removeAttribute("data-tema");
   const metti = (nome, valore) => {
     if (valore === null || valore === undefined || valore === "") host.style.removeProperty(nome);
     else host.style.setProperty(nome, valore);
@@ -936,11 +1035,14 @@ export function vestiFinestra(host, cfg) {
     return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : difetto;
   };
   // la finestra: tinta scelta, resa trasparente quanto dice finestra_trasparenza
-  if (c.finestra_sfondo) {
-    const t = quanta(c.finestra_trasparenza, 0);
+  // senza una tinta scelta si parte da quella di serie della scheda, se no
+  // il cursore della trasparenza non faceva niente e non si capiva perche'
+  const t = quanta(c.finestra_trasparenza, 0);
+  const tinta = c.finestra_sfondo || "var(--dm-card)";
+  if (c.finestra_sfondo || t > 0) {
     metti("--dm-finestra", t > 0
-      ? `color-mix(in srgb, ${c.finestra_sfondo} ${100 - t}%, transparent)`
-      : c.finestra_sfondo);
+      ? `color-mix(in srgb, ${tinta} ${100 - t}%, transparent)`
+      : tinta);
   } else metti("--dm-finestra", null);
   metti("--dm-finestra-testo", c.finestra_scritta || null);
   // il velo dietro: nero quanto dice velo_scuro (0 = niente velo)
@@ -950,6 +1052,12 @@ export function vestiFinestra(host, cfg) {
   if (c.velo_sfoca !== undefined && c.velo_sfoca !== null && c.velo_sfoca !== "") {
     metti("--dm-velo-sfoca", `${Math.min(30, Math.max(0, Number(c.velo_sfoca) || 0))}px`);
   } else metti("--dm-velo-sfoca", null);
+  // quanto e' larga e quanto dura l'apertura: le stesse chiavi della casella
+  const largo = Number(c.finestra_largo);
+  metti("--dm-fin-largo", Number.isFinite(largo) && largo > 0 ? largo + "px" : null);
+  const dura = Number(c.finestra_apertura_durata);
+  metti("--dm-fin-dur", Number.isFinite(dura) && dura > 0
+    ? Math.min(2000, Math.max(80, dura)) + "ms" : null);
 }
 
 function esc(s) {

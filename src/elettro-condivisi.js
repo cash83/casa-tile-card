@@ -108,27 +108,93 @@ export const ConFinestrelle = (Base) => class extends Base {
   }
 
   // la finestrella sopra alla scheda: una sola, si riempie e si riapre
-  _openDialog(title, bodyHtml) {
+  // Chiude come la casella: prima l'animazione all'indietro, poi sparisce.
+  // Spegnerla e basta faceva sparire la finestra di colpo.
+  _chiudiDialog(overlay) {
+    if (!overlay || overlay.hidden) return;
+    clearTimeout(this._chiusuraDopo);
+    if (this._escDialog) {
+      document.removeEventListener("keydown", this._escDialog);
+      this._escDialog = null;
+    }
+    if ((this._config.finestra_apertura || "sfuma") === "niente") {
+      overlay.hidden = true;
+      return;
+    }
+    overlay.setAttribute("chiude", "");
+    const dura = Number(this._config.finestra_apertura_durata);
+    const ms = (Number.isFinite(dura) && dura > 0 ? Math.min(2000, Math.max(80, dura)) : 220) * 0.66;
+    this._chiusuraDopo = setTimeout(() => {
+      overlay.hidden = true;
+      overlay.removeAttribute("chiude");
+    }, ms + 20);
+    if (this._escDialog) {
+      document.removeEventListener("keydown", this._escDialog);
+      this._escDialog = null;
+    }
+  }
+
+  // Da dove sboccia: il punto dove sta il tondino che hai premuto, in
+  // percentuale sullo schermo. Se non si riesce a misurare, dal centro.
+  _puntoDiNascita(overlay, partenza) {
+    if (!partenza || !partenza.getBoundingClientRect) {
+      overlay.style.removeProperty("--dm-nasce");
+      return;
+    }
+    const q = partenza.getBoundingClientRect();
+    if (!q.width && !q.height) {
+      overlay.style.removeProperty("--dm-nasce");
+      return;
+    }
+    const x = ((q.left + q.width / 2) / (window.innerWidth || 1)) * 100;
+    const y = ((q.top + q.height / 2) / (window.innerHeight || 1)) * 100;
+    overlay.style.setProperty("--dm-nasce", x.toFixed(1) + "% " + y.toFixed(1) + "%");
+  }
+
+  _openDialog(title, bodyHtml, partenza) {
     let overlay = this._root.querySelector(".dm-ap-overlay");
     if (!overlay) {
       overlay = document.createElement("div");
       overlay.className = "dm-ap-overlay";
       overlay.hidden = true;
-      overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) overlay.hidden = true;
+      // Guardo DOVE hai premuto, non su cosa: bastava un pixel di
+      // qualcos'altro sotto al dito e la finestra non si chiudeva.
+      overlay.addEventListener("pointerdown", (e) => {
+        const f = overlay.querySelector(".dm-ap-dialog");
+        if (!f) return;
+        const q = f.getBoundingClientRect();
+        const fuori = e.clientX < q.left || e.clientX > q.right
+          || e.clientY < q.top || e.clientY > q.bottom;
+        if (fuori) this._chiudiDialog(overlay);
       });
       this._root.appendChild(overlay);
     }
+    clearTimeout(this._chiusuraDopo);
+    overlay.removeAttribute("chiude");
+    const modo = ["sfuma", "sboccia", "basso", "niente"]
+      .includes(this._config.finestra_apertura) ? this._config.finestra_apertura : "sfuma";
+    overlay.setAttribute("apertura", modo);
+    // la foto di sfondo della finestra, come sulla casella
+    const foto = this._config.finestra_immagine;
     // qui passa il contenuto di TUTTE le finestrelle delle due schede: il
     // titolo e le scritte dentro si traducono in un punto solo
     overlay.innerHTML = `<div class="dm-ap-dialog">
       <div class="dm-ap-dialog-head"><h3>${esc(T(title))}</h3><button type="button" class="dm-ap-dialog-close">${ICON_CLOSE}</button></div>
       <div class="dm-ap-dialog-body">${TH(bodyHtml)}</div>
     </div>`;
+    const finestra = overlay.querySelector(".dm-ap-dialog");
+    finestra.style.backgroundImage = foto ? `url("${String(foto).replace(/"/g, "%22")}")` : "";
     overlay.querySelector(".dm-ap-dialog-close").addEventListener("click", () => {
-      overlay.hidden = true;
+      this._chiudiDialog(overlay);
     });
     overlay.hidden = false;
+    // Esc chiude, come su qualunque finestra. L'ascolto vecchio si toglie:
+    // se no, riaprendo, ne restava uno attaccato al documento per sempre.
+    if (this._escDialog) document.removeEventListener("keydown", this._escDialog);
+    document.addEventListener("keydown", this._escDialog = (e) => {
+      if (e.key === "Escape") this._chiudiDialog(overlay);
+    });
+    if (modo === "sboccia") this._puntoDiNascita(overlay, partenza || this._ultimoTasto);
     return overlay;
   }
 

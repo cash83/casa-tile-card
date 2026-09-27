@@ -653,6 +653,52 @@ const EN = {
   "oppure l'indirizzo: /local/mia.gif": "or the address: /local/mine.gif",
   "pronto: tocca un pezzo qui sopra": "ready: tap a piece above",
   "si apre qui di fianco - chiudila con la X o con Esc": "it opens right here - close it with the X or with Esc",
+  "La barra principale legge": "The main bar reads",
+  "Per cambiarlo vai in cima, <i>Presa che misura</i>.": "To change it go to the top, <i>Metering socket</i>.",
+  "La barra dell'avanzamento vuole un numero da 0 a 100.": "The progress bar wants a number from 0 to 100.",
+  "adesso vale": "is now",
+  "la barra non vorrebbe dire niente.": "the bar would mean nothing.",
+  "Il nome e il fondo scala di ogni barra in watt scelta qui sopra.": "The name and full scale of each watt bar chosen above.",
+  "Barre in WATT: quali sensori (il nome di ognuna si scrive qui sotto)": "Bars in WATTS: which sensors (each one's name is written below)",
+  "Barra dell'AVANZAMENTO: quale sensore, da 0 a 100 (programma, umidita'...)": "PROGRESS bar: which sensor, from 0 to 100 (programme, humidity...)",
+  "Barra dell'AVANZAMENTO: il nome (vuoto = Avanzamento programma)": "PROGRESS bar: the name (empty = Programme progress)",
+  "Tutte le barre della scheda, in ordine, e ogni campo dice di quale barra parla. <b>Barra principale</b>: quella grande in fondo, che c'e' sempre - qui le cambi nome, unita' e fondo scala (quale sensore legge si sceglie in cima, <i>Presa che misura</i>). <b>Barre in watt</b>: quante ne vuoi, una per sensore; scegli i sensori e sotto compare una riga per ognuno, col suo nome e il suo fondo scala. <b>Barra dell'avanzamento</b>: una sola, e non e' in watt - e' un numero da 0 a 100, il programma che avanza o l'umidita' della stanza.": "All the card's bars, in order, and every field says which bar it is about. <b>Main bar</b>: the big one at the bottom, always there - here you change its name, unit and full scale (which sensor it reads is chosen at the top, <i>Metering socket</i>). <b>Bars in watts</b>: as many as you like, one per sensor; choose the sensors and a row appears below for each, with its name and full scale. <b>Progress bar</b>: just one, and it is not in watts - it is a number from 0 to 100, a programme advancing or the humidity of a room.",
+  "Pop-up: la tinta della finestra (vuoto = come le schede)": "Dialog: the tint of the window (empty = same as the cards)",
+  "Pop-up: quanto e' trasparente la finestra": "Dialog: how transparent the window is",
+  "Pop-up: il colore delle scritte": "Dialog: the colour of the text",
+  "Pop-up: quanto scurisce quello che c'e' dietro": "Dialog: how much it darkens what is behind",
+  "Pop-up: quanto sfoca quello che c'e' dietro": "Dialog: how much it blurs what is behind",
+  "Quando e' acceso": "When it is on",
+  "Le barre": "The bars",
+  "sopra quanti watt sta lavorando": "above how many watts it is running",
+  "la principale, quelle in watt e l'avanzamento": "the main one, the ones in watts and the progress one",
+  "Barra principale: fondo scala (dove arriva quando e' piena)": "Main bar: full scale (where it gets to when full)",
+  "Barra principale: il nome (vuoto = Potenza attuale)": "Main bar: the name (empty = Current power)",
+  "Barra principale: l'unita' (vuoto = W)": "Main bar: the unit (empty = W)",
+  "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. I <b>secondi di fermo</b> dicono quando il ciclo e' finito davvero: il forno spegne e riaccende la resistenza, la lavatrice ha le pause dell'ammollo, e senza attesa ogni pausa sembrerebbe la fine. Finche' aspetta, l'Ultimo ciclo resta coi trattini. Cambiato il numero, ripremi <i>Crea le statistiche</i>: riscrivo l'automazione. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'.": "Above how many watts the card says <b>running</b>, and below how many <b>standby</b>. The <b>idle seconds</b> say when the cycle is really over: an oven switches its element on and off, a washing machine has soaking pauses, and with no wait every pause would look like the end. While it waits, Last cycle keeps showing dashes. Change the number, then press <i>Create the statistics</i> again: I rewrite the automation. If the appliance has its own integration telling the real state, put it at the bottom: that one wins and the thresholds stop mattering.",
+  "Secondi di fermo prima di dire che ha finito (vuoto = 100)": "Idle seconds before calling it finished (empty = 100)",
+  "Le barre sotto alla potenza": "The bars under the power one",
+  "altre misure sotto alla potenza": "other readings under the power bar",
+  "Barre in WATT: una per ogni cosa che vuoi vedere (quante ne vuoi)": "Bars in WATTS: one for each thing you want to see (as many as you like)",
+  "Barra dell'AVANZAMENTO: un numero da 0 a 100 (programma, umidita'...)": "PROGRESS bar: a number from 0 to 100 (programme, humidity...)",
+  "Nome della barra dell'avanzamento (vuoto = Avanzamento programma)": "Name of the progress bar (empty = Programme progress)",
+  "Disposizione della scheda": "Card layout",
+  "Azzero i contatori: premi di nuovo": "Resetting the counters: press again",
+  "Creo gli aiutanti: premi di nuovo": "Creating the helpers: press again",
+  "Creo i contatori: premi di nuovo": "Creating the counters: press again",
+  "dalle": "since",
+  "Questa scheda segue i <b>cicli</b>: se l'apparecchio ne fa uno al giorno, <i>kWh di oggi</i> e <i>Costo di oggi</i> dicono la stessa cosa del ciclo appena finito, e il totale del giorno sta comunque nelle Statistiche. Per questo di solito si lasciano spente - ma se ti servono, accendile pure.": "This card follows <b>cycles</b>: if the appliance runs one a day, <i>Today kWh</i> and <i>Today cost</i> say the same thing as the cycle that just ended, and the daily total is in Statistics anyway. That is why they are usually left off - but turn them on if you want them.",
+  "Chiaro o scuro (questa scheda soltanto)": "Light or dark (this card only)",
+  "Automatico - come Home Assistant": "Automatic - follow Home Assistant",
+  "Sempre chiaro": "Always light",
+  "Sempre scuro": "Always dark",
+  "Classico - la foto a sinistra": "Classic - photo on the left",
+  "Centrato - la foto in mezzo, i numeri sotto": "Centred - photo in the middle, numbers below",
+  "Come si apre il pop-up": "How the dialog opens",
+  "Quanto dura l'apertura": "How long the opening takes",
+  "Larghezza del pop-up (vuoto = 560)": "Dialog width (empty = 560)",
+  "Foto di sfondo del pop-up (indirizzo)": "Dialog background photo (address)",
+  "Sboccia dal tondino che hai premuto": "Blooms from the button you pressed",
   "parti da un'entita' e riempio io il resto": "start from one entity and I fill in the rest",
   "i kWh, il prezzo, i cicli e l'azzeramento": "the kWh, the price, the cycles and the reset",
   "le prese e le luci che accendi dalla scheda": "the sockets and lights you switch from the card",
@@ -670,7 +716,6 @@ const EN = {
   "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. Qui c'e' anche il fondo scala della barra e il suo nome. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'.": "Above how many watts the card says <b>running</b>, and below how many <b>standby</b>. The bar's full scale and its name are here too. If the appliance has its own integration telling the real state, put it at the bottom: that one wins and the thresholds stop mattering.",
   "Serve solo se un'integrazione o un pacchetto ti da' <b>gia' pronto</b> un sensore con dentro l'ultimo ciclo (fine, durata e consumo negli attributi). In quel caso la scheda legge quello invece dei contatori che si crea da sola. Se non ce l'hai, lascia vuoto.": "Only needed if an integration or a package gives you a <b>ready-made</b> sensor holding the last cycle (end, duration and energy in its attributes). Then the card reads that instead of the counters it creates itself. If you don't have one, leave it empty.",
   "Le entita' che parlano <b>mentre l'apparecchio lavora</b>: quanto ha gia' consumato, da quanto va, quanto manca, il programma e la fase. Sono quelle che riempiono il riquadro <i>Ciclo in corso</i>. Anche queste le da' l'integrazione dell'apparecchio, non la presa.": "The entities that speak <b>while the appliance is working</b>: how much it has used, how long it has been going, how long is left, the programme and the phase. They fill the <i>Cycle running</i> box. These also come from the appliance's integration, not from the socket.",
-  "Una seconda barra sotto a quella della potenza: un'altra misura in watt, oppure un avanzamento da 0 a 100 (il programma, l'umidita'...). Il nome e il fondo scala di ognuna si scrivono nella tendina <i>Nomi delle barre in piu'</i>.": "A second bar under the power one: another reading in watts, or a progress from 0 to 100 (the programme, the humidity...). The name and full scale of each are written in the <i>Names of the extra bars</i> drawer.",
   "Come si veste la finestrella che si apre dai tondini: tinta, trasparenza, colore delle scritte, e quanto scurisce e sfoca quello che c'e' dietro. In piu' la pagina delle notifiche, se ne hai una.": "How the dialog the round buttons open is dressed: tint, transparency, text colour, and how much it darkens and blurs what is behind. Plus the notifications page, if you have one.",
   "tasto": "button",
   "agganciato": "wired up",
@@ -766,7 +811,29 @@ const EN = {
   "Seconda barra": "Second bar",
   "Aspetto e finestra del pop-up": "Look and pop-up window",
   "Tasti e interruttori": "Buttons and switches",
+  "Cucina (tutta la linea)": "Kitchen (the whole circuit)",
   "Lavatrice": "Washing machine",
+  "Piano cottura a induzione": "Induction hob",
+  "Cappa aspirante": "Cooker hood",
+  "Macchina del caffe'": "Coffee machine",
+  "Bollitore": "Kettle",
+  "Tostapane": "Toaster",
+  "Friggitrice ad aria": "Air fryer",
+  "Congelatore": "Freezer",
+  "Termoventilatore": "Fan heater",
+  "Pompa di calore": "Heat pump",
+  "Stufa a pellet": "Pellet stove",
+  "Radiatore elettrico": "Electric radiator",
+  "Scaldasalviette": "Towel warmer",
+  "Robot aspirapolvere": "Robot vacuum",
+  "Asciugacapelli": "Hair dryer",
+  "Ferro da stiro": "Iron",
+  "Pompa dell'acqua": "Water pump",
+  "Acquario": "Aquarium",
+  "Stampante 3D": "3D printer",
+  "Console da gioco": "Games console",
+  "Colonnina di ricarica": "EV charger",
+  "Barra principale: il sensore che legge (i W della presa, o un altro numero)": "Main bar: the sensor it reads (the plug's watts, or any other number)",
   "Lavastoviglie": "Dishwasher",
   "Asciugatrice": "Tumble dryer",
   "Forno": "Oven",
@@ -838,7 +905,6 @@ const EN = {
   "Questa scheda va bene per <b>tutti e due</b> i casi, e capisce da sola quale e' il tuo da quello che compili:<br> &bull; <b>Ha dei cicli</b> (lavatrice, lavastoviglie, forno): dagli il <i>sensore dell'ultimo ciclo</i> e il riquadro fa vedere <i>fine, durata, consumo e costo</i> dell'ultimo lavaggio.<br> &bull; <b>Sta sempre acceso</b> (una presa, un PC, un frigo): lascia stare il ciclo e dagli i <i>quattro sensori dei kWh e dei costi</i> qui sopra; il riquadro diventa <b>Consumi</b> e fa vedere oggi e il mese. Le righe si spuntano qui sotto.": "This card is fine for <b>both</b> cases, and it works out which one is yours from what you fill in:<br> &bull; <b>It has cycles</b> (washing machine, dishwasher, oven): give it the <i>last-cycle sensor</i> and the box shows <i>end, duration, energy and cost</i> of the last wash.<br> &bull; <b>It is always on</b> (a socket, a PC, a fridge): leave the cycle alone and give it the <i>four kWh and cost sensors</i> above; the box becomes <b>Usage</b> and shows today and this month. The rows are ticked below.",
   "A cosa servono i tasti di accensione": "What the power buttons are for",
   "I due campi <b>Tasto ⏻</b> e <b>USB</b> qui sopra mettono un tastino tondo nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne, e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare. Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.<br> Se invece hai una <b>ciabatta</b> con tre o quattro prese, usa <b>Piu' prese</b>: diventano una fila di tastini col nome di ognuna, verdi quando danno corrente.": "The two fields <b>⏻ button</b> and <b>USB</b> above put a small round button in the card's top bar, next to the gear. Pressed, it switches on or off, and it stays <b>green</b> while the appliance is on. Leave them empty and no button shows up. Anything that switches on will do: a socket, a light, a fan, a dehumidifier.<br> If instead you have a <b>power strip</b> with three or four sockets, use <b>Several sockets</b>: they become a row of small buttons with each name, green when they are live.",
-  "Nomi delle barre in piu'": "Names of the extra bars",
   "Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto <i>Seconda barra</i>. Servono per far vedere insieme piu' misure: per esempio quanto prende dalla rete e quanto manda a casa.": "The name and the full scale (W) of every bar you picked in the <i>Second bar</i> drawer. They are for showing several measurements together: for example how much comes in from the grid and how much goes out to the house.",
   "Righe dell'«Ultimo ciclo»": "Rows of the «Last cycle» box",
   "Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi, scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).": "Tick the ones to show, drag them by the ⠿ handle to put them in order and, if you like, write the name and pick the colour you prefer (empty = the built-in ones; the ↺ button puts the original colour back).",
@@ -861,6 +927,20 @@ const EN = {
   "Il prezzo l'hai gia' scritto qui sopra: qui scegli solo <b>da quale sensore dei kWh</b> parte la casa. Creo io i contatori (ora, oggi, settimana, mese e ieri) e il costo di ogni periodo, e li aggancio alla scheda; quelli che ci sono gia' li riuso.<br> Il conto voce per voce della bolletta, i cicli degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: stanno nella guida, in <i>esempi/luce</i>.": "You already wrote the price above: here you only pick <b>which kWh sensor</b> the house starts from. I create the meters (hour, today, week, month and yesterday) and the cost of each period, and I wire them to the card; the ones that already exist I reuse.<br> The itemised bill, the appliance cycles and the solar saving are not made from here: they are in the guide, under <i>esempi/luce</i>.",
   "Dei pannelli e della batteria faccio i kWh di oggi e del mese, e li metto nelle righe <i>Dai pannelli</i> e <i>Dalla batteria</i> (spuntale qui sopra). Va bene sia un sensore in kWh sia uno in Watt. Per la batteria scegli quello che dice <b>quanto ha dato alla casa</b> (la scarica), non la percentuale.": "Out of the panels and the battery I make today's and this month's kWh, and I put them in the <i>From the panels</i> and <i>From the battery</i> rows (tick them above). A sensor in kWh is fine, and so is one in watts. For the battery pick the one that says <b>how much it gave to the house</b> (the discharge), not the percentage.",
   "Spunta quelli da buttare. Lo storico che hanno raccolto si perde; la presa e i sensori del dispositivo non si toccano. Ci sono anche le <b>memorie dell'ultimo ciclo</b> e l'<b>automazione</b> che le riempie: se butti quelle, il riquadro dell'ultimo ciclo resta vuoto.": "Tick the ones to throw away. The history they collected is lost; the socket and the device's own sensors are never touched. There are also the <b>last-cycle memories</b> and the <b>automation</b> that fills them: throw those away and the last-cycle box stays empty.",
+  "Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.": "This is where the kWh go, and this card counts none. Power over time is in the button next door, Trend.",
+  "Andamento": "Trend",
+  "24 h": "24 h",
+  "7 gg": "7 d",
+  "30 gg": "30 d",
+  "Da… a": "From… to",
+  "Da": "From",
+  "A": "To",
+  "Applica": "Apply",
+  "Minimo": "Lowest",
+  "Media": "Average",
+  "Massimo": "Highest",
+  "Nessun dato nel periodo": "No data in this period",
+  "Non c'e' nessun sensore da disegnare": "There is no sensor to draw",
   "prima la sola energia, poi quanto costa in bolletta": "energy only first, then what it costs on the bill",
   "non e' un numero, cosi' non posso sapere se sta lavorando": "is not a number, so I cannot tell whether it is running",
   "Prezzo della luce": "Electricity price",
@@ -3415,6 +3495,507 @@ const ConColori = (Base) => class extends Base {
 
 };
 
+// Altri venti disegni per le schede elettrodomestico ed energia.
+// Stanno in un file loro perche' elettro-comune.js era gia' lungo: li
+// aggiunge a HERO_BUILDERS con un Object.assign, e da fuori non si vede
+// nessuna differenza fra i primi e questi.
+//
+// Le regole, le stesse dei primi: tela 240x240, l'ombra in terra, il corpo
+// in acciaio, la targa coi Watt (la scritta con class="dm-e-watt" e' quella
+// che la scheda riscrive), e i pezzi che si muovono solo quando la scheda
+// ha la classe is-run.
+
+// ---------------------------------------------------------------- i pezzi
+// che si ripetono in tutti. `id` e' il numero della scheda: serve perche'
+// due schede sulla stessa plancia non si rubino i gradienti.
+const ombra = (id) =>
+  `<filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>`;
+
+const acciaio = (id) =>
+  `<linearGradient id="dmh-steel-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f8fb"/><stop offset=".5" stop-color="#dde4ec"/><stop offset="1" stop-color="#aab6c5"/></linearGradient>`;
+
+const piede = (id, cx = 120, cy = 214, rx = 56, ry = 9) =>
+  `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>`;
+
+// La targa dei Watt: il rettangolino nero col numero azzurro e la W.
+// `s` la rimpicciolisce quando deve stare in un posto stretto.
+const targa = (cx, cy, s = 1) => {
+  const w = 68 * s;
+  const h = 26 * s;
+  return `<rect x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" rx="${8 * s}" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
+    <text class="dm-e-watt" x="${cx - 8 * s}" y="${cy + 5.5 * s}" text-anchor="middle" font-size="${16 * s}" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="${cx + 18 * s}" y="${cy + 5.5 * s}" text-anchor="middle" font-size="${9 * s}" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>`;
+};
+
+const tela = (id, dentro, altriDefs = "") =>
+  `<svg width="100%" height="100%" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+    <defs>${ombra(id)}${acciaio(id)}${altriDefs}</defs>
+    ${dentro}
+  </svg>`;
+
+// due sfumature calde/fredde che tornano spesso
+const caldo = (id) =>
+  `<radialGradient id="dmh-caldo-${id}" cx=".5" cy=".5" r=".7"><stop offset="0" stop-color="#fff7ed"/><stop offset=".45" stop-color="#fdba74"/><stop offset="1" stop-color="#b91c1c"/></radialGradient>`;
+const freddo = (id) =>
+  `<radialGradient id="dmh-freddo-${id}" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="#f0f9ff"/><stop offset=".5" stop-color="#bae6fd"/><stop offset="1" stop-color="#0e3a5c"/></radialGradient>`;
+
+const led = (cx, cy, r = 3.2, colore = "#22c55e") =>
+  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${colore}" class="dmh-glow"/>`;
+
+const DISEGNI_PIU = {
+  // La cucina intera, vista da davanti: la cappa, il piano cottura sul banco
+  // e il frigorifero di fianco. Non e' un apparecchio, e' una linea - la usa
+  // chi misura tutto il circuito della cucina con una pinza.
+  cucina: (id) => tela(id, `
+    ${piede(id, 118, 212, 92, 10)}
+    <!-- il frigorifero -->
+    <rect x="152" y="58" width="64" height="150" rx="13" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <path d="M152 112h64" stroke="#8fa0b3" stroke-opacity=".7" stroke-width="2"/>
+    <g fill="#8fa0b3">
+      <rect x="158" y="82" width="5" height="22" rx="2.5"/><rect x="158" y="122" width="5" height="30" rx="2.5"/>
+    </g>
+    ${led(207, 68, 3)}
+    <!-- la cappa -->
+    <rect x="70" y="20" width="20" height="26" rx="6" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <path d="M26 86 44 46h72l18 40z" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.4"/>
+    <rect x="26" y="86" width="108" height="12" rx="5" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.1"/>
+    <rect x="44" y="89" width="72" height="6" rx="3" fill="#fff4cf" opacity=".9" class="dmh-glow"/>
+    <!-- il vapore che sale dal fuoco acceso -->
+    <g fill="none" stroke="#dbe4ee" stroke-width="4.5" stroke-linecap="round">
+      <path d="M58 118c-9-7 3-13-3-20" class="dmh-vapore"/>
+      <path d="M72 114c-9-7 3-13-3-20" class="dmh-vapore dmh-vapore2"/>
+    </g>
+    <!-- il banco col piano cottura -->
+    <rect x="18" y="126" width="124" height="11" rx="5" fill="#e6ecf4" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <ellipse cx="56" cy="126" rx="15" ry="5.4" fill="url(#dmh-caldo-${id})" class="dmh-glow"/>
+    <ellipse cx="56" cy="126" rx="15" ry="5.4" fill="none" stroke="#f97316" stroke-opacity=".8" stroke-width="1.6"/>
+    <ellipse cx="96" cy="126" rx="13" ry="4.6" fill="#1d2739" opacity=".85"/>
+    <!-- i mobili sotto -->
+    <rect x="22" y="137" width="118" height="71" rx="9" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <path d="M82 137v71" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.6"/>
+    <g fill="#9fadbc">
+      <rect x="66" y="150" width="7" height="22" rx="3.5"/><rect x="91" y="150" width="7" height="22" rx="3.5"/>
+    </g>
+    ${targa(80, 66, 0.78)}
+  `, caldo(id)),
+
+  // Piano cottura a induzione, visto da sopra: il vetro nero, le quattro
+  // zone e i tastini. La zona davanti a sinistra si accende.
+  piano_cottura: (id) => tela(id, `
+    ${piede(id, 120, 216, 74, 10)}
+    <rect x="30" y="40" width="180" height="156" rx="16" fill="#0b1220" stroke="#8fa0b3" stroke-opacity=".45" stroke-width="1.5"/>
+    <rect x="36" y="46" width="168" height="144" rx="12" fill="#101a2c"/>
+    <g fill="none" stroke="#3b4a63" stroke-width="2.2">
+      <circle cx="82" cy="86" r="26"/><circle cx="158" cy="88" r="21"/><circle cx="158" cy="146" r="26"/>
+    </g>
+    <circle cx="82" cy="146" r="30" fill="url(#dmh-caldo-${id})" opacity=".85" class="dmh-glow"/>
+    <circle cx="82" cy="146" r="30" fill="none" stroke="#fda4af" stroke-opacity=".7" stroke-width="2.4"/>
+    <g fill="none" stroke="#f97316" stroke-width="2" opacity=".8">
+      <circle cx="82" cy="146" r="19"/><circle cx="82" cy="146" r="9"/>
+    </g>
+    <g fill="#233448">
+      <rect x="52" y="174" width="14" height="6" rx="3"/><rect x="74" y="174" width="14" height="6" rx="3"/>
+      <rect x="96" y="174" width="14" height="6" rx="3"/><rect x="118" y="174" width="14" height="6" rx="3"/>
+    </g>
+    ${led(48, 56)}
+    ${targa(170, 177, 0.8)}
+  `, caldo(id)),
+
+  // Cappa aspirante: la cannuccia, il cappello e l'aria che sale.
+  cappa: (id) => tela(id, `
+    ${piede(id, 120, 210, 46, 8)}
+    <rect x="100" y="16" width="40" height="52" rx="8" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.4"/>
+    <path d="M30 116 58 66h124l28 50z" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.5"/>
+    <rect x="30" y="116" width="180" height="18" rx="7" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <rect x="62" y="122" width="116" height="7" rx="3.5" fill="#fff4cf" opacity=".9" class="dmh-glow"/>
+    <g class="dmh-aria" fill="none" stroke="#38bdf8" stroke-width="5" stroke-linecap="round" opacity=".7">
+      <path d="M78 186c14-10 14-22 0-32"/>
+      <path d="M120 194c14-10 14-24 0-34"/>
+      <path d="M162 186c14-10 14-22 0-32"/>
+    </g>
+    ${led(190, 125, 3)}
+    ${targa(120, 92, 0.95)}
+  `),
+
+  // Macchina del caffe': il gruppo, la tazzina e il caffe' che cola.
+  caffe: (id) => tela(id, `
+    ${piede(id, 120, 218, 54, 9)}
+    <rect x="58" y="26" width="124" height="180" rx="18" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="70" y="36" width="100" height="30" rx="9" fill="#0b1526"/>
+    ${targa(120, 51, 0.86)}
+    <rect x="86" y="80" width="68" height="16" rx="6" fill="#9fadbc"/>
+    <rect x="104" y="96" width="32" height="14" rx="4" fill="#78899b"/>
+    <g fill="#5b3a1d">
+      <rect x="112" y="110" width="4" height="26" rx="2" class="dmh-goccia"/>
+      <rect x="124" y="110" width="4" height="26" rx="2" class="dmh-goccia dmh-goccia2"/>
+    </g>
+    <path d="M100 152h40v18a20 20 0 0 1-40 0z" fill="#ffffff" stroke="#c3cdda" stroke-width="1.4"/>
+    <path d="M104 156h32v6a16 16 0 0 1-32 0z" fill="#6b4423"/>
+    <path d="M140 156c12 0 12 16 0 16" fill="none" stroke="#c3cdda" stroke-width="3"/>
+    <rect x="86" y="186" width="68" height="8" rx="4" fill="#9fadbc"/>
+    ${led(72, 44)}
+  `),
+
+  // Bollitore: il beccuccio, il manico e il vapore.
+  bollitore: (id) => tela(id, `
+    ${piede(id, 120, 208, 50, 9)}
+    <path d="M78 74h84l10 108a16 16 0 0 1-16 18H84a16 16 0 0 1-16-18z" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="74" y="62" width="92" height="16" rx="7" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <rect x="104" y="50" width="32" height="14" rx="6" fill="#9fadbc"/>
+    <path d="M78 96 52 62" fill="none" stroke="#b9c5d2" stroke-width="10" stroke-linecap="round"/>
+    <path d="M166 92c26 8 26 52 0 62" fill="none" stroke="#33415a" stroke-width="11" stroke-linecap="round"/>
+    <rect x="86" y="118" width="20" height="62" rx="9" fill="url(#dmh-freddo-${id})" opacity=".75"/>
+    <g fill="none" stroke="#e2e8f0" stroke-width="5" stroke-linecap="round">
+      <path d="M46 46c-10-10 4-18-4-28" class="dmh-vapore"/>
+      <path d="M62 38c-10-10 4-18-4-28" class="dmh-vapore dmh-vapore2"/>
+    </g>
+    <rect x="66" y="194" width="108" height="14" rx="7" fill="#9fadbc"/>
+    ${led(94, 168, 3)}
+    ${targa(146, 148, 0.8)}
+  `, freddo(id)),
+
+  // Tostapane: le due fette che spuntano e le resistenze accese.
+  tostapane: (id) => tela(id, `
+    ${piede(id, 120, 202, 66, 10)}
+    <g class="dmh-glow" opacity=".8">
+      <rect x="82" y="46" width="30" height="42" rx="6" fill="#e2b877" stroke="#b5813c" stroke-width="1.6"/>
+      <rect x="126" y="52" width="30" height="36" rx="6" fill="#d8a460" stroke="#a9722f" stroke-width="1.6"/>
+    </g>
+    <rect x="44" y="86" width="152" height="100" rx="18" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <g fill="#0b1526">
+      <rect x="78" y="82" width="38" height="12" rx="5"/><rect x="124" y="82" width="38" height="12" rx="5"/>
+    </g>
+    <g stroke="#f97316" stroke-width="2.2" opacity=".85" class="dmh-glow">
+      <path d="M82 88h30M128 88h30" fill="none"/>
+    </g>
+    <rect x="178" y="98" width="12" height="52" rx="6" fill="#78899b"/>
+    <circle cx="184" cy="152" r="8" fill="#c8d3e0" stroke="#8fa0b3" stroke-width="1.4"/>
+    <circle cx="62" cy="132" r="13" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.6"/>
+    <path d="M62 124v8" stroke="#33415a" stroke-width="2.6" stroke-linecap="round"/>
+    <g fill="#9fadbc">
+      <rect x="58" y="186" width="14" height="10" rx="4"/><rect x="168" y="186" width="14" height="10" rx="4"/>
+    </g>
+    ${targa(122, 148, 0.92)}
+  `),
+
+  // Friggitrice ad aria: il cassetto col manico e l'aria calda che gira.
+  friggitrice: (id) => tela(id, `
+    ${piede(id, 120, 216, 54, 9)}
+    <path d="M70 34h100a14 14 0 0 1 14 14v158H56V48a14 14 0 0 1 14-14z" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="70" y="44" width="100" height="34" rx="10" fill="#0b1526"/>
+    ${targa(120, 60, 0.88)}
+    <rect x="62" y="92" width="116" height="66" rx="12" fill="#12233a"/>
+    <g class="dmh-aria" fill="none" stroke="#f97316" stroke-width="4.6" stroke-linecap="round" opacity=".8">
+      <path d="M82 116c12-9 24-9 36 0s24 9 36 0"/>
+      <path d="M82 138c12-9 24-9 36 0s24 9 36 0"/>
+    </g>
+    <rect x="56" y="162" width="128" height="44" rx="12" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.4"/>
+    <rect x="86" y="176" width="68" height="12" rx="6" fill="#78899b"/>
+    ${led(166, 88)}
+  `),
+
+  // Congelatore a pozzetto: il coperchio, la maniglia e il fiocco di neve.
+  congelatore: (id) => tela(id, `
+    ${piede(id, 120, 208, 72, 10)}
+    <rect x="34" y="96" width="172" height="102" rx="12" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="30" y="74" width="180" height="24" rx="10" fill="#eef2f7" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="96" y="100" width="48" height="9" rx="4.5" fill="#8fa0b3"/>
+    <g stroke="#38bdf8" stroke-width="4" stroke-linecap="round" opacity=".9" class="dmh-glow">
+      <path d="M68 150v-28M54 136h28M60 128l16 16M76 128l-16 16" fill="none"/>
+    </g>
+    <g fill="#bcd7ea" opacity=".75">
+      <rect x="100" y="128" width="54" height="7" rx="3.5"/>
+      <rect x="100" y="146" width="42" height="7" rx="3.5"/>
+    </g>
+    ${led(190, 86, 3)}
+    ${targa(140, 178, 0.86)}
+  `),
+
+  // Termoventilatore: la griglia che gira e l'aria calda.
+  termoventilatore: (id) => tela(id, `
+    ${piede(id, 120, 212, 52, 9)}
+    <rect x="52" y="78" width="136" height="118" rx="20" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <circle cx="120" cy="130" r="44" fill="#0b1526"/>
+    <circle cx="120" cy="130" r="38" fill="url(#dmh-caldo-${id})" opacity=".55" class="dmh-glow"/>
+    <g class="dmh-gira" style="transform-origin:120px 130px" opacity=".9">
+      <path d="M120 130c0-20 8-30 20-30 8 0 13 6 13 14 0 11-13 16-33 16z" fill="#fdba74"/>
+      <path d="M120 130c17 10 20 23 14 33-4 7-12 8-18 4-9-5-7-19 4-37z" fill="#fb923c"/>
+      <path d="M120 130c-17-10-31-9-37 2-4 7 0 14 7 18 9 5 19-4 30-20z" fill="#fed7aa"/>
+    </g>
+    <circle cx="120" cy="130" r="7" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.3"/>
+    <g class="dmh-aria" fill="none" stroke="#fb923c" stroke-width="4.4" stroke-linecap="round" opacity=".8">
+      <path d="M84 62c12-9 24-9 36 0s24 9 36 0"/>
+      <path d="M96 40c9-7 18-7 27 0"/>
+    </g>
+    <rect x="66" y="180" width="108" height="12" rx="6" fill="#9fadbc"/>
+    ${led(170, 92)}
+    ${targa(120, 208, 0.82)}
+  `, caldo(id)),
+
+  // Pompa di calore: il motore fuori, la ventola grande e le alette.
+  pompa_calore: (id) => tela(id, `
+    ${piede(id, 120, 210, 76, 10)}
+    <rect x="26" y="58" width="188" height="136" rx="16" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="34" y="66" width="106" height="120" rx="12" fill="#0e1a2c"/>
+    <circle cx="87" cy="126" r="50" fill="#12233a"/>
+    <g class="dmh-gira" style="transform-origin:87px 126px" opacity=".92">
+      <path d="M87 126c0-24 9-36 24-36 9 0 15 7 15 16 0 13-15 20-39 20z" fill="#8fd5f5"/>
+      <path d="M87 126c21 12 24 28 17 40-5 8-14 9-21 4-11-6-8-23 4-44z" fill="#6cc6ee"/>
+      <path d="M87 126c-21-12-37-11-44 3-4 8 0 16 8 21 11 6 23-5 36-24z" fill="#a6e0f8"/>
+    </g>
+    <circle cx="87" cy="126" r="8" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.3"/>
+    <g stroke="#9fb4c9" stroke-width="2" opacity=".5" fill="none">
+      <circle cx="87" cy="126" r="46"/><circle cx="87" cy="126" r="30"/>
+    </g>
+    <g fill="#c8d3e0">
+      <rect x="150" y="76" width="56" height="7" rx="3.5"/><rect x="150" y="90" width="56" height="7" rx="3.5"/>
+      <rect x="150" y="104" width="56" height="7" rx="3.5"/><rect x="150" y="118" width="56" height="7" rx="3.5"/>
+    </g>
+    ${targa(178, 152, 0.86)}
+    ${led(200, 68)}
+    <g fill="#9fadbc">
+      <rect x="44" y="194" width="16" height="12" rx="4"/><rect x="180" y="194" width="16" height="12" rx="4"/>
+    </g>
+  `),
+
+  // Stufa a pellet: il vetro con la fiamma e la tramoggia sopra.
+  pellet: (id) => tela(id, `
+    ${piede(id, 120, 214, 50, 9)}
+    <rect x="66" y="34" width="108" height="172" rx="16" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="80" y="42" width="80" height="18" rx="7" fill="#c8d3e0"/>
+    <rect x="76" y="72" width="88" height="92" rx="10" fill="#0b1526"/>
+    <rect x="80" y="76" width="80" height="84" rx="8" fill="url(#dmh-caldo-${id})" opacity=".8" class="dmh-glow"/>
+    <rect x="80" y="76" width="80" height="84" rx="8" fill="#3a0d0d" opacity=".35"/>
+    <path d="M120 150c-16 0-24-11-24-22 0-14 14-18 12-32 10 5 14 13 14 20 4-3 6-8 6-13 12 9 16 19 16 27 0 11-8 20-24 20z" fill="#fdba74" class="dmh-flicker"/>
+    <path d="M120 150c-8 0-12-6-12-12 0-8 8-10 7-19 8 6 17 15 17 21 0 6-4 10-12 10z" fill="#fff7ed" opacity=".9" class="dmh-flicker"/>
+    <g fill="#9fadbc" opacity=".9">
+      <rect x="82" y="172" width="34" height="8" rx="4"/><rect x="124" y="172" width="34" height="8" rx="4"/>
+    </g>
+    <g fill="#78899b">
+      <rect x="76" y="206" width="14" height="14" rx="4"/><rect x="150" y="206" width="14" height="14" rx="4"/>
+    </g>
+    ${led(158, 51)}
+    ${targa(120, 190, 0.82)}
+  `, caldo(id)),
+
+  // Radiatore elettrico: gli elementi, il caldo dietro e la manopola.
+  radiatore: (id) => tela(id, `
+    ${piede(id, 120, 210, 66, 9)}
+    <ellipse cx="120" cy="124" rx="70" ry="52" fill="url(#dmh-caldo-${id})" opacity=".16" class="dmh-glow"/>
+    <rect x="44" y="66" width="152" height="12" rx="6" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <rect x="44" y="172" width="152" height="12" rx="6" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <g fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".45" stroke-width="1.2">
+      <rect x="50" y="72" width="17" height="106" rx="8"/><rect x="73" y="72" width="17" height="106" rx="8"/>
+      <rect x="96" y="72" width="17" height="106" rx="8"/><rect x="119" y="72" width="17" height="106" rx="8"/>
+      <rect x="142" y="72" width="17" height="106" rx="8"/><rect x="165" y="72" width="17" height="106" rx="8"/>
+    </g>
+    <circle cx="196" cy="150" r="14" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.5"/>
+    <path d="M196 141v9" stroke="#33415a" stroke-width="2.8" stroke-linecap="round"/>
+    <g fill="#9fadbc">
+      <rect x="54" y="184" width="14" height="14" rx="4"/><rect x="164" y="184" width="14" height="14" rx="4"/>
+    </g>
+    ${led(50, 60)}
+    ${targa(120, 212, 0.84)}
+  `, caldo(id)),
+
+  // Scaldasalviette: i tubi, l'asciugamano appoggiato e il calduccio.
+  scaldasalviette: (id) => tela(id, `
+    ${piede(id, 120, 214, 44, 8)}
+    <ellipse cx="120" cy="116" rx="56" ry="64" fill="url(#dmh-caldo-${id})" opacity=".14" class="dmh-glow"/>
+    <g fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.3">
+      <rect x="70" y="26" width="14" height="178" rx="7"/><rect x="156" y="26" width="14" height="178" rx="7"/>
+      <rect x="70" y="42" width="100" height="12" rx="6"/><rect x="70" y="72" width="100" height="12" rx="6"/>
+      <rect x="70" y="132" width="100" height="12" rx="6"/><rect x="70" y="162" width="100" height="12" rx="6"/>
+    </g>
+    <path d="M78 98h84v12h-84z" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.3"/>
+    <path d="M96 104h52v54a8 8 0 0 1-8 8h-36a8 8 0 0 1-8-8z" fill="#bae6fd" stroke="#7dd3fc" stroke-width="1.4"/>
+    <g stroke="#7dd3fc" stroke-width="2" opacity=".8" fill="none">
+      <path d="M96 122h52M96 138h52"/>
+    </g>
+    <g fill="#9fadbc">
+      <rect x="66" y="204" width="22" height="10" rx="5"/><rect x="152" y="204" width="22" height="10" rx="5"/>
+    </g>
+    ${led(184, 36)}
+    ${targa(120, 224, 0.8)}
+  `, caldo(id)),
+
+  // Robot aspirapolvere, visto da sopra: il paraurti, la torretta e la
+  // spazzola che gira.
+  robot: (id) => tela(id, `
+    ${piede(id, 120, 202, 66, 10)}
+    <circle cx="120" cy="116" r="76" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.6"/>
+    <path d="M44 116a76 76 0 0 1 152 0z" fill="#e6ecf4" opacity=".7"/>
+    <path d="M44 116a76 76 0 0 1 152 0" fill="none" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="2"/>
+    <circle cx="120" cy="116" r="60" fill="none" stroke="#c3cdda" stroke-width="1.6"/>
+    <g class="dmh-gira dmh-gira-piano" style="transform-origin:120px 116px" fill="none" stroke="#8fa0b3" stroke-width="4" stroke-linecap="round" opacity=".8">
+      <path d="M120 74v-14M120 158v14M78 116h-14M162 116h14"/>
+    </g>
+    <circle cx="120" cy="86" r="17" fill="#0b1526"/>
+    <circle cx="120" cy="86" r="11" fill="#12233a" stroke="#38bdf8" stroke-opacity=".5" stroke-width="1.6"/>
+    ${led(120, 86, 4, "#38bdf8")}
+    <rect x="86" y="126" width="68" height="24" rx="9" fill="#0b1526"/>
+    ${targa(120, 138, 0.82)}
+    <g fill="#9fadbc">
+      <rect x="66" y="104" width="12" height="24" rx="6"/><rect x="162" y="104" width="12" height="24" rx="6"/>
+    </g>
+  `),
+
+  // Asciugacapelli: la canna inclinata, il manico e l'aria.
+  asciugacapelli: (id) => tela(id, `
+    ${piede(id, 130, 212, 46, 8)}
+    <g transform="rotate(-18 120 120)">
+      <rect x="86" y="72" width="104" height="52" rx="26" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+      <path d="M86 78h-16a8 8 0 0 0-8 8v24a8 8 0 0 0 8 8h16z" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.3"/>
+      <rect x="182" y="78" width="12" height="40" rx="6" fill="#9fadbc"/>
+      <path d="M124 124h40l-10 74a14 14 0 0 1-14 12h-2a14 14 0 0 1-14-12z" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.4"/>
+      <rect x="130" y="146" width="28" height="10" rx="5" fill="#78899b"/>
+      <rect x="130" y="162" width="28" height="10" rx="5" fill="#78899b"/>
+      ${led(172, 84)}
+    </g>
+    <g class="dmh-aria" fill="none" stroke="#fb923c" stroke-width="4.6" stroke-linecap="round" opacity=".8">
+      <path d="M44 66c-12 8-12 18 0 26"/>
+      <path d="M26 54c-12 10-12 24 0 34"/>
+    </g>
+    ${targa(168, 200, 0.82)}
+  `),
+
+  // Ferro da stiro di fianco: la punta a sinistra, il serbatoio, il manico
+  // a D e il vapore che esce davanti.
+  ferro: (id) => tela(id, `
+    ${piede(id, 122, 208, 74, 9)}
+    <path d="M26 182c0-16 14-28 34-31l122-18c16-2 32 10 32 26v15a8 8 0 0 1-8 8H34a8 8 0 0 1-8-8z" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <path d="M34 190h176v6a8 8 0 0 1-8 8H42a8 8 0 0 1-8-8z" fill="#78899b"/>
+    <rect x="84" y="158" width="56" height="20" rx="8" fill="#bae6fd" opacity=".9"/>
+    <path d="M84 168h56" stroke="#7dd3fc" stroke-width="2" opacity=".8"/>
+    <path d="M80 150C80 110 104 94 134 94s52 18 52 46" fill="none" stroke="#33415a" stroke-width="15" stroke-linecap="round"/>
+    <rect x="104" y="120" width="56" height="9" rx="4.5" fill="#4b5b74"/>
+    <circle cx="66" cy="172" r="7" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.3"/>
+    <g fill="none" stroke="#dbe4ee" stroke-width="5" stroke-linecap="round">
+      <path d="M46 150c-12-6 2-16-8-24" class="dmh-vapore"/>
+      <path d="M28 162c-12-6 2-16-8-24" class="dmh-vapore dmh-vapore2"/>
+      <path d="M62 140c-12-6 2-16-8-24" class="dmh-vapore dmh-vapore3"/>
+    </g>
+    ${led(196, 160, 3)}
+    ${targa(172, 172, 0.72)}
+  `),
+
+  // Pompa dell'acqua: il motore, la girante e i tubi.
+  pompa: (id) => tela(id, `
+    ${piede(id, 120, 206, 70, 10)}
+    <rect x="34" y="92" width="112" height="72" rx="36" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <g stroke="#8fa0b3" stroke-opacity=".45" stroke-width="2" fill="none">
+      <path d="M56 96v64M72 94v68M88 94v68M104 94v68M120 96v64"/>
+    </g>
+    <circle cx="170" cy="128" r="38" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <circle cx="170" cy="128" r="28" fill="#0e1a2c"/>
+    <g class="dmh-gira" style="transform-origin:170px 128px" fill="none" stroke="#8fd5f5" stroke-width="4" stroke-linecap="round">
+      <path d="M170 106c8 8 8 16 0 22M170 150c-8-8-8-16 0-22M148 128c8-8 16-8 22 0M192 128c-8 8-16 8-22 0"/>
+    </g>
+    <circle cx="170" cy="128" r="6" fill="#e8eef6"/>
+    <rect x="160" y="52" width="20" height="42" rx="6" fill="#9fb4c9" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <rect x="150" y="44" width="40" height="12" rx="6" fill="#78899b"/>
+    <rect x="160" y="162" width="20" height="34" rx="6" fill="#9fb4c9" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <rect x="150" y="192" width="40" height="12" rx="6" fill="#78899b"/>
+    ${led(44, 100)}
+    ${targa(84, 128, 0.88)}
+  `),
+
+  // Acquario: l'acqua, i pesci e le bollicine.
+  acquario: (id) => tela(id, `
+    ${piede(id, 120, 208, 76, 9)}
+    <rect x="30" y="58" width="180" height="140" rx="10" fill="url(#dmh-freddo-${id})" opacity=".8"/>
+    <rect x="30" y="58" width="180" height="140" rx="10" fill="none" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="3"/>
+    <rect x="26" y="44" width="188" height="18" rx="8" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.3"/>
+    <rect x="52" y="58" width="136" height="6" rx="3" fill="#fff4cf" opacity=".85" class="dmh-glow"/>
+    <g class="dmh-onda" fill="none" stroke="#e0f7ff" stroke-width="3" opacity=".7">
+      <path d="M36 80c14-6 28 6 42 0s28 6 42 0 28 6 42 0 28 6 42 0"/>
+    </g>
+    <path d="M30 174h180v14a10 10 0 0 1-10 10H40a10 10 0 0 1-10-10z" fill="#c8b18a"/>
+    <g fill="#38bdf8">
+      <path d="M92 118c14-10 30-10 40 0-10 10-26 10-40 0z" opacity=".95"/>
+      <path d="M92 118l-14-10v20z"/>
+    </g>
+    <g fill="#fb923c">
+      <path d="M140 152c11-8 24-8 32 0-8 8-21 8-32 0z" opacity=".95"/>
+      <path d="M140 152l-11-8v16z"/>
+    </g>
+    <g fill="#e0f7ff">
+      <circle cx="64" cy="164" r="5" class="dmh-bolla"/>
+      <circle cx="74" cy="168" r="3.6" class="dmh-bolla dmh-bolla2"/>
+      <circle cx="58" cy="170" r="3" class="dmh-bolla dmh-bolla3"/>
+    </g>
+    <g fill="#22c55e" opacity=".8">
+      <path d="M182 174c-8-16-4-32 2-42 2 16 6 28 10 42z"/>
+      <path d="M166 174c-6-12-2-24 2-32 2 12 4 22 8 32z"/>
+    </g>
+    ${targa(120, 216, 0.86)}
+  `, freddo(id)),
+
+  // Stampante 3D: il telaio, il piano e l'ugello che sta stampando.
+  stampante3d: (id) => tela(id, `
+    ${piede(id, 120, 214, 70, 9)}
+    <g fill="#9fb4c9" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2">
+      <rect x="40" y="30" width="16" height="170" rx="6"/><rect x="184" y="30" width="16" height="170" rx="6"/>
+      <rect x="40" y="30" width="160" height="14" rx="6"/>
+    </g>
+    <rect x="56" y="76" width="128" height="14" rx="6" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.2"/>
+    <rect x="104" y="88" width="32" height="24" rx="6" fill="#33415a"/>
+    <path d="M114 112h12l-6 12z" fill="#f97316" class="dmh-glow"/>
+    <rect x="118" y="126" width="4" height="26" rx="2" fill="#38bdf8" class="dmh-goccia"/>
+    <rect x="52" y="168" width="136" height="12" rx="5" fill="#0e1a2c"/>
+    <rect x="56" y="164" width="128" height="6" rx="3" fill="#4b5b74"/>
+    <g fill="#38bdf8" opacity=".9">
+      <path d="M100 164h40v-22h-40z"/>
+      <path d="M100 142h40l-20-12-20 12z" opacity=".7"/>
+    </g>
+    <circle cx="156" cy="58" r="15" fill="none" stroke="#c8d3e0" stroke-width="7"/>
+    <circle cx="156" cy="58" r="4" fill="#9fb4c9"/>
+    <rect x="46" y="186" width="60" height="18" rx="7" fill="#0b1526"/>
+    ${targa(76, 195, 0.7)}
+    ${led(168, 190)}
+  `),
+
+  // Console da gioco: il pad, i tasti e la lucina.
+  console: (id) => tela(id, `
+    ${piede(id, 120, 202, 70, 10)}
+    <path d="M84 74h72c30 0 54 24 54 54 0 22-12 40-30 40-14 0-22-10-36-10H96c-14 0-22 10-36 10-18 0-30-18-30-40 0-30 24-54 54-54z" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.6"/>
+    <g fill="#33415a">
+      <rect x="62" y="110" width="34" height="11" rx="5"/><rect x="73.5" y="98.5" width="11" height="34" rx="5"/>
+    </g>
+    <g fill="#38bdf8">
+      <circle cx="160" cy="100" r="8"/><circle cx="180" cy="116" r="8"/>
+      <circle cx="160" cy="132" r="8"/><circle cx="140" cy="116" r="8"/>
+    </g>
+    <circle cx="100" cy="150" r="14" fill="#0e1a2c" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.4"/>
+    <circle cx="100" cy="150" r="8" fill="#4b5b74"/>
+    <circle cx="142" cy="158" r="14" fill="#0e1a2c" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.4"/>
+    <circle cx="142" cy="158" r="8" fill="#4b5b74"/>
+    <rect x="102" y="74" width="36" height="7" rx="3.5" fill="#38bdf8" opacity=".9" class="dmh-glow"/>
+    <g fill="#9fadbc">
+      <rect x="62" y="62" width="28" height="12" rx="6"/><rect x="150" y="62" width="28" height="12" rx="6"/>
+    </g>
+    ${targa(120, 196, 0.9)}
+  `),
+
+  // Colonnina di ricarica: il palo, lo schermo, il cavo e la spina.
+  colonnina: (id) => tela(id, `
+    ${piede(id, 108, 216, 50, 9)}
+    <rect x="70" y="26" width="76" height="184" rx="20" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="80" y="38" width="56" height="44" rx="10" fill="#0b1526"/>
+    ${targa(108, 60, 0.8)}
+    <path d="M104 96l-14 30h14l-6 24 22-34h-14l8-20z" fill="#38bdf8" class="dmh-glow"/>
+    <rect x="82" y="156" width="52" height="40" rx="10" fill="#c8d3e0" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.3"/>
+    <rect x="94" y="168" width="28" height="7" rx="3.5" fill="#78899b"/>
+    <path d="M146 130c40 6 52 34 46 62" fill="none" stroke="#33415a" stroke-width="9" stroke-linecap="round"/>
+    <g transform="translate(184 188)">
+      <rect x="-14" y="0" width="28" height="30" rx="9" fill="#0e1a2c" stroke="#8fa0b3" stroke-opacity=".5" stroke-width="1.3"/>
+      <g fill="#38bdf8"><circle cx="-5" cy="12" r="3.4"/><circle cx="5" cy="12" r="3.4"/><circle cx="0" cy="21" r="3.4"/></g>
+    </g>
+    <rect x="62" y="204" width="92" height="14" rx="7" fill="#9fadbc"/>
+    ${led(136, 36)}
+  `),
+};
+
 // Pezzi comuni delle schede energia/elettrodomestico: disegni, icone, stile.
 // Nata dalle schede di Simonz82 (github.com/Simonz82/smart-home-cards),
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
@@ -3693,9 +4274,9 @@ const HERO_BUILDERS = {
       <path d="M120 98c-22-14-40-12-48 2-5 9 0 18 9 23 12 7 25-5 39-25z" fill="#a6e0f8"/>
     </g>
     <circle cx="120" cy="98" r="9" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.4"/>
-    <rect x="86" y="156" width="68" height="26" rx="8" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
-    <text class="dm-e-watt" x="112" y="175" text-anchor="middle" font-size="16" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
-    <text x="138" y="175" text-anchor="middle" font-size="9" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
+    <rect x="86" y="206" width="68" height="26" rx="8" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
+    <text class="dm-e-watt" x="112" y="225" text-anchor="middle" font-size="16" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
+    <text x="138" y="225" text-anchor="middle" font-size="9" font-weight="800" fill="#7f9bb5" font-family="Roboto, sans-serif">W</text>
   </g>
   </svg>`,
   // Microonde: sportello, tastierino e il piatto che gira.
@@ -3727,9 +4308,8 @@ const HERO_BUILDERS = {
       <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
       <linearGradient id="dmh-cia-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f9fc"/><stop offset=".55" stop-color="#e2e8f0"/><stop offset="1" stop-color="#a9b6c4"/></linearGradient>
     </defs>
-    <g transform="translate(8.0,-3.5)">
+    <g transform="translate(0,-3.5)">
     <ellipse cx="120" cy="188" rx="80" ry="10" fill="#0f172a" opacity=".16" filter="url(#dmh-blur-${id})"/>
-    <path d="M28 120c-10 0-16-8-16-18s6-18 16-18" fill="none" stroke="#9fadbc" stroke-width="7" stroke-linecap="round"/>
     <rect x="28" y="64" width="184" height="112" rx="22" fill="url(#dmh-cia-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
     <g>
       <circle cx="72" cy="104" r="19" fill="#eef2f7" stroke="#9fb0c2" stroke-opacity=".6" stroke-width="1.4"/>
@@ -3815,9 +4395,8 @@ const HERO_BUILDERS = {
       <filter id="dmh-blur-${id}" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
       <linearGradient id="dmh-box-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3c4758"/><stop offset=".5" stop-color="#27303e"/><stop offset="1" stop-color="#151c27"/></linearGradient>
     </defs>
-    <g transform="translate(0,2.5)">
+    <g transform="translate(0,-7)">
     <ellipse cx="120" cy="208" rx="74" ry="10" fill="#0f172a" opacity=".18" filter="url(#dmh-blur-${id})"/>
-    <path d="M92 52v-6c0-9 12-14 28-14s28 5 28 14v6" fill="none" stroke="#9fadbc" stroke-width="7" stroke-linecap="round"/>
     <rect x="44" y="52" width="152" height="148" rx="18" fill="url(#dmh-box-${id})" stroke="#0b1220" stroke-opacity=".55" stroke-width="1.4"/>
     <rect x="58" y="66" width="124" height="52" rx="10" fill="#061020" stroke="#38bdf8" stroke-opacity=".45" stroke-width="1.2"/>
     <text class="dm-e-watt" x="120" y="98" text-anchor="middle" font-size="27" font-weight="900" fill="#38bdf8" font-family="Roboto, sans-serif">0</text>
@@ -3979,14 +4558,20 @@ const HERO_BUILDERS = {
     </g>
     <rect x="66" y="160" width="108" height="40" rx="9" fill="#0c1930"/>
     <rect x="74" y="168" width="92" height="24" rx="6" fill="url(#dmh-flame-${id})" opacity=".92" class="dmh-glow dmh-flicker"/>
-    <path d="M120 172c-6 8-10 12-10 18a10 10 0 0 0 20 0c0-4-2-7-4-10 0 4-3 6-5 5-3-1-3-6-1-9-3 1-6 3-6 6z" fill="#fff7ed" opacity=".9"/>
+    <path transform="translate(120,180) scale(.72) translate(-120,-186)" d="M120 172c-6 8-10 12-10 18a10 10 0 0 0 20 0c0-4-2-7-4-10 0 4-3 6-5 5-3-1-3-6-1-9-3 1-6 3-6 6z" fill="#fff7ed" opacity=".9"/>
     <rect x="60" y="204" width="10" height="16" rx="3" fill="#9fadbc"/>
     <rect x="170" y="204" width="10" height="16" rx="3" fill="#9fadbc"/>
     <rect x="52" y="216" width="136" height="10" rx="5" fill="#78899b"/>
   </svg>`,
 };
 
+// gli altri venti, che stanno nel file loro
+Object.assign(HERO_BUILDERS, DISEGNI_PIU);
+
+
 const CHIP_SVGS = {
+  cucina:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M20 34 27 20h30l7 14z" fill="#f8fafc"/><rect x="22" y="34" width="40" height="4" rx="2" fill="#ffd27a"/><rect x="68" y="18" width="12" height="60" rx="4" fill="#f8fafc"/><path d="M68 46h12" stroke="#0f2942" stroke-width="2.4"/><rect x="18" y="52" width="44" height="6" rx="3" fill="#f8fafc"/><ellipse cx="30" cy="51" rx="8" ry="3" fill="#f97316"/><ellipse cx="50" cy="51" rx="7" ry="2.6" fill="#38bdf8"/><rect x="18" y="60" width="44" height="20" rx="4" fill="#f8fafc"/><path d="M40 60v20" stroke="#0f2942" stroke-width="2.2"/></svg>',
   dishwasher:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><rect x="20" y="16" width="56" height="14" rx="5" fill="#f8fafc"/><circle cx="28" cy="23" r="3" fill="#0ea5e9"/><rect x="20" y="36" width="56" height="41" rx="6" fill="#f8fafc"/><path fill="none" stroke="#0f2942" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M27 49h42M30 64h36M33 49v15M44 49v15M55 49v15M66 49v15"/><path fill="#8be2ff" d="M23 67c9-6 16 5 25-2 8-6 14 4 25-1v10H23Z"/></svg>',
   dryer:
@@ -4026,7 +4611,7 @@ const CHIP_SVGS = {
   lampada:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M28 44 37 20h22l9 24z" fill="#f8fafc"/><rect x="26" y="44" width="44" height="6" rx="3" fill="#8be2ff"/><rect x="45" y="50" width="6" height="22" rx="3" fill="#f8fafc"/><rect x="30" y="72" width="36" height="8" rx="4" fill="#38bdf8"/></svg>',
   powerstation:
-    '<svg viewBox="0 0 96 96" width="27" height="27"><path d="M36 22v-3c0-5 5-8 12-8s12 3 12 8v3" fill="none" stroke="#0f2942" stroke-width="6" stroke-linecap="round"/><rect x="14" y="22" width="68" height="64" rx="10" fill="#0f2942"/><rect x="21" y="29" width="54" height="22" rx="5" fill="#f8fafc"/><rect x="27" y="36" width="42" height="8" rx="4" fill="#38bdf8"/><circle cx="34" cy="66" r="9" fill="#f8fafc"/><circle cx="34" cy="66" r="4" fill="#0f2942"/><circle cx="58" cy="66" r="9" fill="#f8fafc"/><circle cx="58" cy="66" r="4" fill="#0f2942"/><rect x="70" y="60" width="8" height="12" rx="3" fill="#8be2ff"/></svg>',
+    '<svg viewBox="0 0 96 96" width="27" height="27"><g transform="translate(0,-5)"><rect x="14" y="22" width="68" height="64" rx="10" fill="#0f2942"/><rect x="21" y="29" width="54" height="22" rx="5" fill="#f8fafc"/><rect x="27" y="36" width="42" height="8" rx="4" fill="#38bdf8"/><circle cx="34" cy="66" r="9" fill="#f8fafc"/><circle cx="34" cy="66" r="4" fill="#0f2942"/><circle cx="58" cy="66" r="9" fill="#f8fafc"/><circle cx="58" cy="66" r="4" fill="#0f2942"/><rect x="70" y="60" width="8" height="12" rx="3" fill="#8be2ff"/></g></svg>',
   presa:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="18" y="8" width="60" height="80" rx="16" fill="#0f2942"/><circle cx="48" cy="38" r="21" fill="#f8fafc"/><rect x="39" y="30" width="6" height="15" rx="3" fill="#0f2942"/><rect x="51" y="30" width="6" height="15" rx="3" fill="#0f2942"/><rect x="42" y="50" width="12" height="4" rx="2" fill="#0f2942"/><rect x="28" y="66" width="40" height="16" rx="5" fill="#38bdf8"/></svg>',
   minipc:
@@ -4073,11 +4658,21 @@ const DEFAULT_STATE_MAP = {
 
 const STYLE = `
 :host{display:block;--dm-blue:#0ea5e9;--dm-blue-deep:#0369a1;--dm-dim:var(--secondary-text-color,#64748b);--dm-card:var(--card-background-color,#ffffff);--dm-border:var(--divider-color,#e6ecf4);--dm-soft:rgba(148,163,184,.10);--dm-text:var(--primary-text-color,#0f172a)}
+/* Chiaro o scuro per questa scheda soltanto. Senza attributo non si scrive
+   niente e restano le variabili di Home Assistant, cioe' il suo tema. I colori
+   sono quelli dei temi di serie di HA, cosi' una scheda forzata non stona
+   accanto alle altre. */
+:host([data-tema="chiaro"]){--dm-card:#ffffff;--dm-text:#0f172a;--dm-dim:#64748b;--dm-border:#e6ecf4}
+:host([data-tema="scuro"]){--dm-card:#1c1c1c;--dm-text:#e1e1e1;--dm-dim:#9b9b9b;--dm-border:rgba(225,225,225,.12)}
+:host([data-tema]){color:var(--dm-text)}
 .dm-ap-card{position:relative;display:flex;flex-direction:column;border:1px solid var(--dm-border);border-radius:22px;background:var(--dm-card);box-shadow:0 12px 30px rgba(15,23,42,.06);overflow:hidden}
 .dm-ap-card.is-run{border-color:rgba(34,197,94,.28)}
 .dm-ap-card.has-alarm{border-color:rgba(239,68,68,.4)}
 .dm-ap-top{display:flex;align-items:center;gap:7px;padding:12px 12px 9px}
-.dm-ap-chip{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:11px;background:#eff6ff;box-shadow:inset 0 0 0 1px rgba(59,130,246,.10)}
+/* l'icona in cima alla scheda: NUDA. Aveva dietro un riquadrino azzurrino,
+   e si vedeva come un cerchietto dietro all'icona. La misura resta 34x34 per
+   non spostare il titolo di fianco. */
+.dm-ap-chip{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center}
 .dm-ap-chip svg{width:27px;height:27px}
 .dm-ap-headings{display:flex;flex-direction:column;min-width:0;flex:1;gap:1px}
 .dm-ap-name{font-size:14.5px;font-weight:900;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dm-text)}
@@ -4087,7 +4682,7 @@ const STYLE = `
 .dm-ap-badge.standby{background:#dbeafe;color:#2563eb}
 .dm-ap-badge.off{background:#f1f5f9;color:#64748b}
 .dm-ap-badge.unavailable{background:#fee2e2;color:#b91c1c}
-[data-theme-dark] .dm-ap-badge.off,:host-context([data-theme="dark"]) .dm-ap-badge.off{background:rgba(148,163,184,.16);color:#94a3b8}
+[data-theme-dark] .dm-ap-badge.off,:host-context([data-theme="dark"]) .dm-ap-badge.off,:host([data-tema="scuro"]) .dm-ap-badge.off{background:rgba(148,163,184,.16);color:#94a3b8}
 .dm-ap-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
 .dm-ap-tools{display:flex;gap:4px;flex:0 0 auto}
 .dm-ap-tool{width:37px;height:37px;display:grid;place-items:center;border:1px solid var(--dm-border);border-radius:11px;background:var(--dm-card);color:var(--dm-dim);cursor:pointer}
@@ -4107,8 +4702,11 @@ const STYLE = `
 .dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
 .dm-ap-card.is-run .dm-ap-hero{background:radial-gradient(120% 90% at 50% 8%,rgba(186,230,253,.85),rgba(224,242,254,.35) 62%,transparent)}
 .dm-ap-hero svg{width:100%;height:100%;display:block}
-.dm-ap-card.is-off .dm-ap-hero,.dm-ap-card.is-unavailable .dm-ap-hero{filter:grayscale(.55) opacity(.62)}
-.dm-ap-card.is-standby .dm-ap-hero{filter:saturate(.85)}
+/* spenta o non raggiungibile: sbiadisce il DISEGNO, non il riquadro.
+   Prima il filtro stava sul riquadro e si portava via anche l'alone,
+   cosi' la scheda spenta era un rettangolo grigio e piatto. */
+.dm-ap-card.is-off .dm-ap-hero>svg,.dm-ap-card.is-unavailable .dm-ap-hero>svg{filter:grayscale(.55) opacity(.62)}
+.dm-ap-card.is-standby .dm-ap-hero>svg{filter:saturate(.85)}
 @keyframes dmh-spin{to{transform:rotate(360deg)}}
 @keyframes dmh-glow{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes dmh-flicker{0%,100%{opacity:.85}30%{opacity:.5}55%{opacity:1}80%{opacity:.6}}
@@ -4131,11 +4729,40 @@ const STYLE = `
 .dm-ap-card.is-run .dmh-onda{animation:dmh-onda 3.4s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-glow{animation:dmh-glow 1.7s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-flicker{animation:dmh-flicker 1.5s ease-in-out infinite}
+/* la ruota libera: il centro lo dice il disegno con uno style="", cosi' una
+   sola regola va bene per la ventola, la girante e la spazzola del robot */
+.dmh-gira{transform-box:view-box}
+.dm-ap-card.is-run .dmh-gira{animation:dmh-spin 1.8s linear infinite}
+.dm-ap-card.is-run .dmh-gira-piano{animation-duration:4.2s}
+@keyframes dmh-vapore{0%{opacity:0;transform:translateY(6px) scale(.9)}30%{opacity:.85}100%{opacity:0;transform:translateY(-18px) scale(1.2)}}
+.dmh-vapore{opacity:0;transform-box:view-box}
+.dm-ap-card.is-run .dmh-vapore{animation:dmh-vapore 2.4s ease-out infinite}
+.dm-ap-card.is-run .dmh-vapore2{animation-delay:.8s}
+.dm-ap-card.is-run .dmh-vapore3{animation-delay:1.6s}
+@keyframes dmh-bolla{0%{opacity:0;transform:translateY(0)}15%{opacity:.9}100%{opacity:0;transform:translateY(-44px)}}
+.dmh-bolla{opacity:0;transform-box:view-box}
+.dm-ap-card.is-run .dmh-bolla{animation:dmh-bolla 2.8s linear infinite}
+.dm-ap-card.is-run .dmh-bolla2{animation-delay:.9s}
+.dm-ap-card.is-run .dmh-bolla3{animation-delay:1.8s}
 .dm-ap-cycle-side{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;padding:11px 10px;border-radius:16px;background:var(--dm-soft)}
 .dm-ap-cycle-cap{display:flex;align-items:center;gap:6px;margin-top:-3px;margin-bottom:15px;font-size:11px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-cycle-sub{margin-top:-11px;margin-bottom:11px;font-size:11.5px;font-weight:600;color:var(--dm-text);opacity:.72;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dm-ap-cycle-side.ha-sub .dm-ap-cycle-cap{margin-bottom:6px}
 .dm-ap-cycle-list{display:flex;flex-direction:column;flex:1;justify-content:flex-start;gap:4px}
+/* CENTRATO: la foto si mette in mezzo, larga quanto la scheda, e i numeri
+   le vanno sotto su due colonne. E' la stessa scheda, cambia la
+   disposizione - si sceglie dall'editor, riquadro Aspetto. */
+.dm-ap-card.centrato .dm-ap-top-row{flex-direction:column;gap:12px}
+.dm-ap-card.centrato .dm-ap-hero{flex:0 0 auto;width:100%;height:196px}
+.dm-ap-card.centrato .dm-ap-cycle-side{flex:0 0 auto;width:100%}
+.dm-ap-card.centrato .dm-ap-cycle-list{display:grid;grid-template-columns:1fr 1fr;
+  align-content:start;gap:4px 8px}
+/* una riga dispari in fondo si prende tutta la larghezza, invece di
+   lasciare un buco accanto */
+.dm-ap-card.centrato .dm-ap-cycle-list>*:last-child:nth-child(odd){grid-column:1 / -1}
+@media (max-width:480px){
+  .dm-ap-card.centrato .dm-ap-cycle-list{grid-template-columns:1fr}
+}
 .dm-ap-cycle-row{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0}
 .dm-ap-cycle-row small{flex:0 0 auto;font-size:10.5px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-cycle-row b{min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:400;letter-spacing:-.1px;color:var(--dm-text)}
@@ -4150,7 +4777,9 @@ const STYLE = `
 .dm-colore{border-left:3px solid var(--c)!important;border-radius:4px 9px 9px 4px!important}
 .dm-colore small,.dm-colore b,.dm-colore .dm-ap-cycle-ic,.dm-colore .dm-ap-row-label,.dm-colore .dm-ap-row-val{color:var(--c)!important}
 .dm-colore.dm-forte b,.dm-colore.dm-forte .dm-ap-row-val{font-size:15.5px;font-weight:700}
-.dm-ap-due{margin-left:9px;font-size:.8em;font-weight:600;opacity:.6;letter-spacing:.1px}
+/* la seconda cifra e' un numero come il primo: stessa grandezza, stesso
+   colore. A separarle basta lo spazio. */
+.dm-ap-due{margin-left:10px}
 .dm-ap-panel{display:flex;align-items:center;gap:14px;margin:10px 13px 13px;padding:13px 14px;border-radius:16px;background:var(--dm-soft)}
 .dm-ap-meters{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
 .dm-c-meter-clickable{cursor:pointer;border-radius:8px;transition:background .12s ease}
@@ -4167,53 +4796,92 @@ const STYLE = `
 .dm-ap-chart-svg{width:100%;height:auto;display:block;overflow:visible}
 .dm-ap-chart-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
 .dm-ap-chart-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dm-ap-mirino-box{position:relative;touch-action:none}
-.dm-ap-mirino{position:absolute;top:0;bottom:0;width:0;pointer-events:none;opacity:0;transition:opacity .08s}
-.dm-ap-mirino.si{opacity:1}
-.dm-ap-mirino i{position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--dm-dim,#94a3b8);opacity:.6}
-.dm-ap-mirino b{position:absolute;top:2px;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:800;padding:2px 6px;border-radius:7px;background:var(--dm-finestra,var(--dm-card,#fff));color:var(--dm-finestra-testo,var(--dm-text,#0f172a));border:1px solid var(--dm-border,#cbd5e1);box-shadow:0 4px 14px rgba(15,23,42,.18)}
+/* LA FINESTRA DEL GRAFICO: le pastiglie dei periodi, le date a scelta, i
+   chip delle curve e la riga minimo/media/massimo. Su telefono le pastiglie
+   scorrono invece di andare a capo, e le date vanno una sotto l'altra. */
+.dm-ap-periodi{display:flex;gap:6px;margin:0 0 10px;overflow-x:auto;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.dm-ap-periodi::-webkit-scrollbar{display:none}
+.dm-ap-per{flex:0 0 auto;font:inherit;font-size:12px;font-weight:700;cursor:pointer;
+  padding:5px 13px;border-radius:999px;border:1px solid var(--divider-color);
+  background:rgba(127,127,127,.10);color:var(--secondary-text-color)}
+.dm-ap-per.scelto{color:#0284c7;border-color:#7dd3fc;background:rgba(14,165,233,.14)}
+/* display:flex batte [hidden]: la riga delle date resta visibile anche
+   quando non sei su "Da... a". Stessa trappola gia' pagata sulle righe. */
+.dm-ap-date[hidden]{display:none}
+.dm-ap-date{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;
+  font-size:12px;color:var(--secondary-text-color)}
+.dm-ap-date input{font:inherit;padding:4px 7px;border-radius:8px;
+  border:1px solid var(--divider-color);background:var(--dm-card);color:var(--dm-text)}
+.dm-ap-applica{font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:5px 12px;
+  border-radius:9px;border:1px solid #7dd3fc;background:rgba(14,165,233,.14);color:#0284c7}
+.dm-ap-chip-riga{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.dm-ap-chipc{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:11.5px;
+  font-weight:700;cursor:pointer;padding:4px 10px;border-radius:999px;
+  border:1px solid var(--divider-color);background:rgba(127,127,127,.10);
+  color:var(--secondary-text-color);opacity:.55}
+.dm-ap-chipc i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.dm-ap-chipc.scelto{opacity:1;border-color:#bae6fd;background:rgba(14,165,233,.12);
+  color:var(--dm-text)}
+.dm-ap-mmm{display:flex;gap:8px;margin:10px 0 2px}
+.dm-ap-mmm>div{flex:1 1 0;min-width:0;text-align:center;padding:7px 4px;border-radius:11px;
+  border:1px solid var(--divider-color);background:rgba(127,127,127,.06)}
+.dm-ap-mmm small{display:block;font-size:10px;font-weight:900;letter-spacing:.6px;
+  text-transform:uppercase;color:var(--dm-dim)}
+.dm-ap-mmm b{font-size:13.5px;font-weight:700;color:var(--dm-text)}
+@media (max-width:480px){
+  .dm-ap-date{flex-direction:column;align-items:stretch}
+  .dm-ap-date label{display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .dm-ap-mmm b{font-size:12.5px}
+}
 .dm-ap-chart-empty{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-chart-loading{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-warn{display:flex;align-items:center;gap:6px;margin:0 13px 12px;padding:9px 12px;border-radius:13px;background:#fee2e2;color:#b91c1c;font-size:13px;font-weight:800}
 .dm-ap-warn[hidden]{display:none}
 .dm-test-flag{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#0369a1;background:rgba(14,165,233,.14);border-radius:8px;padding:4px 8px}
 
-.dm-ap-overlay{position:fixed;inset:0;z-index:2147483000;background:var(--dm-velo,transparent);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
+.dm-ap-overlay{position:fixed;inset:0;overscroll-behavior:contain;z-index:2147483000;background:var(--dm-velo,transparent);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
 .dm-ap-overlay[hidden]{display:none}
-.dm-ap-dialog{width:min(560px,100%);max-height:min(86vh,760px);overflow:auto;background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));border:1px solid var(--dm-border);border-radius:22px;box-shadow:0 26px 80px rgba(15,23,42,.45)}
+.dm-ap-dialog{width:min(var(--dm-fin-largo,560px),100%);max-height:84vh;overflow:auto;box-sizing:border-box;overscroll-behavior:contain;
+  background:var(--dm-finestra,var(--dm-card));color:var(--dm-finestra-testo,var(--dm-text));
+  border:1px solid var(--dm-border);
+  border-radius:26px;padding:18px;box-shadow:0 30px 80px rgba(0,0,0,.6);
+  background-size:cover;background-position:center;
+  animation:dm-ap-sfuma var(--dm-fin-dur,220ms) cubic-bezier(.2,.7,.3,1)}
+/* COME SI APRE: gli stessi quattro modi della casella. "Sboccia" parte dal
+   punto dove sta il tondino che hai premuto, e quel punto glielo calcolo
+   quando apro: qui c'e' solo dove metterlo. */
+@keyframes dm-ap-sfuma{from{transform:translateY(12px);opacity:0}}
+@keyframes dm-ap-sboccia{from{transform:scale(.22);opacity:0}}
+@keyframes dm-ap-basso{from{transform:translateY(64%);opacity:0}}
+@keyframes dm-ap-velo{from{opacity:0}}
+@keyframes dm-ap-chiude{to{transform:translateY(10px);opacity:0}}
+.dm-ap-overlay[apertura="sboccia"] .dm-ap-dialog{
+  animation-name:dm-ap-sboccia;transform-origin:var(--dm-nasce,50% 50%)}
+.dm-ap-overlay[apertura="basso"] .dm-ap-dialog{
+  animation-name:dm-ap-basso;transform-origin:50% 100%}
+.dm-ap-overlay[apertura="niente"] .dm-ap-dialog,
+.dm-ap-overlay[apertura="niente"]{animation:none}
+.dm-ap-overlay{animation:dm-ap-velo var(--dm-fin-dur,220ms) ease-out}
+/* chiudere deve sembrare piu' svelto che aprire: due terzi del tempo */
+.dm-ap-overlay[chiude] .dm-ap-dialog{
+  animation:dm-ap-chiude calc(var(--dm-fin-dur,220ms) * .66) ease-in forwards}
+.dm-ap-overlay[chiude]{
+  animation:dm-ap-velo calc(var(--dm-fin-dur,220ms) * .66) ease-in reverse forwards}
+@media (prefers-reduced-motion: reduce){
+  .dm-ap-dialog,.dm-ap-overlay{animation:none !important}
+}
 .dm-ap-dialog-head{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 10px;background:var(--dm-finestra,var(--dm-card));border-bottom:1px solid var(--dm-border);z-index:1}
 .dm-ap-dialog-head h3{margin:0;font-size:17px;font-weight:900}
 .dm-ap-dialog-close{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border:0;border-radius:10px;background:var(--dm-soft);color:var(--dm-dim);cursor:pointer}
 .dm-ap-dialog-body{padding:12px 16px 18px;display:flex;flex-direction:column;gap:16px}
-details.dm-ap-sec-chiusa>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
-details.dm-ap-sec-chiusa>summary::-webkit-details-marker{display:none}
-details.dm-ap-sec-chiusa>summary:after{content:'▸';margin-left:auto;opacity:.6}
-details.dm-ap-sec-chiusa[open]>summary:after{content:'▾'}
-details.dm-ap-sec-chiusa>summary b{color:var(--dm-text);font-weight:800}
 .dm-ap-sec-cap{font-size:11.5px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--dm-blue-deep);margin:0 0 8px;padding-bottom:5px;border-bottom:2px solid var(--dm-border)}
 .dm-ap-sec{display:flex;flex-direction:column;gap:6px}
 .dm-ap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:13px;background:var(--dm-soft)}
 .dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text)}
 .dm-ap-row-val{font-size:14.5px;font-weight:500;color:var(--dm-dim)}
-.dm-ap-switch{position:relative;width:38px;height:22px;flex:0 0 auto;border-radius:999px;border:0;background:#cbd5e1;cursor:pointer;transition:background .15s ease}
-.dm-ap-switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s ease;box-shadow:0 1px 3px rgba(0,0,0,.3)}
-.dm-ap-switch.on{background:#22c55e}
-.dm-ap-row-group{display:flex;flex-direction:column;gap:9px;padding:10px 12px;border-radius:13px;background:var(--dm-soft)}
-.dm-ap-row-group-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.dm-ap-row-group-label{display:flex;align-items:center;gap:8px;min-width:0;font-size:14.5px;font-weight:750;color:var(--dm-text)}
-.dm-ap-row-group-ic{flex:0 0 auto;display:flex;align-items:center;color:var(--dm-blue)}
-.dm-ap-row-chips{display:flex;flex-wrap:wrap;gap:6px}
-.dm-ap-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;letter-spacing:.2px;padding:5px 10px;border-radius:999px;background:var(--dm-card);border:1px solid var(--dm-border);color:var(--dm-dim);cursor:pointer;line-height:1}
-.dm-ap-chip svg{flex:0 0 auto}
-.dm-ap-chip b{color:var(--dm-text);font-weight:800}
-.dm-ap-chip.on{background:#dcfce7;border-color:#86efac;color:#15803d}
-.dm-ap-chip-action{background:var(--dm-blue);border-color:var(--dm-blue);color:#fff}
-.dm-ap-sub-back{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:800;color:var(--dm-blue);cursor:pointer;margin:0 0 10px}
-.dm-ap-switch.on::after{transform:translateX(16px)}
 .dm-ap-action-btn{flex:0 0 auto;border:0;border-radius:10px;padding:0 14px;height:26px;background:var(--dm-blue);color:#fff;font-size:13px;font-weight:850;cursor:pointer}
 .dm-ap-action-btn:active{filter:brightness(.92)}
-.dm-ap-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.dm-ap-stat-grid.cols4{grid-template-columns:repeat(4,1fr)}
 .dm-ap-stat{display:flex;flex-direction:column;gap:2px;padding:9px 10px;border-radius:13px;background:var(--dm-soft)}
 .dm-ap-stat small{font-size:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-stat b{font-size:15px;font-weight:900;color:var(--dm-text)}
@@ -4227,13 +4895,14 @@ details.dm-ap-sec-chiusa>summary b{color:var(--dm-text);font-weight:800}
 .dm-ap-week-stat small{font-size:9px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-week-stat b{font-size:13px;font-weight:850;color:var(--dm-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 .dm-ap-hero{cursor:pointer}
-.dm-ap-reset-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:10px;border:0;border-radius:13px;background:var(--dm-blue);color:#fff;font-size:14px;font-weight:850;cursor:pointer}
 .dm-ap-reset-note{font-size:12px;color:var(--dm-dim);text-align:center;margin-top:4px}
 
-@media (max-width:600px){
-  .dm-ap-overlay{align-items:flex-end;padding:0;backdrop-filter:blur(var(--dm-velo-sfoca,0px))}
-  .dm-ap-dialog{width:100%;max-width:100%;height:94vh;max-height:94vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column}
-  .dm-ap-dialog-body{flex:1}
+/* Sul telefono resta la stessa finestra del PC, solo coi margini piu'
+   stretti: e' quello che fa la casella. Prima diventava un cassetto alto
+   quanto lo schermo, cioe' un altro pop-up per la stessa scheda. */
+@media (max-width:480px){
+  .dm-ap-overlay{padding:8px}
+  .dm-ap-dialog{border-radius:20px;padding:14px;max-height:88vh}
 }
 `;
 
@@ -4325,6 +4994,13 @@ function meseBreve(d) {
   } catch (e) { return String(d.getMonth() + 1); }
 }
 
+function meseLungo(d) {
+  try {
+    const t = d.toLocaleDateString(laLocale(), { month: "long" });
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  } catch (e) { return String(d.getMonth() + 1); }
+}
+
 function unitaBella(u) {
   const t = String(u || "").trim();
   return SIMBOLI[t.toUpperCase()] || t;
@@ -4343,6 +5019,9 @@ function numero(v, decimali) {
 
 function vestiFinestra(host, cfg) {
   const c = cfg || {};
+  // chiaro o scuro: senza attributo comanda il tema di Home Assistant
+  if (c.tema === "chiaro" || c.tema === "scuro") host.setAttribute("data-tema", c.tema);
+  else host.removeAttribute("data-tema");
   const metti = (nome, valore) => {
     if (valore === null || valore === undefined || valore === "") host.style.removeProperty(nome);
     else host.style.setProperty(nome, valore);
@@ -4352,11 +5031,14 @@ function vestiFinestra(host, cfg) {
     return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : difetto;
   };
   // la finestra: tinta scelta, resa trasparente quanto dice finestra_trasparenza
-  if (c.finestra_sfondo) {
-    const t = quanta(c.finestra_trasparenza, 0);
+  // senza una tinta scelta si parte da quella di serie della scheda, se no
+  // il cursore della trasparenza non faceva niente e non si capiva perche'
+  const t = quanta(c.finestra_trasparenza, 0);
+  const tinta = c.finestra_sfondo || "var(--dm-card)";
+  if (c.finestra_sfondo || t > 0) {
     metti("--dm-finestra", t > 0
-      ? `color-mix(in srgb, ${c.finestra_sfondo} ${100 - t}%, transparent)`
-      : c.finestra_sfondo);
+      ? `color-mix(in srgb, ${tinta} ${100 - t}%, transparent)`
+      : tinta);
   } else metti("--dm-finestra", null);
   metti("--dm-finestra-testo", c.finestra_scritta || null);
   // il velo dietro: nero quanto dice velo_scuro (0 = niente velo)
@@ -4366,6 +5048,12 @@ function vestiFinestra(host, cfg) {
   if (c.velo_sfoca !== undefined && c.velo_sfoca !== null && c.velo_sfoca !== "") {
     metti("--dm-velo-sfoca", `${Math.min(30, Math.max(0, Number(c.velo_sfoca) || 0))}px`);
   } else metti("--dm-velo-sfoca", null);
+  // quanto e' larga e quanto dura l'apertura: le stesse chiavi della casella
+  const largo = Number(c.finestra_largo);
+  metti("--dm-fin-largo", Number.isFinite(largo) && largo > 0 ? largo + "px" : null);
+  const dura = Number(c.finestra_apertura_durata);
+  metti("--dm-fin-dur", Number.isFinite(dura) && dura > 0
+    ? Math.min(2000, Math.max(80, dura)) + "ms" : null);
 }
 
 function esc(s) {
@@ -4448,14 +5136,34 @@ const STATI_ITALIANI = {
 
 const DISEGNI$1 = [
   ["dishwasher", ["lavastovigli", "dishwasher"]],
+  ["piano_cottura", ["piano_cottura", "induzion", "piastr", "hob", "cooktop"]],
+  ["cappa", ["cappa", "aspirant", "hood"]],
+  ["caffe", ["caffe", "coffee", "espresso", "moka", "nespresso", "cialde"]],
+  ["bollitore", ["bollitor", "kettle", "theiera"]],
+  ["tostapane", ["tostapan", "toaster", "tostiera"]],
+  ["friggitrice", ["friggitric", "airfryer", "air_fryer", "fryer"]],
+  ["congelatore", ["congelator", "freezer", "pozzetto"]],
+  ["termoventilatore", ["termoventilator", "stufetta", "termoconvettor", "heater"]],
+  ["pompa_calore", ["pompa_di_calore", "pompa_calore", "heat_pump", "unita_esterna"]],
+  ["pellet", ["pellet", "stufa"]],
+  ["radiatore", ["radiator", "termosifon", "stufa_a_olio", "olio"]],
+  ["scaldasalviette", ["scaldasalviett", "termoarred", "portasalviett"]],
+  ["robot", ["aspirapolver", "roborock", "dreame", "roomba", "vacuum", "robot"]],
+  ["asciugacapelli", ["asciugacapell", "phon", "hairdryer", "hair_dryer"]],
+  ["ferro", ["ferro_da_stiro", "stiro", "ferro", "iron"]],
+  ["pompa", ["autoclave", "pompa", "pump", "depurator"]],
+  ["acquario", ["acquari", "aquarium", "vasca_pesci"]],
+  ["stampante3d", ["stampante_3d", "kobra", "anycubic", "bambu", "prusa", "ender", "printer_3d"]],
+  ["console", ["playstation", "xbox", "nintendo", "switch_console", "console", "ps5", "ps4"]],
+  ["colonnina", ["colonnina", "wallbox", "ricarica_auto", "charger", "ev_"]],
   // la lavatrice prima: "lavASCIUGA" contiene "asciuga"
   ["washer", ["lavatric", "lavasciug", "washer", "lavaggio"]],
   ["dryer", ["asciugatric", "dryer", "asciuga"]],
-  ["oven", ["forno", "oven", "fornell"]],
+  ["oven", ["forno", "oven"]],
   ["tv", ["tv", "televisor"]],
   ["boiler", ["boiler", "scaldabagn", "caldaia"]],
   ["condizionatore", ["condizionator", "clima", "split", "aria_condizionata", "conditioner"]],
-  ["frigorifero", ["frigo", "fridge", "congelator", "freezer", "pozzetto"]],
+  ["frigorifero", ["frigo", "fridge"]],
   ["ventilatore", ["ventilator", "ventola", "fan", "aspirator"]],
   ["microonde", ["microond", "microwave"]],
   ["dehumidifier", ["deumidificator", "umidificator", "dehumid"]],
@@ -4467,6 +5175,7 @@ const DISEGNI$1 = [
   ["powerstation", ["powerstation", "power_station", "landbook", "ecoflow", "jackery"]],
   ["ciabatta", ["ciabatta", "multipresa", "presa_multipla", "power_strip"]],
   ["presa", ["presa", "spina", "plug", "socket", "outlet"]],
+  ["cucina", ["cucina", "kitchen"]],
 ];
 
 const pulisci = (s) => String(s || "").toLowerCase()
@@ -4649,18 +5358,6 @@ function preparaElettrodomestico(hass, cfg) {
   if (oggiC) scheda.oggi_costo = oggiC;
   if (meseC) scheda.mese_costo = meseC;
 
-  const k = cicloDi(hass, cfg);
-  if (k) {
-    scheda.cycle_sensor = `sensor.${k}_ciclo`;
-    scheda.cycle_attrs = { end: "terminato", duration: "tempo_ciclo", energy: "consumo_ciclo", cost: "costo_ciclo" };
-    scheda.period_attrs = {
-      today: { time: "tempo_oggi", cost: "costo_oggi" },
-      yesterday: { time: "tempo_ieri", cost: "costo_ieri" },
-      month: { time: "tempo_mese", cost: "costo_mese" },
-      month_prev: { time: "tempo_mese_prec", cost: "costo_mese_prec" },
-    };
-    scheda.stats = { cycles_today: `sensor.${k}_cicli_oggi`, cycles_month: `sensor.${k}_cicli_mese` };
-  }
   return scheda;
 }
 
@@ -9284,7 +9981,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.92.0";
+const VERSIONE = "2.93.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -16797,7 +17494,7 @@ svg .caricafulmine { animation-play-state: running; }
 :host([fermo]) svg .caricafulmine { animation-play-state: paused; }
 
 .velo {
-  position: fixed; inset: 0; z-index: 9; display: none;
+  position: fixed; inset: 0; z-index: 9; display: none; overscroll-behavior: contain;
   background: rgba(4,7,12,.72); backdrop-filter: blur(6px);
   align-items: center; justify-content: center; padding: 16px;
 }
@@ -16805,6 +17502,8 @@ svg .caricafulmine { animation-play-state: running; }
 .finestra {
   /* con piu' colonne serve piu' spazio: la finestra si allarga da sola */
   width: min(var(--fin-max, 560px), 100%); max-height: 84vh; overflow: auto;
+  /* arrivato in fondo, il dito continuava a scorrere la pagina dietro */
+  overscroll-behavior: contain;
   background: var(--fin-bg, var(--casa-popup-bg, #0f1620));
   background-size: cover; background-position: center;
   border: 1px solid var(--casa-border, #1e2b3d);
@@ -18814,6 +19513,31 @@ const TRATTI = {
 };
 
 // il titolo di una tendina: icona, nome, riassunto e riga di spiegazione
+// Conferma senza window.confirm. Quella e' una finestrella del browser, e
+// non c'e' dappertutto: dentro a un riquadro incorporato viene soppressa e
+// la funzione torna "annulla" da sola. Cosi' invece il tasto si trasforma
+// nella domanda e aspetta il secondo clic; dopo sei secondi si rassegna.
+function confermaDoppia(tasto, domanda) {
+  if (!tasto) return true;
+  if (tasto._chiesto) {
+    clearTimeout(tasto._attesa);
+    tasto._chiesto = false;
+    tasto.textContent = tasto._primaDiceva;
+    tasto.classList.remove("ce-conferma");
+    return true;
+  }
+  tasto._primaDiceva = tasto.textContent;
+  tasto._chiesto = true;
+  tasto.textContent = domanda;
+  tasto.classList.add("ce-conferma");
+  tasto._attesa = setTimeout(() => {
+    tasto._chiesto = false;
+    tasto.textContent = tasto._primaDiceva;
+    tasto.classList.remove("ce-conferma");
+  }, 6000);
+  return false;
+}
+
 function titoloSez(v, testo) {
   v = v || [];
   return icoSez(v[0]) + '<span class="ce-sez-testo">' + testo
@@ -18838,6 +19562,10 @@ function vestiSez(box, veste) {
 }
 
 const STILE_EDITOR = `
+/* display:flex batte [hidden]: senza questa riga tutto quello che l'editor
+   nasconde resta li' a vedersi. */
+[hidden]{display:none !important}
+.ce-conferma{border-color:#f0a020;color:#f0a020;font-weight:800}
 .ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
   border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;
   white-space:pre-wrap;font-size:12.5px;box-shadow:0 -6px 12px -8px rgba(0,0,0,.6)}
@@ -19702,7 +20430,13 @@ async function creaCicli(hass, opzioni, dillo) {
   const parla = dillo || (() => {});
   // quanti minuti di fermo vogliono dire "ha finito": il forno spegne e
   // riaccende la resistenza, la lavatrice ha le pause dell'ammollo
-  const ATTESA = Number(opzioni.attesa) > 0 ? Number(opzioni.attesa) : 5;
+  // quanti SECONDI di fermo vogliono dire "ha finito": il forno spegne e
+  // riaccende la resistenza, la lavatrice ha le pause dell'ammollo
+  const ATTESA_SEC = Number(opzioni.attesa) > 0 ? Math.round(Number(opzioni.attesa)) : 100;
+  // per la durata servono minuti: 100 secondi sono 1,6667 minuti
+  // sotto questi kWh quello che si e' chiuso non e' un ciclo, e' una briciola
+  const BRICIOLA_KWH = 0.01;
+  const ATTESA_MIN = (ATTESA_SEC / 60).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
   const { potenza, energia, soglia } = opzioni;
   if (!potenza) throw new Error("Serve il sensore dei Watt.");
   if (!energia) throw new Error("Serve il contatore dei kWh.");
@@ -19767,77 +20501,97 @@ async function creaCicli(hass, opzioni, dillo) {
   const SOSPETTA = "{{ " + SOSPETTA_CORPO + " }}";
   const nomeAuto = base + ": segna il ciclo";
   const automazioni = Object.keys(hass.states).filter((x) => x.startsWith("automation."));
-  const gia_auto = automazioni.some((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto);
-  if (!gia_auto) {
-    parla("Creo l'automazione del ciclo...");
-    await creaAutomazione(hass, {
-      alias: nomeAuto,
-      description: "Fatta dalla scheda " + base + ". Segna quando il ciclo e' cominciato, e alla fine"
-        + " scrive kWh, minuti e ora. Un apparecchio come il forno accende e spegne di continuo:"
-        + " per questo il ciclo si chiude solo dopo " + ATTESA + " minuti di fermo, e il contatore"
-        + " si azzera alla FINE, non alla partenza.",
-      mode: "single",
-      triggers: [
-        { trigger: "state", entity_id: acceso, to: "on", id: "parte" },
-        { trigger: "state", entity_id: acceso, to: "off", for: { minutes: ATTESA }, id: "finisce" },
-      ],
-      conditions: [],
-      actions: [{
-        choose: [
-          {
-            // La partenza vale se il contatore e' a zero (se no e' una delle
-            // accensioni intermittenti dentro un ciclo gia' cominciato) OPPURE
-            // se quella che c'e' scritta non e' credibile: mai scritta, o
-            // PRIMA della fine dell'ultimo ciclo. Senza questo secondo caso il
-            // primo ciclo dopo la creazione non registrava la partenza - il
-            // contatore non era mai stato azzerato - e la durata veniva fuori
-            // di duemila minuti.
-            conditions: [
-              { condition: "trigger", id: "parte" },
-              { condition: "or", conditions: [
-                { condition: "numeric_state", entity_id: contatore, below: 0.005 },
-                { condition: "template", value_template: SOSPETTA },
-              ] },
-            ],
-            sequence: [{
-              action: "input_datetime.set_datetime",
-              target: { entity_id: eVia },
-              data: { datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}" },
-            }],
-          },
-          {
-            conditions: [{ condition: "trigger", id: "finisce" }],
-            sequence: [
-              {
-                action: "input_number.set_value", target: { entity_id: eKwh },
-                data: { value: "{{ states('" + contatore + "') | float(0) | round(3) }}" },
-              },
-              {
-                // i minuti: 0 se la partenza non e' credibile (la scheda
-                // mostra "-", che e' la verita'), se no il tempo vero
-                action: "input_number.set_value", target: { entity_id: eMin },
-                data: {
-                  value: "{% if " + SOSPETTA_CORPO + " %}0{% else %}"
-                    + "{{ [0, ((now() - (states('" + eVia + "') | as_datetime | as_local))"
-                    + ".total_seconds() / 60 - " + ATTESA + ") | round(0)] | max }}{% endif %}",
+  const corpoAuto = {
+    alias: nomeAuto,
+    description: "Fatta dalla scheda " + base + ". Segna quando il ciclo e' cominciato, e alla fine"
+      + " scrive kWh, minuti e ora. Un apparecchio come il forno accende e spegne di continuo:"
+      + " per questo il ciclo si chiude solo dopo " + ATTESA_SEC + " secondi di fermo, e il contatore"
+      + " si azzera alla FINE, non alla partenza.",
+    mode: "single",
+    triggers: [
+      { trigger: "state", entity_id: acceso, to: "on", id: "parte" },
+      { trigger: "state", entity_id: acceso, to: "off", for: { seconds: ATTESA_SEC }, id: "finisce" },
+    ],
+    conditions: [],
+    actions: [{
+      choose: [
+        {
+          // La partenza vale se il contatore e' a zero (se no e' una delle
+          // accensioni intermittenti dentro un ciclo gia' cominciato) OPPURE
+          // se quella che c'e' scritta non e' credibile: mai scritta, o
+          // PRIMA della fine dell'ultimo ciclo. Senza questo secondo caso il
+          // primo ciclo dopo la creazione non registrava la partenza - il
+          // contatore non era mai stato azzerato - e la durata veniva fuori
+          // di duemila minuti.
+          conditions: [
+            { condition: "trigger", id: "parte" },
+            { condition: "or", conditions: [
+              { condition: "numeric_state", entity_id: contatore, below: 0.005 },
+              { condition: "template", value_template: SOSPETTA },
+            ] },
+          ],
+          sequence: [{
+            action: "input_datetime.set_datetime",
+            target: { entity_id: eVia },
+            data: { datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}" },
+          }],
+        },
+        {
+          conditions: [{ condition: "trigger", id: "finisce" }],
+          sequence: [
+            {
+              // Una briciola non deve cancellare il ciclo vero. Bastava un
+              // riavvio di Home Assistant, o un'accensione di pochi secondi,
+              // e qui si scriveva 0,002 kWh sopra al ciclo buono di ieri.
+              // Sotto ai 0,01 kWh quello che si chiude non e' un ciclo:
+              // il contatore lo azzero lo stesso (fuori da qui), le memorie no.
+              if: [{ condition: "numeric_state", entity_id: contatore, above: BRICIOLA_KWH }],
+              then: [
+                {
+                  action: "input_number.set_value", target: { entity_id: eKwh },
+                  data: { value: "{{ states('" + contatore + "') | float(0) | round(3) }}" },
                 },
-              },
-              {
-                action: "input_datetime.set_datetime", target: { entity_id: eFine },
-                data: { datetime: "{{ (now() - timedelta(minutes=" + ATTESA + ")).strftime('%Y-%m-%d %H:%M:%S') }}" },
-              },
-              {
-                // azzero adesso, non alla partenza: cosi' le intermittenze non
-                // buttano via quello che il ciclo ha gia' consumato
-                action: "utility_meter.calibrate",
-                target: { entity_id: contatore }, data: { value: "0" },
-              },
-            ],
-          },
-        ],
-      }],
-    });
-  } else parla("L'automazione c'era gia'.");
+                {
+                  // i minuti: 0 se la partenza non e' credibile (la scheda
+                  // mostra "-", che e' la verita'), se no il tempo vero
+                  action: "input_number.set_value", target: { entity_id: eMin },
+                  data: {
+                    value: "{% if " + SOSPETTA_CORPO + " %}0{% else %}"
+                      + "{{ [0, ((now() - (states('" + eVia + "') | as_datetime | as_local))"
+                      + ".total_seconds() / 60 - " + ATTESA_MIN + ") | round(0)] | max }}{% endif %}",
+                  },
+                },
+                {
+                  action: "input_datetime.set_datetime", target: { entity_id: eFine },
+                  data: { datetime: "{{ (now() - timedelta(seconds=" + ATTESA_SEC + ")).strftime('%Y-%m-%d %H:%M:%S') }}" },
+                },
+              ],
+            },
+            {
+              // azzero adesso, non alla partenza: cosi' le intermittenze non
+              // buttano via quello che il ciclo ha gia' consumato
+              action: "utility_meter.calibrate",
+              target: { entity_id: contatore }, data: { value: "0" },
+            },
+          ],
+        },
+      ],
+    }],
+  };
+  // Se c'era gia' NON la lascio com'e': la riscrivo. E' roba fatta da me, e
+  // se non la rifaccio cambiare i minuti di attesa non servirebbe a niente.
+  // Riscriverla sullo stesso id vuol dire che l'entita' resta quella.
+  const suo = automazioni.find((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto);
+  if (!suo) {
+    parla("Creo l'automazione del ciclo...");
+    await creaAutomazione(hass, corpoAuto);
+  } else {
+    const idSuo = hass.states[suo].attributes.id;
+    if (idSuo) {
+      parla("Rimetto a posto l'automazione del ciclo (" + ATTESA_SEC + " s di fermo)...");
+      await hass.callApi("POST", "config/automation/config/" + idSuo, { id: idSuo, ...corpoAuto });
+    } else parla("L'automazione c'era gia' (non ha un id: la lascio com'e').");
+  }
 
   parla("Cicli agganciati.");
   return {
@@ -20444,27 +21198,93 @@ const ConFinestrelle = (Base) => class extends Base {
   }
 
   // la finestrella sopra alla scheda: una sola, si riempie e si riapre
-  _openDialog(title, bodyHtml) {
+  // Chiude come la casella: prima l'animazione all'indietro, poi sparisce.
+  // Spegnerla e basta faceva sparire la finestra di colpo.
+  _chiudiDialog(overlay) {
+    if (!overlay || overlay.hidden) return;
+    clearTimeout(this._chiusuraDopo);
+    if (this._escDialog) {
+      document.removeEventListener("keydown", this._escDialog);
+      this._escDialog = null;
+    }
+    if ((this._config.finestra_apertura || "sfuma") === "niente") {
+      overlay.hidden = true;
+      return;
+    }
+    overlay.setAttribute("chiude", "");
+    const dura = Number(this._config.finestra_apertura_durata);
+    const ms = (Number.isFinite(dura) && dura > 0 ? Math.min(2000, Math.max(80, dura)) : 220) * 0.66;
+    this._chiusuraDopo = setTimeout(() => {
+      overlay.hidden = true;
+      overlay.removeAttribute("chiude");
+    }, ms + 20);
+    if (this._escDialog) {
+      document.removeEventListener("keydown", this._escDialog);
+      this._escDialog = null;
+    }
+  }
+
+  // Da dove sboccia: il punto dove sta il tondino che hai premuto, in
+  // percentuale sullo schermo. Se non si riesce a misurare, dal centro.
+  _puntoDiNascita(overlay, partenza) {
+    if (!partenza || !partenza.getBoundingClientRect) {
+      overlay.style.removeProperty("--dm-nasce");
+      return;
+    }
+    const q = partenza.getBoundingClientRect();
+    if (!q.width && !q.height) {
+      overlay.style.removeProperty("--dm-nasce");
+      return;
+    }
+    const x = ((q.left + q.width / 2) / (window.innerWidth || 1)) * 100;
+    const y = ((q.top + q.height / 2) / (window.innerHeight || 1)) * 100;
+    overlay.style.setProperty("--dm-nasce", x.toFixed(1) + "% " + y.toFixed(1) + "%");
+  }
+
+  _openDialog(title, bodyHtml, partenza) {
     let overlay = this._root.querySelector(".dm-ap-overlay");
     if (!overlay) {
       overlay = document.createElement("div");
       overlay.className = "dm-ap-overlay";
       overlay.hidden = true;
-      overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) overlay.hidden = true;
+      // Guardo DOVE hai premuto, non su cosa: bastava un pixel di
+      // qualcos'altro sotto al dito e la finestra non si chiudeva.
+      overlay.addEventListener("pointerdown", (e) => {
+        const f = overlay.querySelector(".dm-ap-dialog");
+        if (!f) return;
+        const q = f.getBoundingClientRect();
+        const fuori = e.clientX < q.left || e.clientX > q.right
+          || e.clientY < q.top || e.clientY > q.bottom;
+        if (fuori) this._chiudiDialog(overlay);
       });
       this._root.appendChild(overlay);
     }
+    clearTimeout(this._chiusuraDopo);
+    overlay.removeAttribute("chiude");
+    const modo = ["sfuma", "sboccia", "basso", "niente"]
+      .includes(this._config.finestra_apertura) ? this._config.finestra_apertura : "sfuma";
+    overlay.setAttribute("apertura", modo);
+    // la foto di sfondo della finestra, come sulla casella
+    const foto = this._config.finestra_immagine;
     // qui passa il contenuto di TUTTE le finestrelle delle due schede: il
     // titolo e le scritte dentro si traducono in un punto solo
     overlay.innerHTML = `<div class="dm-ap-dialog">
       <div class="dm-ap-dialog-head"><h3>${esc(T(title))}</h3><button type="button" class="dm-ap-dialog-close">${ICON_CLOSE}</button></div>
       <div class="dm-ap-dialog-body">${TH(bodyHtml)}</div>
     </div>`;
+    const finestra = overlay.querySelector(".dm-ap-dialog");
+    finestra.style.backgroundImage = foto ? `url("${String(foto).replace(/"/g, "%22")}")` : "";
     overlay.querySelector(".dm-ap-dialog-close").addEventListener("click", () => {
-      overlay.hidden = true;
+      this._chiudiDialog(overlay);
     });
     overlay.hidden = false;
+    // Esc chiude, come su qualunque finestra. L'ascolto vecchio si toglie:
+    // se no, riaprendo, ne restava uno attaccato al documento per sempre.
+    if (this._escDialog) document.removeEventListener("keydown", this._escDialog);
+    document.addEventListener("keydown", this._escDialog = (e) => {
+      if (e.key === "Escape") this._chiudiDialog(overlay);
+    });
+    if (modo === "sboccia") this._puntoDiNascita(overlay, partenza || this._ultimoTasto);
     return overlay;
   }
 
@@ -20703,6 +21523,322 @@ const ConEditor = (Base) => class extends Base {
   }
 };
 
+// -*- coding: utf-8 -*-
+// IL GRAFICO STORICO delle schede dei consumi: 24 ore, 7 giorni, 30 giorni,
+// oppure due date a scelta.
+//
+// Due cose che sembrano dettagli e non lo sono:
+//
+// 1. IL PICCO, NON LA MEDIA. Un sensore di potenza sta a 2 W per un'ora e
+//    poi tocca 2100 W per dieci minuti. Se per disegnare faccio la media di
+//    ogni pezzetto di tempo, quel picco sparisce e il grafico racconta una
+//    casa che non consuma niente. Quindi di ogni pezzetto tengo il MASSIMO:
+//    e' l'unica cosa che si vede davvero guardando una lavatrice.
+// 2. FINO A OTTO GIORNI la cronologia vera ce l'ha ancora il recorder, e si
+//    legge punto per punto. Oltre, il recorder ha gia' buttato via il
+//    dettaglio e restano le statistiche a lungo termine: li' chiedo il
+//    massimo orario, che e' la stessa idea di prima fatta da Home Assistant.
+
+
+const PERIODI_GRAFICO = [
+  { id: "24h", nome: "24 h", ore: 24 },
+  { id: "7g", nome: "7 gg", ore: 24 * 7 },
+  { id: "30g", nome: "30 gg", ore: 24 * 30 },
+  { id: "scelto", nome: "Da… a" },
+];
+
+// La scala del colore, dal basso verso l'alto: quando il numero e' piccolo
+// la riga e' calma, quando sale si scalda. E' la stessa idea del colore che
+// segue la temperatura sulla casella.
+const SCALA = ["#2fbfb0", "#3fb4ea", "#eab308", "#f97316", "#ef4444"];
+
+// oltre questo la cronologia dettagliata non c'e' piu': si passa alle
+// statistiche a lungo termine
+const GIORNI_STORIA = 8;
+// quanti punti disegnare: piu' di cosi' non si vedono, e il disegno pesa
+const PUNTI = 160;
+
+function quandoScrivere(d, giorni) {
+  const l = laLocale();
+  if (giorni <= 2) return d.toLocaleTimeString(l, { hour: "2-digit", minute: "2-digit" });
+  if (giorni <= 40) return d.toLocaleDateString(l, { day: "2-digit", month: "2-digit" });
+  return d.toLocaleDateString(l, { month: "short" });
+}
+
+// da una fila di letture a `PUNTI` pezzetti, tenendo il massimo di ognuno
+function aPezzetti(punti, inizio, fine, quanti) {
+  if (!punti.length) return [];
+  const n = Math.max(2, quanti || PUNTI);
+  const da = inizio.getTime();
+  const passo = Math.max(1, (fine.getTime() - da) / n);
+  const cesti = new Array(n).fill(null);
+  punti.forEach((p) => {
+    const i = Math.min(n - 1, Math.max(0, Math.floor((p.t.getTime() - da) / passo)));
+    if (cesti[i] === null || p.y > cesti[i].y) cesti[i] = p;
+  });
+  // i pezzetti vuoti tengono l'ultimo valore: uno stato resta valido finche'
+  // non cambia, e un buco non vuol dire zero
+  const fuori = [];
+  let ultimo = null;
+  for (let i = 0; i < n; i++) {
+    if (cesti[i]) ultimo = cesti[i];
+    if (ultimo) fuori.push({ t: new Date(da + i * passo), y: ultimo.y });
+  }
+  return fuori;
+}
+
+const ConGrafico = (Base) => class extends Base {
+  // la cronologia vera, punto per punto
+  async _storiaFra(entityId, inizio, fine) {
+    const esito = await this._hass.connection.sendMessagePromise({
+      type: "history/history_during_period",
+      start_time: inizio.toISOString(),
+      end_time: fine.toISOString(),
+      entity_ids: [entityId],
+      minimal_response: true,
+      no_attributes: true,
+    });
+    const righe = esito?.[entityId] || [];
+    return righe
+      .map((r) => ({
+        t: new Date((r.lu || r.last_updated_ts) * 1000 || r.last_updated),
+        y: Number(r.s ?? r.state),
+      }))
+      .filter((p) => Number.isFinite(p.y) && !Number.isNaN(p.t.getTime()));
+  }
+
+  // le statistiche a lungo termine: il massimo di ogni ora
+  async _statisticheFra(entityId, inizio, fine) {
+    const esito = await this._hass.connection.sendMessagePromise({
+      type: "recorder/statistics_during_period",
+      start_time: inizio.toISOString(),
+      end_time: fine.toISOString(),
+      statistic_ids: [entityId],
+      period: "hour",
+      types: ["max", "mean"],
+    });
+    const righe = esito?.[entityId] || [];
+    return righe
+      .map((r) => ({ t: new Date(r.start), y: Number(r.max ?? r.mean) }))
+      .filter((p) => Number.isFinite(p.y));
+  }
+
+  // il pezzo giusto a seconda di quanto indietro si guarda
+  async _datiGrafico(entityId, inizio, fine) {
+    const giorni = (fine.getTime() - inizio.getTime()) / 86400000;
+    const punti = giorni <= GIORNI_STORIA
+      ? await this._storiaFra(entityId, inizio, fine)
+      : await this._statisticheFra(entityId, inizio, fine);
+    return aPezzetti(punti, inizio, fine, PUNTI);
+  }
+
+  // ------------------------------------------------------------ il disegno
+  // Piu' curve nello stesso riquadro: quelle con la stessa unita' si
+  // sovrappongono, e la scala e' quella della piu' alta.
+  _grafico(serie, giorni) {
+    const vive = serie.filter((s) => s.punti && s.punti.length);
+    if (!vive.length) return `<div class="dm-ap-chart-empty">${T("Nessun dato nel periodo")}</div>`;
+    const larg = 300;
+    const alt = 110;
+    const x0 = 30;
+    const plotW = larg - x0;
+    let max = 0;
+    let min = Infinity;
+    vive.forEach((s) => s.punti.forEach((p) => {
+      if (p.y > max) max = p.y;
+      if (p.y < min) min = p.y;
+    }));
+    if (!Number.isFinite(min)) min = 0;
+    if (min > 0) min = 0;
+    const campo = (max - min) || 1;
+    // Una curva sola: la riga prende il colore dall'altezza. Piu' curve: ognuna
+    // tiene il suo, se no non si capisce piu' quale e' quale.
+    const sola = vive.length === 1;
+    const id = "sc" + Math.random().toString(36).slice(2, 8);
+    const scala = sola ? `<defs>
+      <linearGradient id="${id}" x1="0" y1="1" x2="0" y2="0">
+        ${SCALA.map((c, i) => `<stop offset="${((i / (SCALA.length - 1)) * 100).toFixed(0)}%" stop-color="${c}"/>`).join("")}
+      </linearGradient>
+      <linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${SCALA[SCALA.length - 1]}" stop-opacity=".34"/>
+        <stop offset="55%" stop-color="${SCALA[1]}" stop-opacity=".12"/>
+        <stop offset="100%" stop-color="${SCALA[0]}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>` : "";
+    const linee = vive.map((s) => {
+      const n = s.punti.length;
+      const coppie = s.punti.map((p, i) => {
+        const x = x0 + (n > 1 ? (i * plotW) / (n - 1) : plotW / 2);
+        const y = alt - ((p.y - min) / campo) * (alt - 8) - 4;
+        return x.toFixed(1) + "," + y.toFixed(1);
+      });
+      // da punto a punto: una punta resta una punta. A gradini i picchi
+      // diventavano blocchi larghi e l'andamento spariva
+      const d = coppie.map((c, i) => (i ? "L " : "M ") + c).join(" ");
+      const sotto = d + " L " + coppie[coppie.length - 1].split(",")[0] + "," + alt
+        + " L " + coppie[0].split(",")[0] + "," + alt + " Z";
+      const tinta = sola ? `url(#${id})` : s.colore;
+      const pieno = sola ? `url(#${id}f)` : s.colore;
+      return `<path d="${sotto}" fill="${pieno}"${sola ? "" : ' opacity=".1"'}/>
+        <path d="${d}" fill="none" stroke="${tinta}" stroke-width="1.2"
+          stroke-linejoin="round" stroke-linecap="round"/>`;
+    }).join("");
+    const asse = `<line x1="${x0}" y1="3" x2="${x0}" y2="${alt - 3}" stroke="#94a3b840" stroke-width="1"/>
+      <text x="${x0 - 4}" y="9" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
+      <text x="${x0 - 4}" y="${alt - 3}" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(min)}</text>`;
+    const quante = giorni <= 2 ? 6 : 5;
+    const primi = vive[0].punti;
+    const etichette = this._labelSpans(primi, quante, (p) => quandoScrivere(p.t, giorni));
+    return `<svg viewBox="0 0 ${larg} ${alt}" class="dm-ap-chart-svg">${scala}${asse}${linee}</svg>${etichette}`;
+  }
+
+  // minimo, media e massimo del periodo, come li scriveresti
+  _minMedMax(punti, unita) {
+    if (!punti || !punti.length) return "";
+    let min = Infinity;
+    let max = -Infinity;
+    let somma = 0;
+    punti.forEach((p) => {
+      if (p.y < min) min = p.y;
+      if (p.y > max) max = p.y;
+      somma += p.y;
+    });
+    // qui il numero si scrive per intero: 2100 W, non 2,1k. L'asse si
+    // accorcia perche' non ha spazio, questa riga ce l'ha
+    const scrivi = (v) => numero(v, Number.isInteger(v) || Math.abs(v) >= 10 ? 0 : 1) + (unita ? " " + unita : "");
+    return `<div class="dm-ap-mmm">
+      <div><small>${T("Minimo")}</small><b>${esc(scrivi(min))}</b></div>
+      <div><small>${T("Media")}</small><b>${esc(scrivi(somma / punti.length))}</b></div>
+      <div><small>${T("Massimo")}</small><b>${esc(scrivi(max))}</b></div>
+    </div>`;
+  }
+  // ---------------------------------------------------------- la finestra
+  // `curve` = [{nome, entity, colore, unita}]. La prima e' accesa, le altre
+  // si accendono coi chip. Non c'e' niente da configurare: sono le entita'
+  // che la scheda gia' conosce.
+  _apriGrafico(curve, titolo) {
+    const buone = (curve || []).filter((c) => c && c.entity && this._hass.states[c.entity]);
+    if (!buone.length) {
+      this._openDialog(titolo || "Andamento",
+        `<div class="dm-ap-chart-empty">${T("Non c'e' nessun sensore da disegnare")}</div>`);
+      return;
+    }
+    this._curve = buone.map((c, i) => ({ ...c, accesa: i === 0 }));
+    this._graficoQuando = this._graficoQuando || { id: "24h" };
+    const chip = buone.length > 1
+      ? `<div class="dm-ap-chip-riga">${buone.map((c, i) => `<button type="button"
+          class="dm-ap-chipc" data-curva="${i}"><i style="background:${c.colore}"></i>${esc(c.nome)}</button>`).join("")}</div>`
+      : "";
+    this._openDialog(titolo || "Andamento", `
+      <div class="dm-ap-periodi">${PERIODI_GRAFICO.map((x) => `<button type="button"
+        class="dm-ap-per" data-per="${x.id}">${esc(T(x.nome))}</button>`).join("")}</div>
+      <div class="dm-ap-date" hidden>
+        <label>${T("Da")} <input type="datetime-local" class="dm-ap-da"></label>
+        <label>${T("A")} <input type="datetime-local" class="dm-ap-a"></label>
+        <button type="button" class="dm-ap-applica">${T("Applica")}</button>
+      </div>
+      ${chip}
+      <div class="dm-ap-graf"><div class="dm-ap-chart-loading">${T("Caricamento...")}</div></div>
+      <div class="dm-ap-mmm-posto"></div>
+    `);
+    const dove = this._root.querySelector(".dm-ap-overlay");
+    dove.querySelectorAll(".dm-ap-per").forEach((b) => {
+      b.addEventListener("click", () => {
+        const id = b.dataset.per;
+        const riga = dove.querySelector(".dm-ap-date");
+        riga.hidden = id !== "scelto";
+        if (id === "scelto") {
+          const fine = new Date();
+          const da = new Date(fine.getTime() - 86400000);
+          const scrivi = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+            .toISOString().slice(0, 16);
+          const a1 = dove.querySelector(".dm-ap-da");
+          const a2 = dove.querySelector(".dm-ap-a");
+          if (!a1.value) a1.value = scrivi(da);
+          if (!a2.value) a2.value = scrivi(fine);
+          this._graficoQuando = { id, da: new Date(a1.value), a: new Date(a2.value) };
+        } else {
+          this._graficoQuando = { id };
+        }
+        this._disegnaGrafico();
+      });
+    });
+    dove.querySelector(".dm-ap-applica").addEventListener("click", () => {
+      const a1 = dove.querySelector(".dm-ap-da").value;
+      const a2 = dove.querySelector(".dm-ap-a").value;
+      if (!a1 || !a2) return;
+      this._graficoQuando = { id: "scelto", da: new Date(a1), a: new Date(a2) };
+      this._disegnaGrafico();
+    });
+    dove.querySelectorAll(".dm-ap-chipc").forEach((b) => {
+      b.addEventListener("click", () => {
+        const c = this._curve[Number(b.dataset.curva)];
+        // le curve con un'altra unita' non si sovrappongono: accenderne una
+        // spegne quelle che parlano un'altra lingua
+        if (!c.accesa) {
+          this._curve.forEach((x) => {
+            if (x.accesa && (x.unita || "") !== (c.unita || "")) x.accesa = false;
+          });
+        }
+        c.accesa = !c.accesa;
+        if (!this._curve.some((x) => x.accesa)) c.accesa = true;
+        this._disegnaGrafico();
+      });
+    });
+    this._disegnaGrafico();
+  }
+
+  _quandoGrafico() {
+    const q = this._graficoQuando || { id: "24h" };
+    if (q.id === "scelto" && q.da && q.a && q.a > q.da) return { inizio: q.da, fine: q.a };
+    const p = PERIODI_GRAFICO.find((x) => x.id === q.id) || PERIODI_GRAFICO[0];
+    const fine = new Date();
+    return { inizio: new Date(fine.getTime() - (p.ore || 24) * 3600000), fine };
+  }
+
+  async _disegnaGrafico() {
+    const dove = this._root.querySelector(".dm-ap-overlay");
+    if (!dove) return;
+    const q = this._graficoQuando || { id: "24h" };
+    dove.querySelectorAll(".dm-ap-per").forEach((b) => {
+      b.classList.toggle("scelto", b.dataset.per === q.id);
+    });
+    dove.querySelectorAll(".dm-ap-chipc").forEach((b) => {
+      b.classList.toggle("scelto", !!(this._curve[Number(b.dataset.curva)] || {}).accesa);
+    });
+    const posto = dove.querySelector(".dm-ap-graf");
+    const sotto = dove.querySelector(".dm-ap-mmm-posto");
+    if (!posto) return;
+    const { inizio, fine } = this._quandoGrafico();
+    const giorni = (fine - inizio) / 86400000;
+    const accese = this._curve.filter((c) => c.accesa);
+    // se nel frattempo premi un altro periodo, il giro vecchio non deve
+    // scrivere sopra a quello nuovo
+    const mio = {};
+    this._giroGrafico = mio;
+    posto.innerHTML = `<div class="dm-ap-chart-loading">${T("Caricamento...")}</div>`;
+    try {
+      for (const c of accese) c.punti = await this._datiGrafico(c.entity, inizio, fine);
+    } catch (e) {
+      if (this._giroGrafico === mio) {
+        posto.innerHTML = `<div class="dm-ap-chart-empty">${T("Errore caricamento dati")}</div>`;
+      }
+      return;
+    }
+    if (this._giroGrafico !== mio) return;
+    posto.innerHTML = this._grafico(accese, giorni);
+    const prima = accese[0];
+    if (sotto) sotto.innerHTML = this._minMedMax(prima.punti, prima.unita);
+    if (prima && prima.punti && prima.punti.length > 1) {
+      mirinoGrafico(posto, prima.punti, (pt) => this._fmtAxis(pt.y)
+        + (prima.unita ? " " + prima.unita : "") + "  \u00b7  "
+        + pt.t.toLocaleString(laLocale(), giorni <= 2
+          ? { hour: "2-digit", minute: "2-digit" }
+          : { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }));
+    }
+  }
+};
+
 // custom:casa-energia - consumo della casa, costi, circuiti, top consumo automatico.
 // Nata dalle schede di Simonz82 (github.com/Simonz82/smart-home-cards),
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
@@ -20711,6 +21847,9 @@ const ConEditor = (Base) => class extends Base {
 const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 
 // Le righe che puo' avere il riquadro Oggi, con il nome che si vede nell'editor.
+const ICON_ANDAMENTO$1 =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>';
+
 const RIGHE_OGGI = [
   { id: "consumo", nome: "Consumo (kWh presi dalla rete)", etichetta: "Consumo", colore: "#3fb4ea" },
   { id: "consumo_mese", nome: "Consumo del mese (kWh)", etichetta: "Consumo mese", colore: "#3f8fea" },
@@ -20726,7 +21865,7 @@ const RIGHE_OGGI = [
 ];
 
 
-class CasaEnergia extends ConFinestrelle(HTMLElement) {
+class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // Le righe del riquadro Oggi, nell'ordine della configurazione (`righe`).
   // Una riga che non e' nell'elenco non si vede.
   _righeOggi() {
@@ -20777,7 +21916,7 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
     const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.energy)(this._heroId);
     const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.energy;
     this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
-      <article class="dm-ap-card is-run">
+      <article class="dm-ap-card ${this._config.layout === "centrato" ? "centrato" : ""} is-run">
         <div class="dm-ap-top">
           <span class="dm-ap-chip">${chip}</span>
           <span class="dm-ap-headings">
@@ -20786,6 +21925,7 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
           <span class="dm-ap-badge run"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label">ONLINE</span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
+            <button type="button" class="dm-ap-tool dm-ap-andamento" title="Andamento">${ICON_ANDAMENTO$1}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
             <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
@@ -20843,16 +21983,38 @@ class CasaEnergia extends ConFinestrelle(HTMLElement) {
     }
     this._root.querySelector(".dm-ap-stats").addEventListener("click", (e) => {
       e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
       this._openStats();
+    });
+    this._root.querySelector(".dm-ap-andamento").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
+      this._apriGrafico(this._curveDellaCasa(), "Andamento");
     });
     this._root.querySelector(".dm-ap-consumi").addEventListener("click", (e) => {
       e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
       this._openConsumi();
     });
     this._root.querySelector(".dm-ap-hero").addEventListener("click", (e) => {
       e.stopPropagation();
       this._openConsumi();
     });
+  }
+
+  // Le curve del grafico: il Generale, poi i circuiti che hai gia' messo
+  // nella scheda. Nessuna entita' nuova da indicare.
+  _curveDellaCasa() {
+    const cfg = this._config;
+    const tinte = ["#f28c3c", "#43b86a", "#a283f2", "#3fb4ea", "#f06e82", "#2fbfb0"];
+    const fuori = [{ nome: cfg.power_label || "Generale", entity: cfg.power_entity,
+      colore: "#0ea5e9", unita: "W" }];
+    (cfg.circuits || []).forEach((c, i) => {
+      if (!c || !c.entity) return;
+      fuori.push({ nome: c.label || c.entity, entity: c.entity,
+        colore: tinte[i % tinte.length], unita: "W" });
+    });
+    return fuori;
   }
 
   // questa scheda addolcisce la linea del grafico
@@ -21326,11 +22488,17 @@ const ETICHETTE$1 = {
   bolletta_energia: "Contatore dei kWh del periodo della bolletta (bimestre)",
   bolletta_costo: "Contatore degli euro dello stesso periodo",
   notification_path: "Pagina delle notifiche (facoltativa, es. /lovelace/notifiche)",
-  finestra_sfondo: "Tinta della finestra del pop-up",
-  finestra_trasparenza: "Trasparenza della finestra",
-  finestra_scritta: "Colore delle scritte nella finestra",
-  velo_scuro: "Quanto scurisce quello che c'e' dietro",
-  velo_sfoca: "Quanto sfoca quello che c'e' dietro",
+  layout: "Disposizione della scheda",
+  tema: "Chiaro o scuro (questa scheda soltanto)",
+  finestra_apertura: "Come si apre il pop-up",
+  finestra_apertura_durata: "Quanto dura l'apertura",
+  finestra_largo: "Larghezza del pop-up (vuoto = 560)",
+  finestra_immagine: "Foto di sfondo del pop-up (indirizzo)",
+  finestra_sfondo: "Pop-up: la tinta della finestra (vuoto = come le schede)",
+  finestra_trasparenza: "Pop-up: quanto e' trasparente la finestra",
+  finestra_scritta: "Pop-up: il colore delle scritte",
+  velo_scuro: "Pop-up: quanto scurisce quello che c'e' dietro",
+  velo_sfoca: "Pop-up: quanto sfoca quello che c'e' dietro",
 };
 
 const SCHEMA_TUTTO$1 = [
@@ -21363,7 +22531,27 @@ const SCHEMA_TUTTO$1 = [
     { value: "fritzbox", label: "Router" },
     { value: "proxmox", label: "Proxmox" }] } } },
   { name: "g_aspetto", type: "expandable", flatten: true, title: "Aspetto e finestra del pop-up", schema: [
+    { name: "layout", selector: { select: { mode: "dropdown", options: [
+      { value: "classico", label: "Classico - la foto a sinistra" },
+      { value: "centrato", label: "Centrato - la foto in mezzo, i numeri sotto" },
+    ] } } },
+    { name: "tema", selector: { select: { mode: "dropdown", options: [
+      { value: "auto", label: "Automatico - come Home Assistant" },
+      { value: "chiaro", label: "Sempre chiaro" },
+      { value: "scuro", label: "Sempre scuro" },
+    ] } } },
     { name: "notification_path", selector: { text: {} } },
+    { name: "finestra_apertura", selector: { select: { mode: "dropdown", options: [
+      { value: "sfuma", label: "Sale e sfuma - discreta" },
+      { value: "sboccia", label: "Sboccia dal tondino che hai premuto" },
+      { value: "basso", label: "Entra dal basso, come un cassetto" },
+      { value: "niente", label: "Nessuna animazione" },
+    ] } } },
+    { name: "finestra_apertura_durata",
+      selector: { number: { min: 80, max: 2000, step: 20, mode: "slider", unit_of_measurement: "ms" } } },
+    { name: "finestra_largo",
+      selector: { number: { min: 400, max: 1400, step: 20, mode: "slider", unit_of_measurement: "px" } } },
+    { name: "finestra_immagine", selector: { text: {} } },
     { name: "finestra_sfondo", selector: { color_rgb: {} } },
     { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "finestra_scritta", selector: { color_rgb: {} } },
@@ -21375,14 +22563,14 @@ const SCHEMA_TUTTO$1 = [
 // Appena apri vedi solo questi tre. Il resto sta in fondo, dietro a "Mostra
 // tutte le impostazioni": e' un secondo modulo, cosi' i tre di sopra non si
 // muovono e non si perde di vista quello che conta.
-const SEMPLICI$1 = ["name", "power_entity", "artwork"];
-const SCHEMA_SEMPLICE$1 = SEMPLICI$1
+const SEMPLICI = ["name", "power_entity", "artwork"];
+const SCHEMA_SEMPLICE$1 = SEMPLICI
   .map((n) => SCHEMA_TUTTO$1.find((x) => x.name === n))
   .filter(Boolean);
 // i campi lisci, senza il cassetto dell'ha-form: il cassetto lo faccio io,
 // cosi' sta in riga con gli altri riquadri invece di vestirsi da solo
 const SCHEMA_RESTO = SCHEMA_TUTTO$1
-  .filter((x) => !SEMPLICI$1.includes(x.name))
+  .filter((x) => !SEMPLICI.includes(x.name))
   .flatMap((x) => (Array.isArray(x.schema) ? x.schema : [x]));
 
 
@@ -21865,8 +23053,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     const tasto = this.querySelector(".ce-crea");
     const sorgente = (this.querySelector(".ce-kwh-pick") || {}).value || this._config.energia_kwh;
     if (!sorgente) { this._dillo("Scegli il sensore dei kWh.", true); return; }
-    if (!window.confirm("Creo in Home Assistant i contatori (ora, oggi, settimana, mese) e i costi "
-      + "sopra a " + this._nomeDi(sorgente) + "." + "\n" + "Quelli che ci sono gia' li riuso. Vado?")) return;
+    // la conferma la chiede il tasto: premilo due volte
+    if (!confermaDoppia(tasto, T("Creo i contatori: premi di nuovo"))) return;
     tasto.disabled = true;
     this._esito.hidden = false;
     this._esito.classList.remove("male");
@@ -22104,6 +23292,9 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
 
 
 // Le righe dell'Ultimo ciclo, col nome che si vede nell'editor.
+const ICON_ANDAMENTO =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>';
+
 const RIGHE_CICLO = [
   { id: "fine", nome: "Fine del ciclo (data e ora)", etichetta: "Fine", colore: "#a283f2" },
   { id: "durata", nome: "Durata del ciclo", etichetta: "Durata", colore: "#2fbfb0" },
@@ -22118,7 +23309,7 @@ const RIGHE_CICLO = [
 ];
 
 
-class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
+class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // Le righe dell'Ultimo ciclo, nell'ordine e coi nomi della configurazione.
   _righeCiclo() {
     const R = {
@@ -22135,7 +23326,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     };
     const c = this._config;
     const pe0 = c.period_entities || {};
-    const haCicli = !!(c.cycle_sensor || c.ciclo);
+    const haCicli = !!c.ciclo;
     const haPeriodi = !!(c.oggi_energia || c.oggi_costo || c.mese_energia || c.mese_costo
       || (pe0.today || {}).energy || (pe0.month || {}).energy);
     const daCiclo = ["fine", "durata", "consumo", "costo"];
@@ -22200,7 +23391,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
     const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.dishwasher;
     this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
-      <article class="dm-ap-card">
+      <article class="dm-ap-card ${this._config.layout === "centrato" ? "centrato" : ""}">
         ${this._config.label ? `<span class="dm-test-flag">${esc(this._config.label)}</span>` : ""}
         <div class="dm-ap-top">
           <span class="dm-ap-chip">${chip}</span>
@@ -22211,6 +23402,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
           <span class="dm-ap-badge"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label"></span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
+            <button type="button" class="dm-ap-tool dm-ap-andamento" title="Andamento">${ICON_ANDAMENTO}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
             <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
@@ -22262,10 +23454,23 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     this._tastiAggancia();
     this._root.querySelector(".dm-ap-stats").addEventListener("click", (e) => {
       e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
       this._openWeek();
+    });
+    this._root.querySelector(".dm-ap-andamento").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
+      const cfg = this._config;
+      this._apriGrafico([{
+        nome: cfg.power_label || "Potenza",
+        entity: cfg.power_history_entity || cfg.power_entity,
+        colore: "#0ea5e9",
+        unita: cfg.power_unit || "W",
+      }], "Andamento");
     });
     this._root.querySelector(".dm-ap-consumi").addEventListener("click", (e) => {
       e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
       this._openPowerHistory();
     });
     // la foto dell'apparecchio: com'e' messo adesso
@@ -22276,21 +23481,22 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         this._openStats();
       });
     }
+    // toccare la barra della potenza apre l'Andamento, che e' la stessa
+    // misura nel tempo: prima apriva i Consumi, che parlano di kWh
     const powerEl = this._root.querySelector(".dm-ap-power-open");
     if (powerEl) {
       powerEl.addEventListener("click", (e) => {
         e.stopPropagation();
-        this._openPowerHistory();
+        const c = this._config;
+        this._apriGrafico([{ nome: c.power_label || "Potenza",
+          entity: c.power_history_entity || c.power_entity,
+          colore: "#0ea5e9", unita: c.power_unit || "W" }], "Andamento");
       });
     }
   }
 
   _cycleAttr(hass, key) {
     const cfg = this._config;
-    if (cfg.cycle_sensor && cfg.cycle_attrs?.[key]) {
-      const st = hass.states[cfg.cycle_sensor];
-      return st ? st.attributes?.[cfg.cycle_attrs[key]] : null;
-    }
     // niente sensore del ciclo: allora sono le tre memorie che riempie
     // l'automazione fatta dalla scheda (fine, minuti, kWh)
     return this._cicloDaMemorie(hass, key);
@@ -22358,6 +23564,26 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
   // sensore a fine ciclo. Ma l'apparecchio, intanto, i suoi numeri li dice
   // (energia, minuti fatti, minuti che mancano, che fase sta facendo): qui li
   // traduco nelle stesse quattro righe, cosi' il riquadro parla anche adesso.
+  // Una data scritta da noi: "mai scritta" e mezzanotte valgono niente.
+  _quandoDa(hass, eid) {
+    const st = eid ? hass.states[eid] : null;
+    if (!st || ["unknown", "unavailable"].includes(st.state)) return null;
+    if (/[ T]00:00:00$/.test(String(st.state))) return null;
+    const d = new Date(String(st.state).replace(" ", "T"));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // Il ciclo e' aperto se la partenza e' piu' recente della fine: vuol dire
+  // che l'automazione non l'ha ancora chiuso. Non guarda i watt, apposta.
+  _cicloAperto(hass) {
+    const c = this._config.ciclo;
+    if (!c || !c.inizio) return false;
+    const via = this._quandoDa(hass, c.inizio);
+    if (!via) return false;
+    const fine = this._quandoDa(hass, c.fine);
+    return !fine || via > fine;
+  }
+
   // Il ciclo in corso ricavato dai pezzi che crea la scheda: il contatore
   // azzerato alla partenza e la soglia "sta lavorando".
   _cicloVivoDaiNostri(hass) {
@@ -22389,7 +23615,11 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const h = Math.floor(min / 60);
       out.duration = h ? h + "h " + String(min % 60).padStart(2, "0") + "m" : min + " min";
     }
-    out.end = T("in corso");
+    // mentre lavora la riga della fine dice da che ora e' partito: l'ora di
+    // fine non esiste ancora, e "in corso" da solo non diceva niente
+    out.end = quando
+      ? T("dalle") + " " + quando.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" })
+      : T("in corso");
     return Object.keys(out).length ? out : null;
   }
 
@@ -22446,7 +23676,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
   // l'ordine in cui si leggono, non quello in cui capitano
   _periodiInOrdine() {
-    const quali = { ...(this._config.period_attrs || {}), ...this._periodi() };
+    const quali = this._periodi();
     const ordine = ["today", "yesterday", "week", "month", "month_prev", "year", "year_prev"];
     const fuori = [];
     ordine.forEach((k) => { if (quali[k]) fuori.push(k); });
@@ -22456,9 +23686,6 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
   _renderPeriodRow(hass, periodKey) {
     const cfg = this._config;
-    const st = cfg.cycle_sensor ? hass.states[cfg.cycle_sensor] : null;
-    const attrs = st?.attributes || {};
-    const pAttrs = cfg.period_attrs?.[periodKey] || {};
     const s = cfg.stats || {};
     // "ieri"/"mese precedente"/"anno precedente" non sono entita' separate: sono
     // l'attributo "last_period" che i contatori utility_meter (cicli_oggi/mese/anno)
@@ -22478,8 +23705,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     // se la scheda ha entita' sue per questo periodo (tempo, costo), comandano
     // quelle: sono gli helper che crea il tasto "Crea i sensori base"
     const pEnt = this._periodi()[periodKey] || {};
-    const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time])
-      : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
+    const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time]) : "\u2014";
     // un periodo finito - ieri, il mese scorso - non e' un'entita' sua: e'
     // l'attributo `last_period` del contatore di quello in corso
     const daEntita = (eid, attributo) => {
@@ -22489,8 +23715,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     };
     const kwhNum = pEnt.energy ? Number(daEntita(pEnt.energy, pEnt.energy_attr)) : NaN;
     const kwhTxt = Number.isFinite(kwhNum) ? `${numero(kwhNum, 2)} kWh` : "\u2014";
-    let cost = pEnt.cost ? daEntita(pEnt.cost, pEnt.cost_attr)
-      : (pAttrs.cost ? attrs[pAttrs.cost] : null);
+    let cost = pEnt.cost ? daEntita(pEnt.cost, pEnt.cost_attr) : null;
     // senza un sensore del costo il conto lo faccio qui: kWh per il prezzo.
     // Attenzione: Number(null) vale 0, quindi "manca" va chiesto per bene.
     const manca = cost === null || cost === undefined || cost === ""
@@ -22599,124 +23824,23 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     `);
   }
 
-  // Le caselle "week_rows" sono 7 contenitori fissi per nome del giorno
-  // (Lunedi..Domenica), riscritti dal package uno alla volta quando quel
-  // giorno della settimana si conclude - non una finestra "ultimi 7 giorni"
-  // gia' in ordine. Qui li riordiniamo partendo da ieri e andando indietro,
-  // cosi' l'elenco corrisponde davvero agli ultimi 7 giorni di calendario
-  // (se oggi e' venerdi: giovedi, mercoledi, ... venerdi scorso), con la
-  // data accanto per togliere ogni ambiguita'.
-  // I SETTE GIORNI, presi dall'attributo `giorni` del sensore del ciclo:
-  // {"0": {c: cicli, m: minuti, e: euro}, ...} con 0 = lunedi. Il giorno di
-  // oggi non e' ancora dentro (ci va a mezzanotte): lo leggo dal vivo.
-  _settimanaDaAttributo(hass) {
-    const cfg = this._config;
-    const st = cfg.cycle_sensor ? hass.states[cfg.cycle_sensor] : null;
-    if (!st) return "";
-    const giorni = st.attributes?.[cfg.week_attr || "giorni"] || {};
-    const min2txt = (v) => {
-      const n = Math.round(Number(v) || 0);
-      if (!n) return "0 min";
-      return n < 60 ? n + " min" : Math.floor(n / 60) + "h " + String(n % 60).padStart(2, "0") + "m";
-    };
-    const oggi = new Date();
-    const righe = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(oggi);
-      d.setDate(d.getDate() - i);
-      const lun0 = (d.getDay() + 6) % 7;          // 0 = lunedi, come in Python
-      // oggi dal vivo; ieri, finche' non e' ancora finito nell'attributo, lo
-      // prendo dai campi "_ieri" (sono gli stessi numeri della riga Ieri qui
-      // sopra: se no la stessa finestra direbbe due cose diverse)
-      const contaOggi = cfg.stats && cfg.stats.cycles_today
-        ? hass.states[cfg.stats.cycles_today] : null;
-      let dato;
-      if (i === 0) {
-        dato = { c: contaOggi ? contaOggi.state : st.attributes?.cicli_oggi,
-          m: st.attributes?.min_oggi, e: st.attributes?.costo_oggi };
-      } else {
-        dato = giorni[String(lun0)];
-        if (!dato && i === 1 && st.attributes?.min_ieri !== undefined) {
-          dato = { c: contaOggi ? contaOggi.attributes?.last_period : undefined,
-            m: st.attributes.min_ieri, e: st.attributes.costo_ieri };
-        }
-      }
-      const etichetta = `${giornoBreve(d)} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const vuoto = !dato || (dato.c === undefined && dato.m === undefined && dato.e === undefined);
-      const costo = Number(dato?.e);
-      righe.push(`<div class="dm-ap-week-row">
-        <div class="dm-ap-week-day">${esc(etichetta)}${i === 0 ? " " + T("(oggi)") : ""}</div>
-        <div class="dm-ap-week-stats cols3">
-          <div class="dm-ap-week-stat"><small>Cicli</small><b>${vuoto ? "\u2014" : esc(String(Number(dato.c) || 0))}</b></div>
-          <div class="dm-ap-week-stat"><small>Tempo</small><b>${vuoto ? "\u2014" : esc(min2txt(dato.m))}</b></div>
-          <div class="dm-ap-week-stat"><small>Costo</small><b>${vuoto || !Number.isFinite(costo) ? "\u2014" : numero(costo, 2) + " \u20ac"}</b></div>
-        </div>
-      </div>`);
-    }
-    return righe.join("");
-  }
-
-  _orderedWeekRows() {
-    const rows = this._config.week_rows || [];
-    const byDay = {};
-    rows.forEach((r) => {
-      byDay[r.day] = r;
-    });
-    const today = new Date();
-    const ordered = [];
-    for (let i = 1; i <= 7; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const dow = d.getDay();
-      const row = byDay[WEEKDAY_FULL_IT[dow]];
-      if (!row) continue;
-      const dd = String(d.getDate()).padStart(2, "0");
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      ordered.push({ ...row, _label: `${giornoBreve(d)} ${dd}/${mm}` });
-    }
-    return ordered;
-  }
-
   _openWeek() {
     const hass = this._hass;
     const periods = this._periodiInOrdine();
     const periodRows = periods.map((p) => this._renderPeriodRow(hass, p)).join("");
 
-    const daAttributo = this._settimanaDaAttributo(hass);
-    const rows = this._orderedWeekRows();
-    const body = rows
-      .map((row) => {
-        const cicli = hass.states[row.cicli]?.state ?? "\u2014";
-        const tempo = hass.states[row.tempo]?.state ?? "\u2014";
-        const consumoNum = Number(hass.states[row.consumo]?.state);
-        const consumo = Number.isFinite(consumoNum) ? `${numero(consumoNum, 2)} kWh` : "\u2014";
-        const costoNum = Number(hass.states[row.costo]?.state);
-        const costo = Number.isFinite(costoNum) ? `${numero(costoNum, 2)} \u20ac` : "\u2014";
-        return `<div class="dm-ap-week-row">
-          <div class="dm-ap-week-day">${esc(row._label)}</div>
-          <div class="dm-ap-week-stats">
-            <div class="dm-ap-week-stat"><small>Cicli</small><b>${esc(cicli)}</b></div>
-            <div class="dm-ap-week-stat"><small>Tempo</small><b>${esc(tempo)}</b></div>
-            <div class="dm-ap-week-stat"><small>Consumo</small><b>${consumo}</b></div>
-            <div class="dm-ap-week-stat"><small>Costo</small><b>${costo}</b></div>
-          </div>
-        </div>`;
-      })
-      .join("");
-
     const conta = ((this._config.period_entities || {}).today || {}).energy
       || this._config.oggi_energia || this._config.energy_stat_entity;
-    const vuoto = !daAttributo && !body;
     this._openDialog("Statistiche", `
       ${periodRows ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div><div class="dm-ap-week-list">${periodRows}</div></div>` : ""}
       <div class="dm-ap-sec">
         <div class="dm-ap-sec-cap">Ultimi 7 giorni</div>
-        <div class="dm-ap-week-list" data-sette>${daAttributo || body
-          || (conta ? `<div class="dm-ap-row-val">Guardo nello storico...</div>`
-            : `<div class="dm-ap-row-val">Nessun dato configurato</div>`)}</div>
+        <div class="dm-ap-week-list" data-sette>${conta
+          ? `<div class="dm-ap-row-val">Guardo nello storico...</div>`
+          : `<div class="dm-ap-row-val">Nessun dato configurato</div>`}</div>
       </div>
     `);
-    if (vuoto && conta) this._settimanaDalloStorico(conta);
+    if (conta) this._settimanaDalloStorico(conta);
   }
 
   // -- grafici potenza (linea 24h + istogrammi mese/anno) ------------------
@@ -22755,7 +23879,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
           ? `<text x="${cx}" y="${(height - h - 3).toFixed(1)}" text-anchor="middle" font-size="7" font-weight="800" fill="#94a3b8">${label}</text>`
           : "";
         // il fumetto: il numero c'e' sempre, anche quando non ci sta scritto
-        const fumetto = (b.label ? b.label + ": " : "") + label;
+        const fumetto = b.fumetto || ((b.label ? b.label + ": " : "") + label);
         return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${color}"><title>${esc(fumetto)}</title></rect>${text}`;
       })
       .join("");
@@ -22822,37 +23946,17 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
   async _openPowerHistory() {
     const cfg = this._config;
-    const powerEntity = cfg.power_history_entity || cfg.power_entity;
     const energyEntity = cfg.energy_stat_entity;
 
     this._openDialog(
       "Consumi",
-      `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultime 24 ore</div><div class="dm-ap-chart-loading" data-chart="24h">Caricamento...</div></div>
-       ${energyEntity ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Questo mese</div><div class="dm-ap-chart-loading" data-chart="month">Caricamento...</div></div>` : ""}
-       ${energyEntity ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Quest'anno</div><div class="dm-ap-chart-loading" data-chart="year">Caricamento...</div></div>` : ""}`,
+      energyEntity
+        ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Questo mese</div><div class="dm-ap-chart-loading" data-chart="month">Caricamento...</div></div>
+           <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Quest'anno</div><div class="dm-ap-chart-loading" data-chart="year">Caricamento...</div></div>`
+        : `<div class="dm-ap-chart-empty">${T("Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.")}</div>`,
     );
     const overlay = this._root.querySelector(".dm-ap-overlay");
     const slot = (name) => overlay?.querySelector(`[data-chart="${name}"]`);
-
-    if (powerEntity) {
-      this._storia(powerEntity, 24)
-        .then((points) => {
-          const el = slot("24h");
-          if (!el) return;
-          const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }));
-          // Scala fissa sul picco storico (cfg.max_power, un po' sopra il
-          // massimo osservato negli ultimi mesi): il rumore di standby resta
-          // vicino allo zero e un consumo vero si vede comunque bene, senza
-          // nascondere il dato reale come faceva l'azzeramento.
-          el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", cfg.max_power)}${labels}</div>`;
-          mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
-            (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
-        })
-        .catch(() => {
-          const el = slot("24h");
-          if (el) el.textContent = "Errore caricamento dati";
-        });
-    }
 
     if (energyEntity) {
       const now = new Date();
@@ -22861,8 +23965,24 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         .then((rows) => {
           const el = slot("month");
           if (!el) return;
-          const bars = rows.map((r) => ({ value: r.value, label: String(r.t.getDate()) }));
-          const dayLabels = this._labelSpans(rows, 8, (r) => r.t.getDate());
+          // tutti i giorni del mese, non solo quelli che hanno un numero:
+          // un giorno senza consumo e' una barra a zero, non un buco
+          const quanti = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+          const perGiorno = {};
+          rows.forEach((r) => { perGiorno[r.t.getDate()] = (perGiorno[r.t.getDate()] || 0) + r.value; });
+          const prezzo = Number(this._hass.states[cfg.prezzo_entita]?.state);
+          const inEuro = (v) => (Number.isFinite(prezzo) && prezzo > 0
+            ? " · " + numero(v * prezzo, 2) + " €" : "");
+          const bars = [];
+          for (let g = 1; g <= quanti; g++) {
+            const v = perGiorno[g] || 0;
+            const d = new Date(now.getFullYear(), now.getMonth(), g);
+            bars.push({ value: v, label: String(g),
+              fumetto: giornoBreve(d) + " " + String(g).padStart(2, "0") + "/"
+                + String(now.getMonth() + 1).padStart(2, "0")
+                + " · " + numero(v, 2) + " kWh" + inEuro(v) });
+          }
+          const dayLabels = this._labelSpans(bars, 6, (b) => b.label);
           el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars, "#0ea5e9")}${dayLabels}</div>`;
         })
         .catch(() => {
@@ -22876,8 +23996,21 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         .then((rows) => {
           const el = slot("year");
           if (!el) return;
-          const bars = rows.map((r) => ({ value: r.value, label: meseBreve(r.t) }));
-          const labels = `<div class="dm-ap-chart-labels">${rows.map((r) => `<span>${meseBreve(r.t)}</span>`).join("")}</div>`;
+          // dodici mesi sempre, cosi' l'anno si legge come un calendario
+          const perMese = {};
+          rows.forEach((r) => { perMese[r.t.getMonth()] = (perMese[r.t.getMonth()] || 0) + r.value; });
+          const prezzoA = Number(this._hass.states[cfg.prezzo_entita]?.state);
+          const inEuroA = (v) => (Number.isFinite(prezzoA) && prezzoA > 0
+            ? " · " + numero(v * prezzoA, 2) + " €" : "");
+          const bars = [];
+          for (let m = 0; m < 12; m++) {
+            const v = perMese[m] || 0;
+            const d = new Date(now.getFullYear(), m, 15);
+            bars.push({ value: v, label: meseBreve(d),
+              fumetto: meseLungo(d) + " " + now.getFullYear()
+                + " · " + numero(v, 2) + " kWh" + inEuroA(v) });
+          }
+          const labels = `<div class="dm-ap-chart-labels">${bars.map((b) => `<span>${esc(b.label)}</span>`).join("")}</div>`;
           el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars, "#0ea5e9")}${labels}</div>`;
         })
         .catch(() => {
@@ -22970,6 +24103,11 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const powerDecimals = cfg.power_decimals ?? 1;
       this._root.querySelector(".dm-ap-power-val").textContent = `${numero(powerVal, powerDecimals)} ${powerUnit}`;
     }
+    // il displayino dentro al disegno: lo riempiva solo la scheda della
+    // casa, e qui restava a zero anche con la presa che segnava 23 W
+    this._root.querySelectorAll(".dm-e-watt").forEach((x) => {
+      x.textContent = nonNumerica ? "—" : numero(powerVal, 0);
+    });
     this._root.querySelector(".dm-ap-bar i").style.width =
       `${Math.min(100, Math.round((powerVal / cfg.max_power) * 100))}%`;
 
@@ -23001,7 +24139,11 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     let costPieno = this._cycleAttr(hass, "cost_pieno");
     const sogliaOn = cfg.soglia_acceso
       && hass.states[cfg.soglia_acceso]?.state === "on";
-    const vivo = (mode === "running" || sogliaOn) ? this._cicloVivo(hass) : null;
+    // anche a watt zero il ciclo puo' essere ancora aperto: e' il caso del
+    // forno e del piano cottura, che la resistenza la spengono e la
+    // riaccendono. Finche' e' aperto resta "Ciclo in corso".
+    const vivo = (mode === "running" || sogliaOn || this._cicloAperto(hass))
+      ? this._cicloVivo(hass) : null;
     const cap = this._root.querySelector(".dm-c-cap");
     const sub = this._root.querySelector(".dm-ap-cycle-sub");
     if (cap) cap.textContent = T(vivo ? "Ciclo in corso" : "Ultimo ciclo");
@@ -23078,7 +24220,7 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const [uno, due] = costoDa(eidCosto, eidKwh);
       this._scriviCosto(x, uno, due);
     });
-    if (cap && !vivo && !cfg.cycle_sensor && !cfg.ciclo && hoPeriodi) cap.textContent = T("Consumi");
+    if (cap && !vivo && !cfg.ciclo && hoPeriodi) cap.textContent = T("Consumi");
 
     this._barreExtra().forEach((b, i) => {
       const barra = this._root.querySelector(`.dm-ap-extra-bar[data-b="${i}"]`);
@@ -23122,17 +24264,40 @@ class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 // partendo dalla presa (o dallo stato) come fa la voce del Tocco.
 
 
+// Le voci che "Compila da solo" deve lasciare stare: non le trova guardando
+// il dispositivo, le hai messe tu.
+const MIE_NON_DEL_DISPOSITIVO = [
+  "name", "righe", "nomi_righe", "notification_path", "grid_options", "casa_misura",
+  "prezzo_entita", "reset_script", "helper_memoria", "ciclo_attesa_sec", "label",
+  "tema", "layout", "finestra_apertura", "finestra_apertura_durata", "finestra_largo",
+  "finestra_immagine", "finestra_sfondo", "finestra_trasparenza", "finestra_scritta",
+  "velo_scuro", "velo_sfoca",
+];
+
 const DISEGNI = [
+  ["cucina", "Cucina (tutta la linea)"],
   ["washer", "Lavatrice"],
   ["dishwasher", "Lavastoviglie"],
   ["dryer", "Asciugatrice"],
   ["oven", "Forno"],
   ["microonde", "Microonde"],
+  ["piano_cottura", "Piano cottura a induzione"],
+  ["cappa", "Cappa aspirante"],
+  ["caffe", "Macchina del caffe\'"],
+  ["bollitore", "Bollitore"],
+  ["tostapane", "Tostapane"],
+  ["friggitrice", "Friggitrice ad aria"],
+  ["congelatore", "Congelatore"],
   ["frigorifero", "Frigorifero"],
   ["dehumidifier", "Deumidificatore"],
   ["condizionatore", "Condizionatore"],
   ["ventilatore", "Ventilatore"],
   ["boiler", "Boiler / scaldabagno"],
+  ["termoventilatore", "Termoventilatore"],
+  ["pompa_calore", "Pompa di calore"],
+  ["pellet", "Stufa a pellet"],
+  ["radiatore", "Radiatore elettrico"],
+  ["scaldasalviette", "Scaldasalviette"],
   ["luce", "Luce"],
   ["lampada", "Lampada"],
   ["tv", "Televisore"],
@@ -23141,6 +24306,14 @@ const DISEGNI = [
   ["minipc", "Mini PC (Home Assistant)"],
   ["presa", "Presa smart"],
   ["ciabatta", "Ciabatta / multipresa"],
+  ["robot", "Robot aspirapolvere"],
+  ["asciugacapelli", "Asciugacapelli"],
+  ["ferro", "Ferro da stiro"],
+  ["pompa", "Pompa dell\'acqua"],
+  ["acquario", "Acquario"],
+  ["stampante3d", "Stampante 3D"],
+  ["console", "Console da gioco"],
+  ["colonnina", "Colonnina di ricarica"],
   ["powerstation", "Powerstation"],
   ["energy", "Contatore della luce"],
   ["ups", "Gruppo di continuita'"],
@@ -23154,12 +24327,13 @@ const ETICHETTE = {
   interruttori_lista: "Piu' prese (ciabatte): una fila di tastini col loro nome",
   name: "Nome della scheda",
   artwork: "Icona",
-  power_entity: "Presa che misura (W) - o un altro numero da mostrare nella barra",
+  power_entity: "Barra principale: il sensore che legge (i W della presa, o un altro numero)",
   threshold_run: "Sopra questi W e' «in funzione»",
   threshold_standby: "Sopra questi W e' «in standby»",
-  max_power: "Fondo scala della barra",
-  power_label: "Nome della barra (vuoto = Potenza attuale)",
-  power_unit: "Unita' della barra (vuoto = W)",
+  ciclo_attesa_sec: "Secondi di fermo prima di dire che ha finito (vuoto = 100)",
+  max_power: "Barra principale: fondo scala (dove arriva quando e' piena)",
+  power_label: "Barra principale: il nome (vuoto = Potenza attuale)",
+  power_unit: "Barra principale: l'unita' (vuoto = W)",
   stato: "Stato vero dell'apparecchio (facoltativo: integrazioni LG, Bosch...)",
   interruttore: "Tasto \u23fb nella barra in alto: cosa accende e spegne",
   interruttore_usb: "Secondo tasto per le prese USB (se ci sono)",
@@ -23167,21 +24341,26 @@ const ETICHETTE = {
   oggi_costo: "Euro di oggi: quei kWh per il prezzo",
   mese_energia: "kWh del MESE: lo stesso contatore a ciclo mensile",
   mese_costo: "Euro del mese",
-  barre_entita: "Barre in piu' (una per ogni cosa che vuoi vedere in W)",
-  cycle_sensor: "Sensore dell'ultimo ciclo (es. sensor.lavatrice_ciclo)",
-  avanzamento: "Seconda barra: un numero da 0 a 100 (avanzamento, umidita'...)",
-  progress_label: "Nome della seconda barra (vuoto = Avanzamento programma)",
+  barre_entita: "Barre in WATT: quali sensori (il nome di ognuna si scrive qui sotto)",
+  avanzamento: "Barra dell'AVANZAMENTO: quale sensore, da 0 a 100 (programma, umidita'...)",
+  progress_label: "Barra dell'AVANZAMENTO: il nome (vuoto = Avanzamento programma)",
   vivo_energia: "Ciclo in corso: energia gia' consumata (Wh o kWh)",
   vivo_trascorso: "Ciclo in corso: minuti gia' fatti",
   vivo_residuo: "Ciclo in corso: minuti che mancano (per l'ora di fine)",
   vivo_programma: "Ciclo in corso: programma scelto",
   vivo_fase: "Ciclo in corso: fase (asciugatura, risciacquo...)",
   notification_path: "Pagina delle notifiche (facoltativa)",
-  finestra_sfondo: "Tinta della finestra del pop-up",
-  finestra_trasparenza: "Trasparenza della finestra",
-  finestra_scritta: "Colore delle scritte nella finestra",
-  velo_scuro: "Quanto scurisce quello che c'e' dietro",
-  velo_sfoca: "Quanto sfoca quello che c'e' dietro",
+  layout: "Disposizione della scheda",
+  tema: "Chiaro o scuro (questa scheda soltanto)",
+  finestra_apertura: "Come si apre il pop-up",
+  finestra_apertura_durata: "Quanto dura l'apertura",
+  finestra_largo: "Larghezza del pop-up (vuoto = 560)",
+  finestra_immagine: "Foto di sfondo del pop-up (indirizzo)",
+  finestra_sfondo: "Pop-up: la tinta della finestra (vuoto = come le schede)",
+  finestra_trasparenza: "Pop-up: quanto e' trasparente la finestra",
+  finestra_scritta: "Pop-up: il colore delle scritte",
+  velo_scuro: "Pop-up: quanto scurisce quello che c'e' dietro",
+  velo_sfoca: "Pop-up: quanto sfoca quello che c'e' dietro",
 };
 
 const SCHEMA_TUTTO = [
@@ -23190,16 +24369,11 @@ const SCHEMA_TUTTO = [
   { name: "artwork", selector: { select: { mode: "dropdown", options: DISEGNI.map(([value, label]) => ({ value, label })) } } },
   { name: "power_entity", selector: { entity: { domain: "sensor" } } },
   // il resto in cassetti, che si aprono solo se servono
-  { name: "g_acceso", type: "expandable", flatten: true, title: "Quando e' acceso (soglie e barra)", schema: [
+  { name: "g_acceso", type: "expandable", flatten: true, title: "Quando e' acceso", schema: [
     { name: "threshold_run", selector: { number: { min: 0, max: 3000, step: 1, mode: "box", unit_of_measurement: "W" } } },
     { name: "threshold_standby", selector: { number: { min: 0, max: 500, step: 0.5, mode: "box", unit_of_measurement: "W" } } },
-    { name: "max_power", selector: { number: { min: 1, max: 10000, step: 1, mode: "box" } } },
-    { name: "power_label", selector: { text: {} } },
-    { name: "power_unit", selector: { text: {} } },
+    { name: "ciclo_attesa_sec", selector: { number: { min: 10, max: 1800, step: 5, mode: "box", unit_of_measurement: "s" } } },
     { name: "stato", selector: { entity: {} } },
-  ] },
-  { name: "g_conti", type: "expandable", flatten: true, title: "Sensore dell'ultimo ciclo", schema: [
-    { name: "cycle_sensor", selector: { entity: { domain: "sensor" } } },
   ] },
   { name: "g_vivo", type: "expandable", flatten: true, title: "Ciclo in corso (mentre lavora)", schema: [
     { name: "vivo_energia", selector: { entity: { domain: "sensor" } } },
@@ -23208,13 +24382,37 @@ const SCHEMA_TUTTO = [
     { name: "vivo_programma", selector: { entity: { domain: "sensor" } } },
     { name: "vivo_fase", selector: { entity: { domain: "sensor" } } },
   ] },
-  { name: "g_barre", type: "expandable", flatten: true, title: "Seconda barra", schema: [
+  { name: "g_barre", type: "expandable", flatten: true, title: "Le barre", schema: [
+    { name: "power_entity", selector: { entity: { domain: "sensor" } } },
+    { name: "power_label", selector: { text: {} } },
+    { name: "power_unit", selector: { text: {} } },
+    { name: "max_power", selector: { number: { min: 1, max: 10000, step: 1, mode: "box" } } },
     { name: "barre_entita", selector: { entity: { multiple: true, domain: "sensor" } } },
     { name: "avanzamento", selector: { entity: {} } },
     { name: "progress_label", selector: { text: {} } },
   ] },
   { name: "g_aspetto", type: "expandable", flatten: true, title: "Aspetto e finestra del pop-up", schema: [
+    { name: "layout", selector: { select: { mode: "dropdown", options: [
+      { value: "classico", label: "Classico - la foto a sinistra" },
+      { value: "centrato", label: "Centrato - la foto in mezzo, i numeri sotto" },
+    ] } } },
     { name: "notification_path", selector: { text: {} } },
+    { name: "tema", selector: { select: { mode: "dropdown", options: [
+      { value: "auto", label: "Automatico - come Home Assistant" },
+      { value: "chiaro", label: "Sempre chiaro" },
+      { value: "scuro", label: "Sempre scuro" },
+    ] } } },
+    { name: "finestra_apertura", selector: { select: { mode: "dropdown", options: [
+      { value: "sfuma", label: "Sale e sfuma - discreta" },
+      { value: "sboccia", label: "Sboccia dal tondino che hai premuto" },
+      { value: "basso", label: "Entra dal basso, come un cassetto" },
+      { value: "niente", label: "Nessuna animazione" },
+    ] } } },
+    { name: "finestra_apertura_durata",
+      selector: { number: { min: 80, max: 2000, step: 20, mode: "slider", unit_of_measurement: "ms" } } },
+    { name: "finestra_largo",
+      selector: { number: { min: 400, max: 1400, step: 20, mode: "slider", unit_of_measurement: "px" } } },
+    { name: "finestra_immagine", selector: { text: {} } },
     { name: "finestra_sfondo", selector: { color_rgb: {} } },
     { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "finestra_scritta", selector: { color_rgb: {} } },
@@ -23237,22 +24435,27 @@ const VESTITO = {
   tasti: ["accensione", "#43b86a", "le prese e le luci che accendi dalla scheda"],
   righe: ["lista", "#e2ad1c", "quali numeri si vedono nel riquadro, e in che ordine"],
   barre: ["barre", "#4fb0d8", "il nome e il fondo scala delle barre in piu'"],
-  g_acceso: ["tachimetro", "#f28c3c", "sopra quanti watt sta lavorando, e il fondo scala",
-    "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. Qui c'e' anche il fondo scala della barra e il suo nome. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'."],
-  g_conti: ["contatore", "#a283f2", "se un'integrazione ti da' gia' il ciclo finito",
+  g_acceso: ["tachimetro", "#f28c3c", "sopra quanti watt sta lavorando",
+    "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. I <b>secondi di fermo</b> dicono quando il ciclo e' finito davvero: il forno spegne e riaccende la resistenza, la lavatrice ha le pause dell'ammollo, e senza attesa ogni pausa sembrerebbe la fine. Finche' aspetta, l'Ultimo ciclo resta coi trattini. Cambiato il numero, ripremi <i>Crea le statistiche</i>: riscrivo l'automazione. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'."],
+  __VIA__: [
     "Serve solo se un'integrazione o un pacchetto ti da' <b>gia' pronto</b> un sensore con dentro l'ultimo ciclo (fine, durata e consumo negli attributi). In quel caso la scheda legge quello invece dei contatori che si crea da sola. Se non ce l'hai, lascia vuoto."],
   g_vivo: ["clessidra", "#3fb4ea", "programma, tempo e fase mentre sta lavorando",
     "Le entita' che parlano <b>mentre l'apparecchio lavora</b>: quanto ha gia' consumato, da quanto va, quanto manca, il programma e la fase. Sono quelle che riempiono il riquadro <i>Ciclo in corso</i>. Anche queste le da' l'integrazione dell'apparecchio, non la presa."],
-  g_barre: ["barre", "#4fb0d8", "un'altra misura sotto alla potenza",
-    "Una seconda barra sotto a quella della potenza: un'altra misura in watt, oppure un avanzamento da 0 a 100 (il programma, l'umidita'...). Il nome e il fondo scala di ognuna si scrivono nella tendina <i>Nomi delle barre in piu'</i>."],
+  g_barre: ["barre", "#4fb0d8", "la principale, quelle in watt e l'avanzamento",
+    "Tutte le barre della scheda, in ordine, e ogni campo dice di quale barra parla. <b>Barra principale</b>: quella grande in fondo, che c'e' sempre - qui c'e' tutto: il sensore che legge, il nome, l'unita' e il fondo scala. <b>Barre in watt</b>: quante ne vuoi, una per sensore; scegli i sensori e sotto compare una riga per ognuno, col suo nome e il suo fondo scala. <b>Barra dell'avanzamento</b>: una sola, e non e' in watt - e' un numero da 0 a 100, il programma che avanza o l'umidita' della stanza."],
   g_aspetto: ["tavolozza", "#f06e82", "colori, trasparenza e velo della finestrella",
     "Come si veste la finestrella che si apre dai tondini: tinta, trasparenza, colore delle scritte, e quanto scurisce e sfoca quello che c'e' dietro. In piu' la pagina delle notifiche, se ne hai una."],
 };
 
-const SEMPLICI = ["name", "power_entity", "artwork"];
-const SCHEMA_SEMPLICE = SEMPLICI
+const daSchema = (nomi) => nomi
   .map((n) => SCHEMA_TUTTO.find((x) => x.name === n))
   .filter(Boolean);
+// Le poche impostazioni: qui dentro c'e' anche la presa, se no uno che non
+// apre i cassetti non avrebbe nessun modo di sceglierla.
+const SCHEMA_SEMPLICE = daSchema(["name", "power_entity", "artwork"]);
+// Con "mostra tutto" la presa se ne va nel cassetto delle barre, insieme al
+// nome e al fondo scala di quella barra: un campo solo, in un posto solo.
+const SCHEMA_SEMPLICE_CORTO = daSchema(["name", "artwork"]);
 const GRUPPI = SCHEMA_TUTTO
   .filter((x) => Array.isArray(x.schema))
   .map((x) => ({ chiave: x.name, titolo: x.title, schema: x.schema }));
@@ -23327,6 +24530,12 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     }
     this._config = c;
     this._emetti();
+    // quello che si legge dalla configurazione va rifatto adesso: se no la
+    // riga di una barra appena scelta compare solo riaprendo l'editor
+    this._notaRighe();
+    this._disegnaBarre();
+    this._noteBarre();
+    this._riassunti();
   }
 
   // cerca in casa un apparecchio che somigli al disegno scelto
@@ -23347,15 +24556,42 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
   }
 
   // nome e fondo scala di ogni barra in piu'
+  // Quale sensore legge la barra principale, e se quello dell'avanzamento
+  // e' davvero una percentuale. Sono le due domande che il cassetto faceva
+  // venire e a cui non rispondeva.
+  _noteBarre() {
+    const box = this.querySelector(".ce-barre-nota");
+    if (!box) return;
+    const c = this._config || {};
+    const righe = [];
+    if (c.power_entity) {
+      righe.push(T("La barra principale legge") + " <b>" + esc(this._nomeDi(c.power_entity))
+        + "</b> (" + esc(c.power_entity) + ").");
+    }
+    const av = (c.live || {}).progress_entity;
+    const st = av && this._hass ? this._hass.states[av] : null;
+    if (st) {
+      const u = String((st.attributes || {}).unit_of_measurement || "");
+      const n = Number(st.state);
+      const percentuale = u === "%" || (Number.isFinite(n) && n >= 0 && n <= 100);
+      if (!percentuale) {
+        righe.push("\u26a0 " + T("La barra dell'avanzamento vuole un numero da 0 a 100.") + " <b>"
+          + esc(this._nomeDi(av)) + "</b> " + T("adesso vale") + " " + esc(st.state)
+          + (u ? " " + esc(u) : "") + ": " + T("la barra non vorrebbe dire niente."));
+      }
+    }
+    box.innerHTML = righe.map((r) => '<div class="ce-aiuto">' + r + "</div>").join("");
+  }
+
   _disegnaBarre() {
     const box = this.querySelector(".ce-barre");
     if (!box) return;
     const barre = this._config.barre || [];
-    // niente barre in piu' = niente cassetto: era un riquadro che diceva
-    // solo "qui non c'e' niente"
-    const cassetto = box.closest(".ce-sez");
-    if (cassetto) cassetto.hidden = !barre.length;
-    box.innerHTML = "";
+    // adesso l'elenco sta dentro al cassetto delle barre, che ha anche
+    // altro: non si nasconde, si svuota e basta
+    box.innerHTML = barre.length
+      ? "<div class='ce-aiuto'>" + T("Il nome e il fondo scala di ogni barra in watt scelta qui sopra.") + "</div>"
+      : "";
     barre.forEach((b, i) => {
       const riga = document.createElement("div");
       riga.className = "ce-riga";
@@ -23392,17 +24628,10 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     const n = (c) => Number((this.querySelector(c) || {}).value) || 0;
     const energia = n(".ce-v-energia");
     if (energia > 0) return Math.round(energia * 10000) / 10000;
-    // se hai detto "scrivo io" valgono SOLO le voci: niente numeri di scorta
-    const sel = this.querySelector(".ce-prezzo-ent");
-    if (sel && sel.value === "__mia__") return 0;
-    return Number((this.querySelector(".ce-prezzo") || {}).value) || 0;
-  }
-
-  _aggiornaTotale() {
-    const t = this.querySelector(".ce-v-totale");
-    if (!t) return;
-    const v = this._prezzoScritto();
-    t.textContent = v ? v.toFixed(4) + " \u20ac/kWh" : "\u2014";
+    // niente numeri di scorta: o la tariffa che hai scritto qui sopra, o
+    // zero e comanda l'aiutante che hai scelto dall'elenco. Prima qui
+    // c'era una casella nascosta con dentro 0.25, e usciva quello.
+    return 0;
   }
 
   // il nome buono e' quello del dispositivo ("Lavatrice"), non del sensore
@@ -23417,7 +24646,6 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     return (st && st.attributes && st.attributes.friendly_name) || "";
   }
 
-  // i dati a tutti i moduli (quello in cima e i cassetti)
   _datiAiModuli() {
     const dati = this._datiForm();
     (this._moduli || []).forEach((f) => { f.data = dati; });
@@ -23431,7 +24659,8 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     const pe = cfg.period_entities || {};
     const ci = cfg.ciclo || {};
     if (!cfg.reset_script) return;
-    if (!window.confirm(T("Azzero i contatori di questa scheda. Vado?"))) return;
+    if (!confermaDoppia(this.querySelector(".ce-azzera"),
+      T("Azzero i contatori: premi di nuovo"))) return;
     this._hass.callService("script", "turn_on", {
       entity_id: cfg.reset_script,
       variables: {
@@ -23480,22 +24709,28 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     metti(".ce-sez-tasti", tasti ? tasti + " " + T(tasti === 1 ? "tasto" : "tasti") : T("nessuno"));
     const righe = Array.isArray(c.righe) ? c.righe.length : this._righeDaOffrire().length;
     metti(".ce-sez-righe", righe + " " + T(righe === 1 ? "accesa" : "accese"));
-    const barre = (c.barre || []).length;
-    metti(".ce-sez-barre", barre ? barre + " " + T(barre === 1 ? "barra" : "barre") : T("nessuna"));
   }
 
-  // Le righe che ha senso proporre. Se la scheda segue i cicli, "kWh di oggi"
-  // e "Costo di oggi" ripetono il ciclo ogni volta che di cicli ne fai uno al
-  // giorno, e il totale del giorno sta comunque nelle Statistiche. Quindi non
-  // le propongo - a meno che tu non le abbia gia' accese, se no non potresti
-  // piu' toglierle.
+  // Tutte, sempre. Prima "kWh di oggi" e "Costo di oggi" le toglievo quando
+  // la scheda segue i cicli: dicono la stessa cosa del ciclo se di cicli ne
+  // fai uno al giorno. Ma toglierle voleva dire che chi le aveva spente non
+  // poteva piu' riaccenderle. Adesso le spiego e basta, vedi _notaRighe().
   _righeDaOffrire() {
+    return RIGHE_CICLO;
+  }
+
+  // La riga sotto all'elenco: compare solo se la scheda segue i cicli, che e'
+  // l'unico caso in cui quelle due righe sono un doppione.
+  _notaRighe() {
+    const box = this.querySelector(".ce-righe-nota");
+    if (!box) return;
     const c = this._config || {};
-    const haCicli = !!(c.cycle_sensor || c.ciclo || c.ciclo_live);
-    if (!haCicli) return RIGHE_CICLO;
-    const accese = Array.isArray(c.righe) ? c.righe : [];
-    return RIGHE_CICLO.filter((r) => !(["oggi", "costo_oggi"].includes(r.id)
-      && !accese.includes(r.id)));
+    const vale = !!(c.ciclo || c.ciclo_live);
+    box.hidden = !vale;
+    if (!vale) { box.innerHTML = ""; return; }
+    box.innerHTML = '<div class="ce-aiuto">'
+      + T("Questa scheda segue i <b>cicli</b>: se l'apparecchio ne fa uno al giorno, <i>kWh di oggi</i> e <i>Costo di oggi</i> dicono la stessa cosa del ciclo appena finito, e il totale del giorno sta comunque nelle Statistiche. Per questo di solito si lasciano spente - ma se ti servono, accendile pure.")
+      + "</div>";
   }
 
   _disegnaRighe() {
@@ -23505,12 +24740,9 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       this._emetti();
       this._disegnaRighe();
     });
+    this._notaRighe();
     this._disegnaBarre();
-    this.querySelectorAll(".ce-v-energia").forEach((x) => {
-      if (x._agganciato) return;
-      x._agganciato = true;
-      x.addEventListener("input", () => this._aggiornaTotale());
-    });
+    this._noteBarre();
     // il sceglitore di "Compila da solo" senza `hass` resta vuoto e non cerca
     const sceglitore = this.querySelector(".ce-capisci-ent");
     if (sceglitore) sceglitore.hass = this._hass;
@@ -23518,12 +24750,9 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
 
   _disegnaPrezzo() {
     const sel = this.querySelector(".ce-prezzo-ent");
-    const campo = this.querySelector(".ce-prezzo");
-    if (!sel || !campo) return;
+    if (!sel) return;
     const elenco = prezziDelKWh(this._hass);
     const scelto = sel.value;
-    sel.hidden = false;
-    campo.hidden = true;
     sel.innerHTML = "";
     // niente di preselezionato: il prezzo lo scegli tu
     const vuoto = document.createElement("option");
@@ -23565,7 +24794,6 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     const sel = this.querySelector(".ce-prezzo-ent");
     const mia = sel && sel.value === "__mia__";
     this.querySelectorAll(".ce-voci").forEach((x) => { x.hidden = !mia; });
-    this._aggiornaTotale();
   }
 
   // DIVERSA DI PROPOSITO da quella della scheda energia: qui vanno bene anche
@@ -23678,9 +24906,8 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       this._esito.textContent = "Hai detto \u00abscrivo io\u00bb ma le voci della tariffa sono vuote.";
       return;
     }
-    if (!window.confirm("Creo in Home Assistant gli helper delle statistiche di "
-      + (this._config.name || "questo elettrodomestico") + "." + "\n"
-      + "Quelli che ci sono gia' li riuso. Vado?")) return;
+    // la conferma la chiede il tasto: premilo due volte
+    if (!confermaDoppia(tasto, T("Creo gli aiutanti: premi di nuovo"))) return;
     tasto.disabled = true;
     this._esito.hidden = false;
     this._esito.classList.remove("male");
@@ -23717,6 +24944,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         const piu = await creaCicli(this._hass, {
           potenza, energia: kwhVero, nome: this._config.name,
           soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+          attesa: Number(this._config.ciclo_attesa_sec) || 100,
         }, (t) => this._dillo(t));
         this._config = { ...this._config, ...piu };
       }
@@ -23746,9 +24974,9 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           <div class="ce-riga"><span class="ent">${T("Sensore dei kWh")}</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
           <div class="ce-aiuto ce-nota-kwh"></div>
           <div class="ce-riga"><span class="ent ce-soglia-eti">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> <span class="ce-soglia-un">W</span></div>
-          <div class="ce-riga"><span class="ent">${T("Prezzo dei sensori che creo")}</span><select class="ce-prezzo-ent"></select><input type="number" class="ce-prezzo max" step="0.001" min="0" value="0.25" hidden></div>
+          <div class="ce-riga"><span class="ent">${T("Prezzo dei sensori che creo")}</span><select class="ce-prezzo-ent"></select></div>
           <div class="ce-riga ce-voci" hidden><span class="ent">Quanto paghi l'energia, &euro;/kWh</span><input type="number" class="ce-v-energia max" step="0.0001" min="0" placeholder="0.1657"></div>
-          <div class="ce-riga ce-voci ce-voci-nota" hidden><span class="ent">${T("Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia\u0027 la scheda grande della casa.")}</span></div>
+          <div class="ce-riga ce-voci" hidden><span class="ent">${T("Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia\u0027 la scheda grande della casa.")}</span></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-cicli">
             <span>${T("Segui i <b>cicli</b>: quando finisce, quanto e\u0027 durato, quanto ha consumato (6 aiutanti e 1 automazione, una volta sola)")}</span></label></div>
           <div class="ce-riga"><label><input type="checkbox" class="ce-tempi">
@@ -23774,12 +25002,10 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
             <summary class="ce-tit">${titoloSez(VESTITO.righe, T("Righe dell\u0027\u00abUltimo ciclo\u00bb"))}</summary>
             <div class="ce-aiuto">${T("Spunta quelle da vedere e trascinale dalla maniglia \u283f per metterle in ordine. Nome e colore sono facoltativi (vuoto = quelli di serie).")}</div>
             <div class="ce-righe"></div>
+            <div class="ce-righe-nota" hidden></div>
           </details>
-          <details class="ce-sez ce-tendina ce-sez-barre" data-c="1" style="--c:#4fb0d8">
-            <summary class="ce-tit">${titoloSez(VESTITO.barre, T("Nomi delle barre in piu\u0027"))}</summary>
-            <div class="ce-aiuto">${T("Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto <i>Seconda barra</i>.")}</div>
-            <div class="ce-barre"></div>
-          </details>
+          <div class="ce-barre-nota" hidden></div>
+          <div class="ce-barre" hidden></div>
           <div class="ce-gruppi"></div>
         </div>`);
       // un modulo per i tre campi di sempre, e uno per ogni cassetto: cosi'
@@ -23797,6 +25023,10 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       };
       const form = faiModulo(SCHEMA_SEMPLICE, this.querySelector(".ce-form"));
       this._form = form;
+      // la presa sta in cima solo finche' il cassetto delle barre e' chiuso
+      this._spostaPresa = () => {
+        form.schema = traduciSchema(this._tutto ? SCHEMA_SEMPLICE_CORTO : SCHEMA_SEMPLICE);
+      };
       this._moduli = [form];
       const cassetti = this.querySelector(".ce-gruppi");
       GRUPPI.forEach((g) => {
@@ -23818,15 +25048,24 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         }
         cassetti.appendChild(box);
         this._moduli.push(faiModulo(g.schema, box));
+        // i nomi delle barre vanno dove le barre si scelgono, non altrove
+        if (g.chiave === "g_barre") {
+          const nota = this.querySelector(".ce-barre-nota");
+          if (nota) { nota.hidden = false; box.appendChild(nota); }
+          const elenco = this.querySelector(".ce-barre");
+          if (elenco) { elenco.hidden = false; box.appendChild(elenco); }
+        }
       });
       this._avanzate = this.querySelector(".ce-avanzate");
       const spunta = this.querySelector(".ce-tutto");
       if (spunta) {
         spunta.checked = !!this._tutto;
         this._avanzate.hidden = !this._tutto;
+        this._spostaPresa();
         spunta.addEventListener("change", () => {
           this._tutto = spunta.checked;
           this._avanzate.hidden = !this._tutto;
+          this._spostaPresa();
           this._datiAiModuli();
         });
       }
@@ -23865,8 +25104,11 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           return;
         }
         const pronta = preparaElettrodomestico(this._hass, { entity: entita, name: c0.name, icona: c0.artwork });
+        // Quello che NON viene dal dispositivo non si tocca: il prezzo e lo
+        // script di azzeramento (nascono quando crei i contatori), l'aspetto,
+        // e le scelte che hai fatto tu sulle righe.
         const tieni = {};
-        ["name", "righe", "nomi_righe", "notification_path", "grid_options", "casa_misura"].forEach((k) => {
+        MIE_NON_DEL_DISPOSITIVO.forEach((k) => {
           if (c0[k] !== undefined) tieni[k] = c0[k];
         });
         this._config = { type: c0.type, ...pronta, ...tieni };
@@ -23874,7 +25116,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         this._datiAiModuli();
         this._disegnaRighe();
         const c = this._config;
-        const trovate = ["power_entity", "interruttore", "interruttore_usb", "cycle_sensor"].filter((x) => c[x]);
+        const trovate = ["power_entity", "interruttore", "interruttore_usb"].filter((x) => c[x]);
         if (c.ciclo_live) trovate.push("ciclo in corso");
         if (c.live && c.live.state_entity) trovate.push("stato");
         this._esito.textContent =
@@ -23938,8 +25180,8 @@ window.customCards.push({
 [
   ["casa-elettrodomestico", "Casa \u00b7 consumi",
    "Una scheda per elettrodomestici E prese: watt, acceso/spento, ultimo ciclo oppure kWh e costi di oggi e del mese. Capisce da sola le entita' del dispositivo."],
-  // casa-energia resta viva per le schede gia' in giro (la grande della casa,
-  // con bolletta e top consumo) ma non si propone piu' nell'elenco: una sola.
+  ["casa-energia", "Casa · energia di tutta la casa",
+   "La scheda grande: watt adesso, consumi e costi per ora, oggi, settimana, mese e bolletta, chi consuma di piu', risparmio dei pannelli. Di solito ne basta una."],
 ].forEach(([type, name, description]) => {
   if (!window.customCards.some((x) => x && x.type === type)) {
     window.customCards.push({ type, name, description });

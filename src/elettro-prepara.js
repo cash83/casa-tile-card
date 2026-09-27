@@ -67,14 +67,34 @@ const STATI_ITALIANI = {
 
 export const DISEGNI = [
   ["dishwasher", ["lavastovigli", "dishwasher"]],
+  ["piano_cottura", ["piano_cottura", "induzion", "piastr", "hob", "cooktop"]],
+  ["cappa", ["cappa", "aspirant", "hood"]],
+  ["caffe", ["caffe", "coffee", "espresso", "moka", "nespresso", "cialde"]],
+  ["bollitore", ["bollitor", "kettle", "theiera"]],
+  ["tostapane", ["tostapan", "toaster", "tostiera"]],
+  ["friggitrice", ["friggitric", "airfryer", "air_fryer", "fryer"]],
+  ["congelatore", ["congelator", "freezer", "pozzetto"]],
+  ["termoventilatore", ["termoventilator", "stufetta", "termoconvettor", "heater"]],
+  ["pompa_calore", ["pompa_di_calore", "pompa_calore", "heat_pump", "unita_esterna"]],
+  ["pellet", ["pellet", "stufa"]],
+  ["radiatore", ["radiator", "termosifon", "stufa_a_olio", "olio"]],
+  ["scaldasalviette", ["scaldasalviett", "termoarred", "portasalviett"]],
+  ["robot", ["aspirapolver", "roborock", "dreame", "roomba", "vacuum", "robot"]],
+  ["asciugacapelli", ["asciugacapell", "phon", "hairdryer", "hair_dryer"]],
+  ["ferro", ["ferro_da_stiro", "stiro", "ferro", "iron"]],
+  ["pompa", ["autoclave", "pompa", "pump", "depurator"]],
+  ["acquario", ["acquari", "aquarium", "vasca_pesci"]],
+  ["stampante3d", ["stampante_3d", "kobra", "anycubic", "bambu", "prusa", "ender", "printer_3d"]],
+  ["console", ["playstation", "xbox", "nintendo", "switch_console", "console", "ps5", "ps4"]],
+  ["colonnina", ["colonnina", "wallbox", "ricarica_auto", "charger", "ev_"]],
   // la lavatrice prima: "lavASCIUGA" contiene "asciuga"
   ["washer", ["lavatric", "lavasciug", "washer", "lavaggio"]],
   ["dryer", ["asciugatric", "dryer", "asciuga"]],
-  ["oven", ["forno", "oven", "fornell"]],
+  ["oven", ["forno", "oven"]],
   ["tv", ["tv", "televisor"]],
   ["boiler", ["boiler", "scaldabagn", "caldaia"]],
   ["condizionatore", ["condizionator", "clima", "split", "aria_condizionata", "conditioner"]],
-  ["frigorifero", ["frigo", "fridge", "congelator", "freezer", "pozzetto"]],
+  ["frigorifero", ["frigo", "fridge"]],
   ["ventilatore", ["ventilator", "ventola", "fan", "aspirator"]],
   ["microonde", ["microond", "microwave"]],
   ["dehumidifier", ["deumidificator", "umidificator", "dehumid"]],
@@ -86,6 +106,7 @@ export const DISEGNI = [
   ["powerstation", ["powerstation", "power_station", "landbook", "ecoflow", "jackery"]],
   ["ciabatta", ["ciabatta", "multipresa", "presa_multipla", "power_strip"]],
   ["presa", ["presa", "spina", "plug", "socket", "outlet"]],
+  ["cucina", ["cucina", "kitchen"]],
 ];
 
 const pulisci = (s) => String(s || "").toLowerCase()
@@ -268,18 +289,6 @@ export function preparaElettrodomestico(hass, cfg) {
   if (oggiC) scheda.oggi_costo = oggiC;
   if (meseC) scheda.mese_costo = meseC;
 
-  const k = cicloDi(hass, cfg);
-  if (k) {
-    scheda.cycle_sensor = `sensor.${k}_ciclo`;
-    scheda.cycle_attrs = { end: "terminato", duration: "tempo_ciclo", energy: "consumo_ciclo", cost: "costo_ciclo" };
-    scheda.period_attrs = {
-      today: { time: "tempo_oggi", cost: "costo_oggi" },
-      yesterday: { time: "tempo_ieri", cost: "costo_ieri" },
-      month: { time: "tempo_mese", cost: "costo_mese" },
-      month_prev: { time: "tempo_mese_prec", cost: "costo_mese_prec" },
-    };
-    scheda.stats = { cycles_today: `sensor.${k}_cicli_oggi`, cycles_month: `sensor.${k}_cicli_mese` };
-  }
   return scheda;
 }
 

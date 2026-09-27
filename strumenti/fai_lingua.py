@@ -567,6 +567,74 @@ VOCI = {
 # quindi non passano dall'estrattore. Le tengo qui, indicizzate per
 # frase italiana come le LIBERE.
 ELETTRO = {
+    "La barra principale legge": "The main bar reads",
+    "Per cambiarlo vai in cima, <i>Presa che misura</i>.": "To change it go to the top, <i>Metering socket</i>.",
+    "La barra dell'avanzamento vuole un numero da 0 a 100.": "The progress bar wants a number from 0 to 100.",
+    "adesso vale": "is now",
+    "la barra non vorrebbe dire niente.": "the bar would mean nothing.",
+    "Il nome e il fondo scala di ogni barra in watt scelta qui sopra.":
+        "The name and full scale of each watt bar chosen above.",
+    "Barre in WATT: quali sensori (il nome di ognuna si scrive qui sotto)":
+        "Bars in WATTS: which sensors (each one's name is written below)",
+    "Barra dell'AVANZAMENTO: quale sensore, da 0 a 100 (programma, umidita'...)":
+        "PROGRESS bar: which sensor, from 0 to 100 (programme, humidity...)",
+    "Barra dell'AVANZAMENTO: il nome (vuoto = Avanzamento programma)":
+        "PROGRESS bar: the name (empty = Programme progress)",
+    "Tutte le barre della scheda, in ordine, e ogni campo dice di quale barra parla. <b>Barra principale</b>: quella grande in fondo, che c'e' sempre - qui le cambi nome, unita' e fondo scala (quale sensore legge si sceglie in cima, <i>Presa che misura</i>). <b>Barre in watt</b>: quante ne vuoi, una per sensore; scegli i sensori e sotto compare una riga per ognuno, col suo nome e il suo fondo scala. <b>Barra dell'avanzamento</b>: una sola, e non e' in watt - e' un numero da 0 a 100, il programma che avanza o l'umidita' della stanza.":
+        "All the card's bars, in order, and every field says which bar it is about. <b>Main bar</b>: the big one at the bottom, always there - here you change its name, unit and full scale (which sensor it reads is chosen at the top, <i>Metering socket</i>). <b>Bars in watts</b>: as many as you like, one per sensor; choose the sensors and a row appears below for each, with its name and full scale. <b>Progress bar</b>: just one, and it is not in watts - it is a number from 0 to 100, a programme advancing or the humidity of a room.",
+    "Pop-up: la tinta della finestra (vuoto = come le schede)": "Dialog: the tint of the window (empty = same as the cards)",
+    "Pop-up: quanto e' trasparente la finestra": "Dialog: how transparent the window is",
+    "Pop-up: il colore delle scritte": "Dialog: the colour of the text",
+    "Pop-up: quanto scurisce quello che c'e' dietro": "Dialog: how much it darkens what is behind",
+    "Pop-up: quanto sfoca quello che c'e' dietro": "Dialog: how much it blurs what is behind",
+    "Quando e' acceso":
+        "When it is on",
+    "Le barre":
+        "The bars",
+    "sopra quanti watt sta lavorando":
+        "above how many watts it is running",
+    "la principale, quelle in watt e l'avanzamento":
+        "the main one, the ones in watts and the progress one",
+    "Barra principale: fondo scala (dove arriva quando e' piena)":
+        "Main bar: full scale (where it gets to when full)",
+    "Barra principale: il nome (vuoto = Potenza attuale)":
+        "Main bar: the name (empty = Current power)",
+    "Barra principale: l'unita' (vuoto = W)":
+        "Main bar: the unit (empty = W)",
+    "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. I <b>secondi di fermo</b> dicono quando il ciclo e' finito davvero: il forno spegne e riaccende la resistenza, la lavatrice ha le pause dell'ammollo, e senza attesa ogni pausa sembrerebbe la fine. Finche' aspetta, l'Ultimo ciclo resta coi trattini. Cambiato il numero, ripremi <i>Crea le statistiche</i>: riscrivo l'automazione. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'.":
+        "Above how many watts the card says <b>running</b>, and below how many <b>standby</b>. The <b>idle seconds</b> say when the cycle is really over: an oven switches its element on and off, a washing machine has soaking pauses, and with no wait every pause would look like the end. While it waits, Last cycle keeps showing dashes. Change the number, then press <i>Create the statistics</i> again: I rewrite the automation. If the appliance has its own integration telling the real state, put it at the bottom: that one wins and the thresholds stop mattering.",
+    "Secondi di fermo prima di dire che ha finito (vuoto = 100)": "Idle seconds before calling it finished (empty = 100)",
+    "Le barre sotto alla potenza":
+        "The bars under the power one",
+    "altre misure sotto alla potenza":
+        "other readings under the power bar",
+    "Barre in WATT: una per ogni cosa che vuoi vedere (quante ne vuoi)":
+        "Bars in WATTS: one for each thing you want to see (as many as you like)",
+    "Barra dell'AVANZAMENTO: un numero da 0 a 100 (programma, umidita'...)":
+        "PROGRESS bar: a number from 0 to 100 (programme, humidity...)",
+    "Nome della barra dell'avanzamento (vuoto = Avanzamento programma)":
+        "Name of the progress bar (empty = Programme progress)",
+    "Disposizione della scheda": "Card layout",
+    "Azzero i contatori: premi di nuovo": "Resetting the counters: press again",
+    "Creo gli aiutanti: premi di nuovo": "Creating the helpers: press again",
+    "Creo i contatori: premi di nuovo": "Creating the counters: press again",
+    "dalle": "since",
+    "Questa scheda segue i <b>cicli</b>: se l'apparecchio ne fa uno al giorno, <i>kWh di oggi</i> e <i>Costo di oggi</i> dicono la stessa cosa del ciclo appena finito, e il totale del giorno sta comunque nelle Statistiche. Per questo di solito si lasciano spente - ma se ti servono, accendile pure.":
+        "This card follows <b>cycles</b>: if the appliance runs one a day, <i>Today kWh</i> and <i>Today cost</i> say the same thing as the cycle that just ended, and the daily total is in Statistics anyway. That is why they are usually left off - but turn them on if you want them.",
+    "Chiaro o scuro (questa scheda soltanto)": "Light or dark (this card only)",
+    "Automatico - come Home Assistant": "Automatic - follow Home Assistant",
+    "Sempre chiaro": "Always light",
+    "Sempre scuro": "Always dark",
+    "Classico - la foto a sinistra": "Classic - photo on the left",
+    "Centrato - la foto in mezzo, i numeri sotto": "Centred - photo in the middle, numbers below",
+    "Come si apre il pop-up": "How the dialog opens",
+    "Quanto dura l'apertura": "How long the opening takes",
+    "Larghezza del pop-up (vuoto = 560)": "Dialog width (empty = 560)",
+    "Foto di sfondo del pop-up (indirizzo)": "Dialog background photo (address)",
+    "Sale e sfuma - discreta": "Rises and fades - discreet",
+    "Sboccia dal tondino che hai premuto": "Blooms from the button you pressed",
+    "Entra dal basso, come un cassetto": "Slides up, like a drawer",
+    "Nessuna animazione": "No animation",
     "parti da un'entita' e riempio io il resto":
         "start from one entity and I fill in the rest",
     "i kWh, il prezzo, i cicli e l'azzeramento":
@@ -601,8 +669,6 @@ ELETTRO = {
         "Only needed if an integration or a package gives you a <b>ready-made</b> sensor holding the last cycle (end, duration and energy in its attributes). Then the card reads that instead of the counters it creates itself. If you don't have one, leave it empty.",
     "Le entita' che parlano <b>mentre l'apparecchio lavora</b>: quanto ha gia' consumato, da quanto va, quanto manca, il programma e la fase. Sono quelle che riempiono il riquadro <i>Ciclo in corso</i>. Anche queste le da' l'integrazione dell'apparecchio, non la presa.":
         "The entities that speak <b>while the appliance is working</b>: how much it has used, how long it has been going, how long is left, the programme and the phase. They fill the <i>Cycle running</i> box. These also come from the appliance's integration, not from the socket.",
-    "Una seconda barra sotto a quella della potenza: un'altra misura in watt, oppure un avanzamento da 0 a 100 (il programma, l'umidita'...). Il nome e il fondo scala di ognuna si scrivono nella tendina <i>Nomi delle barre in piu'</i>.":
-        "A second bar under the power one: another reading in watts, or a progress from 0 to 100 (the programme, the humidity...). The name and full scale of each are written in the <i>Names of the extra bars</i> drawer.",
     "Come si veste la finestrella che si apre dai tondini: tinta, trasparenza, colore delle scritte, e quanto scurisce e sfoca quello che c'e' dietro. In piu' la pagina delle notifiche, se ne hai una.":
         "How the dialog the round buttons open is dressed: tint, transparency, text colour, and how much it darkens and blurs what is behind. Plus the notifications page, if you have one.",
     "tasto": "button",
@@ -706,7 +772,29 @@ ELETTRO = {
     "Aspetto e finestra del pop-up": "Look and pop-up window",
     "Tasti e interruttori": "Buttons and switches",
     # le voci degli elenchi
+    "Cucina (tutta la linea)": "Kitchen (the whole circuit)",
     "Lavatrice": "Washing machine",
+    "Piano cottura a induzione": "Induction hob",
+    "Cappa aspirante": "Cooker hood",
+    "Macchina del caffe'": "Coffee machine",
+    "Bollitore": "Kettle",
+    "Tostapane": "Toaster",
+    "Friggitrice ad aria": "Air fryer",
+    "Congelatore": "Freezer",
+    "Termoventilatore": "Fan heater",
+    "Pompa di calore": "Heat pump",
+    "Stufa a pellet": "Pellet stove",
+    "Radiatore elettrico": "Electric radiator",
+    "Scaldasalviette": "Towel warmer",
+    "Robot aspirapolvere": "Robot vacuum",
+    "Asciugacapelli": "Hair dryer",
+    "Ferro da stiro": "Iron",
+    "Pompa dell'acqua": "Water pump",
+    "Acquario": "Aquarium",
+    "Stampante 3D": "3D printer",
+    "Console da gioco": "Games console",
+    "Colonnina di ricarica": "EV charger",
+    "Barra principale: il sensore che legge (i W della presa, o un altro numero)": "Main bar: the sensor it reads (the plug's watts, or any other number)",
     "Lavastoviglie": "Dishwasher",
     "Asciugatrice": "Tumble dryer",
     "Forno": "Oven",
@@ -780,7 +868,6 @@ ELETTRO = {
     "Questa scheda va bene per <b>tutti e due</b> i casi, e capisce da sola quale e' il tuo da quello che compili:<br> &bull; <b>Ha dei cicli</b> (lavatrice, lavastoviglie, forno): dagli il <i>sensore dell'ultimo ciclo</i> e il riquadro fa vedere <i>fine, durata, consumo e costo</i> dell'ultimo lavaggio.<br> &bull; <b>Sta sempre acceso</b> (una presa, un PC, un frigo): lascia stare il ciclo e dagli i <i>quattro sensori dei kWh e dei costi</i> qui sopra; il riquadro diventa <b>Consumi</b> e fa vedere oggi e il mese. Le righe si spuntano qui sotto.": "This card is fine for <b>both</b> cases, and it works out which one is yours from what you fill in:<br> &bull; <b>It has cycles</b> (washing machine, dishwasher, oven): give it the <i>last-cycle sensor</i> and the box shows <i>end, duration, energy and cost</i> of the last wash.<br> &bull; <b>It is always on</b> (a socket, a PC, a fridge): leave the cycle alone and give it the <i>four kWh and cost sensors</i> above; the box becomes <b>Usage</b> and shows today and this month. The rows are ticked below.",
     "A cosa servono i tasti di accensione": "What the power buttons are for",
     "I due campi <b>Tasto ⏻</b> e <b>USB</b> qui sopra mettono un tastino tondo nella barra in alto della scheda, accanto all'ingranaggio. Premuto accende o spegne, e resta <b>verde</b> finche' l'apparecchio e' acceso. Lasciali vuoti e il tasto non compare. Va bene qualsiasi cosa si accenda: presa, luce, ventola, deumidificatore.<br> Se invece hai una <b>ciabatta</b> con tre o quattro prese, usa <b>Piu' prese</b>: diventano una fila di tastini col nome di ognuna, verdi quando danno corrente.": "The two fields <b>⏻ button</b> and <b>USB</b> above put a small round button in the card's top bar, next to the gear. Pressed, it switches on or off, and it stays <b>green</b> while the appliance is on. Leave them empty and no button shows up. Anything that switches on will do: a socket, a light, a fan, a dehumidifier.<br> If instead you have a <b>power strip</b> with three or four sockets, use <b>Several sockets</b>: they become a row of small buttons with each name, green when they are live.",
-    "Nomi delle barre in piu'": "Names of the extra bars",
     "Il nome e il fondo scala (W) di ogni barra che hai scelto nel cassetto <i>Seconda barra</i>. Servono per far vedere insieme piu' misure: per esempio quanto prende dalla rete e quanto manda a casa.": "The name and the full scale (W) of every bar you picked in the <i>Second bar</i> drawer. They are for showing several measurements together: for example how much comes in from the grid and how much goes out to the house.",
     "Righe dell'«Ultimo ciclo»": "Rows of the «Last cycle» box",
     "Spunta quelle da vedere, trascinale dalla maniglia ⠿ per metterle in ordine e, se vuoi, scrivi il nome e scegli il colore che preferisci (vuoto = quelli di serie; il tasto ↺ rimette il colore originale).": "Tick the ones to show, drag them by the ⠿ handle to put them in order and, if you like, write the name and pick the colour you prefer (empty = the built-in ones; the ↺ button puts the original colour back).",
@@ -812,6 +899,21 @@ ELETTRO = {
 # browser nella lingua di chi guarda ("Mar" in italiano e' sia martedi'
 # sia marzo, nel dizionario non ci starebbero entrambi).
 ELETTRO_SCHEDE = {
+    "Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.":
+        "This is where the kWh go, and this card counts none. Power over time is in the button next door, Trend.",
+    "Andamento": "Trend",
+    "24 h": "24 h",
+    "7 gg": "7 d",
+    "30 gg": "30 d",
+    "Da… a": "From… to",
+    "Da": "From",
+    "A": "To",
+    "Applica": "Apply",
+    "Minimo": "Lowest",
+    "Media": "Average",
+    "Massimo": "Highest",
+    "Nessun dato nel periodo": "No data in this period",
+    "Non c'e' nessun sensore da disegnare": "There is no sensor to draw",
     "prima la sola energia, poi quanto costa in bolletta":
         "energy only first, then what it costs on the bill",
     "non e' un numero, cosi' non posso sapere se sta lavorando":

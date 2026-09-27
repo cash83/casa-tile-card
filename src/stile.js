@@ -1892,7 +1892,7 @@ svg .caricafulmine { animation-play-state: running; }
 :host([fermo]) svg .caricafulmine { animation-play-state: paused; }
 
 .velo {
-  position: fixed; inset: 0; z-index: 9; display: none;
+  position: fixed; inset: 0; z-index: 9; display: none; overscroll-behavior: contain;
   background: rgba(4,7,12,.72); backdrop-filter: blur(6px);
   align-items: center; justify-content: center; padding: 16px;
 }
@@ -1900,6 +1900,8 @@ svg .caricafulmine { animation-play-state: running; }
 .finestra {
   /* con piu' colonne serve piu' spazio: la finestra si allarga da sola */
   width: min(var(--fin-max, 560px), 100%); max-height: 84vh; overflow: auto;
+  /* arrivato in fondo, il dito continuava a scorrere la pagina dietro */
+  overscroll-behavior: contain;
   background: var(--fin-bg, var(--casa-popup-bg, #0f1620));
   background-size: cover; background-position: center;
   border: 1px solid var(--casa-border, #1e2b3d);

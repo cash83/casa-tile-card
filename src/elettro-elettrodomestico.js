@@ -18,6 +18,7 @@ import {
   ICON_EURO,
   giornoBreve,
   meseBreve,
+  meseLungo,
   WEEKDAY_FULL_IT,
   DEFAULT_STATE_MAP,
   STYLE,
@@ -26,8 +27,12 @@ import {
 } from './elettro-comune.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
 import { ConFinestrelle } from './elettro-condivisi.js';
+import { ConGrafico } from './elettro-grafico.js';
 
 // Le righe dell'Ultimo ciclo, col nome che si vede nell'editor.
+const ICON_ANDAMENTO =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>';
+
 export const RIGHE_CICLO = [
   { id: "fine", nome: "Fine del ciclo (data e ora)", etichetta: "Fine", colore: "#a283f2" },
   { id: "durata", nome: "Durata del ciclo", etichetta: "Durata", colore: "#2fbfb0" },
@@ -42,7 +47,7 @@ export const RIGHE_CICLO = [
 ];
 
 
-export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
+export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // Le righe dell'Ultimo ciclo, nell'ordine e coi nomi della configurazione.
   _righeCiclo() {
     const R = {
@@ -59,7 +64,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     };
     const c = this._config;
     const pe0 = c.period_entities || {};
-    const haCicli = !!(c.cycle_sensor || c.ciclo);
+    const haCicli = !!c.ciclo;
     const haPeriodi = !!(c.oggi_energia || c.oggi_costo || c.mese_energia || c.mese_costo
       || (pe0.today || {}).energy || (pe0.month || {}).energy);
     const daCiclo = ["fine", "durata", "consumo", "costo"];
@@ -124,7 +129,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
     const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.dishwasher;
     this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
-      <article class="dm-ap-card">
+      <article class="dm-ap-card ${this._config.layout === "centrato" ? "centrato" : ""}">
         ${this._config.label ? `<span class="dm-test-flag">${esc(this._config.label)}</span>` : ""}
         <div class="dm-ap-top">
           <span class="dm-ap-chip">${chip}</span>
@@ -135,6 +140,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
           <span class="dm-ap-badge"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label"></span></span>
           <span class="dm-ap-tools">
             ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
+            <button type="button" class="dm-ap-tool dm-ap-andamento" title="Andamento">${ICON_ANDAMENTO}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
             <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
@@ -186,10 +192,23 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     this._tastiAggancia();
     this._root.querySelector(".dm-ap-stats").addEventListener("click", (e) => {
       e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
       this._openWeek();
+    });
+    this._root.querySelector(".dm-ap-andamento").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
+      const cfg = this._config;
+      this._apriGrafico([{
+        nome: cfg.power_label || "Potenza",
+        entity: cfg.power_history_entity || cfg.power_entity,
+        colore: "#0ea5e9",
+        unita: cfg.power_unit || "W",
+      }], "Andamento");
     });
     this._root.querySelector(".dm-ap-consumi").addEventListener("click", (e) => {
       e.stopPropagation();
+      this._ultimoTasto = e.currentTarget;
       this._openPowerHistory();
     });
     // la foto dell'apparecchio: com'e' messo adesso
@@ -200,21 +219,22 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         this._openStats();
       });
     }
+    // toccare la barra della potenza apre l'Andamento, che e' la stessa
+    // misura nel tempo: prima apriva i Consumi, che parlano di kWh
     const powerEl = this._root.querySelector(".dm-ap-power-open");
     if (powerEl) {
       powerEl.addEventListener("click", (e) => {
         e.stopPropagation();
-        this._openPowerHistory();
+        const c = this._config;
+        this._apriGrafico([{ nome: c.power_label || "Potenza",
+          entity: c.power_history_entity || c.power_entity,
+          colore: "#0ea5e9", unita: c.power_unit || "W" }], "Andamento");
       });
     }
   }
 
   _cycleAttr(hass, key) {
     const cfg = this._config;
-    if (cfg.cycle_sensor && cfg.cycle_attrs?.[key]) {
-      const st = hass.states[cfg.cycle_sensor];
-      return st ? st.attributes?.[cfg.cycle_attrs[key]] : null;
-    }
     // niente sensore del ciclo: allora sono le tre memorie che riempie
     // l'automazione fatta dalla scheda (fine, minuti, kWh)
     return this._cicloDaMemorie(hass, key);
@@ -282,6 +302,26 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
   // sensore a fine ciclo. Ma l'apparecchio, intanto, i suoi numeri li dice
   // (energia, minuti fatti, minuti che mancano, che fase sta facendo): qui li
   // traduco nelle stesse quattro righe, cosi' il riquadro parla anche adesso.
+  // Una data scritta da noi: "mai scritta" e mezzanotte valgono niente.
+  _quandoDa(hass, eid) {
+    const st = eid ? hass.states[eid] : null;
+    if (!st || ["unknown", "unavailable"].includes(st.state)) return null;
+    if (/[ T]00:00:00$/.test(String(st.state))) return null;
+    const d = new Date(String(st.state).replace(" ", "T"));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // Il ciclo e' aperto se la partenza e' piu' recente della fine: vuol dire
+  // che l'automazione non l'ha ancora chiuso. Non guarda i watt, apposta.
+  _cicloAperto(hass) {
+    const c = this._config.ciclo;
+    if (!c || !c.inizio) return false;
+    const via = this._quandoDa(hass, c.inizio);
+    if (!via) return false;
+    const fine = this._quandoDa(hass, c.fine);
+    return !fine || via > fine;
+  }
+
   // Il ciclo in corso ricavato dai pezzi che crea la scheda: il contatore
   // azzerato alla partenza e la soglia "sta lavorando".
   _cicloVivoDaiNostri(hass) {
@@ -313,7 +353,11 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const h = Math.floor(min / 60);
       out.duration = h ? h + "h " + String(min % 60).padStart(2, "0") + "m" : min + " min";
     }
-    out.end = T("in corso");
+    // mentre lavora la riga della fine dice da che ora e' partito: l'ora di
+    // fine non esiste ancora, e "in corso" da solo non diceva niente
+    out.end = quando
+      ? T("dalle") + " " + quando.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" })
+      : T("in corso");
     return Object.keys(out).length ? out : null;
   }
 
@@ -370,7 +414,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
   // l'ordine in cui si leggono, non quello in cui capitano
   _periodiInOrdine() {
-    const quali = { ...(this._config.period_attrs || {}), ...this._periodi() };
+    const quali = this._periodi();
     const ordine = ["today", "yesterday", "week", "month", "month_prev", "year", "year_prev"];
     const fuori = [];
     ordine.forEach((k) => { if (quali[k]) fuori.push(k); });
@@ -380,9 +424,6 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
   _renderPeriodRow(hass, periodKey) {
     const cfg = this._config;
-    const st = cfg.cycle_sensor ? hass.states[cfg.cycle_sensor] : null;
-    const attrs = st?.attributes || {};
-    const pAttrs = cfg.period_attrs?.[periodKey] || {};
     const s = cfg.stats || {};
     // "ieri"/"mese precedente"/"anno precedente" non sono entita' separate: sono
     // l'attributo "last_period" che i contatori utility_meter (cicli_oggi/mese/anno)
@@ -402,8 +443,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     // se la scheda ha entita' sue per questo periodo (tempo, costo), comandano
     // quelle: sono gli helper che crea il tasto "Crea i sensori base"
     const pEnt = this._periodi()[periodKey] || {};
-    const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time])
-      : (pAttrs.time ? attrs[pAttrs.time] ?? "\u2014" : "\u2014");
+    const time = pEnt.time ? this._tempoLeggibile(hass.states[pEnt.time]) : "\u2014";
     // un periodo finito - ieri, il mese scorso - non e' un'entita' sua: e'
     // l'attributo `last_period` del contatore di quello in corso
     const daEntita = (eid, attributo) => {
@@ -413,8 +453,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     };
     const kwhNum = pEnt.energy ? Number(daEntita(pEnt.energy, pEnt.energy_attr)) : NaN;
     const kwhTxt = Number.isFinite(kwhNum) ? `${numero(kwhNum, 2)} kWh` : "\u2014";
-    let cost = pEnt.cost ? daEntita(pEnt.cost, pEnt.cost_attr)
-      : (pAttrs.cost ? attrs[pAttrs.cost] : null);
+    let cost = pEnt.cost ? daEntita(pEnt.cost, pEnt.cost_attr) : null;
     // senza un sensore del costo il conto lo faccio qui: kWh per il prezzo.
     // Attenzione: Number(null) vale 0, quindi "manca" va chiesto per bene.
     const manca = cost === null || cost === undefined || cost === ""
@@ -523,124 +562,23 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     `);
   }
 
-  // Le caselle "week_rows" sono 7 contenitori fissi per nome del giorno
-  // (Lunedi..Domenica), riscritti dal package uno alla volta quando quel
-  // giorno della settimana si conclude - non una finestra "ultimi 7 giorni"
-  // gia' in ordine. Qui li riordiniamo partendo da ieri e andando indietro,
-  // cosi' l'elenco corrisponde davvero agli ultimi 7 giorni di calendario
-  // (se oggi e' venerdi: giovedi, mercoledi, ... venerdi scorso), con la
-  // data accanto per togliere ogni ambiguita'.
-  // I SETTE GIORNI, presi dall'attributo `giorni` del sensore del ciclo:
-  // {"0": {c: cicli, m: minuti, e: euro}, ...} con 0 = lunedi. Il giorno di
-  // oggi non e' ancora dentro (ci va a mezzanotte): lo leggo dal vivo.
-  _settimanaDaAttributo(hass) {
-    const cfg = this._config;
-    const st = cfg.cycle_sensor ? hass.states[cfg.cycle_sensor] : null;
-    if (!st) return "";
-    const giorni = st.attributes?.[cfg.week_attr || "giorni"] || {};
-    const min2txt = (v) => {
-      const n = Math.round(Number(v) || 0);
-      if (!n) return "0 min";
-      return n < 60 ? n + " min" : Math.floor(n / 60) + "h " + String(n % 60).padStart(2, "0") + "m";
-    };
-    const oggi = new Date();
-    const righe = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(oggi);
-      d.setDate(d.getDate() - i);
-      const lun0 = (d.getDay() + 6) % 7;          // 0 = lunedi, come in Python
-      // oggi dal vivo; ieri, finche' non e' ancora finito nell'attributo, lo
-      // prendo dai campi "_ieri" (sono gli stessi numeri della riga Ieri qui
-      // sopra: se no la stessa finestra direbbe due cose diverse)
-      const contaOggi = cfg.stats && cfg.stats.cycles_today
-        ? hass.states[cfg.stats.cycles_today] : null;
-      let dato;
-      if (i === 0) {
-        dato = { c: contaOggi ? contaOggi.state : st.attributes?.cicli_oggi,
-          m: st.attributes?.min_oggi, e: st.attributes?.costo_oggi };
-      } else {
-        dato = giorni[String(lun0)];
-        if (!dato && i === 1 && st.attributes?.min_ieri !== undefined) {
-          dato = { c: contaOggi ? contaOggi.attributes?.last_period : undefined,
-            m: st.attributes.min_ieri, e: st.attributes.costo_ieri };
-        }
-      }
-      const etichetta = `${giornoBreve(d)} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const vuoto = !dato || (dato.c === undefined && dato.m === undefined && dato.e === undefined);
-      const costo = Number(dato?.e);
-      righe.push(`<div class="dm-ap-week-row">
-        <div class="dm-ap-week-day">${esc(etichetta)}${i === 0 ? " " + T("(oggi)") : ""}</div>
-        <div class="dm-ap-week-stats cols3">
-          <div class="dm-ap-week-stat"><small>Cicli</small><b>${vuoto ? "\u2014" : esc(String(Number(dato.c) || 0))}</b></div>
-          <div class="dm-ap-week-stat"><small>Tempo</small><b>${vuoto ? "\u2014" : esc(min2txt(dato.m))}</b></div>
-          <div class="dm-ap-week-stat"><small>Costo</small><b>${vuoto || !Number.isFinite(costo) ? "\u2014" : numero(costo, 2) + " \u20ac"}</b></div>
-        </div>
-      </div>`);
-    }
-    return righe.join("");
-  }
-
-  _orderedWeekRows() {
-    const rows = this._config.week_rows || [];
-    const byDay = {};
-    rows.forEach((r) => {
-      byDay[r.day] = r;
-    });
-    const today = new Date();
-    const ordered = [];
-    for (let i = 1; i <= 7; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const dow = d.getDay();
-      const row = byDay[WEEKDAY_FULL_IT[dow]];
-      if (!row) continue;
-      const dd = String(d.getDate()).padStart(2, "0");
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      ordered.push({ ...row, _label: `${giornoBreve(d)} ${dd}/${mm}` });
-    }
-    return ordered;
-  }
-
   _openWeek() {
     const hass = this._hass;
     const periods = this._periodiInOrdine();
     const periodRows = periods.map((p) => this._renderPeriodRow(hass, p)).join("");
 
-    const daAttributo = this._settimanaDaAttributo(hass);
-    const rows = this._orderedWeekRows();
-    const body = rows
-      .map((row) => {
-        const cicli = hass.states[row.cicli]?.state ?? "\u2014";
-        const tempo = hass.states[row.tempo]?.state ?? "\u2014";
-        const consumoNum = Number(hass.states[row.consumo]?.state);
-        const consumo = Number.isFinite(consumoNum) ? `${numero(consumoNum, 2)} kWh` : "\u2014";
-        const costoNum = Number(hass.states[row.costo]?.state);
-        const costo = Number.isFinite(costoNum) ? `${numero(costoNum, 2)} \u20ac` : "\u2014";
-        return `<div class="dm-ap-week-row">
-          <div class="dm-ap-week-day">${esc(row._label)}</div>
-          <div class="dm-ap-week-stats">
-            <div class="dm-ap-week-stat"><small>Cicli</small><b>${esc(cicli)}</b></div>
-            <div class="dm-ap-week-stat"><small>Tempo</small><b>${esc(tempo)}</b></div>
-            <div class="dm-ap-week-stat"><small>Consumo</small><b>${consumo}</b></div>
-            <div class="dm-ap-week-stat"><small>Costo</small><b>${costo}</b></div>
-          </div>
-        </div>`;
-      })
-      .join("");
-
     const conta = ((this._config.period_entities || {}).today || {}).energy
       || this._config.oggi_energia || this._config.energy_stat_entity;
-    const vuoto = !daAttributo && !body;
     this._openDialog("Statistiche", `
       ${periodRows ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div><div class="dm-ap-week-list">${periodRows}</div></div>` : ""}
       <div class="dm-ap-sec">
         <div class="dm-ap-sec-cap">Ultimi 7 giorni</div>
-        <div class="dm-ap-week-list" data-sette>${daAttributo || body
-          || (conta ? `<div class="dm-ap-row-val">Guardo nello storico...</div>`
-            : `<div class="dm-ap-row-val">Nessun dato configurato</div>`)}</div>
+        <div class="dm-ap-week-list" data-sette>${conta
+          ? `<div class="dm-ap-row-val">Guardo nello storico...</div>`
+          : `<div class="dm-ap-row-val">Nessun dato configurato</div>`}</div>
       </div>
     `);
-    if (vuoto && conta) this._settimanaDalloStorico(conta);
+    if (conta) this._settimanaDalloStorico(conta);
   }
 
   // -- grafici potenza (linea 24h + istogrammi mese/anno) ------------------
@@ -679,7 +617,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
           ? `<text x="${cx}" y="${(height - h - 3).toFixed(1)}" text-anchor="middle" font-size="7" font-weight="800" fill="#94a3b8">${label}</text>`
           : "";
         // il fumetto: il numero c'e' sempre, anche quando non ci sta scritto
-        const fumetto = (b.label ? b.label + ": " : "") + label;
+        const fumetto = b.fumetto || ((b.label ? b.label + ": " : "") + label);
         return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${color}"><title>${esc(fumetto)}</title></rect>${text}`;
       })
       .join("");
@@ -746,37 +684,17 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
 
   async _openPowerHistory() {
     const cfg = this._config;
-    const powerEntity = cfg.power_history_entity || cfg.power_entity;
     const energyEntity = cfg.energy_stat_entity;
 
     this._openDialog(
       "Consumi",
-      `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultime 24 ore</div><div class="dm-ap-chart-loading" data-chart="24h">Caricamento...</div></div>
-       ${energyEntity ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Questo mese</div><div class="dm-ap-chart-loading" data-chart="month">Caricamento...</div></div>` : ""}
-       ${energyEntity ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Quest'anno</div><div class="dm-ap-chart-loading" data-chart="year">Caricamento...</div></div>` : ""}`,
+      energyEntity
+        ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Questo mese</div><div class="dm-ap-chart-loading" data-chart="month">Caricamento...</div></div>
+           <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Quest'anno</div><div class="dm-ap-chart-loading" data-chart="year">Caricamento...</div></div>`
+        : `<div class="dm-ap-chart-empty">${T("Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.")}</div>`,
     );
     const overlay = this._root.querySelector(".dm-ap-overlay");
     const slot = (name) => overlay?.querySelector(`[data-chart="${name}"]`);
-
-    if (powerEntity) {
-      this._storia(powerEntity, 24)
-        .then((points) => {
-          const el = slot("24h");
-          if (!el) return;
-          const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }));
-          // Scala fissa sul picco storico (cfg.max_power, un po' sopra il
-          // massimo osservato negli ultimi mesi): il rumore di standby resta
-          // vicino allo zero e un consumo vero si vede comunque bene, senza
-          // nascondere il dato reale come faceva l'azzeramento.
-          el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", cfg.max_power)}${labels}</div>`;
-          mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
-            (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
-        })
-        .catch(() => {
-          const el = slot("24h");
-          if (el) el.textContent = "Errore caricamento dati";
-        });
-    }
 
     if (energyEntity) {
       const now = new Date();
@@ -785,8 +703,24 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         .then((rows) => {
           const el = slot("month");
           if (!el) return;
-          const bars = rows.map((r) => ({ value: r.value, label: String(r.t.getDate()) }));
-          const dayLabels = this._labelSpans(rows, 8, (r) => r.t.getDate());
+          // tutti i giorni del mese, non solo quelli che hanno un numero:
+          // un giorno senza consumo e' una barra a zero, non un buco
+          const quanti = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+          const perGiorno = {};
+          rows.forEach((r) => { perGiorno[r.t.getDate()] = (perGiorno[r.t.getDate()] || 0) + r.value; });
+          const prezzo = Number(this._hass.states[cfg.prezzo_entita]?.state);
+          const inEuro = (v) => (Number.isFinite(prezzo) && prezzo > 0
+            ? " · " + numero(v * prezzo, 2) + " €" : "");
+          const bars = [];
+          for (let g = 1; g <= quanti; g++) {
+            const v = perGiorno[g] || 0;
+            const d = new Date(now.getFullYear(), now.getMonth(), g);
+            bars.push({ value: v, label: String(g),
+              fumetto: giornoBreve(d) + " " + String(g).padStart(2, "0") + "/"
+                + String(now.getMonth() + 1).padStart(2, "0")
+                + " · " + numero(v, 2) + " kWh" + inEuro(v) });
+          }
+          const dayLabels = this._labelSpans(bars, 6, (b) => b.label);
           el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars, "#0ea5e9")}${dayLabels}</div>`;
         })
         .catch(() => {
@@ -800,8 +734,21 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
         .then((rows) => {
           const el = slot("year");
           if (!el) return;
-          const bars = rows.map((r) => ({ value: r.value, label: meseBreve(r.t) }));
-          const labels = `<div class="dm-ap-chart-labels">${rows.map((r) => `<span>${meseBreve(r.t)}</span>`).join("")}</div>`;
+          // dodici mesi sempre, cosi' l'anno si legge come un calendario
+          const perMese = {};
+          rows.forEach((r) => { perMese[r.t.getMonth()] = (perMese[r.t.getMonth()] || 0) + r.value; });
+          const prezzoA = Number(this._hass.states[cfg.prezzo_entita]?.state);
+          const inEuroA = (v) => (Number.isFinite(prezzoA) && prezzoA > 0
+            ? " · " + numero(v * prezzoA, 2) + " €" : "");
+          const bars = [];
+          for (let m = 0; m < 12; m++) {
+            const v = perMese[m] || 0;
+            const d = new Date(now.getFullYear(), m, 15);
+            bars.push({ value: v, label: meseBreve(d),
+              fumetto: meseLungo(d) + " " + now.getFullYear()
+                + " · " + numero(v, 2) + " kWh" + inEuroA(v) });
+          }
+          const labels = `<div class="dm-ap-chart-labels">${bars.map((b) => `<span>${esc(b.label)}</span>`).join("")}</div>`;
           el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars, "#0ea5e9")}${labels}</div>`;
         })
         .catch(() => {
@@ -894,6 +841,11 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const powerDecimals = cfg.power_decimals ?? 1;
       this._root.querySelector(".dm-ap-power-val").textContent = `${numero(powerVal, powerDecimals)} ${powerUnit}`;
     }
+    // il displayino dentro al disegno: lo riempiva solo la scheda della
+    // casa, e qui restava a zero anche con la presa che segnava 23 W
+    this._root.querySelectorAll(".dm-e-watt").forEach((x) => {
+      x.textContent = nonNumerica ? "—" : numero(powerVal, 0);
+    });
     this._root.querySelector(".dm-ap-bar i").style.width =
       `${Math.min(100, Math.round((powerVal / cfg.max_power) * 100))}%`;
 
@@ -925,7 +877,11 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
     let costPieno = this._cycleAttr(hass, "cost_pieno");
     const sogliaOn = cfg.soglia_acceso
       && hass.states[cfg.soglia_acceso]?.state === "on";
-    const vivo = (mode === "running" || sogliaOn) ? this._cicloVivo(hass) : null;
+    // anche a watt zero il ciclo puo' essere ancora aperto: e' il caso del
+    // forno e del piano cottura, che la resistenza la spengono e la
+    // riaccendono. Finche' e' aperto resta "Ciclo in corso".
+    const vivo = (mode === "running" || sogliaOn || this._cicloAperto(hass))
+      ? this._cicloVivo(hass) : null;
     const cap = this._root.querySelector(".dm-c-cap");
     const sub = this._root.querySelector(".dm-ap-cycle-sub");
     if (cap) cap.textContent = T(vivo ? "Ciclo in corso" : "Ultimo ciclo");
@@ -1002,7 +958,7 @@ export class CasaElettrodomestico extends ConFinestrelle(HTMLElement) {
       const [uno, due] = costoDa(eidCosto, eidKwh);
       this._scriviCosto(x, uno, due);
     });
-    if (cap && !vivo && !cfg.cycle_sensor && !cfg.ciclo && hoPeriodi) cap.textContent = T("Consumi");
+    if (cap && !vivo && !cfg.ciclo && hoPeriodi) cap.textContent = T("Consumi");
 
     this._barreExtra().forEach((b, i) => {
       const barra = this._root.querySelector(`.dm-ap-extra-bar[data-b="${i}"]`);

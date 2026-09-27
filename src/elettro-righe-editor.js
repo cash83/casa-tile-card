@@ -22,6 +22,31 @@ const TRATTI = {
 };
 
 // il titolo di una tendina: icona, nome, riassunto e riga di spiegazione
+// Conferma senza window.confirm. Quella e' una finestrella del browser, e
+// non c'e' dappertutto: dentro a un riquadro incorporato viene soppressa e
+// la funzione torna "annulla" da sola. Cosi' invece il tasto si trasforma
+// nella domanda e aspetta il secondo clic; dopo sei secondi si rassegna.
+export function confermaDoppia(tasto, domanda) {
+  if (!tasto) return true;
+  if (tasto._chiesto) {
+    clearTimeout(tasto._attesa);
+    tasto._chiesto = false;
+    tasto.textContent = tasto._primaDiceva;
+    tasto.classList.remove("ce-conferma");
+    return true;
+  }
+  tasto._primaDiceva = tasto.textContent;
+  tasto._chiesto = true;
+  tasto.textContent = domanda;
+  tasto.classList.add("ce-conferma");
+  tasto._attesa = setTimeout(() => {
+    tasto._chiesto = false;
+    tasto.textContent = tasto._primaDiceva;
+    tasto.classList.remove("ce-conferma");
+  }, 6000);
+  return false;
+}
+
 export function titoloSez(v, testo) {
   v = v || [];
   return icoSez(v[0]) + '<span class="ce-sez-testo">' + testo
@@ -46,6 +71,10 @@ export function vestiSez(box, veste) {
 }
 
 export const STILE_EDITOR = `
+/* display:flex batte [hidden]: senza questa riga tutto quello che l'editor
+   nasconde resta li' a vedersi. */
+[hidden]{display:none !important}
+.ce-conferma{border-color:#f0a020;color:#f0a020;font-weight:800}
 .ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
   border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;
   white-space:pre-wrap;font-size:12.5px;box-shadow:0 -6px 12px -8px rgba(0,0,0,.6)}

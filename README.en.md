@@ -158,6 +158,46 @@ home** and receives the appliance's entities, so a new appliance works straight
 away. It resets today, the week, the cycle and the last-cycle memories; it only
 touches the month if you ask.
 
+### The artwork
+
+Forty-six drawings, all hand-made. Pick one by click in the editor, **Icon**
+field. The watt number inside the drawing is the real one from the plug, and the
+moving parts - the drum, the blades, the flame, the steam, the bubbles - move
+**only while the appliance is working**. When the card is off the drawing turns
+grey.
+
+![The artwork](immagini/disegni.png)
+
+Besides the appliances there are drawings for **whole circuits**: *Kitchen (the
+whole circuit)* for a clamp on the breaker panel, *Electricity meter* for the
+main line.
+
+### "Work it out for me"
+
+In the editor, **Work out the appliance** box: give it any entity of the
+appliance - the plug, the switch, the state - and press the button. The card
+looks at **every other entity of the same device** and fills in what it finds.
+
+What it looks for, and how:
+
+| It fills | How it finds it |
+|---|---|
+| the plug that measures | an entity of the same device with `device_class: power` |
+| the artwork | words in the name (`washer`, `oven`, `fridge`, `kitchen`...) |
+| the power buttons | the device's `switch.` entities; the one with `usb` in the name goes to the second button |
+| today's and this month's counters | if counters named after the appliance already exist |
+| **Cycle running** | five names: `energia_ciclo`/`cycle_energy`, `tempo_trascorso`/`elapsed`, `tempo_residuo`/`remain`, `programma`/`program`/`course`, `fase`/`phase`/`run_state` |
+
+It fills **Cycle running** only when it finds **at least two** of them: a single
+field, picked by name similarity, would confuse more than help. Those five
+sensors come from the appliance's own integration (an LG, a Bosch), not from the
+plug: on a smart plug or a clamp they stay empty, and that is correct.
+
+**What it does NOT touch**: the price, the reset script, the theme, the layout,
+the pop-up window, and the rows you picked. Those do not come from the device -
+you set them - so you can press the button on a finished card without redoing
+anything.
+
 ### How to add them
 
 In the tile's editor, the **Tap** tab → *Open the appliance card (it sets itself

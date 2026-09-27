@@ -555,7 +555,13 @@ export async function creaCicli(hass, opzioni, dillo) {
   const parla = dillo || (() => {});
   // quanti minuti di fermo vogliono dire "ha finito": il forno spegne e
   // riaccende la resistenza, la lavatrice ha le pause dell'ammollo
-  const ATTESA = Number(opzioni.attesa) > 0 ? Number(opzioni.attesa) : 5;
+  // quanti SECONDI di fermo vogliono dire "ha finito": il forno spegne e
+  // riaccende la resistenza, la lavatrice ha le pause dell'ammollo
+  const ATTESA_SEC = Number(opzioni.attesa) > 0 ? Math.round(Number(opzioni.attesa)) : 100;
+  // per la durata servono minuti: 100 secondi sono 1,6667 minuti
+  // sotto questi kWh quello che si e' chiuso non e' un ciclo, e' una briciola
+  const BRICIOLA_KWH = 0.01;
+  const ATTESA_MIN = (ATTESA_SEC / 60).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
   const { potenza, energia, soglia } = opzioni;
   if (!potenza) throw new Error("Serve il sensore dei Watt.");
   if (!energia) throw new Error("Serve il contatore dei kWh.");
@@ -620,77 +626,97 @@ export async function creaCicli(hass, opzioni, dillo) {
   const SOSPETTA = "{{ " + SOSPETTA_CORPO + " }}";
   const nomeAuto = base + ": segna il ciclo";
   const automazioni = Object.keys(hass.states).filter((x) => x.startsWith("automation."));
-  const gia_auto = automazioni.some((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto);
-  if (!gia_auto) {
-    parla("Creo l'automazione del ciclo...");
-    await creaAutomazione(hass, {
-      alias: nomeAuto,
-      description: "Fatta dalla scheda " + base + ". Segna quando il ciclo e' cominciato, e alla fine"
-        + " scrive kWh, minuti e ora. Un apparecchio come il forno accende e spegne di continuo:"
-        + " per questo il ciclo si chiude solo dopo " + ATTESA + " minuti di fermo, e il contatore"
-        + " si azzera alla FINE, non alla partenza.",
-      mode: "single",
-      triggers: [
-        { trigger: "state", entity_id: acceso, to: "on", id: "parte" },
-        { trigger: "state", entity_id: acceso, to: "off", for: { minutes: ATTESA }, id: "finisce" },
-      ],
-      conditions: [],
-      actions: [{
-        choose: [
-          {
-            // La partenza vale se il contatore e' a zero (se no e' una delle
-            // accensioni intermittenti dentro un ciclo gia' cominciato) OPPURE
-            // se quella che c'e' scritta non e' credibile: mai scritta, o
-            // PRIMA della fine dell'ultimo ciclo. Senza questo secondo caso il
-            // primo ciclo dopo la creazione non registrava la partenza - il
-            // contatore non era mai stato azzerato - e la durata veniva fuori
-            // di duemila minuti.
-            conditions: [
-              { condition: "trigger", id: "parte" },
-              { condition: "or", conditions: [
-                { condition: "numeric_state", entity_id: contatore, below: 0.005 },
-                { condition: "template", value_template: SOSPETTA },
-              ] },
-            ],
-            sequence: [{
-              action: "input_datetime.set_datetime",
-              target: { entity_id: eVia },
-              data: { datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}" },
-            }],
-          },
-          {
-            conditions: [{ condition: "trigger", id: "finisce" }],
-            sequence: [
-              {
-                action: "input_number.set_value", target: { entity_id: eKwh },
-                data: { value: "{{ states('" + contatore + "') | float(0) | round(3) }}" },
-              },
-              {
-                // i minuti: 0 se la partenza non e' credibile (la scheda
-                // mostra "-", che e' la verita'), se no il tempo vero
-                action: "input_number.set_value", target: { entity_id: eMin },
-                data: {
-                  value: "{% if " + SOSPETTA_CORPO + " %}0{% else %}"
-                    + "{{ [0, ((now() - (states('" + eVia + "') | as_datetime | as_local))"
-                    + ".total_seconds() / 60 - " + ATTESA + ") | round(0)] | max }}{% endif %}",
+  const corpoAuto = {
+    alias: nomeAuto,
+    description: "Fatta dalla scheda " + base + ". Segna quando il ciclo e' cominciato, e alla fine"
+      + " scrive kWh, minuti e ora. Un apparecchio come il forno accende e spegne di continuo:"
+      + " per questo il ciclo si chiude solo dopo " + ATTESA_SEC + " secondi di fermo, e il contatore"
+      + " si azzera alla FINE, non alla partenza.",
+    mode: "single",
+    triggers: [
+      { trigger: "state", entity_id: acceso, to: "on", id: "parte" },
+      { trigger: "state", entity_id: acceso, to: "off", for: { seconds: ATTESA_SEC }, id: "finisce" },
+    ],
+    conditions: [],
+    actions: [{
+      choose: [
+        {
+          // La partenza vale se il contatore e' a zero (se no e' una delle
+          // accensioni intermittenti dentro un ciclo gia' cominciato) OPPURE
+          // se quella che c'e' scritta non e' credibile: mai scritta, o
+          // PRIMA della fine dell'ultimo ciclo. Senza questo secondo caso il
+          // primo ciclo dopo la creazione non registrava la partenza - il
+          // contatore non era mai stato azzerato - e la durata veniva fuori
+          // di duemila minuti.
+          conditions: [
+            { condition: "trigger", id: "parte" },
+            { condition: "or", conditions: [
+              { condition: "numeric_state", entity_id: contatore, below: 0.005 },
+              { condition: "template", value_template: SOSPETTA },
+            ] },
+          ],
+          sequence: [{
+            action: "input_datetime.set_datetime",
+            target: { entity_id: eVia },
+            data: { datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}" },
+          }],
+        },
+        {
+          conditions: [{ condition: "trigger", id: "finisce" }],
+          sequence: [
+            {
+              // Una briciola non deve cancellare il ciclo vero. Bastava un
+              // riavvio di Home Assistant, o un'accensione di pochi secondi,
+              // e qui si scriveva 0,002 kWh sopra al ciclo buono di ieri.
+              // Sotto ai 0,01 kWh quello che si chiude non e' un ciclo:
+              // il contatore lo azzero lo stesso (fuori da qui), le memorie no.
+              if: [{ condition: "numeric_state", entity_id: contatore, above: BRICIOLA_KWH }],
+              then: [
+                {
+                  action: "input_number.set_value", target: { entity_id: eKwh },
+                  data: { value: "{{ states('" + contatore + "') | float(0) | round(3) }}" },
                 },
-              },
-              {
-                action: "input_datetime.set_datetime", target: { entity_id: eFine },
-                data: { datetime: "{{ (now() - timedelta(minutes=" + ATTESA + ")).strftime('%Y-%m-%d %H:%M:%S') }}" },
-              },
-              {
-                // azzero adesso, non alla partenza: cosi' le intermittenze non
-                // buttano via quello che il ciclo ha gia' consumato
-                action: "utility_meter.calibrate",
-                target: { entity_id: contatore }, data: { value: "0" },
-              },
-            ],
-          },
-        ],
-      }],
-    });
-  } else parla("L'automazione c'era gia'.");
+                {
+                  // i minuti: 0 se la partenza non e' credibile (la scheda
+                  // mostra "-", che e' la verita'), se no il tempo vero
+                  action: "input_number.set_value", target: { entity_id: eMin },
+                  data: {
+                    value: "{% if " + SOSPETTA_CORPO + " %}0{% else %}"
+                      + "{{ [0, ((now() - (states('" + eVia + "') | as_datetime | as_local))"
+                      + ".total_seconds() / 60 - " + ATTESA_MIN + ") | round(0)] | max }}{% endif %}",
+                  },
+                },
+                {
+                  action: "input_datetime.set_datetime", target: { entity_id: eFine },
+                  data: { datetime: "{{ (now() - timedelta(seconds=" + ATTESA_SEC + ")).strftime('%Y-%m-%d %H:%M:%S') }}" },
+                },
+              ],
+            },
+            {
+              // azzero adesso, non alla partenza: cosi' le intermittenze non
+              // buttano via quello che il ciclo ha gia' consumato
+              action: "utility_meter.calibrate",
+              target: { entity_id: contatore }, data: { value: "0" },
+            },
+          ],
+        },
+      ],
+    }],
+  };
+  // Se c'era gia' NON la lascio com'e': la riscrivo. E' roba fatta da me, e
+  // se non la rifaccio cambiare i minuti di attesa non servirebbe a niente.
+  // Riscriverla sullo stesso id vuol dire che l'entita' resta quella.
+  const suo = automazioni.find((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto);
+  if (!suo) {
+    parla("Creo l'automazione del ciclo...");
+    await creaAutomazione(hass, corpoAuto);
+  } else {
+    const idSuo = hass.states[suo].attributes.id;
+    if (idSuo) {
+      parla("Rimetto a posto l'automazione del ciclo (" + ATTESA_SEC + " s di fermo)...");
+      await hass.callApi("POST", "config/automation/config/" + idSuo, { id: idSuo, ...corpoAuto });
+    } else parla("L'automazione c'era gia' (non ha un id: la lascio com'e').");
+  }
 
   parla("Cicli agganciati.");
   return {
