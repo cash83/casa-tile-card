@@ -162,7 +162,7 @@ mese lo tocca solo se glielo chiedi.
 
 ### I disegni
 
-Quarantasei, tutti disegnati a mano. Si scelgono a clic dall'editor, voce
+Quarantuno, tutti disegnati a mano. Si scelgono a clic dall'editor, voce
 **Icona**. Il numero dei Watt dentro al disegno e' quello vero della presa, e i
 pezzi che si muovono - il cestello, le pale, la fiamma, il vapore, le bollicine -
 si muovono **solo mentre l'apparecchio lavora**. A scheda spenta il disegno

@@ -160,7 +160,7 @@ touches the month if you ask.
 
 ### The artwork
 
-Forty-six drawings, all hand-made. Pick one by click in the editor, **Icon**
+Forty-one drawings, all hand-made. Pick one by click in the editor, **Icon**
 field. The watt number inside the drawing is the real one from the plug, and the
 moving parts - the drum, the blades, the flame, the steam, the bubbles - move
 **only while the appliance is working**. When the card is off the drawing turns

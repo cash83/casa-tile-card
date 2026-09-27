@@ -64,11 +64,6 @@ const DISEGNI = [
   ["colonnina", "Colonnina di ricarica"],
   ["powerstation", "Powerstation"],
   ["energy", "Contatore della luce"],
-  ["ups", "Gruppo di continuita'"],
-  ["server", "Server"],
-  ["nas", "NAS"],
-  ["fritzbox", "Router"],
-  ["proxmox", "Proxmox"],
 ];
 
 const ETICHETTE = {
