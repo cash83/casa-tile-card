@@ -371,6 +371,15 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   // dire "non contarla": la metto fra quelle da saltare. Rimetterla a una che
   // una parola escluderebbe vuol dire "questa pero' contala": la metto fra
   // quelle da contare sempre, che vincono sulle parole.
+  // Il nome di una presa nella scheda. Vuoto = si torna a quello dell'entita',
+  // e la voce sparisce dalla configurazione invece di restarci vuota.
+  _nomePresa(entity, nome) {
+    const nomi = { ...(this._config.nomi_prese || {}) };
+    if (nome) nomi[entity] = nome;
+    else delete nomi[entity];
+    this._scriviScelta("nomi_prese", Object.keys(nomi).length ? nomi : "");
+  }
+
   _disegnaPrese() {
     const box = this.querySelector(".ce-prese");
     if (!box || !this._hass) return;
@@ -402,9 +411,17 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       const riga = document.createElement("label");
       riga.className = "ce-riga ce-presa";
       riga.innerHTML = `<input type="checkbox" ${conta ? "checked" : ""} ${casa ? "disabled" : ""}>
-        <span class="chi"></span><span class="dett">${casa ? T("il totale della casa")
+        <span class="chi"></span>
+        <input type="text" class="ce-presa-nome max" placeholder="">
+        <span class="dett">${casa ? T("il totale della casa")
           : Math.round(x.w) + " W"}</span>`;
       riga.querySelector(".chi").textContent = x.nome;
+      // la casella del nome: vuota vuol dire "quello dell'entita'"
+      const nome = riga.querySelector(".ce-presa-nome");
+      nome.placeholder = x.nome;
+      nome.value = (this._config.nomi_prese || {})[x.entity] || "";
+      nome.addEventListener("click", (e) => e.preventDefault());
+      nome.addEventListener("change", () => this._nomePresa(x.entity, nome.value.trim()));
       if (!casa) {
         riga.querySelector("input").addEventListener("change", (e) => {
           this._scegliPresa(x.entity, e.target.checked);
@@ -701,7 +718,7 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
             <div class="ce-aiuto">${T("La riga che dice chi sta consumando di piu' in questo momento.")}</div>
             <label class="ce-riga"><input type="checkbox" class="ce-top-auto">
               <span>${T("Cerca da sola tutte le prese che misurano")}</span></label>
-            <div class="ce-aiuto">${T("Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare.")}</div>
+            <div class="ce-aiuto">${T("Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare, e nella casella accanto scrivi il nome che vuoi vedere nella scheda (vuota = quello dell\u0027entita\u0027).")}</div>
             <div class="ce-prese"></div>
             <div class="ce-riga"><span class="ent">${T("Non l'ha trovata? Aggiungila")}</span><ha-entity-picker class="ce-presa-nuova" allow-custom-entity></ha-entity-picker></div>
           </details>

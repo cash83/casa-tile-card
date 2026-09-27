@@ -231,9 +231,11 @@ const HERO_BUILDERS = {
     <circle cx="120" cy="98" r="60" fill="none" stroke="#9fb4c9" stroke-opacity=".7" stroke-width="3"/>
     <circle cx="120" cy="98" r="44" fill="none" stroke="#9fb4c9" stroke-opacity=".45" stroke-width="2"/>
     <g class="dmh-spin-pala" opacity=".9">
-      <path d="M120 98c0-26 10-40 26-40 10 0 16 8 16 18 0 14-16 22-42 22z" fill="#8fd5f5"/>
-      <path d="M120 98c22 14 26 30 18 44-5 9-15 10-23 5-12-7-9-25 5-49z" fill="#6cc6ee"/>
-      <path d="M120 98c-22-14-40-12-48 2-5 9 0 18 9 23 12 7 25-5 39-25z" fill="#a6e0f8"/>
+      <g transform="translate(120,98)">
+        <path d="M0 0 C -10.4 -18.0, -9.6 -40.0, 2.4 -40.0 C 12.0 -38.4, 10.8 -16.8, 0 0 Z" fill="#8fd5f5" transform="rotate(0)"/>
+        <path d="M0 0 C -10.4 -18.0, -9.6 -40.0, 2.4 -40.0 C 12.0 -38.4, 10.8 -16.8, 0 0 Z" fill="#6cc6ee" transform="rotate(120)"/>
+        <path d="M0 0 C -10.4 -18.0, -9.6 -40.0, 2.4 -40.0 C 12.0 -38.4, 10.8 -16.8, 0 0 Z" fill="#a6e0f8" transform="rotate(240)"/>
+      </g>
     </g>
     <circle cx="120" cy="98" r="9" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.4"/>
     <rect x="86" y="206" width="68" height="26" rx="8" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
@@ -674,6 +676,15 @@ const STYLE = `
 .dm-ap-card.is-run .dmh-onda{animation:dmh-onda 3.4s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-glow{animation:dmh-glow 1.7s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-flicker{animation:dmh-flicker 1.5s ease-in-out infinite}
+/* Il mirino del grafico: la riga verticale che segue il dito o il mouse, col
+   cartellino del valore. Vive in mirinoGrafico(), che sta piu' sotto in questo
+   stesso file - per questo il controllo delle classi morte non lo vedeva. */
+.dm-ap-mirino-box{position:relative;touch-action:none}
+.dm-ap-mirino{position:absolute;top:0;bottom:0;width:0;pointer-events:none;opacity:0;transition:opacity .08s}
+.dm-ap-mirino.si{opacity:1}
+.dm-ap-mirino i{position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--dm-dim,#94a3b8);opacity:.6}
+.dm-ap-mirino-barre i{opacity:.28}
+.dm-ap-mirino b{position:absolute;top:2px;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:800;padding:2px 6px;border-radius:7px;background:var(--dm-finestra,var(--dm-card,#fff));color:var(--dm-finestra-testo,var(--dm-text,#0f172a));border:1px solid var(--dm-border,#cbd5e1);box-shadow:0 4px 14px rgba(15,23,42,.18)}
 /* la ruota libera: il centro lo dice il disegno con uno style="", cosi' una
    sola regola va bene per la ventola, la girante e la spazzola del robot */
 .dmh-gira{transform-box:view-box}
@@ -878,6 +889,49 @@ export function mirinoGrafico(box, punti, scrivi) {
     mirino.style.left = ((ASSE + (i / (punti.length - 1)) * (1 - ASSE)) * q.width) + "px";
     cartellino.textContent = scrivi(punti[i], i);
     // il cartellino non deve uscire dal riquadro
+    cartellino.style.transform = "translateX(-50%)";
+    const b = cartellino.getBoundingClientRect();
+    if (b.left < q.left) cartellino.style.transform = "translateX(0)";
+    else if (b.right > q.right) cartellino.style.transform = "translateX(-100%)";
+    mirino.classList.add("si");
+  };
+  const via = () => mirino.classList.remove("si");
+
+  box.addEventListener("pointerdown", (ev) => {
+    try { box.setPointerCapture(ev.pointerId); } catch (e) { /* pazienza */ }
+    muovi(ev);
+  });
+  box.addEventListener("pointermove", (ev) => {
+    if (ev.pointerType === "mouse" || ev.buttons || ev.pressure > 0) muovi(ev);
+  });
+  box.addEventListener("pointerup", via);
+  box.addEventListener("pointercancel", via);
+  box.addEventListener("pointerleave", via);
+}
+
+// IL MIRINO DEGLI ISTOGRAMMI. Come quello della linea, ma le barre non sono
+// punti: ognuna occupa una fetta di larghezza, quindi la fetta si trova con un
+// troncamento e non con un arrotondamento, e il cartellino va sopra al centro
+// della barra. `scrivi(barra, i)` decide cosa c'e' scritto.
+export function mirinoBarre(box, barre, scrivi) {
+  if (!box || !barre || !barre.length) return;
+  box.classList.add("dm-ap-mirino-box");
+  const mirino = document.createElement("div");
+  mirino.className = "dm-ap-mirino dm-ap-mirino-barre";
+  mirino.innerHTML = "<i></i><b></b>";
+  box.appendChild(mirino);
+  const cartellino = mirino.querySelector("b");
+  const ASSE = 30 / 300;
+  const n = barre.length;
+
+  const muovi = (ev) => {
+    const q = box.getBoundingClientRect();
+    if (!q.width) return;
+    const f = Math.min(0.999, Math.max(0, ((ev.clientX - q.left) / q.width - ASSE) / (1 - ASSE)));
+    const i = Math.min(n - 1, Math.floor(f * n));
+    // il centro della fetta, non il bordo
+    mirino.style.left = ((ASSE + ((i + 0.5) / n) * (1 - ASSE)) * q.width) + "px";
+    cartellino.textContent = scrivi(barre[i], i);
     cartellino.style.transform = "translateX(-50%)";
     const b = cartellino.getBoundingClientRect();
     if (b.left < q.left) cartellino.style.transform = "translateX(0)";

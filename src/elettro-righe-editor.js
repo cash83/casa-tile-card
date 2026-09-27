@@ -74,6 +74,10 @@ export const STILE_EDITOR = `
 /* display:flex batte [hidden]: senza questa riga tutto quello che l'editor
    nasconde resta li' a vedersi. */
 [hidden]{display:none !important}
+/* la casella del nome dentro alla riga di una presa: stretta, cosi' restano
+   in riga il nome trovato, il nome scelto e i watt */
+.ce-presa .ce-presa-nome{flex:0 1 120px;min-width:70px;font-size:12px;padding:3px 6px;
+  border-radius:7px;border:1px solid var(--divider-color,#555);background:none;color:inherit}
 .ce-conferma{border-color:#f0a020;color:#f0a020;font-weight:800}
 .ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
   border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;

@@ -5,6 +5,7 @@
 
 import { laLingua, laLocale, scegliLingua, T, TH } from './lingua.js';
 import {
+  mirinoBarre,
   mirinoGrafico,
   numero,
   unitaBella,
@@ -722,6 +723,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
           }
           const dayLabels = this._labelSpans(bars, 6, (b) => b.label);
           el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars, "#0ea5e9")}${dayLabels}</div>`;
+          mirinoBarre(slot("month"), bars, (b) => b.fumetto);
         })
         .catch(() => {
           const el = slot("month");
@@ -750,6 +752,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
           }
           const labels = `<div class="dm-ap-chart-labels">${bars.map((b) => `<span>${esc(b.label)}</span>`).join("")}</div>`;
           el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars, "#0ea5e9")}${labels}</div>`;
+          mirinoBarre(slot("year"), bars, (b) => b.fumetto);
         })
         .catch(() => {
           const el = slot("year");

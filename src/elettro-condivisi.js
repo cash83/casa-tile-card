@@ -226,87 +226,9 @@ export const ConFinestrelle = (Base) => class extends Base {
     return `<div class="dm-ap-chart-labels">${unique.map((i) => `<span>${formatFn(items[i], i)}</span>`).join("")}</div>`;
   }
 
-  // la linea addolcita: mezzo punto per volta, con le curve di Bezier
-  _smoothPath(coords) {
-    if (coords.length < 3) {
-      return `M ${coords.map((c) => `${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" L ")}`;
-    }
-    let d = `M ${coords[0][0].toFixed(1)},${coords[0][1].toFixed(1)}`;
-    for (let i = 1; i < coords.length - 1; i++) {
-      const [x0, y0] = coords[i];
-      const [x1, y1] = coords[i + 1];
-      const mx = (x0 + x1) / 2;
-      const my = (y0 + y1) / 2;
-      d += ` Q ${x0.toFixed(1)},${y0.toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}`;
-    }
-    const last = coords[coords.length - 1];
-    d += ` L ${last[0].toFixed(1)},${last[1].toFixed(1)}`;
-    return d;
-  }
-
   // La scheda dice se vuole la linea morbida (energia) o spigolosa
   // (elettrodomestico: i Watt saltano, e addolcirli direbbe una bugia).
   get _morbida() { return false; }
-
-  _lineChartSvg(points, color, fixedMax) {
-    if (!points.length) return `<div class="dm-ap-chart-empty">Nessun dato</div>`;
-    const width = 300;
-    const height = 90;
-    // asse sinistro: riserva spazio per i valori min/max, riferimento comune ai 3 grafici
-    const plotX0 = 30;
-    const plotW = width - plotX0;
-    const values = points.map((p) => p.y);
-    // Con una scala fissa (basata sul picco storico reale) il minimo resta
-    // sempre 0: cosi' il rumore di standby appiattisce vicino al fondo del
-    // grafico invece di essere "gonfiato" da un auto-scale sul range minimo
-    // dei dati del giorno, e un consumo vero resta comunque ben visibile.
-    const min = fixedMax ? 0 : Math.min(...values, 0);
-    const max = fixedMax ? Math.max(fixedMax, ...values) : Math.max(...values, min + 1);
-    const range = max - min || 1;
-    const alt = (y) => height - ((y - min) / range) * (height - 6) - 3;
-    // un punto solo (sensore fermo da ore): e' una riga dritta per tutta la
-    // larghezza, non un disegno vuoto
-    const coords = points.length > 1
-      ? points.map((p, i) => [plotX0 + (i * plotW) / (points.length - 1), alt(p.y)])
-      : [[plotX0, alt(points[0].y)], [width, alt(points[0].y)]];
-    let linea;
-    let area;
-    if (this._morbida) {
-      linea = this._smoothPath(coords);
-      area = `${linea} L ${coords[coords.length - 1][0].toFixed(1)},${height} L ${coords[0][0].toFixed(1)},${height} Z`;
-    } else {
-      const punti = coords.map((c) => `${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" ");
-      linea = `M ${punti.split(" ").join(" L ")}`;
-      area = `${linea} L ${coords[coords.length - 1][0].toFixed(1)},${height} L ${coords[0][0].toFixed(1)},${height} Z`;
-    }
-    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg">
-      <line x1="${plotX0}" y1="3" x2="${plotX0}" y2="${height - 3}" stroke="#94a3b840" stroke-width="1"/>
-      <text x="${plotX0 - 4}" y="8" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
-      <text x="${plotX0 - 4}" y="${height - 3}" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(min)}</text>
-      <path d="${area}" fill="${color}" opacity="0.14"/>
-      <path d="${linea}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-    </svg>`;
-  }
-
-  // Lo storico di un'entita' nelle ultime `ore`, come punti {t, y}. Le tre
-  // copie di prima chiedevano la stessa cosa con tre pezzi di codice uguali.
-  async _storia(entityId, ore) {
-    if (!entityId) return [];
-    const fine = new Date();
-    const inizio = new Date(fine.getTime() - ore * 3600 * 1000);
-    const esito = await this._hass.connection.sendMessagePromise({
-      type: "history/history_during_period",
-      start_time: inizio.toISOString(),
-      end_time: fine.toISOString(),
-      entity_ids: [entityId],
-      minimal_response: true,
-      no_attributes: true,
-    });
-    const righe = esito?.[entityId] || [];
-    return righe
-      .map((r) => ({ t: new Date((r.lu || r.last_updated_ts) * 1000 || r.last_updated), y: Number(r.s ?? r.state) }))
-      .filter((p) => Number.isFinite(p.y));
-  }
 
   // Quanto spazio chiede nella griglia delle viste a sezioni. Senza questo
   // Home Assistant decide da solo e il cursore del Layout si comporta a modo

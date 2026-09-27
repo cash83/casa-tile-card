@@ -741,7 +741,7 @@ export const EN = {
   "su": "of",
   "La riga che dice chi sta consumando di piu' in questo momento.": "The row that says who is using the most right now.",
   "Cerca da sola tutte le prese che misurano": "Find every measuring socket by itself",
-  "Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare.": "These are the ones it found: untick the ones you don't want counted.",
+  "Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare, e nella casella accanto scrivi il nome che vuoi vedere nella scheda (vuota = quello dell'entita').": "These are the ones it found: untick the ones you don't want counted, and in the box next to each one write the name you want to see on the card (empty = the entity's own).",
   "Non l'ha trovata? Aggiungila": "Didn't it find it? Add it",
   "Non ho trovato nessuna presa che misuri i Watt.": "I found no socket that measures watts.",
   "il totale della casa": "the house total",

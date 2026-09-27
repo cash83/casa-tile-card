@@ -230,51 +230,13 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return `${num}${unit ? " " + unit : ""}`;
   }
 
+  // Il grafico di una barra: lo stesso dell'Andamento, con una curva sola.
+  // Prima era un disegno a parte - sei ore fisse, niente mirino, niente
+  // minimo/media/massimo - e sulla stessa scheda si vedevano due stili.
   _openMeterChart(entityId, title, color) {
     if (!entityId) return;
-    this._openDialog(
-      title,
-      `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultime 6 ore</div><div class="dm-ap-chart-loading" data-chart="6h">Caricamento...</div></div>`,
-    );
-    const overlay = this._root.querySelector(".dm-ap-overlay");
-    const slot = overlay?.querySelector('[data-chart="6h"]');
-    this._storia(entityId, 6)
-      .then((points) => {
-        const el = overlay?.querySelector('[data-chart="6h"]');
-        if (!el) return;
-        const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }));
-        el.outerHTML = `<div data-chart="6h">${this._lineChartSvg(points, color)}${labels}</div>`;
-      })
-      .catch(() => {
-        if (slot) slot.textContent = "Errore caricamento dati";
-      });
-  }
-
-  _openPowerHistory() {
-    const cfg = this._config;
-    if (!cfg.power_entity) {
-      this._openDialog("Andamento potenza",
-        '<div class="dm-ap-reset-note">Manca la presa che misura i Watt: si sceglie nel suo editor.</div>');
-      return;
-    }
-    this._openDialog(
-      "Andamento potenza",
-      `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultime 24 ore</div><div class="dm-ap-chart-loading" data-chart="24h">Caricamento...</div></div>`,
-    );
-    const overlay = this._root.querySelector(".dm-ap-overlay");
-    const slot = overlay?.querySelector('[data-chart="24h"]');
-    this._storia(cfg.power_entity, 24)
-      .then((points) => {
-        const el = overlay?.querySelector('[data-chart="24h"]');
-        if (!el) return;
-        const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }));
-        el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", this._config.max_power)}${labels}</div>`;
-        mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
-          (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
-      })
-      .catch(() => {
-        if (slot) slot.textContent = "Errore caricamento dati";
-      });
+    this._apriGrafico([{ nome: title || "", entity: entityId, colore: color || "#38bdf8" }],
+                      title || "Andamento");
   }
 
   // --- Il conto voce per voce (aggiunta cash83) ------------------------
@@ -342,10 +304,10 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     chartBtn.className = "dm-ap-action-btn";
     chartBtn.style.width = "100%";
     chartBtn.style.marginTop = "2px";
-    chartBtn.textContent = "Andamento potenza (24h)";
+    chartBtn.textContent = T("Andamento");
     chartBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      this._openPowerHistory();
+      this._apriGrafico(this._curveDellaCasa(), T("Andamento"));
     });
     overlay.querySelector(".dm-ap-dialog-body").appendChild(chartBtn);
   }
@@ -355,9 +317,11 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // quelli che contengono una delle parole di top_exclude (produzione, batterie...).
   _autoLoads(hass) {
     const cfg = this._config;
+    // il nome scritto nella scheda vince su quello dell'entita'
+    const miei = cfg.nomi_prese || {};
     const loads = preseDiCasa(hass)
       .filter((x) => contaNelTop(cfg, x.entity))
-      .map((x) => ({ label: x.nome, entity: x.entity, live: x.w }));
+      .map((x) => ({ label: miei[x.entity] || x.nome, entity: x.entity, live: x.w }));
     const tot = Number(hass.states[cfg.power_entity]?.state);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
     const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;

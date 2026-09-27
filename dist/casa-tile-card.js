@@ -741,7 +741,7 @@ const EN = {
   "su": "of",
   "La riga che dice chi sta consumando di piu' in questo momento.": "The row that says who is using the most right now.",
   "Cerca da sola tutte le prese che misurano": "Find every measuring socket by itself",
-  "Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare.": "These are the ones it found: untick the ones you don't want counted.",
+  "Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare, e nella casella accanto scrivi il nome che vuoi vedere nella scheda (vuota = quello dell'entita').": "These are the ones it found: untick the ones you don't want counted, and in the box next to each one write the name you want to see on the card (empty = the entity's own).",
   "Non l'ha trovata? Aggiungila": "Didn't it find it? Add it",
   "Non ho trovato nessuna presa che misuri i Watt.": "I found no socket that measures watts.",
   "il totale della casa": "the house total",
@@ -3718,9 +3718,11 @@ const DISEGNI_PIU = {
     <circle cx="120" cy="130" r="44" fill="#0b1526"/>
     <circle cx="120" cy="130" r="38" fill="url(#dmh-caldo-${id})" opacity=".55" class="dmh-glow"/>
     <g class="dmh-gira" style="transform-origin:120px 130px" opacity=".9">
-      <path d="M120 130c0-20 8-30 20-30 8 0 13 6 13 14 0 11-13 16-33 16z" fill="#fdba74"/>
-      <path d="M120 130c17 10 20 23 14 33-4 7-12 8-18 4-9-5-7-19 4-37z" fill="#fb923c"/>
-      <path d="M120 130c-17-10-31-9-37 2-4 7 0 14 7 18 9 5 19-4 30-20z" fill="#fed7aa"/>
+      <g transform="translate(120,130)">
+        <path d="M0 0 C -8.3 -14.4, -7.7 -32.0, 1.9 -32.0 C 9.6 -30.7, 8.6 -13.4, 0 0 Z" fill="#fdba74" transform="rotate(0)"/>
+        <path d="M0 0 C -8.3 -14.4, -7.7 -32.0, 1.9 -32.0 C 9.6 -30.7, 8.6 -13.4, 0 0 Z" fill="#fb923c" transform="rotate(120)"/>
+        <path d="M0 0 C -8.3 -14.4, -7.7 -32.0, 1.9 -32.0 C 9.6 -30.7, 8.6 -13.4, 0 0 Z" fill="#fed7aa" transform="rotate(240)"/>
+      </g>
     </g>
     <circle cx="120" cy="130" r="7" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.3"/>
     <g class="dmh-aria" fill="none" stroke="#fb923c" stroke-width="4.4" stroke-linecap="round" opacity=".8">
@@ -3739,9 +3741,11 @@ const DISEGNI_PIU = {
     <rect x="34" y="66" width="106" height="120" rx="12" fill="#0e1a2c"/>
     <circle cx="87" cy="126" r="50" fill="#12233a"/>
     <g class="dmh-gira" style="transform-origin:87px 126px" opacity=".92">
-      <path d="M87 126c0-24 9-36 24-36 9 0 15 7 15 16 0 13-15 20-39 20z" fill="#8fd5f5"/>
-      <path d="M87 126c21 12 24 28 17 40-5 8-14 9-21 4-11-6-8-23 4-44z" fill="#6cc6ee"/>
-      <path d="M87 126c-21-12-37-11-44 3-4 8 0 16 8 21 11 6 23-5 36-24z" fill="#a6e0f8"/>
+      <g transform="translate(87,126)">
+        <path d="M0 0 C -9.9 -17.1, -9.1 -38.0, 2.3 -38.0 C 11.4 -36.5, 10.3 -16.0, 0 0 Z" fill="#8fd5f5" transform="rotate(0)"/>
+        <path d="M0 0 C -9.9 -17.1, -9.1 -38.0, 2.3 -38.0 C 11.4 -36.5, 10.3 -16.0, 0 0 Z" fill="#6cc6ee" transform="rotate(120)"/>
+        <path d="M0 0 C -9.9 -17.1, -9.1 -38.0, 2.3 -38.0 C 11.4 -36.5, 10.3 -16.0, 0 0 Z" fill="#a6e0f8" transform="rotate(240)"/>
+      </g>
     </g>
     <circle cx="87" cy="126" r="8" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.3"/>
     <g stroke="#9fb4c9" stroke-width="2" opacity=".5" fill="none">
@@ -4227,9 +4231,11 @@ const HERO_BUILDERS = {
     <circle cx="120" cy="98" r="60" fill="none" stroke="#9fb4c9" stroke-opacity=".7" stroke-width="3"/>
     <circle cx="120" cy="98" r="44" fill="none" stroke="#9fb4c9" stroke-opacity=".45" stroke-width="2"/>
     <g class="dmh-spin-pala" opacity=".9">
-      <path d="M120 98c0-26 10-40 26-40 10 0 16 8 16 18 0 14-16 22-42 22z" fill="#8fd5f5"/>
-      <path d="M120 98c22 14 26 30 18 44-5 9-15 10-23 5-12-7-9-25 5-49z" fill="#6cc6ee"/>
-      <path d="M120 98c-22-14-40-12-48 2-5 9 0 18 9 23 12 7 25-5 39-25z" fill="#a6e0f8"/>
+      <g transform="translate(120,98)">
+        <path d="M0 0 C -10.4 -18.0, -9.6 -40.0, 2.4 -40.0 C 12.0 -38.4, 10.8 -16.8, 0 0 Z" fill="#8fd5f5" transform="rotate(0)"/>
+        <path d="M0 0 C -10.4 -18.0, -9.6 -40.0, 2.4 -40.0 C 12.0 -38.4, 10.8 -16.8, 0 0 Z" fill="#6cc6ee" transform="rotate(120)"/>
+        <path d="M0 0 C -10.4 -18.0, -9.6 -40.0, 2.4 -40.0 C 12.0 -38.4, 10.8 -16.8, 0 0 Z" fill="#a6e0f8" transform="rotate(240)"/>
+      </g>
     </g>
     <circle cx="120" cy="98" r="9" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.4"/>
     <rect x="86" y="206" width="68" height="26" rx="8" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>
@@ -4670,6 +4676,15 @@ const STYLE = `
 .dm-ap-card.is-run .dmh-onda{animation:dmh-onda 3.4s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-glow{animation:dmh-glow 1.7s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-flicker{animation:dmh-flicker 1.5s ease-in-out infinite}
+/* Il mirino del grafico: la riga verticale che segue il dito o il mouse, col
+   cartellino del valore. Vive in mirinoGrafico(), che sta piu' sotto in questo
+   stesso file - per questo il controllo delle classi morte non lo vedeva. */
+.dm-ap-mirino-box{position:relative;touch-action:none}
+.dm-ap-mirino{position:absolute;top:0;bottom:0;width:0;pointer-events:none;opacity:0;transition:opacity .08s}
+.dm-ap-mirino.si{opacity:1}
+.dm-ap-mirino i{position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--dm-dim,#94a3b8);opacity:.6}
+.dm-ap-mirino-barre i{opacity:.28}
+.dm-ap-mirino b{position:absolute;top:2px;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:800;padding:2px 6px;border-radius:7px;background:var(--dm-finestra,var(--dm-card,#fff));color:var(--dm-finestra-testo,var(--dm-text,#0f172a));border:1px solid var(--dm-border,#cbd5e1);box-shadow:0 4px 14px rgba(15,23,42,.18)}
 /* la ruota libera: il centro lo dice il disegno con uno style="", cosi' una
    sola regola va bene per la ventola, la girante e la spazzola del robot */
 .dmh-gira{transform-box:view-box}
@@ -4874,6 +4889,49 @@ function mirinoGrafico(box, punti, scrivi) {
     mirino.style.left = ((ASSE + (i / (punti.length - 1)) * (1 - ASSE)) * q.width) + "px";
     cartellino.textContent = scrivi(punti[i], i);
     // il cartellino non deve uscire dal riquadro
+    cartellino.style.transform = "translateX(-50%)";
+    const b = cartellino.getBoundingClientRect();
+    if (b.left < q.left) cartellino.style.transform = "translateX(0)";
+    else if (b.right > q.right) cartellino.style.transform = "translateX(-100%)";
+    mirino.classList.add("si");
+  };
+  const via = () => mirino.classList.remove("si");
+
+  box.addEventListener("pointerdown", (ev) => {
+    try { box.setPointerCapture(ev.pointerId); } catch (e) { /* pazienza */ }
+    muovi(ev);
+  });
+  box.addEventListener("pointermove", (ev) => {
+    if (ev.pointerType === "mouse" || ev.buttons || ev.pressure > 0) muovi(ev);
+  });
+  box.addEventListener("pointerup", via);
+  box.addEventListener("pointercancel", via);
+  box.addEventListener("pointerleave", via);
+}
+
+// IL MIRINO DEGLI ISTOGRAMMI. Come quello della linea, ma le barre non sono
+// punti: ognuna occupa una fetta di larghezza, quindi la fetta si trova con un
+// troncamento e non con un arrotondamento, e il cartellino va sopra al centro
+// della barra. `scrivi(barra, i)` decide cosa c'e' scritto.
+function mirinoBarre(box, barre, scrivi) {
+  if (!box || !barre || !barre.length) return;
+  box.classList.add("dm-ap-mirino-box");
+  const mirino = document.createElement("div");
+  mirino.className = "dm-ap-mirino dm-ap-mirino-barre";
+  mirino.innerHTML = "<i></i><b></b>";
+  box.appendChild(mirino);
+  const cartellino = mirino.querySelector("b");
+  const ASSE = 30 / 300;
+  const n = barre.length;
+
+  const muovi = (ev) => {
+    const q = box.getBoundingClientRect();
+    if (!q.width) return;
+    const f = Math.min(0.999, Math.max(0, ((ev.clientX - q.left) / q.width - ASSE) / (1 - ASSE)));
+    const i = Math.min(n - 1, Math.floor(f * n));
+    // il centro della fetta, non il bordo
+    mirino.style.left = ((ASSE + ((i + 0.5) / n) * (1 - ASSE)) * q.width) + "px";
+    cartellino.textContent = scrivi(barre[i], i);
     cartellino.style.transform = "translateX(-50%)";
     const b = cartellino.getBoundingClientRect();
     if (b.left < q.left) cartellino.style.transform = "translateX(0)";
@@ -9922,7 +9980,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.93.1";
+const VERSIONE = "2.94.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -19506,6 +19564,10 @@ const STILE_EDITOR = `
 /* display:flex batte [hidden]: senza questa riga tutto quello che l'editor
    nasconde resta li' a vedersi. */
 [hidden]{display:none !important}
+/* la casella del nome dentro alla riga di una presa: stretta, cosi' restano
+   in riga il nome trovato, il nome scelto e i watt */
+.ce-presa .ce-presa-nome{flex:0 1 120px;min-width:70px;font-size:12px;padding:3px 6px;
+  border-radius:7px;border:1px solid var(--divider-color,#555);background:none;color:inherit}
 .ce-conferma{border-color:#f0a020;color:#f0a020;font-weight:800}
 .ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
   border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;
@@ -21257,87 +21319,9 @@ const ConFinestrelle = (Base) => class extends Base {
     return `<div class="dm-ap-chart-labels">${unique.map((i) => `<span>${formatFn(items[i], i)}</span>`).join("")}</div>`;
   }
 
-  // la linea addolcita: mezzo punto per volta, con le curve di Bezier
-  _smoothPath(coords) {
-    if (coords.length < 3) {
-      return `M ${coords.map((c) => `${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" L ")}`;
-    }
-    let d = `M ${coords[0][0].toFixed(1)},${coords[0][1].toFixed(1)}`;
-    for (let i = 1; i < coords.length - 1; i++) {
-      const [x0, y0] = coords[i];
-      const [x1, y1] = coords[i + 1];
-      const mx = (x0 + x1) / 2;
-      const my = (y0 + y1) / 2;
-      d += ` Q ${x0.toFixed(1)},${y0.toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}`;
-    }
-    const last = coords[coords.length - 1];
-    d += ` L ${last[0].toFixed(1)},${last[1].toFixed(1)}`;
-    return d;
-  }
-
   // La scheda dice se vuole la linea morbida (energia) o spigolosa
   // (elettrodomestico: i Watt saltano, e addolcirli direbbe una bugia).
   get _morbida() { return false; }
-
-  _lineChartSvg(points, color, fixedMax) {
-    if (!points.length) return `<div class="dm-ap-chart-empty">Nessun dato</div>`;
-    const width = 300;
-    const height = 90;
-    // asse sinistro: riserva spazio per i valori min/max, riferimento comune ai 3 grafici
-    const plotX0 = 30;
-    const plotW = width - plotX0;
-    const values = points.map((p) => p.y);
-    // Con una scala fissa (basata sul picco storico reale) il minimo resta
-    // sempre 0: cosi' il rumore di standby appiattisce vicino al fondo del
-    // grafico invece di essere "gonfiato" da un auto-scale sul range minimo
-    // dei dati del giorno, e un consumo vero resta comunque ben visibile.
-    const min = fixedMax ? 0 : Math.min(...values, 0);
-    const max = fixedMax ? Math.max(fixedMax, ...values) : Math.max(...values, min + 1);
-    const range = max - min || 1;
-    const alt = (y) => height - ((y - min) / range) * (height - 6) - 3;
-    // un punto solo (sensore fermo da ore): e' una riga dritta per tutta la
-    // larghezza, non un disegno vuoto
-    const coords = points.length > 1
-      ? points.map((p, i) => [plotX0 + (i * plotW) / (points.length - 1), alt(p.y)])
-      : [[plotX0, alt(points[0].y)], [width, alt(points[0].y)]];
-    let linea;
-    let area;
-    if (this._morbida) {
-      linea = this._smoothPath(coords);
-      area = `${linea} L ${coords[coords.length - 1][0].toFixed(1)},${height} L ${coords[0][0].toFixed(1)},${height} Z`;
-    } else {
-      const punti = coords.map((c) => `${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(" ");
-      linea = `M ${punti.split(" ").join(" L ")}`;
-      area = `${linea} L ${coords[coords.length - 1][0].toFixed(1)},${height} L ${coords[0][0].toFixed(1)},${height} Z`;
-    }
-    return `<svg viewBox="0 0 ${width} ${height}" class="dm-ap-chart-svg">
-      <line x1="${plotX0}" y1="3" x2="${plotX0}" y2="${height - 3}" stroke="#94a3b840" stroke-width="1"/>
-      <text x="${plotX0 - 4}" y="8" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(max)}</text>
-      <text x="${plotX0 - 4}" y="${height - 3}" text-anchor="end" font-size="7" font-weight="800" fill="#94a3b8">${this._fmtAxis(min)}</text>
-      <path d="${area}" fill="${color}" opacity="0.14"/>
-      <path d="${linea}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
-    </svg>`;
-  }
-
-  // Lo storico di un'entita' nelle ultime `ore`, come punti {t, y}. Le tre
-  // copie di prima chiedevano la stessa cosa con tre pezzi di codice uguali.
-  async _storia(entityId, ore) {
-    if (!entityId) return [];
-    const fine = new Date();
-    const inizio = new Date(fine.getTime() - ore * 3600 * 1000);
-    const esito = await this._hass.connection.sendMessagePromise({
-      type: "history/history_during_period",
-      start_time: inizio.toISOString(),
-      end_time: fine.toISOString(),
-      entity_ids: [entityId],
-      minimal_response: true,
-      no_attributes: true,
-    });
-    const righe = esito?.[entityId] || [];
-    return righe
-      .map((r) => ({ t: new Date((r.lu || r.last_updated_ts) * 1000 || r.last_updated), y: Number(r.s ?? r.state) }))
-      .filter((p) => Number.isFinite(p.y));
-  }
 
   // Quanto spazio chiede nella griglia delle viste a sezioni. Senza questo
   // Home Assistant decide da solo e il cursore del Layout si comporta a modo
@@ -21991,51 +21975,13 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return `${num}${unit ? " " + unit : ""}`;
   }
 
+  // Il grafico di una barra: lo stesso dell'Andamento, con una curva sola.
+  // Prima era un disegno a parte - sei ore fisse, niente mirino, niente
+  // minimo/media/massimo - e sulla stessa scheda si vedevano due stili.
   _openMeterChart(entityId, title, color) {
     if (!entityId) return;
-    this._openDialog(
-      title,
-      `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultime 6 ore</div><div class="dm-ap-chart-loading" data-chart="6h">Caricamento...</div></div>`,
-    );
-    const overlay = this._root.querySelector(".dm-ap-overlay");
-    const slot = overlay?.querySelector('[data-chart="6h"]');
-    this._storia(entityId, 6)
-      .then((points) => {
-        const el = overlay?.querySelector('[data-chart="6h"]');
-        if (!el) return;
-        const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }));
-        el.outerHTML = `<div data-chart="6h">${this._lineChartSvg(points, color)}${labels}</div>`;
-      })
-      .catch(() => {
-        if (slot) slot.textContent = "Errore caricamento dati";
-      });
-  }
-
-  _openPowerHistory() {
-    const cfg = this._config;
-    if (!cfg.power_entity) {
-      this._openDialog("Andamento potenza",
-        '<div class="dm-ap-reset-note">Manca la presa che misura i Watt: si sceglie nel suo editor.</div>');
-      return;
-    }
-    this._openDialog(
-      "Andamento potenza",
-      `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultime 24 ore</div><div class="dm-ap-chart-loading" data-chart="24h">Caricamento...</div></div>`,
-    );
-    const overlay = this._root.querySelector(".dm-ap-overlay");
-    const slot = overlay?.querySelector('[data-chart="24h"]');
-    this._storia(cfg.power_entity, 24)
-      .then((points) => {
-        const el = overlay?.querySelector('[data-chart="24h"]');
-        if (!el) return;
-        const labels = this._labelSpans(points, 7, (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }));
-        el.outerHTML = `<div data-chart="24h">${this._lineChartSvg(points, "#0ea5e9", this._config.max_power)}${labels}</div>`;
-        mirinoGrafico(overlay.querySelector('[data-chart="24h"]'), points,
-          (p) => p.t.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) + "  " + (Math.round(p.y * 10) / 10) + " W");
-      })
-      .catch(() => {
-        if (slot) slot.textContent = "Errore caricamento dati";
-      });
+    this._apriGrafico([{ nome: title || "", entity: entityId, colore: color || "#38bdf8" }],
+                      title || "Andamento");
   }
 
   // --- Il conto voce per voce (aggiunta cash83) ------------------------
@@ -22103,10 +22049,10 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     chartBtn.className = "dm-ap-action-btn";
     chartBtn.style.width = "100%";
     chartBtn.style.marginTop = "2px";
-    chartBtn.textContent = "Andamento potenza (24h)";
+    chartBtn.textContent = T("Andamento");
     chartBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      this._openPowerHistory();
+      this._apriGrafico(this._curveDellaCasa(), T("Andamento"));
     });
     overlay.querySelector(".dm-ap-dialog-body").appendChild(chartBtn);
   }
@@ -22116,9 +22062,11 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // quelli che contengono una delle parole di top_exclude (produzione, batterie...).
   _autoLoads(hass) {
     const cfg = this._config;
+    // il nome scritto nella scheda vince su quello dell'entita'
+    const miei = cfg.nomi_prese || {};
     const loads = preseDiCasa(hass)
       .filter((x) => contaNelTop(cfg, x.entity))
-      .map((x) => ({ label: x.nome, entity: x.entity, live: x.w }));
+      .map((x) => ({ label: miei[x.entity] || x.nome, entity: x.entity, live: x.w }));
     const tot = Number(hass.states[cfg.power_entity]?.state);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
     const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;
@@ -22760,6 +22708,15 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   // dire "non contarla": la metto fra quelle da saltare. Rimetterla a una che
   // una parola escluderebbe vuol dire "questa pero' contala": la metto fra
   // quelle da contare sempre, che vincono sulle parole.
+  // Il nome di una presa nella scheda. Vuoto = si torna a quello dell'entita',
+  // e la voce sparisce dalla configurazione invece di restarci vuota.
+  _nomePresa(entity, nome) {
+    const nomi = { ...(this._config.nomi_prese || {}) };
+    if (nome) nomi[entity] = nome;
+    else delete nomi[entity];
+    this._scriviScelta("nomi_prese", Object.keys(nomi).length ? nomi : "");
+  }
+
   _disegnaPrese() {
     const box = this.querySelector(".ce-prese");
     if (!box || !this._hass) return;
@@ -22791,9 +22748,17 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       const riga = document.createElement("label");
       riga.className = "ce-riga ce-presa";
       riga.innerHTML = `<input type="checkbox" ${conta ? "checked" : ""} ${casa ? "disabled" : ""}>
-        <span class="chi"></span><span class="dett">${casa ? T("il totale della casa")
+        <span class="chi"></span>
+        <input type="text" class="ce-presa-nome max" placeholder="">
+        <span class="dett">${casa ? T("il totale della casa")
           : Math.round(x.w) + " W"}</span>`;
       riga.querySelector(".chi").textContent = x.nome;
+      // la casella del nome: vuota vuol dire "quello dell'entita'"
+      const nome = riga.querySelector(".ce-presa-nome");
+      nome.placeholder = x.nome;
+      nome.value = (this._config.nomi_prese || {})[x.entity] || "";
+      nome.addEventListener("click", (e) => e.preventDefault());
+      nome.addEventListener("change", () => this._nomePresa(x.entity, nome.value.trim()));
       if (!casa) {
         riga.querySelector("input").addEventListener("change", (e) => {
           this._scegliPresa(x.entity, e.target.checked);
@@ -23090,7 +23055,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
             <div class="ce-aiuto">${T("La riga che dice chi sta consumando di piu' in questo momento.")}</div>
             <label class="ce-riga"><input type="checkbox" class="ce-top-auto">
               <span>${T("Cerca da sola tutte le prese che misurano")}</span></label>
-            <div class="ce-aiuto">${T("Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare.")}</div>
+            <div class="ce-aiuto">${T("Queste sono quelle che ha trovato: togli la spunta a quelle che non vuoi contare, e nella casella accanto scrivi il nome che vuoi vedere nella scheda (vuota = quello dell\u0027entita\u0027).")}</div>
             <div class="ce-prese"></div>
             <div class="ce-riga"><span class="ent">${T("Non l'ha trovata? Aggiungila")}</span><ha-entity-picker class="ce-presa-nuova" allow-custom-entity></ha-entity-picker></div>
           </details>
@@ -23925,6 +23890,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
           }
           const dayLabels = this._labelSpans(bars, 6, (b) => b.label);
           el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars, "#0ea5e9")}${dayLabels}</div>`;
+          mirinoBarre(slot("month"), bars, (b) => b.fumetto);
         })
         .catch(() => {
           const el = slot("month");
@@ -23953,6 +23919,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
           }
           const labels = `<div class="dm-ap-chart-labels">${bars.map((b) => `<span>${esc(b.label)}</span>`).join("")}</div>`;
           el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars, "#0ea5e9")}${labels}</div>`;
+          mirinoBarre(slot("year"), bars, (b) => b.fumetto);
         })
         .catch(() => {
           const el = slot("year");

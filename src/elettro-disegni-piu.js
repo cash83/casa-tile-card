@@ -221,9 +221,11 @@ export const DISEGNI_PIU = {
     <circle cx="120" cy="130" r="44" fill="#0b1526"/>
     <circle cx="120" cy="130" r="38" fill="url(#dmh-caldo-${id})" opacity=".55" class="dmh-glow"/>
     <g class="dmh-gira" style="transform-origin:120px 130px" opacity=".9">
-      <path d="M120 130c0-20 8-30 20-30 8 0 13 6 13 14 0 11-13 16-33 16z" fill="#fdba74"/>
-      <path d="M120 130c17 10 20 23 14 33-4 7-12 8-18 4-9-5-7-19 4-37z" fill="#fb923c"/>
-      <path d="M120 130c-17-10-31-9-37 2-4 7 0 14 7 18 9 5 19-4 30-20z" fill="#fed7aa"/>
+      <g transform="translate(120,130)">
+        <path d="M0 0 C -8.3 -14.4, -7.7 -32.0, 1.9 -32.0 C 9.6 -30.7, 8.6 -13.4, 0 0 Z" fill="#fdba74" transform="rotate(0)"/>
+        <path d="M0 0 C -8.3 -14.4, -7.7 -32.0, 1.9 -32.0 C 9.6 -30.7, 8.6 -13.4, 0 0 Z" fill="#fb923c" transform="rotate(120)"/>
+        <path d="M0 0 C -8.3 -14.4, -7.7 -32.0, 1.9 -32.0 C 9.6 -30.7, 8.6 -13.4, 0 0 Z" fill="#fed7aa" transform="rotate(240)"/>
+      </g>
     </g>
     <circle cx="120" cy="130" r="7" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.3"/>
     <g class="dmh-aria" fill="none" stroke="#fb923c" stroke-width="4.4" stroke-linecap="round" opacity=".8">
@@ -242,9 +244,11 @@ export const DISEGNI_PIU = {
     <rect x="34" y="66" width="106" height="120" rx="12" fill="#0e1a2c"/>
     <circle cx="87" cy="126" r="50" fill="#12233a"/>
     <g class="dmh-gira" style="transform-origin:87px 126px" opacity=".92">
-      <path d="M87 126c0-24 9-36 24-36 9 0 15 7 15 16 0 13-15 20-39 20z" fill="#8fd5f5"/>
-      <path d="M87 126c21 12 24 28 17 40-5 8-14 9-21 4-11-6-8-23 4-44z" fill="#6cc6ee"/>
-      <path d="M87 126c-21-12-37-11-44 3-4 8 0 16 8 21 11 6 23-5 36-24z" fill="#a6e0f8"/>
+      <g transform="translate(87,126)">
+        <path d="M0 0 C -9.9 -17.1, -9.1 -38.0, 2.3 -38.0 C 11.4 -36.5, 10.3 -16.0, 0 0 Z" fill="#8fd5f5" transform="rotate(0)"/>
+        <path d="M0 0 C -9.9 -17.1, -9.1 -38.0, 2.3 -38.0 C 11.4 -36.5, 10.3 -16.0, 0 0 Z" fill="#6cc6ee" transform="rotate(120)"/>
+        <path d="M0 0 C -9.9 -17.1, -9.1 -38.0, 2.3 -38.0 C 11.4 -36.5, 10.3 -16.0, 0 0 Z" fill="#a6e0f8" transform="rotate(240)"/>
+      </g>
     </g>
     <circle cx="87" cy="126" r="8" fill="#e8eef6" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.3"/>
     <g stroke="#9fb4c9" stroke-width="2" opacity=".5" fill="none">
