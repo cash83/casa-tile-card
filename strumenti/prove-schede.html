@@ -75,6 +75,7 @@
         last_period: '201.76',
         last_reset: new Date(ORA.getFullYear(), ORA.getMonth(), 1).toISOString(),
         next_reset: new Date(ORA.getFullYear(), ORA.getMonth() + 1, 1).toISOString() } },
+      'sensor.prova_fv_in_casa': statoNum(1.5423, 'kWh', { device_class: 'energy' }),
       'sensor.prova_ora': { state: '0.3', attributes: { unit_of_measurement: 'kWh',
         last_period: '0.9',
         last_reset: new Date(ORA.getTime() - 20 * 60000).toISOString(),
@@ -188,6 +189,39 @@
     prova('quello del mese, fra 28 e 31', gg >= 28 && gg <= 31, true);
     prova('sull ora la quota non c entra', casa._giorniDelPeriodo('sensor.prova_ora'), 0);
     prova('un sensore che non esiste da 0', casa._giorniDelPeriodo('sensor.boh'), 0);
+  }
+
+  // ======================================================================
+  // La riga "Consumo" dice solo i kWh presi dalla RETE: col fotovoltaico che
+  // copre tutto segna zero mentre la casa consuma. "Consumo totale" somma
+  // quello che arriva dal fotovoltaico. NON pannelli + batteria: quelli si
+  // sovrappongono, perche' i kWh che il sole manda in batteria e la batteria
+  // rende poi alla casa si conterebbero due volte.
+  dice('il consumo totale: rete + quello che arriva dal fotovoltaico');
+  if (casa) {
+    const con = (cfg) => {
+      const el = document.createElement('casa-energia');
+      el.setConfig({ type: 'custom:casa-energia', name: 'Prova', power_entity: 'sensor.prova_watt',
+        righe: ['consumo', 'consumo_vero'],
+        periods: [{ label: 'Oggi', energy: 'sensor.prova_oggi' }], ...cfg });
+      banco.appendChild(el);
+      el.hass = hass;
+      return el.shadowRoot.querySelector('.dm-e-consumo-vero');
+    };
+    // 2,5 dalla rete + 1,5423 dal fotovoltaico = 4,04
+    const pieno = con({ fv_casa_oggi: 'sensor.prova_fv_in_casa' });
+    prova('somma i due', pieno.textContent, '4,04 kWh');
+    prova('e dice come l ha fatto',
+      pieno.title, '2,50 dalla rete + 1,54 dal fotovoltaico');
+    // senza il contatore del fotovoltaico non inventa una somma sbagliata
+    const senza = con({});
+    prova('senza il contatore: trattino, non un numero finto',
+      senza.textContent, '—');
+    // e nemmeno se ha pannelli e batteria: quelli si sovrappongono
+    const conFonti = con({ pannelli_oggi: 'sensor.prova_oggi',
+                           batteria_oggi: 'sensor.prova_mese' });
+    prova('pannelli e batteria da soli non bastano',
+      conFonti.textContent, '—');
   }
 
   // ======================================================================

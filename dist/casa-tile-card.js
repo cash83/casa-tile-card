@@ -742,6 +742,13 @@ const EN = {
   "Non ho trovato niente che somigli a quello che cerca questo tasto.": "I found nothing matching what this button looks for.",
   "Ne ho trovati": "I found",
   "Presi": "Taken",
+  "Consumo totale": "Total use",
+  "Consumo totale (rete + fotovoltaico)": "Total use (grid + solar)",
+  "dalla rete": "from the grid",
+  "dal fotovoltaico": "from solar",
+  "Sensore di quello che arriva in casa": "Sensor for what reaches the house",
+  "Contatore dei kWh arrivati in casa dal fotovoltaico, oggi (serve alla riga «Consumo totale»)": "Counter of the kWh that reached the house from solar, today (the «Total use» row needs it)",
+  "Quanto ne arriva davvero in casa dal fotovoltaico: e' il numero che serve al <b>consumo totale</b>. Non e' pannelli piu' batteria - quelli si sovrappongono, perche' i kWh che il sole manda in batteria e la batteria rende poi alla casa li conteresti due volte.": "How much actually reaches the house from solar: this is the number the <b>total use</b> row needs. It is not panels plus battery - those overlap, because the kWh the sun sends to the battery and the battery then gives back to the house would be counted twice.",
   "Sì": "Yes",
   "No": "No",
   "Annunci": "Announcements",
@@ -10262,7 +10269,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.95.1";
+const VERSIONE = "2.95.2";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -22436,6 +22443,7 @@ const RIGHE_OGGI = [
   { id: "bolletta", nome: "Bolletta (il bimestre, kWh e €)", etichetta: "Bolletta", colore: "#e07b39" },
   { id: "pannelli", nome: "kWh dai pannelli (oggi e mese)", etichetta: "Dai pannelli", colore: "#f2c53c" },
   { id: "batteria", nome: "kWh dalla batteria (oggi e mese)", etichetta: "Dalla batteria", colore: "#7ecf6a" },
+  { id: "consumo_vero", nome: "Consumo totale (rete + fotovoltaico)", etichetta: "Consumo totale", colore: "#2fbfb0" },
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
 
@@ -22453,6 +22461,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       energia: `${this._config.bill_today || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}`,
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>`,
       bolletta: `${this._config.bolletta_energia || this._config.bolletta_costo ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e07b39"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Bolletta</small></span><b class="dm-e-bolletta">\u2014</b></div>` : ""}`,
+      consumo_vero: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo totale</small></span><b class="dm-e-consumo-vero">—</b></div>`,
       pannelli: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f2c53c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Dai pannelli</small></span><b class="dm-e-pannelli">\u2014</b></div>`}`,
       batteria: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#7ecf6a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Dalla batteria</small></span><b class="dm-e-batteria">\u2014</b></div>`}`,
       top: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>`,
@@ -22970,6 +22979,28 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       x.textContent = quali.length ? quali.map(([, v]) => v).join(" / ") + " kWh" : "\u2014";
       x.title = quali.map(([k]) => k).join(" / ");
     });
+    // IL CONSUMO VERO: quello preso dalla rete piu' quello che il
+    // fotovoltaico ha davvero mandato in casa. Non sommo pannelli e
+    // batteria: si sovrappongono, perche' i kWh che il sole manda in
+    // batteria e la batteria rende poi alla casa li conterei due volte.
+    // Senza il contatore di "arrivato in casa" la riga non compare, invece
+    // di far vedere una somma sbagliata.
+    const veroEl = this._root.querySelector(".dm-e-consumo-vero");
+    if (veroEl) {
+      const kwh = (e) => {
+        const st = e ? hass.states[e] : null;
+        const v = st && !["unknown", "unavailable"].includes(st.state)
+          ? Number(st.state) : NaN;
+        return Number.isFinite(v) ? v : null;
+      };
+      const rete = kwh(((cfg.periods || [])[0] || {}).energy);
+      const dalFv = kwh(cfg.fv_casa_oggi);
+      veroEl.textContent = (rete !== null && dalFv !== null)
+        ? numero(rete + dalFv, 2) + " kWh" : "—";
+      veroEl.title = (rete !== null && dalFv !== null)
+        ? numero(rete, 2) + " " + T("dalla rete") + " + " + numero(dalFv, 2)
+          + " " + T("dal fotovoltaico") : "";
+    }
     const fvEl = this._root.querySelector(".dm-e-fv");
     if (fvEl) {
       // due numeri in una riga stretta: un simbolo solo e la barra a dividerli
@@ -23065,6 +23096,7 @@ const ETICHETTE$1 = {
   top_exclude: "Parole che fanno escludere un sensore (batterie, inverter...)",
   bill_today: "Conto di oggi voce per voce (es. sensor.costi_luce_oggi)",
   bill_month: "Conto del mese voce per voce (es. sensor.costi_luce_mese)",
+  fv_casa_oggi: "Contatore dei kWh arrivati in casa dal fotovoltaico, oggi (serve alla riga «Consumo totale»)",
   bolletta_energia: "Contatore dei kWh del periodo della bolletta (bimestre)",
   bolletta_costo: "Contatore degli euro dello stesso periodo",
   layout: "Disposizione della scheda",
@@ -23325,6 +23357,37 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
 
   // I pannelli: va bene sia un sensore in kWh sia uno in Watt (i kWh me li
   // calcolo io). Metto davanti quelli che sembrano solari.
+  // Quello che arriva in casa dal fotovoltaico: stesso filtro della
+  // batteria (kWh o Watt), perche' puo' essere l'uno o l'altro.
+  _disegnaFvCasa() {
+    this._unSelettore(".ce-fvcasa-pick", "fv_casa_entita");
+  }
+
+  // il pezzo in comune fra i selettori delle fonti, che erano copie
+  _unSelettore(classe, chiave) {
+    const sel = this.querySelector(classe);
+    if (!sel || !this._hass) return;
+    sel.hass = this._hass;
+    const st = this._hass.states;
+    sel.includeDomains = ["sensor"];
+    sel.entityFilter = (e) => {
+      const id = typeof e === "string" ? e : e.entity_id;
+      const a = (st[id] || {}).attributes || {};
+      const u = String(a.unit_of_measurement || "").toLowerCase();
+      return (a.device_class === "power" && (u === "w" || u === "kw"))
+        || (a.device_class === "energy" && (u === "kwh" || u === "wh"));
+    };
+    if (!sel._agganciato) {
+      sel._agganciato = true;
+      sel.addEventListener("value-changed", (ev) => {
+        ev.stopPropagation();
+        this._scriviScelta(chiave, ev.detail.value || "");
+      });
+    }
+    const mio = this._config[chiave];
+    sel.value = Array.isArray(mio) ? mio : (mio ? [mio] : []);
+  }
+
   _disegnaBatteria() {
     const sel = this.querySelector(".ce-batteria-pick");
     if (!sel || !this._hass) return;
@@ -23692,7 +23755,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     if (this._formTutto) this._formTutto.data = this._datiForm();
       // i kWh delle due fonti: pannelli e batteria
       for (const [chiave, sel, nome] of [["pannelli", ".ce-pannelli-pick", "Pannelli energia"],
-        ["batteria", ".ce-batteria-pick", "Batteria energia"]]) {
+        ["batteria", ".ce-batteria-pick", "Batteria energia"],
+        ["fv_casa", ".ce-fvcasa-pick", "Fotovoltaico in casa"]]) {
         const ent = lista((this.querySelector(sel) || {}).value || this._config[chiave + "_entita"]);
         if (!ent.length) continue;
         const p = await creaFonte(this._hass, { entita: ent, nome }, (t) => this._dillo(t));
@@ -23741,6 +23805,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
           <div class="ce-riga"><span class="ent">Sensore dei pannelli (se ce l'hai)</span><ha-entities-picker class="ce-pannelli-pick"></ha-entities-picker></div>
           <button type="button" class="ce-prepara ce-pannelli-tutti">Cercali tu: i pannelli</button>
           <div class="ce-riga"><span class="ent">Sensore della batteria (se ce l'hai)</span><ha-entities-picker class="ce-batteria-pick"></ha-entities-picker></div>
+          <div class="ce-aiuto">${T("Quanto ne arriva davvero in casa dal fotovoltaico: e' il numero che serve al <b>consumo totale</b>. Non e' pannelli piu' batteria - quelli si sovrappongono, perche' i kWh che il sole manda in batteria e la batteria rende poi alla casa li conteresti due volte.")}</div>
+          <div class="ce-riga"><span class="ent">Sensore di quello che arriva in casa</span><ha-entities-picker class="ce-fvcasa-pick"></ha-entities-picker></div>
           <button type="button" class="ce-prepara ce-batteria-tutti">Cercali tu: le batterie</button>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <div class="ce-riga ce-fatti-riga"><span class="ent">I kWh di casa, contati per</span><b class="ce-fatti">&mdash;</b></div>
@@ -23911,6 +23977,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._disegnaPrese();
     this._disegnaPannelli();
     this._disegnaBatteria();
+    this._disegnaFvCasa();
     this._disegnaPrezzo();
     this._disegnaTariffa();
     this._form.data = this._datiForm();

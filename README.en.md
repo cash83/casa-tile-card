@@ -227,6 +227,8 @@ Almost everything is click-only; these only matter if you write the YAML by hand
 | `disegno_immagine` | a photo of yours instead of the drawing (the button uploads it for you) |
 | `disegno_immagine_accesa` | the photo for when it is working: a gif works too |
 | `finestra_righe` | how much the pop-up text boxes cover the photo (0-100) |
+| `fv_casa_oggi` | the kWh that reached the house from solar today: the «Total use» row needs them |
+| `fv_casa_settimana` / `fv_casa_mese` | the same, for the other periods |
 
 ---
 

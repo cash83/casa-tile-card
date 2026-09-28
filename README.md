@@ -230,6 +230,8 @@ Quasi tutto si fa a clic; queste servono solo se scrivi il YAML a mano.
 | `disegno_immagine` | una foto tua al posto del disegno (il tasto la carica da solo) |
 | `disegno_immagine_accesa` | la foto di quando lavora: anche una gif |
 | `finestra_righe` | quanto coprono la foto i riquadri delle scritte nel pop-up (0-100) |
+| `fv_casa_oggi` | i kWh arrivati in casa dal fotovoltaico oggi: servono alla riga «Consumo totale» |
+| `fv_casa_settimana` / `fv_casa_mese` | gli stessi, per gli altri periodi |
 
 ---
 

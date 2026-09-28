@@ -39,6 +39,7 @@ export const RIGHE_OGGI = [
   { id: "bolletta", nome: "Bolletta (il bimestre, kWh e €)", etichetta: "Bolletta", colore: "#e07b39" },
   { id: "pannelli", nome: "kWh dai pannelli (oggi e mese)", etichetta: "Dai pannelli", colore: "#f2c53c" },
   { id: "batteria", nome: "kWh dalla batteria (oggi e mese)", etichetta: "Dalla batteria", colore: "#7ecf6a" },
+  { id: "consumo_vero", nome: "Consumo totale (rete + fotovoltaico)", etichetta: "Consumo totale", colore: "#2fbfb0" },
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
 
@@ -56,6 +57,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       energia: `${this._config.bill_today || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}`,
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>`,
       bolletta: `${this._config.bolletta_energia || this._config.bolletta_costo ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e07b39"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Bolletta</small></span><b class="dm-e-bolletta">\u2014</b></div>` : ""}`,
+      consumo_vero: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo totale</small></span><b class="dm-e-consumo-vero">—</b></div>`,
       pannelli: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f2c53c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Dai pannelli</small></span><b class="dm-e-pannelli">\u2014</b></div>`}`,
       batteria: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#7ecf6a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Dalla batteria</small></span><b class="dm-e-batteria">\u2014</b></div>`}`,
       top: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>`,
@@ -573,6 +575,28 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       x.textContent = quali.length ? quali.map(([, v]) => v).join(" / ") + " kWh" : "\u2014";
       x.title = quali.map(([k]) => k).join(" / ");
     });
+    // IL CONSUMO VERO: quello preso dalla rete piu' quello che il
+    // fotovoltaico ha davvero mandato in casa. Non sommo pannelli e
+    // batteria: si sovrappongono, perche' i kWh che il sole manda in
+    // batteria e la batteria rende poi alla casa li conterei due volte.
+    // Senza il contatore di "arrivato in casa" la riga non compare, invece
+    // di far vedere una somma sbagliata.
+    const veroEl = this._root.querySelector(".dm-e-consumo-vero");
+    if (veroEl) {
+      const kwh = (e) => {
+        const st = e ? hass.states[e] : null;
+        const v = st && !["unknown", "unavailable"].includes(st.state)
+          ? Number(st.state) : NaN;
+        return Number.isFinite(v) ? v : null;
+      };
+      const rete = kwh(((cfg.periods || [])[0] || {}).energy);
+      const dalFv = kwh(cfg.fv_casa_oggi);
+      veroEl.textContent = (rete !== null && dalFv !== null)
+        ? numero(rete + dalFv, 2) + " kWh" : "—";
+      veroEl.title = (rete !== null && dalFv !== null)
+        ? numero(rete, 2) + " " + T("dalla rete") + " + " + numero(dalFv, 2)
+          + " " + T("dal fotovoltaico") : "";
+    }
     const fvEl = this._root.querySelector(".dm-e-fv");
     if (fvEl) {
       // due numeri in una riga stretta: un simbolo solo e la barra a dividerli

@@ -41,6 +41,7 @@ const ETICHETTE = {
   top_exclude: "Parole che fanno escludere un sensore (batterie, inverter...)",
   bill_today: "Conto di oggi voce per voce (es. sensor.costi_luce_oggi)",
   bill_month: "Conto del mese voce per voce (es. sensor.costi_luce_mese)",
+  fv_casa_oggi: "Contatore dei kWh arrivati in casa dal fotovoltaico, oggi (serve alla riga «Consumo totale»)",
   bolletta_energia: "Contatore dei kWh del periodo della bolletta (bimestre)",
   bolletta_costo: "Contatore degli euro dello stesso periodo",
   layout: "Disposizione della scheda",
@@ -301,6 +302,37 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
 
   // I pannelli: va bene sia un sensore in kWh sia uno in Watt (i kWh me li
   // calcolo io). Metto davanti quelli che sembrano solari.
+  // Quello che arriva in casa dal fotovoltaico: stesso filtro della
+  // batteria (kWh o Watt), perche' puo' essere l'uno o l'altro.
+  _disegnaFvCasa() {
+    this._unSelettore(".ce-fvcasa-pick", "fv_casa_entita");
+  }
+
+  // il pezzo in comune fra i selettori delle fonti, che erano copie
+  _unSelettore(classe, chiave) {
+    const sel = this.querySelector(classe);
+    if (!sel || !this._hass) return;
+    sel.hass = this._hass;
+    const st = this._hass.states;
+    sel.includeDomains = ["sensor"];
+    sel.entityFilter = (e) => {
+      const id = typeof e === "string" ? e : e.entity_id;
+      const a = (st[id] || {}).attributes || {};
+      const u = String(a.unit_of_measurement || "").toLowerCase();
+      return (a.device_class === "power" && (u === "w" || u === "kw"))
+        || (a.device_class === "energy" && (u === "kwh" || u === "wh"));
+    };
+    if (!sel._agganciato) {
+      sel._agganciato = true;
+      sel.addEventListener("value-changed", (ev) => {
+        ev.stopPropagation();
+        this._scriviScelta(chiave, ev.detail.value || "");
+      });
+    }
+    const mio = this._config[chiave];
+    sel.value = Array.isArray(mio) ? mio : (mio ? [mio] : []);
+  }
+
   _disegnaBatteria() {
     const sel = this.querySelector(".ce-batteria-pick");
     if (!sel || !this._hass) return;
@@ -668,7 +700,8 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     if (this._formTutto) this._formTutto.data = this._datiForm();
       // i kWh delle due fonti: pannelli e batteria
       for (const [chiave, sel, nome] of [["pannelli", ".ce-pannelli-pick", "Pannelli energia"],
-        ["batteria", ".ce-batteria-pick", "Batteria energia"]]) {
+        ["batteria", ".ce-batteria-pick", "Batteria energia"],
+        ["fv_casa", ".ce-fvcasa-pick", "Fotovoltaico in casa"]]) {
         const ent = lista((this.querySelector(sel) || {}).value || this._config[chiave + "_entita"]);
         if (!ent.length) continue;
         const p = await creaFonte(this._hass, { entita: ent, nome }, (t) => this._dillo(t));
@@ -717,6 +750,8 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
           <div class="ce-riga"><span class="ent">Sensore dei pannelli (se ce l'hai)</span><ha-entities-picker class="ce-pannelli-pick"></ha-entities-picker></div>
           <button type="button" class="ce-prepara ce-pannelli-tutti">Cercali tu: i pannelli</button>
           <div class="ce-riga"><span class="ent">Sensore della batteria (se ce l'hai)</span><ha-entities-picker class="ce-batteria-pick"></ha-entities-picker></div>
+          <div class="ce-aiuto">${T("Quanto ne arriva davvero in casa dal fotovoltaico: e' il numero che serve al <b>consumo totale</b>. Non e' pannelli piu' batteria - quelli si sovrappongono, perche' i kWh che il sole manda in batteria e la batteria rende poi alla casa li conteresti due volte.")}</div>
+          <div class="ce-riga"><span class="ent">Sensore di quello che arriva in casa</span><ha-entities-picker class="ce-fvcasa-pick"></ha-entities-picker></div>
           <button type="button" class="ce-prepara ce-batteria-tutti">Cercali tu: le batterie</button>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <div class="ce-riga ce-fatti-riga"><span class="ent">I kWh di casa, contati per</span><b class="ce-fatti">&mdash;</b></div>
@@ -887,6 +922,7 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._disegnaPrese();
     this._disegnaPannelli();
     this._disegnaBatteria();
+    this._disegnaFvCasa();
     this._disegnaPrezzo();
     this._disegnaTariffa();
     this._form.data = this._datiForm();
