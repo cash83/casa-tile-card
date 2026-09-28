@@ -64,8 +64,8 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const c = this._config;
     const pe0 = c.period_entities || {};
     const haCicli = !!c.ciclo;
-    const haPeriodi = !!(c.oggi_energia || c.oggi_costo || c.mese_energia || c.mese_costo
-      || (pe0.today || {}).energy || (pe0.month || {}).energy);
+    const haPeriodi = !!((pe0.today || {}).energy || (pe0.month || {}).energy
+      || (pe0.today || {}).cost || (pe0.month || {}).cost);
     const daCiclo = ["fine", "durata", "consumo", "costo"];
     const daPresa = ["oggi", "costo_oggi", "mese", "costo_mese"];
     // se hai scelto tu le righe comandi tu; se no ti do quelle che sai riempire
@@ -546,7 +546,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const periodRows = periods.map((p) => this._renderPeriodRow(hass, p)).join("");
 
     const conta = ((this._config.period_entities || {}).today || {}).energy
-      || this._config.oggi_energia || this._config.energy_stat_entity;
+      || this._config.energy_stat_entity;
     this._openDialog("Statistiche", `
       ${periodRows ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div><div class="dm-ap-week-list">${periodRows}</div></div>` : ""}
       <div class="dm-ap-sec">
@@ -920,9 +920,9 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       const due = Number.isFinite(k) && prezzoPieno > 0 ? k * prezzoPieno : NaN;
       return [uno, due];
     };
-    const kwhOggi = cfg.oggi_energia || (pe.today || {}).energy;
+    const kwhOggi = (pe.today || {}).energy;
     const kwhSett = (pe.week || {}).energy;
-    const kwhMese = cfg.mese_energia || (pe.month || {}).energy;
+    const kwhMese = (pe.month || {}).energy;
     const periodi = [
       [".dm-c-oggi", kwhOggi, " kWh", 2],
       [".dm-c-settimana", kwhSett, " kWh", 2],
@@ -935,9 +935,9 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       if (eid) hoPeriodi = true;
       x.textContent = numeroDi(eid, unita, dec);
     });
-    [[".dm-c-costo-oggi", cfg.oggi_costo || (pe.today || {}).cost, kwhOggi],
+    [[".dm-c-costo-oggi", (pe.today || {}).cost, kwhOggi],
      [".dm-c-costo-settimana", (pe.week || {}).cost, kwhSett],
-     [".dm-c-costo-mese", cfg.mese_costo || (pe.month || {}).cost, kwhMese]].forEach(([sel, eidCosto, eidKwh]) => {
+     [".dm-c-costo-mese", (pe.month || {}).cost, kwhMese]].forEach(([sel, eidCosto, eidKwh]) => {
       const x = this._root.querySelector(sel);
       if (!x) return;
       if (eidCosto || eidKwh) hoPeriodi = true;

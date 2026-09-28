@@ -46,10 +46,6 @@ const ETICHETTE = {
   stato: "Stato vero dell'apparecchio (facoltativo: integrazioni LG, Bosch...)",
   interruttore: "Tasto \u23fb nella barra in alto: cosa accende e spegne",
   interruttore_usb: "Secondo tasto per le prese USB (se ci sono)",
-  oggi_energia: "kWh di OGGI: il contatore di utenza a ciclo giornaliero",
-  oggi_costo: "Euro di oggi: quei kWh per il prezzo",
-  mese_energia: "kWh del MESE: lo stesso contatore a ciclo mensile",
-  mese_costo: "Euro del mese",
   barre_entita: "Barre in WATT: quali sensori (il nome di ognuna si scrive qui sotto)",
   avanzamento: "Barra dell'AVANZAMENTO: quale sensore, da 0 a 100 (programma, umidita'...)",
   progress_label: "Barra dell'AVANZAMENTO: il nome (vuoto = Avanzamento programma)",
@@ -371,9 +367,9 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       entity_id: cfg.reset_script,
       variables: {
         scheda: cfg.name || "",
-        oggi: cfg.oggi_energia || (pe.today || {}).energy || "",
+        oggi: (pe.today || {}).energy || "",
         settimana: (pe.week || {}).energy || "",
-        mese: cfg.mese_energia || (pe.month || {}).energy || "",
+        mese: (pe.month || {}).energy || "",
         ciclo_contatore: ci.contatore || "",
         ciclo_kwh: ci.consumo || "",
         ciclo_minuti: ci.durata || "",
@@ -410,7 +406,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     metti(".ce-sez-capisci", c.power_entity ? this._nomeDi(c.power_entity) : T("da fare"));
     const pe = c.period_entities || {};
     const quanti = Object.keys(pe).filter((k) => (pe[k] || {}).energy).length
-      || [c.oggi_energia, c.mese_energia].filter(Boolean).length;
+      || Object.keys(pe).filter((k) => (pe[k] || {}).cost).length;
     metti(".ce-sez-contatori", quanti ? quanti + " " + T(quanti === 1 ? "agganciato" : "agganciati") : T("da fare"));
     const tasti = tastiDi(c).length;
     metti(".ce-sez-tasti", tasti ? tasti + " " + T(tasti === 1 ? "tasto" : "tasti") : T("nessuno"));
@@ -625,9 +621,9 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         reset_script: this._config.reset_script,
         // i contatori che la scheda gia' usa: quelli si riusano, non si rifanno
         gia: {
-          oggi: this._config.oggi_energia || ((this._config.period_entities || {}).today || {}).energy,
+          oggi: ((this._config.period_entities || {}).today || {}).energy,
           settimana: ((this._config.period_entities || {}).week || {}).energy,
-          mese: this._config.mese_energia || ((this._config.period_entities || {}).month || {}).energy,
+          mese: ((this._config.period_entities || {}).month || {}).energy,
         },
         nome: this._config.name || this._nomeDispositivo(kwh || potenza),
         potenza, energia: kwh || null,

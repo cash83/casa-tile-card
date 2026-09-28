@@ -501,4 +501,69 @@ export const DISEGNI_PIU = {
     <rect x="62" y="204" width="92" height="14" rx="7" fill="#9fadbc"/>
     ${led(136, 36)}
   `),
+
+  // Gli annunci: la cassa che parla. Le tre onde escono solo quando la
+  // scheda lavora - a riposo sta zitta, e si vede.
+  annunci: (id) => tela(id, `
+    ${piede(id, 104, 214, 48, 9)}
+    <rect x="52" y="44" width="104" height="164" rx="22" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="62" y="54" width="84" height="144" rx="16" fill="#0b1526"/>
+    <circle cx="104" cy="96" r="28" fill="#12243c" stroke="#33415a" stroke-width="2"/>
+    <circle cx="104" cy="96" r="16" fill="url(#dmh-cono-${id})"/>
+    <circle cx="104" cy="96" r="6" fill="#0b1526"/>
+    <circle cx="104" cy="160" r="17" fill="#12243c" stroke="#33415a" stroke-width="2"/>
+    <circle cx="104" cy="160" r="8" fill="url(#dmh-cono-${id})"/>
+    ${led(104, 68, 3, "#38bdf8")}
+    <g fill="none" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" class="dmh-onde">
+      <path d="M168 104a26 26 0 0 0 0-36" opacity=".95"/>
+      <path d="M186 116a48 48 0 0 0 0-60" opacity=".6"/>
+      <path d="M204 128a70 70 0 0 0 0-84" opacity=".3"/>
+    </g>
+  `, `<radialGradient id="dmh-cono-${id}" cx=".38" cy=".32" r=".85"><stop offset="0" stop-color="#e8f4ff"/><stop offset=".55" stop-color="#9fb6cc"/><stop offset="1" stop-color="#4b5d72"/></radialGradient>`),
+
+  // I tre Echo, quelli veri che si riconoscono a colpo d'occhio anche
+  // piccoli: la pallina, quello con lo schermo e la colonna. L'anello
+  // azzurro alla base e' quello che li fa "Echo": sta spento e si accende
+  // solo mentre parlano.
+  echo_dot: (id) => tela(id, `
+    ${piede(id, 120, 208, 52, 10)}
+    <ellipse cx="120" cy="198" rx="54" ry="12" fill="#0f2942" opacity=".9"/>
+    <circle cx="120" cy="138" r="62" fill="url(#dmh-tessuto-${id})"/>
+    <path d="M58 138a62 62 0 0 1 124 0" fill="none" stroke="#ffffff" stroke-opacity=".22" stroke-width="3"/>
+    <ellipse class="dmh-anello" cx="120" cy="196" rx="58" ry="13" fill="none"
+      stroke="#38bdf8" stroke-width="7"/>
+    <g fill="#0b1526" opacity=".5">
+      <circle cx="96" cy="108" r="3"/><circle cx="120" cy="102" r="3"/><circle cx="144" cy="108" r="3"/>
+    </g>
+  `, `<radialGradient id="dmh-tessuto-${id}" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="#eef2f7"/><stop offset=".55" stop-color="#b9c4d1"/><stop offset="1" stop-color="#5b6875"/></radialGradient>`),
+
+  // Quello con lo schermo: il display inclinato e la cassa in tessuto dietro.
+  echo_show: (id) => tela(id, `
+    ${piede(id, 120, 206, 62, 10)}
+    <path d="M52 196l14-44h150l12 44z" fill="url(#dmh-tessuto-${id})" stroke="#8fa0b3" stroke-opacity=".45" stroke-width="1.4"/>
+    <rect x="46" y="44" width="148" height="112" rx="16" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="56" y="54" width="128" height="92" rx="10" fill="#08111f"/>
+    <g class="dmh-glow" fill="#38bdf8" opacity=".85">
+      <rect x="70" y="72" width="60" height="9" rx="4.5"/>
+      <rect x="70" y="90" width="90" height="7" rx="3.5" opacity=".7"/>
+      <rect x="70" y="106" width="44" height="7" rx="3.5" opacity=".45"/>
+    </g>
+    <circle cx="172" cy="66" r="4" fill="#33415a"/>
+    <rect class="dmh-anello-b" x="66" y="186" width="108" height="7" rx="3.5" fill="#38bdf8"/>
+  `, `<radialGradient id="dmh-tessuto-${id}" cx=".4" cy=".2" r=".9"><stop offset="0" stop-color="#e7ecf2"/><stop offset=".6" stop-color="#aeb9c6"/><stop offset="1" stop-color="#5b6875"/></radialGradient>`),
+
+  // La colonna alta, quella che suona forte.
+  echo_studio: (id) => tela(id, `
+    ${piede(id, 120, 210, 46, 9)}
+    <rect x="72" y="36" width="96" height="166" rx="46" fill="url(#dmh-tessuto-${id})" stroke="#8fa0b3" stroke-opacity=".45" stroke-width="1.4"/>
+    <path d="M72 96a48 48 0 0 1 96 0" fill="none" stroke="#ffffff" stroke-opacity=".2" stroke-width="3"/>
+    <circle cx="120" cy="122" r="30" fill="#12243c" stroke="#33415a" stroke-width="2"/>
+    <circle cx="120" cy="122" r="16" fill="#4b5d72"/>
+    <circle cx="120" cy="122" r="6" fill="#0b1526"/>
+    <ellipse class="dmh-anello" cx="120" cy="196" rx="46" ry="10" fill="none"
+      stroke="#38bdf8" stroke-width="6"/>
+    <g fill="#0b1526" opacity=".45">
+      <circle cx="104" cy="58" r="2.6"/><circle cx="120" cy="54" r="2.6"/><circle cx="136" cy="58" r="2.6"/>
+    </g>
+  `, `<radialGradient id="dmh-tessuto-${id}" cx=".36" cy=".26" r=".9"><stop offset="0" stop-color="#e9eef4"/><stop offset=".55" stop-color="#aab5c3"/><stop offset="1" stop-color="#4c5866"/></radialGradient>`),
 };

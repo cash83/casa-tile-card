@@ -284,10 +284,20 @@ export function preparaElettrodomestico(hass, cfg) {
   const meseE = trova(/_mese|_month/, "energia");
   const oggiC = trova(/costo.*(oggi|today)|(oggi|today).*costo|cost.*(today|daily)/, "soldi");
   const meseC = trova(/costo.*mese|mese.*costo|cost.*month/, "soldi");
-  if (oggiE) scheda.oggi_energia = oggiE;
-  if (meseE) scheda.mese_energia = meseE;
-  if (oggiC) scheda.oggi_costo = oggiC;
-  if (meseC) scheda.mese_costo = meseC;
+  // I contatori vanno in `period_entities`, che e' la forma che scrive
+  // anche il tasto "Crea i sensori". Prima qui finivano in
+  // `oggi_energia` & compagni: due strade per la stessa cosa, e la
+  // scheda dava la precedenza alla vecchia. Se i due valori fossero
+  // andati a divergere, avresti visto il contatore sbagliato senza che
+  // niente te lo dicesse.
+  const periodi = {};
+  if (oggiE || oggiC) periodi.today = {};
+  if (oggiE) periodi.today.energy = oggiE;
+  if (oggiC) periodi.today.cost = oggiC;
+  if (meseE || meseC) periodi.month = {};
+  if (meseE) periodi.month.energy = meseE;
+  if (meseC) periodi.month.cost = meseC;
+  if (Object.keys(periodi).length) scheda.period_entities = periodi;
 
   return scheda;
 }

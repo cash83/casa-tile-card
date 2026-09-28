@@ -525,6 +525,14 @@ Object.assign(HERO_BUILDERS, DISEGNI_PIU);
 
 
 const CHIP_SVGS = {
+  echo_dot:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><circle cx="48" cy="44" r="30" fill="#5b6875"/><path d="M18 44a30 30 0 0 1 60 0" fill="none" stroke="#f8fafc" stroke-opacity=".35" stroke-width="4"/><ellipse cx="48" cy="74" rx="29" ry="7" fill="none" stroke="#38bdf8" stroke-width="6"/></svg>',
+  echo_show:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><path d="M14 80l8-22h52l7 22z" fill="#5b6875"/><rect x="12" y="14" width="66" height="48" rx="8" fill="#0f2942"/><rect x="18" y="20" width="54" height="36" rx="5" fill="#08111f"/><g fill="#38bdf8"><rect x="24" y="28" width="28" height="5" rx="2.5"/><rect x="24" y="38" width="40" height="4" rx="2" opacity=".7"/></g><rect x="24" y="74" width="48" height="5" rx="2.5" fill="#38bdf8"/></svg>',
+  echo_studio:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="26" y="8" width="44" height="76" rx="21" fill="#5b6875"/><path d="M26 34a22 22 0 0 1 44 0" fill="none" stroke="#f8fafc" stroke-opacity=".3" stroke-width="3.5"/><circle cx="48" cy="46" r="14" fill="#12243c"/><circle cx="48" cy="46" r="6" fill="#4b5d72"/><ellipse cx="48" cy="78" rx="21" ry="5" fill="none" stroke="#38bdf8" stroke-width="5"/></svg>',
+  annunci:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="14" width="44" height="68" rx="12" fill="#0f2942"/><circle cx="36" cy="38" r="13" fill="#f8fafc"/><circle cx="36" cy="38" r="5" fill="#0f2942"/><circle cx="36" cy="64" r="8" fill="#f8fafc"/><g fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"><path d="M66 44a14 14 0 0 0 0-18"/><path d="M78 52a28 28 0 0 0 0-34"/></g></svg>',
   cucina:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M20 34 27 20h30l7 14z" fill="#f8fafc"/><rect x="22" y="34" width="40" height="4" rx="2" fill="#ffd27a"/><rect x="68" y="18" width="12" height="60" rx="4" fill="#f8fafc"/><path d="M68 46h12" stroke="#0f2942" stroke-width="2.4"/><rect x="18" y="52" width="44" height="6" rx="3" fill="#f8fafc"/><ellipse cx="30" cy="51" rx="8" ry="3" fill="#f97316"/><ellipse cx="50" cy="51" rx="7" ry="2.6" fill="#38bdf8"/><rect x="18" y="60" width="44" height="20" rx="4" fill="#f8fafc"/><path d="M40 60v20" stroke="#0f2942" stroke-width="2.2"/></svg>',
   dishwasher:
@@ -671,6 +679,19 @@ const STYLE = `
 .dm-ap-card.is-run .dmh-aria{animation:dmh-glow 2.2s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-goccia{animation:dmh-drip 1.9s linear infinite}
 .dm-ap-card.is-run .dmh-logo-ha{animation:dmh-glow 2.6s ease-in-out infinite;transform-box:view-box}
+/* Le onde della cassa che annuncia: ferme e quasi trasparenti a riposo,
+   escono a ondate mentre parla. Il ritardo diverso fra le tre fa sembrare
+   che il suono si allontani. */
+.dmh-onde path{opacity:.18}
+.dm-ap-card.is-run .dmh-onde path{animation:dmh-onda-esce 1.6s ease-out infinite}
+.dm-ap-card.is-run .dmh-onde path:nth-child(2){animation-delay:.25s}
+.dm-ap-card.is-run .dmh-onde path:nth-child(3){animation-delay:.5s}
+@keyframes dmh-onda-esce{0%{opacity:0}25%{opacity:.95}100%{opacity:0}}
+/* L'anello degli Echo: quello che li fa riconoscere. Spento quando la
+   scheda e' a riposo, respira mentre parla. */
+.dmh-anello,.dmh-anello-b{opacity:.14}
+.dm-ap-card.is-run .dmh-anello,.dm-ap-card.is-run .dmh-anello-b{
+  animation:dmh-glow 1.8s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-goccia2{animation-delay:.6s}
 .dm-ap-card.is-run .dmh-goccia3{animation-delay:1.2s}
 .dm-ap-card.is-run .dmh-onda{animation:dmh-onda 3.4s ease-in-out infinite}
@@ -1040,6 +1061,10 @@ export function numero(v, decimali) {
 // il disegno di ripiego senza dire niente; con la griglia si vedevano cinque
 // quadretti vuoti. Un elenco solo, e il caso non si ripresenta.
 export const NOMI_DISEGNI = [
+  ["annunci", "Annunci vocali"],
+  ["echo_dot", "Echo Dot"],
+  ["echo_show", "Echo con schermo"],
+  ["echo_studio", "Echo colonna"],
   ["cucina", "Cucina (tutta la linea)"],
   ["washer", "Lavatrice"],
   ["dishwasher", "Lavastoviglie"],

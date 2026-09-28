@@ -7,7 +7,7 @@
 
 import { numero, unitaBella, giornoBreve, meseBreve, meseLungo, tastiDi } from '../src/elettro-comune.js';
 import { coloreScala, aPezzetti, SCALA, PERIODI_GRAFICO } from '../src/elettro-grafico.js';
-import { preseDiCasa, contaNelTop, inFinestra } from '../src/elettro-prepara.js';
+import { preseDiCasa, contaNelTop, inFinestra, preparaElettrodomestico } from '../src/elettro-prepara.js';
 import { prezziDelKWh, prezzoDellaCasa, INGREDIENTE, idDellaVoce, VOCI_TARIFFA } from '../src/elettro-crea.js';
 
 let fatte = 0;
@@ -109,6 +109,34 @@ titolo('contaNelTop: la spunta a mano vince sulle parole');
   prova('ma se l\'hai spuntata a mano, conta',
     contaNelTop({ ...cfg, top_include: ['sensor.fotovoltaico_power'] }, 'sensor.fotovoltaico_power'), true);
   prova('tolta a mano non conta', contaNelTop(cfg, 'sensor.misuratore_power_ab'), false);
+}
+
+// ===========================================================================
+titolo('«Compila da solo» scrive la forma NUOVA dei contatori');
+// C'erano due scrittori con due forme diverse: il tasto "Crea i sensori"
+// metteva `period_entities`, "Compila da solo" metteva `oggi_energia` &
+// compagni. La scheda dava la precedenza alla vecchia: se i due valori
+// fossero andati a divergere avresti visto il contatore sbagliato, zitto.
+{
+  const hass = { states: {
+    'sensor.forno_power': { state: '0', attributes: { device_class: 'power',
+      unit_of_measurement: 'W', friendly_name: 'Forno Potenza' } },
+    'sensor.forno_energia_oggi': { state: '1.2', attributes: { device_class: 'energy',
+      unit_of_measurement: 'kWh', friendly_name: 'Forno energia oggi' } },
+    'sensor.forno_energia_mese': { state: '30', attributes: { device_class: 'energy',
+      unit_of_measurement: 'kWh', friendly_name: 'Forno energia mese' } },
+    'sensor.forno_costo_oggi': { state: '0.3', attributes: { device_class: 'monetary',
+      unit_of_measurement: '€', friendly_name: 'Forno costo oggi' } },
+  }, entities: {} };
+  const scheda = preparaElettrodomestico(hass, { entity: 'sensor.forno_power', name: 'Forno' });
+  prova('la chiave vecchia non c e piu', scheda.oggi_energia, undefined);
+  prova('nemmeno quella del mese', scheda.mese_energia, undefined);
+  prova('i kWh di oggi stanno nella forma nuova',
+    (scheda.period_entities || {}).today?.energy, 'sensor.forno_energia_oggi');
+  prova('e quelli del mese', (scheda.period_entities || {}).month?.energy,
+    'sensor.forno_energia_mese');
+  prova('e anche il costo', (scheda.period_entities || {}).today?.cost,
+    'sensor.forno_costo_oggi');
 }
 
 // ===========================================================================

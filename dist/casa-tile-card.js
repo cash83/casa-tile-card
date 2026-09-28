@@ -742,6 +742,67 @@ const EN = {
   "Non ho trovato niente che somigli a quello che cerca questo tasto.": "I found nothing matching what this button looks for.",
   "Ne ho trovati": "I found",
   "Presi": "Taken",
+  "Sì": "Yes",
+  "No": "No",
+  "Annunci": "Announcements",
+  "Su quali casse": "On which speakers",
+  "Come parla": "How it speaks",
+  "Quando puo' parlare": "When it may speak",
+  "Volume della voce": "Voice volume",
+  "Poi torna a": "Then back to",
+  "Aspetta": "Waits",
+  "Dalle": "From",
+  "Alle": "To",
+  "Il volume lo rimette a posto solo sulle Alexa: le altre lo fanno da sole.": "It only puts the volume back on the Alexas: the others do it themselves.",
+  "Adesso puo' parlare.": "It may speak right now.",
+  "Adesso non parlerebbe: sei fuori dalla finestra.": "It would not speak now: you are outside the window.",
+  "Alexa: il volume glielo mettiamo e togliamo noi.": "Alexa: we raise and lower its volume ourselves.",
+  "Annuncia da sola e si rimette come stava.": "Announces by itself and puts itself back as it was.",
+  "Questa cassa non sa annunciare: non ha come farlo.": "This speaker cannot announce: it has no way to.",
+  "Nessuna cassa scelta: aprile con la matita e dimmi quali sono.": "No speakers chosen: open with the pencil and tell me which ones.",
+  "cassa accesa": "speaker on",
+  "casse accese": "speakers on",
+  "nessuna accesa": "none on",
+  "non sanno annunciare": "cannot announce",
+  "cassa": "speaker",
+  "casse": "speakers",
+  "NON DISTURBARE": "DO NOT DISTURB",
+  "NESSUNA CASSA": "NO SPEAKER",
+  "FUORI ORARIO": "OUTSIDE HOURS",
+  "Altre impostazioni": "Other settings",
+  "Con che voce": "With which voice",
+  "Voce": "Voice",
+  "Non disturbare": "Do not disturb",
+  "Acceso: non parla a nessuno": "On: it speaks to nobody",
+  "Spento: parla quando serve": "Off: it speaks when needed",
+  "Riaccendi": "Turn back on",
+  "Fai silenzio": "Go quiet",
+  "Prova": "Test",
+  "Parla": "Speak",
+  "Scrivi cosa deve dire": "Write what it should say",
+  "Scrivi prima cosa deve dire.": "Write what it should say first.",
+  "Non c'e' nessuna cassa accesa.": "There is no speaker on.",
+  "Parla sulle casse accese, anche fuori orario.": "Speaks on the speakers that are on, even outside hours.",
+  "Detto su": "Said on",
+  "Gli aiutanti": "The helpers",
+  "Questi li crea il pacchetto <code>annunci_vocali.yaml</code> e di solito non si toccano. Stanno qui per quando qualcosa va storto o ne hai di tuoi.": "These are created by the <code>annunci_vocali.yaml</code> package and are usually left alone. They are here for when something goes wrong or you have your own.",
+  "Le casse fra cui scegliere": "The speakers to choose from",
+  "Chi guardare per il rientro": "Who to watch for the return home",
+  "Quelle che compaiono come chip sulla scheda. Mettici tutte quelle che potresti voler far parlare: quali sono accese lo decidi poi a tocchi, senza riaprire di qui.": "The ones that appear as chips on the card. Put in every one you might want to speak: which are on you then decide by tapping, without coming back here.",
+  "Chi conta come «in casa». Servono ai promemoria: se la persona non c'è all'ora prevista, l'annuncio resta in sospeso e parte al rientro. Va bene qualunque entità che dica home oppure on.": "Who counts as «at home». The reminders need them: if the person is not in at the scheduled time, the announcement stays pending and fires when they return. Any entity that says home or on will do.",
+  "Aiutante: volume della voce": "Helper: voice volume",
+  "Aiutante: volume a cui tornare": "Helper: volume to go back to",
+  "Aiutante: quanto aspettare": "Helper: how long to wait",
+  "Aiutante: non prima delle": "Helper: not before",
+  "Aiutante: non dopo le": "Helper: not after",
+  "Aiutante: non disturbare": "Helper: do not disturb",
+  "Aiutante: con che voce": "Helper: with which voice",
+  "Aiutante: le casse accese": "Helper: the speakers that are on",
+  "Lo script che parla": "The script that speaks",
+  "Annunci vocali": "Voice announcements",
+  "Echo Dot": "Echo Dot",
+  "Echo con schermo": "Echo with a screen",
+  "Echo colonna": "Echo tower",
   "Pop-up: i riquadri delle scritte": "Pop-up: the text boxes",
   "Quanto coprono quello che c'e' dietro: 100 = pieni, 0 = si vede la foto attraverso. Serve quando hai messo una foto di sfondo e le scritte non si leggono.": "How much they cover what is behind: 100 = solid, 0 = the photo shows through. Useful when you set a background photo and the text is hard to read.",
   "Il disegno della scheda": "The card drawing",
@@ -4024,6 +4085,71 @@ const DISEGNI_PIU = {
     <rect x="62" y="204" width="92" height="14" rx="7" fill="#9fadbc"/>
     ${led(136, 36)}
   `),
+
+  // Gli annunci: la cassa che parla. Le tre onde escono solo quando la
+  // scheda lavora - a riposo sta zitta, e si vede.
+  annunci: (id) => tela(id, `
+    ${piede(id, 104, 214, 48, 9)}
+    <rect x="52" y="44" width="104" height="164" rx="22" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="62" y="54" width="84" height="144" rx="16" fill="#0b1526"/>
+    <circle cx="104" cy="96" r="28" fill="#12243c" stroke="#33415a" stroke-width="2"/>
+    <circle cx="104" cy="96" r="16" fill="url(#dmh-cono-${id})"/>
+    <circle cx="104" cy="96" r="6" fill="#0b1526"/>
+    <circle cx="104" cy="160" r="17" fill="#12243c" stroke="#33415a" stroke-width="2"/>
+    <circle cx="104" cy="160" r="8" fill="url(#dmh-cono-${id})"/>
+    ${led(104, 68, 3, "#38bdf8")}
+    <g fill="none" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" class="dmh-onde">
+      <path d="M168 104a26 26 0 0 0 0-36" opacity=".95"/>
+      <path d="M186 116a48 48 0 0 0 0-60" opacity=".6"/>
+      <path d="M204 128a70 70 0 0 0 0-84" opacity=".3"/>
+    </g>
+  `, `<radialGradient id="dmh-cono-${id}" cx=".38" cy=".32" r=".85"><stop offset="0" stop-color="#e8f4ff"/><stop offset=".55" stop-color="#9fb6cc"/><stop offset="1" stop-color="#4b5d72"/></radialGradient>`),
+
+  // I tre Echo, quelli veri che si riconoscono a colpo d'occhio anche
+  // piccoli: la pallina, quello con lo schermo e la colonna. L'anello
+  // azzurro alla base e' quello che li fa "Echo": sta spento e si accende
+  // solo mentre parlano.
+  echo_dot: (id) => tela(id, `
+    ${piede(id, 120, 208, 52, 10)}
+    <ellipse cx="120" cy="198" rx="54" ry="12" fill="#0f2942" opacity=".9"/>
+    <circle cx="120" cy="138" r="62" fill="url(#dmh-tessuto-${id})"/>
+    <path d="M58 138a62 62 0 0 1 124 0" fill="none" stroke="#ffffff" stroke-opacity=".22" stroke-width="3"/>
+    <ellipse class="dmh-anello" cx="120" cy="196" rx="58" ry="13" fill="none"
+      stroke="#38bdf8" stroke-width="7"/>
+    <g fill="#0b1526" opacity=".5">
+      <circle cx="96" cy="108" r="3"/><circle cx="120" cy="102" r="3"/><circle cx="144" cy="108" r="3"/>
+    </g>
+  `, `<radialGradient id="dmh-tessuto-${id}" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="#eef2f7"/><stop offset=".55" stop-color="#b9c4d1"/><stop offset="1" stop-color="#5b6875"/></radialGradient>`),
+
+  // Quello con lo schermo: il display inclinato e la cassa in tessuto dietro.
+  echo_show: (id) => tela(id, `
+    ${piede(id, 120, 206, 62, 10)}
+    <path d="M52 196l14-44h150l12 44z" fill="url(#dmh-tessuto-${id})" stroke="#8fa0b3" stroke-opacity=".45" stroke-width="1.4"/>
+    <rect x="46" y="44" width="148" height="112" rx="16" fill="url(#dmh-steel-${id})" stroke="#8fa0b3" stroke-opacity=".55" stroke-width="1.5"/>
+    <rect x="56" y="54" width="128" height="92" rx="10" fill="#08111f"/>
+    <g class="dmh-glow" fill="#38bdf8" opacity=".85">
+      <rect x="70" y="72" width="60" height="9" rx="4.5"/>
+      <rect x="70" y="90" width="90" height="7" rx="3.5" opacity=".7"/>
+      <rect x="70" y="106" width="44" height="7" rx="3.5" opacity=".45"/>
+    </g>
+    <circle cx="172" cy="66" r="4" fill="#33415a"/>
+    <rect class="dmh-anello-b" x="66" y="186" width="108" height="7" rx="3.5" fill="#38bdf8"/>
+  `, `<radialGradient id="dmh-tessuto-${id}" cx=".4" cy=".2" r=".9"><stop offset="0" stop-color="#e7ecf2"/><stop offset=".6" stop-color="#aeb9c6"/><stop offset="1" stop-color="#5b6875"/></radialGradient>`),
+
+  // La colonna alta, quella che suona forte.
+  echo_studio: (id) => tela(id, `
+    ${piede(id, 120, 210, 46, 9)}
+    <rect x="72" y="36" width="96" height="166" rx="46" fill="url(#dmh-tessuto-${id})" stroke="#8fa0b3" stroke-opacity=".45" stroke-width="1.4"/>
+    <path d="M72 96a48 48 0 0 1 96 0" fill="none" stroke="#ffffff" stroke-opacity=".2" stroke-width="3"/>
+    <circle cx="120" cy="122" r="30" fill="#12243c" stroke="#33415a" stroke-width="2"/>
+    <circle cx="120" cy="122" r="16" fill="#4b5d72"/>
+    <circle cx="120" cy="122" r="6" fill="#0b1526"/>
+    <ellipse class="dmh-anello" cx="120" cy="196" rx="46" ry="10" fill="none"
+      stroke="#38bdf8" stroke-width="6"/>
+    <g fill="#0b1526" opacity=".45">
+      <circle cx="104" cy="58" r="2.6"/><circle cx="120" cy="54" r="2.6"/><circle cx="136" cy="58" r="2.6"/>
+    </g>
+  `, `<radialGradient id="dmh-tessuto-${id}" cx=".36" cy=".26" r=".9"><stop offset="0" stop-color="#e9eef4"/><stop offset=".55" stop-color="#aab5c3"/><stop offset="1" stop-color="#4c5866"/></radialGradient>`),
 };
 
 // Pezzi comuni delle schede energia/elettrodomestico: disegni, icone, stile.
@@ -4551,6 +4677,14 @@ Object.assign(HERO_BUILDERS, DISEGNI_PIU);
 
 
 const CHIP_SVGS = {
+  echo_dot:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><circle cx="48" cy="44" r="30" fill="#5b6875"/><path d="M18 44a30 30 0 0 1 60 0" fill="none" stroke="#f8fafc" stroke-opacity=".35" stroke-width="4"/><ellipse cx="48" cy="74" rx="29" ry="7" fill="none" stroke="#38bdf8" stroke-width="6"/></svg>',
+  echo_show:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><path d="M14 80l8-22h52l7 22z" fill="#5b6875"/><rect x="12" y="14" width="66" height="48" rx="8" fill="#0f2942"/><rect x="18" y="20" width="54" height="36" rx="5" fill="#08111f"/><g fill="#38bdf8"><rect x="24" y="28" width="28" height="5" rx="2.5"/><rect x="24" y="38" width="40" height="4" rx="2" opacity=".7"/></g><rect x="24" y="74" width="48" height="5" rx="2.5" fill="#38bdf8"/></svg>',
+  echo_studio:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="26" y="8" width="44" height="76" rx="21" fill="#5b6875"/><path d="M26 34a22 22 0 0 1 44 0" fill="none" stroke="#f8fafc" stroke-opacity=".3" stroke-width="3.5"/><circle cx="48" cy="46" r="14" fill="#12243c"/><circle cx="48" cy="46" r="6" fill="#4b5d72"/><ellipse cx="48" cy="78" rx="21" ry="5" fill="none" stroke="#38bdf8" stroke-width="5"/></svg>',
+  annunci:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="14" width="44" height="68" rx="12" fill="#0f2942"/><circle cx="36" cy="38" r="13" fill="#f8fafc"/><circle cx="36" cy="38" r="5" fill="#0f2942"/><circle cx="36" cy="64" r="8" fill="#f8fafc"/><g fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"><path d="M66 44a14 14 0 0 0 0-18"/><path d="M78 52a28 28 0 0 0 0-34"/></g></svg>',
   cucina:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M20 34 27 20h30l7 14z" fill="#f8fafc"/><rect x="22" y="34" width="40" height="4" rx="2" fill="#ffd27a"/><rect x="68" y="18" width="12" height="60" rx="4" fill="#f8fafc"/><path d="M68 46h12" stroke="#0f2942" stroke-width="2.4"/><rect x="18" y="52" width="44" height="6" rx="3" fill="#f8fafc"/><ellipse cx="30" cy="51" rx="8" ry="3" fill="#f97316"/><ellipse cx="50" cy="51" rx="7" ry="2.6" fill="#38bdf8"/><rect x="18" y="60" width="44" height="20" rx="4" fill="#f8fafc"/><path d="M40 60v20" stroke="#0f2942" stroke-width="2.2"/></svg>',
   dishwasher:
@@ -4697,6 +4831,19 @@ const STYLE = `
 .dm-ap-card.is-run .dmh-aria{animation:dmh-glow 2.2s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-goccia{animation:dmh-drip 1.9s linear infinite}
 .dm-ap-card.is-run .dmh-logo-ha{animation:dmh-glow 2.6s ease-in-out infinite;transform-box:view-box}
+/* Le onde della cassa che annuncia: ferme e quasi trasparenti a riposo,
+   escono a ondate mentre parla. Il ritardo diverso fra le tre fa sembrare
+   che il suono si allontani. */
+.dmh-onde path{opacity:.18}
+.dm-ap-card.is-run .dmh-onde path{animation:dmh-onda-esce 1.6s ease-out infinite}
+.dm-ap-card.is-run .dmh-onde path:nth-child(2){animation-delay:.25s}
+.dm-ap-card.is-run .dmh-onde path:nth-child(3){animation-delay:.5s}
+@keyframes dmh-onda-esce{0%{opacity:0}25%{opacity:.95}100%{opacity:0}}
+/* L'anello degli Echo: quello che li fa riconoscere. Spento quando la
+   scheda e' a riposo, respira mentre parla. */
+.dmh-anello,.dmh-anello-b{opacity:.14}
+.dm-ap-card.is-run .dmh-anello,.dm-ap-card.is-run .dmh-anello-b{
+  animation:dmh-glow 1.8s ease-in-out infinite}
 .dm-ap-card.is-run .dmh-goccia2{animation-delay:.6s}
 .dm-ap-card.is-run .dmh-goccia3{animation-delay:1.2s}
 .dm-ap-card.is-run .dmh-onda{animation:dmh-onda 3.4s ease-in-out infinite}
@@ -5066,6 +5213,10 @@ function numero(v, decimali) {
 // il disegno di ripiego senza dire niente; con la griglia si vedevano cinque
 // quadretti vuoti. Un elenco solo, e il caso non si ripresenta.
 const NOMI_DISEGNI = [
+  ["annunci", "Annunci vocali"],
+  ["echo_dot", "Echo Dot"],
+  ["echo_show", "Echo con schermo"],
+  ["echo_studio", "Echo colonna"],
   ["cucina", "Cucina (tutta la linea)"],
   ["washer", "Lavatrice"],
   ["dishwasher", "Lavastoviglie"],
@@ -5473,10 +5624,20 @@ function preparaElettrodomestico(hass, cfg) {
   const meseE = trova(/_mese|_month/, "energia");
   const oggiC = trova(/costo.*(oggi|today)|(oggi|today).*costo|cost.*(today|daily)/, "soldi");
   const meseC = trova(/costo.*mese|mese.*costo|cost.*month/, "soldi");
-  if (oggiE) scheda.oggi_energia = oggiE;
-  if (meseE) scheda.mese_energia = meseE;
-  if (oggiC) scheda.oggi_costo = oggiC;
-  if (meseC) scheda.mese_costo = meseC;
+  // I contatori vanno in `period_entities`, che e' la forma che scrive
+  // anche il tasto "Crea i sensori". Prima qui finivano in
+  // `oggi_energia` & compagni: due strade per la stessa cosa, e la
+  // scheda dava la precedenza alla vecchia. Se i due valori fossero
+  // andati a divergere, avresti visto il contatore sbagliato senza che
+  // niente te lo dicesse.
+  const periodi = {};
+  if (oggiE || oggiC) periodi.today = {};
+  if (oggiE) periodi.today.energy = oggiE;
+  if (oggiC) periodi.today.cost = oggiC;
+  if (meseE || meseC) periodi.month = {};
+  if (meseE) periodi.month.energy = meseE;
+  if (meseC) periodi.month.cost = meseC;
+  if (Object.keys(periodi).length) scheda.period_entities = periodi;
 
   return scheda;
 }
@@ -10101,7 +10262,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.95.0";
+const VERSIONE = "2.95.1";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -20197,6 +20358,29 @@ function prezzoDellaCasa(hass) {
   return energia[0] || soli[0] || "";
 }
 
+// ASPETTA CHE L'AIUTANTE CI SIA DAVVERO.
+//
+// Home Assistant, quando gli chiedi di creare un input_number, risponde
+// subito ma l'entita' compare un attimo dopo. Chi crea e scrive di fila
+// scrive nel VUOTO: nessun errore, nessun valore, e l'aiutante resta a
+// "unknown". Non si vede da chi ce li ha gia' (il ramo della creazione non
+// lo percorre mai), quindi morde solo alla prima installazione - cioe'
+// proprio a chi usa "Compila da solo".
+//
+// Non guardo `hass.states`: dentro a una scheda quella e' una fotografia che
+// Home Assistant sostituisce, e la nostra copia non cambierebbe mai. Chiedo
+// a lui l'elenco vero, finche' non ce lo vede.
+async function aspettaAiutante(hass, entityId, quanti = 25) {
+  const chiave = String(entityId).split(".")[1];
+  for (let i = 0; i < quanti; i++) {
+    try {
+      const elenco = await hass.callWS({ type: "input_number/list" });
+      if ((elenco || []).some((x) => x && x.id === chiave)) return true;
+    } catch (e) { /* non risponde: riprovo */ }
+    await new Promise((r) => setTimeout(r, 120));
+  }
+  return false;
+}
 // La tariffa scritta a mano sulla scheda principale: se l'aiutante non c'e' lo
 // creo, se c'e' gli riscrivo il valore. E alla fine metto anche il totale
 // (energia + rete + accise, piu' l'IVA), che e' il prezzo della bolletta.
@@ -20214,6 +20398,10 @@ async function scriviTariffa(hass, voci, dillo) {
         step: v.unita === "%" ? 1 : 0.0001, mode: "box", unit_of_measurement: v.unita,
         icon: "mdi:currency-eur",
       });
+      if (!await aspettaAiutante(hass, v.id)) {
+        parla("⚠ " + v.nome + " non si fa vedere: il valore non l'ho scritto.");
+        continue;
+      }
     }
     await hass.callService("input_number", "set_value", { entity_id: v.id, value: n });
     messi[v.chiave] = n;
@@ -20227,6 +20415,10 @@ async function scriviTariffa(hass, voci, dillo) {
         type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.0001,
         mode: "box", unit_of_measurement: "\u20ac/kWh", icon: "mdi:currency-eur",
       });
+      if (!await aspettaAiutante(hass, ID_TOTALE)) {
+        parla("⚠ Il totale non si fa vedere: non l'ho scritto.");
+        return { totale, energia: messi.energia || 0 };
+      }
     }
     await hass.callService("input_number", "set_value", { entity_id: ID_TOTALE, value: totale });
     parla("Totale della bolletta: " + totale.toFixed(4) + " \u20ac/kWh");
@@ -20281,6 +20473,12 @@ async function prezzoDelKWh(hass, opzioni, dillo, conto) {
     type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.0001,
     mode: "box", unit_of_measurement: "€/kWh", icon: "mdi:currency-eur",
   });
+  // stesso motivo di scriviTariffa: appena creato l'aiutante non c'e'
+  // ancora, e scrivergli dentro il valore non farebbe niente
+  if (!await aspettaAiutante(hass, "input_number.prezzo_energia")) {
+    dillo("Il prezzo non si fa vedere: scrivilo tu nel pop-up della scheda.");
+    return "input_number.prezzo_energia";
+  }
   conto.creati++;
   const v = Number(opzioni.prezzo);
   if (Number.isFinite(v) && v > 0) {
@@ -23763,8 +23961,8 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const c = this._config;
     const pe0 = c.period_entities || {};
     const haCicli = !!c.ciclo;
-    const haPeriodi = !!(c.oggi_energia || c.oggi_costo || c.mese_energia || c.mese_costo
-      || (pe0.today || {}).energy || (pe0.month || {}).energy);
+    const haPeriodi = !!((pe0.today || {}).energy || (pe0.month || {}).energy
+      || (pe0.today || {}).cost || (pe0.month || {}).cost);
     const daCiclo = ["fine", "durata", "consumo", "costo"];
     const daPresa = ["oggi", "costo_oggi", "mese", "costo_mese"];
     // se hai scelto tu le righe comandi tu; se no ti do quelle che sai riempire
@@ -24245,7 +24443,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const periodRows = periods.map((p) => this._renderPeriodRow(hass, p)).join("");
 
     const conta = ((this._config.period_entities || {}).today || {}).energy
-      || this._config.oggi_energia || this._config.energy_stat_entity;
+      || this._config.energy_stat_entity;
     this._openDialog("Statistiche", `
       ${periodRows ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div><div class="dm-ap-week-list">${periodRows}</div></div>` : ""}
       <div class="dm-ap-sec">
@@ -24619,9 +24817,9 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const due = Number.isFinite(k) && prezzoPieno > 0 ? k * prezzoPieno : NaN;
       return [uno, due];
     };
-    const kwhOggi = cfg.oggi_energia || (pe.today || {}).energy;
+    const kwhOggi = (pe.today || {}).energy;
     const kwhSett = (pe.week || {}).energy;
-    const kwhMese = cfg.mese_energia || (pe.month || {}).energy;
+    const kwhMese = (pe.month || {}).energy;
     const periodi = [
       [".dm-c-oggi", kwhOggi, " kWh", 2],
       [".dm-c-settimana", kwhSett, " kWh", 2],
@@ -24634,9 +24832,9 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
       if (eid) hoPeriodi = true;
       x.textContent = numeroDi(eid, unita, dec);
     });
-    [[".dm-c-costo-oggi", cfg.oggi_costo || (pe.today || {}).cost, kwhOggi],
+    [[".dm-c-costo-oggi", (pe.today || {}).cost, kwhOggi],
      [".dm-c-costo-settimana", (pe.week || {}).cost, kwhSett],
-     [".dm-c-costo-mese", cfg.mese_costo || (pe.month || {}).cost, kwhMese]].forEach(([sel, eidCosto, eidKwh]) => {
+     [".dm-c-costo-mese", (pe.month || {}).cost, kwhMese]].forEach(([sel, eidCosto, eidKwh]) => {
       const x = this._root.querySelector(sel);
       if (!x) return;
       if (eidCosto || eidKwh) hoPeriodi = true;
@@ -24719,10 +24917,6 @@ const ETICHETTE = {
   stato: "Stato vero dell'apparecchio (facoltativo: integrazioni LG, Bosch...)",
   interruttore: "Tasto \u23fb nella barra in alto: cosa accende e spegne",
   interruttore_usb: "Secondo tasto per le prese USB (se ci sono)",
-  oggi_energia: "kWh di OGGI: il contatore di utenza a ciclo giornaliero",
-  oggi_costo: "Euro di oggi: quei kWh per il prezzo",
-  mese_energia: "kWh del MESE: lo stesso contatore a ciclo mensile",
-  mese_costo: "Euro del mese",
   barre_entita: "Barre in WATT: quali sensori (il nome di ognuna si scrive qui sotto)",
   avanzamento: "Barra dell'AVANZAMENTO: quale sensore, da 0 a 100 (programma, umidita'...)",
   progress_label: "Barra dell'AVANZAMENTO: il nome (vuoto = Avanzamento programma)",
@@ -25044,9 +25238,9 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       entity_id: cfg.reset_script,
       variables: {
         scheda: cfg.name || "",
-        oggi: cfg.oggi_energia || (pe.today || {}).energy || "",
+        oggi: (pe.today || {}).energy || "",
         settimana: (pe.week || {}).energy || "",
-        mese: cfg.mese_energia || (pe.month || {}).energy || "",
+        mese: (pe.month || {}).energy || "",
         ciclo_contatore: ci.contatore || "",
         ciclo_kwh: ci.consumo || "",
         ciclo_minuti: ci.durata || "",
@@ -25083,7 +25277,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     metti(".ce-sez-capisci", c.power_entity ? this._nomeDi(c.power_entity) : T("da fare"));
     const pe = c.period_entities || {};
     const quanti = Object.keys(pe).filter((k) => (pe[k] || {}).energy).length
-      || [c.oggi_energia, c.mese_energia].filter(Boolean).length;
+      || Object.keys(pe).filter((k) => (pe[k] || {}).cost).length;
     metti(".ce-sez-contatori", quanti ? quanti + " " + T(quanti === 1 ? "agganciato" : "agganciati") : T("da fare"));
     const tasti = tastiDi(c).length;
     metti(".ce-sez-tasti", tasti ? tasti + " " + T(tasti === 1 ? "tasto" : "tasti") : T("nessuno"));
@@ -25298,9 +25492,9 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         reset_script: this._config.reset_script,
         // i contatori che la scheda gia' usa: quelli si riusano, non si rifanno
         gia: {
-          oggi: this._config.oggi_energia || ((this._config.period_entities || {}).today || {}).energy,
+          oggi: ((this._config.period_entities || {}).today || {}).energy,
           settimana: ((this._config.period_entities || {}).week || {}).energy,
-          mese: this._config.mese_energia || ((this._config.period_entities || {}).month || {}).energy,
+          mese: ((this._config.period_entities || {}).month || {}).energy,
         },
         nome: this._config.name || this._nomeDispositivo(kwh || potenza),
         potenza, energia: kwh || null,

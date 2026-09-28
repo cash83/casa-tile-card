@@ -198,6 +198,29 @@ export function prezzoDellaCasa(hass) {
   return energia[0] || soli[0] || "";
 }
 
+// ASPETTA CHE L'AIUTANTE CI SIA DAVVERO.
+//
+// Home Assistant, quando gli chiedi di creare un input_number, risponde
+// subito ma l'entita' compare un attimo dopo. Chi crea e scrive di fila
+// scrive nel VUOTO: nessun errore, nessun valore, e l'aiutante resta a
+// "unknown". Non si vede da chi ce li ha gia' (il ramo della creazione non
+// lo percorre mai), quindi morde solo alla prima installazione - cioe'
+// proprio a chi usa "Compila da solo".
+//
+// Non guardo `hass.states`: dentro a una scheda quella e' una fotografia che
+// Home Assistant sostituisce, e la nostra copia non cambierebbe mai. Chiedo
+// a lui l'elenco vero, finche' non ce lo vede.
+async function aspettaAiutante(hass, entityId, quanti = 25) {
+  const chiave = String(entityId).split(".")[1];
+  for (let i = 0; i < quanti; i++) {
+    try {
+      const elenco = await hass.callWS({ type: "input_number/list" });
+      if ((elenco || []).some((x) => x && x.id === chiave)) return true;
+    } catch (e) { /* non risponde: riprovo */ }
+    await new Promise((r) => setTimeout(r, 120));
+  }
+  return false;
+}
 // La tariffa scritta a mano sulla scheda principale: se l'aiutante non c'e' lo
 // creo, se c'e' gli riscrivo il valore. E alla fine metto anche il totale
 // (energia + rete + accise, piu' l'IVA), che e' il prezzo della bolletta.
@@ -215,6 +238,10 @@ export async function scriviTariffa(hass, voci, dillo) {
         step: v.unita === "%" ? 1 : 0.0001, mode: "box", unit_of_measurement: v.unita,
         icon: "mdi:currency-eur",
       });
+      if (!await aspettaAiutante(hass, v.id)) {
+        parla("⚠ " + v.nome + " non si fa vedere: il valore non l'ho scritto.");
+        continue;
+      }
     }
     await hass.callService("input_number", "set_value", { entity_id: v.id, value: n });
     messi[v.chiave] = n;
@@ -228,6 +255,10 @@ export async function scriviTariffa(hass, voci, dillo) {
         type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.0001,
         mode: "box", unit_of_measurement: "\u20ac/kWh", icon: "mdi:currency-eur",
       });
+      if (!await aspettaAiutante(hass, ID_TOTALE)) {
+        parla("⚠ Il totale non si fa vedere: non l'ho scritto.");
+        return { totale, energia: messi.energia || 0 };
+      }
     }
     await hass.callService("input_number", "set_value", { entity_id: ID_TOTALE, value: totale });
     parla("Totale della bolletta: " + totale.toFixed(4) + " \u20ac/kWh");
@@ -282,6 +313,12 @@ async function prezzoDelKWh(hass, opzioni, dillo, conto) {
     type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.0001,
     mode: "box", unit_of_measurement: "€/kWh", icon: "mdi:currency-eur",
   });
+  // stesso motivo di scriviTariffa: appena creato l'aiutante non c'e'
+  // ancora, e scrivergli dentro il valore non farebbe niente
+  if (!await aspettaAiutante(hass, "input_number.prezzo_energia")) {
+    dillo("Il prezzo non si fa vedere: scrivilo tu nel pop-up della scheda.");
+    return "input_number.prezzo_energia";
+  }
   conto.creati++;
   const v = Number(opzioni.prezzo);
   if (Number.isFinite(v) && v > 0) {
