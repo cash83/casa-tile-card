@@ -1048,6 +1048,13 @@ ELETTRO_SCHEDE = {
     "cancellati.": "deleted.",
     "I valori me li sono segnati: se li rifai ripartono da li'.": "I wrote the values down: if you make them again they start from there.",
     "Non ce l'ho fatta:": "I could not do it:",
+    "Aggiungi una riga tua": "Add a row of your own",
+    "Puoi aggiungerne di tue: scegli l'entita', dalle un nome e di' come scriverla. Compaiono qui sopra insieme alle altre, e da li' si spuntano, si spostano e si colorano come tutte.": "You can add your own: pick the entity, give it a name and say how to write it. They appear above together with the others, and from there you tick them, move them and colour them like all the rest.",
+    "Togli questa riga": "Remove this row",
+    "come sta": "as it is",
+    "rete + fotovoltaico": "grid + solar",
+    "Per ora non c'e' niente da mostrare.": "There is nothing to show yet.",
+    "i kWh sono il consumo vero, gli euro la sola parte presa dalla rete": "the kWh are the real use, the euros only the part taken from the grid",
 }
 
 # ------------------------------------------------- costruisco il dizionario

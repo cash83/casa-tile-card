@@ -236,6 +236,25 @@ Quasi tutto si fa a clic; queste servono solo se scrivi il YAML a mano.
 | `finestra_righe` | quanto coprono la foto i riquadri delle scritte nel pop-up (0-100) |
 | `fv_casa_oggi` | i kWh arrivati in casa dal fotovoltaico oggi: servono alla riga «Dal fotovoltaico» e al «Consumo totale» |
 | `fv_casa_settimana` / `fv_casa_mese` | gli stessi, per gli altri periodi |
+| `righe_mie` | le righe che ti aggiungi tu: `{id, entita, nome, come}`, dove `come` è `kwh`, `euro` o `valore` |
+
+### Le righe che ti aggiungi tu
+
+Il riquadro **Oggi** aveva un elenco fisso: si accendevano, si spegnevano, si
+riordinavano e si rinominavano, ma non se ne poteva aggiungere una.
+
+Nel cassetto **Righe del riquadro «Oggi»** c'è **Aggiungi una riga tua**:
+scegli l'entità, le dai un nome e dici come scriverla — **kWh**, **euro** o
+**come sta** (i gradi, una percentuale, quello che è). Ci puoi mettere
+qualunque cosa: il contatore dell'asciugatrice, la carica della batteria, la
+temperatura del bagno.
+
+Compaiono nell'elenco insieme alle altre, segnate *(tua)*, quindi spunta,
+ordine, nome e colore funzionano allo stesso modo. Togliendone una sparisce
+anche dall'ordine, dai nomi e dai colori.
+
+Vive in `righe_mie`, e senza quella chiave non cambia niente di quello che
+c'era prima.
 
 ---
 

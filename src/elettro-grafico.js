@@ -178,7 +178,7 @@ export const ConGrafico = (Base) => class extends Base {
   }
 
   // minimo, media e massimo del periodo, come li scriveresti
-  _minMedMax(punti, unita) {
+  _minMedMax(punti, unita, curva) {
     if (!punti || !punti.length) return "";
     let min = Infinity;
     let max = -Infinity;
@@ -191,7 +191,7 @@ export const ConGrafico = (Base) => class extends Base {
     // qui il numero si scrive per intero: 2100 W, non 2,1k. L'asse si
     // accorcia perche' non ha spazio, questa riga ce l'ha
     const scrivi = (v) => numero(v, Number.isInteger(v) || Math.abs(v) >= 10 ? 0 : 1) + (unita ? " " + unita : "");
-    return `<div class="dm-ap-mmm">
+    return `${this._chiEDiChi(curva)}<div class="dm-ap-mmm">
       <div><small>${T("Minimo")}</small><b>${esc(scrivi(min))}</b></div>
       <div><small>${T("Media")}</small><b>${esc(scrivi(somma / punti.length))}</b></div>
       <div><small>${T("Massimo")}</small><b>${esc(scrivi(max))}</b></div>
@@ -201,17 +201,24 @@ export const ConGrafico = (Base) => class extends Base {
   // Minimo/media/massimo parlavano solo del pezzo di tempo disegnato e non si
   // potevano confrontare con niente. Questi sono i kWh della curva accesa,
   // negli stessi periodi del riquadro della scheda, e cambiano col chip.
+  // Di chi sono i numeri qui sotto. Sta in un pezzo suo perche' lo mettono
+  // TUTTI E DUE i riquadri: se lo avesse solo uno, passando dall'altro la
+  // riga comparirebbe o sparirebbe e spingerebbe su e giu' il resto.
+  _chiEDiChi(curva) {
+    if (!curva || !curva.nome) return `<div class="dm-ap-mmm-chi"></div>`;
+    // la nota dice COSA sono questi kWh quando non e' ovvio: sul Generale
+    // sono rete piu' fotovoltaico, mentre la linea disegnata e' la sola rete
+    const nota = curva.nota ? `<em>${esc(curva.nota)}</em>` : "";
+    return `<div class="dm-ap-mmm-chi"><i style="background:${curva.colore || "#94a3b8"}"></i>${esc(curva.nome)}${nota}</div>`;
+  }
+
   _trePeriodi(kwh, curva) {
+    const k = kwh || {};
     const scrivi = (v) => (Number.isFinite(v) ? numero(v, 2) + " kWh" : "\u2014");
-    // di chi sono questi numeri: coi chip si accendono piu' curve insieme e
-    // senza il nome non si capiva a quale delle due guardare
-    const chi = curva && curva.nome
-      ? `<div class="dm-ap-mmm-chi"><i style="background:${curva.colore || "#94a3b8"}"></i>${esc(curva.nome)}</div>`
-      : "";
-    return `${chi}<div class="dm-ap-mmm">
-      <div><small>${T("Oggi")}</small><b>${esc(scrivi(kwh.oggi))}</b></div>
-      <div><small>${T("Settimana")}</small><b>${esc(scrivi(kwh.settimana))}</b></div>
-      <div><small>${T("Mese")}</small><b>${esc(scrivi(kwh.mese))}</b></div>
+    return `${this._chiEDiChi(curva)}<div class="dm-ap-mmm">
+      <div><small>${T("Oggi")}</small><b>${esc(scrivi(k.oggi))}</b></div>
+      <div><small>${T("Settimana")}</small><b>${esc(scrivi(k.settimana))}</b></div>
+      <div><small>${T("Mese")}</small><b>${esc(scrivi(k.mese))}</b></div>
     </div>`;
   }
 
@@ -244,9 +251,18 @@ export const ConGrafico = (Base) => class extends Base {
       const v = x && !["unknown", "unavailable"].includes(x.state) ? Number(x.state) : NaN;
       return Number.isFinite(v) ? v : NaN;
     };
+    // un periodo puo' avere PIU' contatori da sommare (la rete e il
+    // fotovoltaico che arriva in casa): sommo quelli che esistono davvero,
+    // cosi' chi ha solo la rete legge la rete e basta
+    const sommaContatori = (v) => {
+      const quali = (Array.isArray(v) ? v : [v]).filter(Boolean);
+      const numeri = quali.map(leggi).filter(Number.isFinite);
+      return numeri.length ? numeri.reduce((a, b) => a + b, 0) : NaN;
+    };
     const c = curva.contatori || {};
     if (c.oggi || c.settimana || c.mese) {
-      return { oggi: leggi(c.oggi), settimana: leggi(c.settimana), mese: leggi(c.mese) };
+      return { oggi: sommaContatori(c.oggi), settimana: sommaContatori(c.settimana),
+        mese: sommaContatori(c.mese) };
     }
     const eid = this._sensoreEnergia(curva);
     if (!eid) return null;
@@ -349,19 +365,12 @@ export const ConGrafico = (Base) => class extends Base {
     dove.querySelectorAll(".dm-ap-chipc").forEach((b) => {
       b.addEventListener("click", () => {
         const c = this._curve[Number(b.dataset.curva)];
-        // le curve con un'altra unita' non si sovrappongono: accenderne una
-        // spegne quelle che parlano un'altra lingua
-        if (!c.accesa) {
-          this._curve.forEach((x) => {
-            if (x.accesa && (x.unita || "") !== (c.unita || "")) x.accesa = false;
-          });
-        }
-        c.accesa = !c.accesa;
-        if (!this._curve.some((x) => x.accesa)) c.accesa = true;
-        // i numeri sotto e il mirino parlano di QUESTA, quella che hai appena
-        // toccato: prima restavano sempre sulla prima accesa e premere un
-        // chip non cambiava niente
-        if (c.accesa) this._curvaScelta = c;
+        // UNA ALLA VOLTA. Prima si sommavano: premevi Forno e restava acceso
+        // anche Generale - due linee sovrapposte, e i numeri sotto di una
+        // sola delle due. Premere un chip adesso spegne gli altri; premere
+        // quello gia' acceso non lo spegne, se no il grafico resterebbe vuoto.
+        this._curve.forEach((x) => { x.accesa = x === c; });
+        this._curvaScelta = c;
         this._disegnaGrafico();
       });
     });
@@ -396,29 +405,51 @@ export const ConGrafico = (Base) => class extends Base {
     // scrivere sopra a quello nuovo
     const mio = {};
     this._giroGrafico = mio;
-    posto.innerHTML = `<div class="dm-ap-chart-loading">${T("Caricamento...")}</div>`;
+    // NON butto via il disegno che c'e'. Prima lo sostituivo con
+    // "Caricamento...", alto una riga: il grafico spariva, la scritta saltava
+    // in cima e poi il grafico tornava - un rimbalzo a ogni cambio di curva.
+    // Adesso quello vecchio resta li' sbiadito, e la scritta si vede solo la
+    // prima volta, quando non c'e' ancora niente da tenere.
+    const gia = posto.querySelector("svg");
+    const altezzaPrima = posto.offsetHeight;
+    if (altezzaPrima > 60) posto.style.minHeight = altezzaPrima + "px";
+    if (gia) posto.classList.add("caricando");
+    else posto.innerHTML = `<div class="dm-ap-chart-loading">${T("Caricamento...")}</div>`;
     try {
       for (const c of accese) c.punti = await this._datiGrafico(c.entity, inizio, fine);
     } catch (e) {
       if (this._giroGrafico === mio) {
+        posto.classList.remove("caricando");
         posto.innerHTML = `<div class="dm-ap-chart-empty">${T("Errore caricamento dati")}</div>`;
       }
       return;
     }
     if (this._giroGrafico !== mio) return;
+    posto.classList.remove("caricando");
     posto.innerHTML = this._grafico(accese, giorni);
     const prima = accese.includes(this._curvaScelta) ? this._curvaScelta : accese[0];
-    if (sotto) sotto.innerHTML = this._minMedMax(prima.punti, prima.unita);
-    // i kWh dei tre periodi arrivano dopo (sono statistiche, non stati):
-    // finche' non ci sono restano minimo/media/massimo, che almeno dicono
-    // qualcosa. Se nel frattempo premi un altro chip, il giro vecchio non
-    // scrive sopra a quello nuovo.
+    // La struttura e' subito quella definitiva - riga del nome e tre riquadri,
+    // coi trattini - e i numeri ci entrano dentro quando arrivano. Prima
+    // disegnavo minimo/media/massimo e poi ci mettevo sopra i tre periodi, che
+    // hanno una riga in piu': su "Generale" non si vedeva (i suoi numeri sono
+    // gia' in casa), sugli altri arrivano dalle statistiche e il riquadro
+    // saltava di un pelo.
     if (sotto) {
+      sotto.innerHTML = this._trePeriodi(null, prima);
       this._kwhDellaCurva(prima).then((k) => {
-        if (this._giroGrafico !== mio || !k) return;
-        if (![k.oggi, k.settimana, k.mese].some(Number.isFinite)) return;
+        if (this._giroGrafico !== mio) return;
+        // niente kWh per questa curva (non e' energia, o non c'e' il sensore):
+        // ripiego su minimo/media/massimo, che e' alto uguale
+        if (!k || ![k.oggi, k.settimana, k.mese].some(Number.isFinite)) {
+          sotto.innerHTML = this._minMedMax(prima.punti, prima.unita, prima);
+          return;
+        }
         sotto.innerHTML = this._trePeriodi(k, prima);
-      }).catch(() => {});
+      }).catch(() => {
+        if (this._giroGrafico === mio) {
+          sotto.innerHTML = this._minMedMax(prima.punti, prima.unita, prima);
+        }
+      });
     }
     if (prima && prima.punti && prima.punti.length > 1) {
       // prima QUANDO, poi QUANTO: muovendo il dito stai navigando il tempo,

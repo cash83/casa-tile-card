@@ -4,7 +4,7 @@
 // I circuiti si scelgono come elenco di entita': il nome lo prendo dal
 // sensore, e chi li ha gia' configurati a mano li ritrova come erano.
 
-import { RIGHE_OGGI } from './elettro-energia.js';
+import { RIGHE_OGGI, righeMie } from './elettro-energia.js';
 import { VERSIONE } from './versione.js';
 import { ConEditor } from './elettro-condivisi.js';
 import { numero, tastiDi, NOMI_DISEGNI as DISEGNI } from './elettro-comune.js';
@@ -178,12 +178,18 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
 
   _disegnaRighe() {
     if (!this._righe) return;
-    disegnaRighe(this._righe, RIGHE_OGGI, this._config, (c) => {
+    disegnaRighe(this._righe, [...RIGHE_OGGI, ...righeMie(this._config)], this._config, (c) => {
       this._config = c;
       this._emetti();
       this._disegnaRighe();
       this._riassunti();
     });
+    this._disegnaMie();
+    { const sc = this.querySelector(".ce-mia-nuova");
+      if (sc && this._hass) {
+        sc.hass = this._hass;
+        sc.includeDomains = ["sensor", "input_number", "counter", "number"];
+      } }
     { const v = this.querySelector(".ce-barre-vive");
       if (v) v.checked = !!this._config.barre_vive;
       const q = this.querySelector(".ce-barre-quante");
@@ -302,6 +308,86 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
 
   // Quello che arriva in casa dal fotovoltaico. Va bene sia un sensore in kWh
   // sia uno in Watt: i kWh me li calcolo io.
+  // LE RIGHE TUE: una riga per ognuna, con nome, come scriverla e il cestino.
+  // L'id se lo tiene: e' quello che finisce in `righe`, nei nomi e nei colori,
+  // e non deve cambiare quando ne togli una di mezzo.
+  _disegnaMie() {
+    const box = this.querySelector(".ce-mie");
+    if (!box) return;
+    const mie = this._config.righe_mie || [];
+    box.innerHTML = "";
+    mie.forEach((r, i) => {
+      const riga = document.createElement("div");
+      riga.className = "ce-riga";
+      riga.innerHTML = `<span class="ent"></span>
+        <input type="text" class="nome" style="flex:1 1 120px;min-width:0">
+        <select class="come">
+          <option value="valore">${T("come sta")}</option>
+          <option value="kwh">kWh</option>
+          <option value="euro">€</option>
+        </select>
+        <button type="button" class="via" title="${T("Togli questa riga")}">✕</button>`;
+      riga.querySelector(".ent").textContent = this._nomeDi(r.entita);
+      riga.querySelector(".ent").title = r.entita;
+      const nome = riga.querySelector(".nome");
+      nome.placeholder = this._nomeDi(r.entita);
+      nome.value = r.nome || "";
+      nome.addEventListener("change", () => this._cambiaMia(i, { nome: nome.value.trim() }));
+      const come = riga.querySelector(".come");
+      come.value = r.come || "valore";
+      come.addEventListener("change", () => this._cambiaMia(i, { come: come.value }));
+      riga.querySelector(".via").addEventListener("click", () => this._togliMia(i));
+      box.appendChild(riga);
+    });
+  }
+
+  _cambiaMia(i, pezzo) {
+    const mie = [...(this._config.righe_mie || [])];
+    if (!mie[i]) return;
+    mie[i] = { ...mie[i], ...pezzo };
+    this._config = { ...this._config, righe_mie: mie };
+    this._emetti();
+    this._disegnaMie();
+    this._disegnaRighe();
+  }
+
+  // togliendo una riga si toglie anche dall'ordine, dai nomi e dai colori:
+  // se no resta un id fantasma in `righe` che non disegna piu' niente
+  _togliMia(i) {
+    const mie = [...(this._config.righe_mie || [])];
+    const via = (mie[i] || {}).id;
+    mie.splice(i, 1);
+    const c = { ...this._config, righe_mie: mie };
+    if (Array.isArray(c.righe)) c.righe = c.righe.filter((x) => x !== via);
+    ["nomi_righe", "colori_righe"].forEach((k) => {
+      if (c[k] && c[k][via] !== undefined) { c[k] = { ...c[k] }; delete c[k][via]; }
+    });
+    this._config = c;
+    this._emetti();
+    this._disegnaMie();
+    this._disegnaRighe();
+  }
+
+  _aggiungiMia(entita) {
+    if (!entita) return;
+    const mie = [...(this._config.righe_mie || [])];
+    // un id che non si ripete mai, nemmeno dopo aver tolto e rimesso
+    let n = 1;
+    while (mie.some((x) => x.id === "mia_" + n)) n += 1;
+    const id = "mia_" + n;
+    const st = (this._hass.states[entita] || {}).attributes || {};
+    const u = String(st.unit_of_measurement || "").toLowerCase();
+    mie.push({ id, entita, nome: this._nomeDi(entita),
+      come: u === "kwh" ? "kwh" : (u === "€" || u === "eur") ? "euro" : "valore" });
+    const c = { ...this._config, righe_mie: mie };
+    // nasce accesa: se `righe` e' scritto, la metto in fondo
+    if (Array.isArray(c.righe)) c.righe = [...c.righe, id];
+    this._config = c;
+    this._emetti();
+    this._disegnaMie();
+    this._disegnaRighe();
+  }
+
   _disegnaFvCasa() {
     this._unSelettore(".ce-fvcasa-pick", "fv_casa_entita");
   }
@@ -721,6 +807,10 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
             <summary class="ce-tit">${titoloSez(VESTITO.righe, T("Righe del riquadro \u00abOggi\u00bb"))}</summary>
             <div class="ce-aiuto">${T("Spunta quelle da vedere e trascinale dalla maniglia \u283f per metterle in ordine. Nome e colore sono facoltativi (vuoto = quelli di serie).")}</div>
             <div class="ce-righe"></div>
+            <div class="ce-aiuto">${T("Puoi aggiungerne di tue: scegli l\u0027entita\u0027, dalle un nome e di\u0027 come scriverla. Compaiono qui sopra insieme alle altre, e da li\u0027 si spuntano, si spostano e si colorano come tutte.")}</div>
+            <div class="ce-mie"></div>
+            <div class="ce-riga"><span class="ent">${T("Aggiungi una riga tua")}</span>
+              <ha-entity-picker class="ce-mia-nuova" allow-custom-entity></ha-entity-picker></div>
           </details>
           <details class="ce-sez ce-tendina ce-sez-top" data-c="1" style="--c:#f06e82">
             <summary class="ce-tit">${titoloSez(VESTITO.top, T("Top consumo"))}</summary>
@@ -788,6 +878,15 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       this._form = form;
       this._formTutto = formTutto;
       this._righe = this.querySelector(".ce-righe");
+      const nuova = this.querySelector(".ce-mia-nuova");
+      if (nuova) {
+        nuova.addEventListener("value-changed", (ev) => {
+          ev.stopPropagation();
+          const id = ev.detail.value;
+          nuova.value = "";
+          this._aggiungiMia(id);
+        });
+      }
       this._circuiti = this.querySelector(".ce-circuiti");
       this._esito = this.querySelector(".ce-esito");
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());

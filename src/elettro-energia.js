@@ -43,7 +43,28 @@ export const RIGHE_OGGI = [
 ];
 
 
+// Le righe che ti sei aggiunto tu, messe nella stessa forma di quelle di
+// serie: cosi' l'elenco delle righe e' uno solo e la spunta, l'ordine, il
+// nome e il colore funzionano senza saperne niente.
+// `righe_mie` = [{id, entita, nome, come}], `come` = kwh | euro | valore.
+export function righeMie(cfg) {
+  return ((cfg || {}).righe_mie || [])
+    .filter((r) => r && r.id && r.entita)
+    .map((r) => ({
+      id: r.id,
+      nome: (r.nome || r.entita) + " (tua)",
+      etichetta: r.nome || r.entita,
+      colore: r.colore || "#8ea1b8",
+      mia: r,
+    }));
+}
+
 export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
+  // Tutte le righe che il riquadro puo' avere: quelle di serie piu' le tue.
+  _elencoRighe() {
+    return [...RIGHE_OGGI, ...righeMie(this._config)];
+  }
+
   // Le righe del riquadro Oggi, nell'ordine della configurazione (`righe`).
   // Una riga che non e' nell'elenco non si vede.
   _righeOggi() {
@@ -60,7 +81,11 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       fv_casa: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f2c53c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Dal fotovoltaico</small></span><b class="dm-e-fv-casa">—</b></div>`,
       top: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>`,
     };
-    return righeInOrdine(this._config, RIGHE_OGGI, R, esc);
+    // le tue: stessa scocca delle altre, il valore lo riempie il set hass
+    righeMie(this._config).forEach((v) => {
+      R[v.id] = `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:${esc(v.colore)}"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>${esc(v.etichetta)}</small></span><b class="dm-e-mia" data-mia="${esc(v.id)}">\u2014</b></div>`;
+    });
+    return righeInOrdine(this._config, this._elencoRighe(), R, esc);
   }
 
   static getConfigElement() {
@@ -184,10 +209,20 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         String(x.label || "").trim().toLowerCase() === nome);
       return p ? p.energy : null;
     };
+    // IL CONSUMO VERO, non la sola rete. Il sensore dei Watt della casa misura
+    // quello che entra DALLA RETE: col fotovoltaico che copre quasi tutto quei
+    // kWh sono piccolissimi e sembrano sbagliati. Sommo quello che il
+    // fotovoltaico ha davvero mandato in casa - lo stesso conto della riga
+    // "Consumo totale" - e lo scrivo sotto al nome.
+    const conFv = (periodo, fv) => (cfg[fv] ? [periodo, cfg[fv]] : periodo);
     const fuori = [{ nome: cfg.power_label || "Generale", entity: cfg.power_entity,
       colore: "#0ea5e9", unita: "W",
-      contatori: { oggi: delPeriodo("oggi"), settimana: delPeriodo("settimana"),
-        mese: delPeriodo("mese") } }];
+      nota: cfg.fv_casa_oggi ? T("rete + fotovoltaico") : "",
+      contatori: {
+        oggi: conFv(delPeriodo("oggi"), "fv_casa_oggi"),
+        settimana: conFv(delPeriodo("settimana"), "fv_casa_settimana"),
+        mese: conFv(delPeriodo("mese"), "fv_casa_mese"),
+      } }];
     (cfg.circuits || []).forEach((c, i) => {
       if (!c || !c.entity) return;
       fuori.push({ nome: c.label || c.entity, entity: c.entity,
@@ -323,13 +358,89 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return this._euro(k * t.totale + (t.quota || 0) * this._giorniDelPeriodo(p.energy));
   }
 
+  // LE ORE DI OGGI. Il contatore "Ora" si ricorda solo l'ora appena finita:
+  // le altre stanno nelle statistiche a lungo termine, un secchiello per ora.
+  // Chiedo i kWh della rete e quelli del fotovoltaico arrivato in casa, e per
+  // ogni ora dico il consumo vero (la somma) e quanto e' costato (la sola
+  // rete per il prezzo: il sole non si paga).
+  async _oreDiOggi() {
+    const cfg = this._config;
+    const c_e = (this._hass || {}).states || {};
+    // Il SENSORE prima del contatore. Un contatore di utenza si azzera, si
+    // tara e si ricrea, e ogni volta lascia un gradino nelle statistiche che
+    // finisce tutto dentro a un'ora sola; il sensore che sale sempre no.
+    const sorgente = (v, riserva) => {
+      const primo = Array.isArray(v) ? v[0] : v;
+      return (primo && c_e[primo]) ? primo : riserva;
+    };
+    const rete = (((cfg.periods || []).find((p) =>
+      String(p.label || "").trim().toLowerCase() === "oggi") || {}).energy) || null;
+    const fv = sorgente(cfg.fv_casa_entita, cfg.fv_casa_oggi || null);
+    const quali = [rete, fv].filter(Boolean);
+    if (!quali.length) return null;
+    const ora = new Date();
+    const mezzanotte = new Date(ora.getFullYear(), ora.getMonth(), ora.getDate());
+    let risposta;
+    try {
+      risposta = await this._hass.callWS({
+        type: "recorder/statistics_during_period",
+        start_time: mezzanotte.toISOString(),
+        statistic_ids: quali,
+        period: "hour",
+        types: ["change"],
+      });
+    } catch (e) { return null; }
+    const perOra = new Map();
+    const metti = (eid, campo) => {
+      ((risposta || {})[eid] || []).forEach((g) => {
+        const q = typeof g.start === "number" ? g.start : Date.parse(g.start);
+        const v = Number(g.change);
+        if (!Number.isFinite(v)) return;
+        const riga = perOra.get(q) || { quando: new Date(q), rete: 0, fv: 0 };
+        riga[campo] += v;
+        perOra.set(q, riga);
+      });
+    };
+    if (rete) metti(rete, "rete");
+    if (fv) metti(fv, "fv");
+    return [...perOra.values()].sort((a, b) => b.quando - a.quando);
+  }
+
+  // L'elenco disegnato. Lo riempio DOPO aver aperto la finestra, perche' le
+  // statistiche arrivano dalla rete: prima c'e' il posto, poi i numeri.
+  _scriviOre(righe) {
+    const posto = this._root.querySelector(".dm-e-ore");
+    if (!posto) return;
+    if (!righe || !righe.length) {
+      posto.innerHTML = `<div class="dm-ap-vuoto">${T("Per ora non c'e' niente da mostrare.")}</div>`;
+      return;
+    }
+    const t = this._tariffa();
+    const quando = (d) => d.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" });
+    posto.innerHTML = righe.map((r) => {
+      const tot = r.rete + r.fv;
+      const euro = t.totale > 0 ? this._euro(r.rete * t.totale) : "\u2014";
+      return this._statRow2(quando(r.quando), numero(tot, 2) + " kWh", euro);
+    }).join("");
+  }
+
   _openStats() {
     const hass = this._hass;
     const cfg = this._config;
     const val = (id, digits, attr) => this._val(hass, id, digits, attr);
 
+    // dal piu' corto al piu' lungo: nella configurazione stanno nell'ordine
+    // in cui sono nati (Oggi, Mese, Ora, Settimana) e l'Ora in mezzo sembrava
+    // un errore. Quelli che non riconosco restano in fondo, come stavano.
+    const QUANTO_DURA = ["ora", "oggi", "settimana", "mese", "bimestre", "bolletta"];
+    const quanto = (p) => {
+      const i = QUANTO_DURA.indexOf(String(p.label || "").trim().toLowerCase());
+      return i < 0 ? QUANTO_DURA.length : i;
+    };
     const periodsHtml = (cfg.periods || [])
-      .map((p) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2)))
+      .map((p, i) => [p, i])
+      .sort((a, b) => quanto(a[0]) - quanto(b[0]) || a[1] - b[1])
+      .map(([p]) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2)))
       .join("");
 
     const prevHtml = (cfg.periods_prev || [])
@@ -344,8 +455,14 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     this._openDialog("Statistiche", `
       ${cfg.bill_today || cfg.bill_month ? this._contoHtml() : ""}
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div>${periodsHtml}</div>
+      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Oggi, ora per ora</div>
+        <div class="dm-ap-sec-nota">${T("i kWh sono il consumo vero, gli euro la sola parte presa dalla rete")}</div>
+        <div class="dm-e-ore"><div class="dm-ap-vuoto">${T("Caricamento...")}</div></div></div>
       ${prevHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Periodo precedente</div>${prevHtml}</div>` : ""}
     `);
+    // le ore arrivano dalla rete: la finestra e' gia' aperta, i numeri ci
+    // entrano dentro quando ci sono
+    this._oreDiOggi().then((r) => this._scriviOre(r)).catch(() => this._scriviOre(null));
     const overlay = this._root.querySelector(".dm-ap-overlay");
     const chartBtn = document.createElement("button");
     chartBtn.type = "button";
@@ -567,6 +684,23 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       }
     }
     { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
+    // LE RIGHE TUE: quello che dice l'entita', scritto come hai scelto.
+    // "valore" lascia fare a Home Assistant (numero e unita' sua), cosi' va
+    // bene anche per i gradi, l'umidita' o una percentuale.
+    righeMie(cfg).forEach((v) => {
+      const x = this._root.querySelector(`.dm-e-mia[data-mia="${v.id}"]`);
+      if (!x) return;
+      const st = hass.states[v.mia.entita];
+      if (!st || ["unknown", "unavailable"].includes(st.state)) { x.textContent = "\u2014"; return; }
+      const n = Number(st.state);
+      // "come sta": i decimali che ha davvero (al massimo due), se no una
+      // percentuale diventava "74,00 %" e i gradi "21,40 gradi"
+      const dec = Math.min(2, (String(st.state).split(".")[1] || "").length);
+      x.textContent = v.mia.come === "euro" ? this._euro(st.state)
+        : v.mia.come === "kwh" ? (Number.isFinite(n) ? numero(n, 2) + " kWh" : "\u2014")
+        : this._val(hass, v.mia.entita, Number.isFinite(n) ? dec : null);
+      x.title = st.attributes?.friendly_name || v.mia.entita;
+    });
     // I kWh arrivati dal fotovoltaico: oggi / settimana / mese. Faccio
     // vedere i periodi che esistono davvero, non tre trattini.
     [[".dm-e-fv-casa", "fv_casa"]].forEach(([sel, chi]) => {

@@ -1115,6 +1115,13 @@ const EN = {
   "cancellati.": "deleted.",
   "I valori me li sono segnati: se li rifai ripartono da li'.": "I wrote the values down: if you make them again they start from there.",
   "Non ce l'ho fatta:": "I could not do it:",
+  "Aggiungi una riga tua": "Add a row of your own",
+  "Puoi aggiungerne di tue: scegli l'entita', dalle un nome e di' come scriverla. Compaiono qui sopra insieme alle altre, e da li' si spuntano, si spostano e si colorano come tutte.": "You can add your own: pick the entity, give it a name and say how to write it. They appear above together with the others, and from there you tick them, move them and colour them like all the rest.",
+  "Togli questa riga": "Remove this row",
+  "come sta": "as it is",
+  "rete + fotovoltaico": "grid + solar",
+  "Per ora non c'e' niente da mostrare.": "There is nothing to show yet.",
+  "i kWh sono il consumo vero, gli euro la sola parte presa dalla rete": "the kWh are the real use, the euros only the part taken from the grid",
 };
 
 // -*- coding: utf-8 -*-
@@ -4841,13 +4848,17 @@ const STYLE = `
 .dm-ap-card.centrato .dm-ap-top-row{flex-direction:column;gap:12px}
 .dm-ap-card.centrato .dm-ap-hero{flex:0 0 auto;width:100%;height:196px}
 .dm-ap-card.centrato .dm-ap-cycle-side{flex:0 0 auto;width:100%}
-.dm-ap-card.centrato .dm-ap-cycle-list{display:grid;grid-template-columns:1fr 1fr;
-  align-content:start;gap:4px 8px}
-/* una riga dispari in fondo si prende tutta la larghezza, invece di
-   lasciare un buco accanto */
-.dm-ap-card.centrato .dm-ap-cycle-list>*:last-child:nth-child(odd){grid-column:1 / -1}
+/* DUE COLONNE VERE: si scende lungo la prima e, finita, si passa alla
+   seconda. Prima era una griglia, che riempie per RIGHE - la prima voce a
+   sinistra, la seconda a destra, la terza sotto a sinistra - e l'ordine
+   dell'editor si leggeva a zigzag: spostandone una di un posto saltava di
+   colonna. */
+.dm-ap-card.centrato .dm-ap-cycle-list{display:block;columns:2;column-gap:8px}
+.dm-ap-card.centrato .dm-ap-cycle-list>*{break-inside:avoid;
+  -webkit-column-break-inside:avoid;margin-bottom:4px}
+.dm-ap-card.centrato .dm-ap-cycle-list>*:last-child{margin-bottom:0}
 @media (max-width:480px){
-  .dm-ap-card.centrato .dm-ap-cycle-list{grid-template-columns:1fr}
+  .dm-ap-card.centrato .dm-ap-cycle-list{columns:1}
 }
 .dm-ap-cycle-row{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0}
 .dm-ap-cycle-row small{flex:0 0 auto;font-size:10.5px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:var(--dm-dim)}
@@ -4910,8 +4921,10 @@ const STYLE = `
 .dm-ap-chipc i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
 .dm-ap-chipc.scelto{opacity:1;border-color:#bae6fd;background:rgba(14,165,233,.12);
   color:var(--dm-text)}
-.dm-ap-mmm-chi{display:flex;align-items:center;gap:6px;margin:10px 0 -4px;font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dm-dim)}
+.dm-ap-mmm-posto{min-height:82px}
+.dm-ap-mmm-chi{display:flex;align-items:center;gap:6px;margin:10px 0 -4px;min-height:14px;font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-mmm-chi i{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.dm-ap-mmm-chi em{font-style:normal;font-weight:700;letter-spacing:.2px;text-transform:none;opacity:.7}
 .dm-ap-mmm{display:flex;gap:8px;margin:10px 0 2px}
 .dm-ap-mmm>div{flex:1 1 0;min-width:0;text-align:center;padding:7px 4px;border-radius:11px;
   border:1px solid var(--divider-color);background:rgba(127,127,127,.06)}
@@ -4924,6 +4937,8 @@ const STYLE = `
   .dm-ap-mmm b{font-size:12.5px}
 }
 .dm-ap-chart-empty{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
+.dm-ap-graf{transition:opacity .14s ease}
+.dm-ap-graf.caricando{opacity:.32}
 .dm-ap-chart-loading{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-warn{display:flex;align-items:center;gap:6px;margin:0 13px 12px;padding:9px 12px;border-radius:13px;background:#fee2e2;color:#b91c1c;font-size:13px;font-weight:800}
 .dm-ap-warn[hidden]{display:none}
@@ -4965,6 +4980,8 @@ const STYLE = `
 .dm-ap-dialog-close{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border:0;border-radius:10px;background:var(--dm-soft);color:var(--dm-dim);cursor:pointer}
 .dm-ap-dialog-body{padding:12px 16px 18px;display:flex;flex-direction:column;gap:16px}
 .dm-ap-sec-cap{font-size:11.5px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--dm-blue-deep);margin:0 0 8px;padding-bottom:5px;border-bottom:2px solid var(--dm-border)}
+.dm-ap-sec-nota{margin:-6px 0 8px;font-size:11.5px;line-height:1.35;color:var(--dm-dim)}
+.dm-ap-vuoto{padding:10px 2px;font-size:12.5px;color:var(--dm-dim)}
 .dm-ap-sec{display:flex;flex-direction:column;gap:6px}
 .dm-ap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:13px;background:var(--dm-soft)}
 .dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text)}
@@ -10221,7 +10238,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.95.4";
+const VERSIONE = "2.96.7";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -20509,13 +20526,19 @@ async function creaSensoriBase(hass, opzioni, dillo) {
   // contatore si e' azzerato, cosi' la formula vale per oggi, per il mese e
   // per il bimestre senza cambiare niente. Sull'ora la quota non c'entra.
   const QUOTA = "input_number.quota_fissa_energia_giorno";
+  const DA_AZZERAMENTO = "((now() - as_datetime(state_attr('%E%', 'last_reset'))).days + 1"
+    + " if state_attr('%E%', 'last_reset') else 1)";
   const GIORNI = {
     oggi: "1",
     mese: "now().day",
+    // La settimana ha la quota come tutti gli altri: prima non ce l'aveva, e
+    // di lunedi' "Oggi" e "Settimana" dicevano gli stessi kWh a due prezzi
+    // diversi. Conto dall'azzeramento come per il bimestre, cosi' va bene
+    // anche per un contatore nato a meta' settimana.
+    settimana: DA_AZZERAMENTO,
     // il bimestre non ha una data di inizio che io possa sapere: conto da
     // quando il contatore si e' azzerato, e dopo il primo rollover e' esatto
-    bimestre: "((now() - as_datetime(state_attr('%E%', 'last_reset'))).days + 1"
-      + " if state_attr('%E%', 'last_reset') else 1)",
+    bimestre: DA_AZZERAMENTO,
   };
   const perPrezzo = (entita, chiave) => {
     const base = "states('" + entita + "') | float(0) * states('" + prezzo + "') | float(0)";
@@ -22226,7 +22249,7 @@ const ConGrafico = (Base) => class extends Base {
   }
 
   // minimo, media e massimo del periodo, come li scriveresti
-  _minMedMax(punti, unita) {
+  _minMedMax(punti, unita, curva) {
     if (!punti || !punti.length) return "";
     let min = Infinity;
     let max = -Infinity;
@@ -22239,7 +22262,7 @@ const ConGrafico = (Base) => class extends Base {
     // qui il numero si scrive per intero: 2100 W, non 2,1k. L'asse si
     // accorcia perche' non ha spazio, questa riga ce l'ha
     const scrivi = (v) => numero(v, Number.isInteger(v) || Math.abs(v) >= 10 ? 0 : 1) + (unita ? " " + unita : "");
-    return `<div class="dm-ap-mmm">
+    return `${this._chiEDiChi(curva)}<div class="dm-ap-mmm">
       <div><small>${T("Minimo")}</small><b>${esc(scrivi(min))}</b></div>
       <div><small>${T("Media")}</small><b>${esc(scrivi(somma / punti.length))}</b></div>
       <div><small>${T("Massimo")}</small><b>${esc(scrivi(max))}</b></div>
@@ -22249,17 +22272,24 @@ const ConGrafico = (Base) => class extends Base {
   // Minimo/media/massimo parlavano solo del pezzo di tempo disegnato e non si
   // potevano confrontare con niente. Questi sono i kWh della curva accesa,
   // negli stessi periodi del riquadro della scheda, e cambiano col chip.
+  // Di chi sono i numeri qui sotto. Sta in un pezzo suo perche' lo mettono
+  // TUTTI E DUE i riquadri: se lo avesse solo uno, passando dall'altro la
+  // riga comparirebbe o sparirebbe e spingerebbe su e giu' il resto.
+  _chiEDiChi(curva) {
+    if (!curva || !curva.nome) return `<div class="dm-ap-mmm-chi"></div>`;
+    // la nota dice COSA sono questi kWh quando non e' ovvio: sul Generale
+    // sono rete piu' fotovoltaico, mentre la linea disegnata e' la sola rete
+    const nota = curva.nota ? `<em>${esc(curva.nota)}</em>` : "";
+    return `<div class="dm-ap-mmm-chi"><i style="background:${curva.colore || "#94a3b8"}"></i>${esc(curva.nome)}${nota}</div>`;
+  }
+
   _trePeriodi(kwh, curva) {
+    const k = kwh || {};
     const scrivi = (v) => (Number.isFinite(v) ? numero(v, 2) + " kWh" : "\u2014");
-    // di chi sono questi numeri: coi chip si accendono piu' curve insieme e
-    // senza il nome non si capiva a quale delle due guardare
-    const chi = curva && curva.nome
-      ? `<div class="dm-ap-mmm-chi"><i style="background:${curva.colore || "#94a3b8"}"></i>${esc(curva.nome)}</div>`
-      : "";
-    return `${chi}<div class="dm-ap-mmm">
-      <div><small>${T("Oggi")}</small><b>${esc(scrivi(kwh.oggi))}</b></div>
-      <div><small>${T("Settimana")}</small><b>${esc(scrivi(kwh.settimana))}</b></div>
-      <div><small>${T("Mese")}</small><b>${esc(scrivi(kwh.mese))}</b></div>
+    return `${this._chiEDiChi(curva)}<div class="dm-ap-mmm">
+      <div><small>${T("Oggi")}</small><b>${esc(scrivi(k.oggi))}</b></div>
+      <div><small>${T("Settimana")}</small><b>${esc(scrivi(k.settimana))}</b></div>
+      <div><small>${T("Mese")}</small><b>${esc(scrivi(k.mese))}</b></div>
     </div>`;
   }
 
@@ -22292,9 +22322,18 @@ const ConGrafico = (Base) => class extends Base {
       const v = x && !["unknown", "unavailable"].includes(x.state) ? Number(x.state) : NaN;
       return Number.isFinite(v) ? v : NaN;
     };
+    // un periodo puo' avere PIU' contatori da sommare (la rete e il
+    // fotovoltaico che arriva in casa): sommo quelli che esistono davvero,
+    // cosi' chi ha solo la rete legge la rete e basta
+    const sommaContatori = (v) => {
+      const quali = (Array.isArray(v) ? v : [v]).filter(Boolean);
+      const numeri = quali.map(leggi).filter(Number.isFinite);
+      return numeri.length ? numeri.reduce((a, b) => a + b, 0) : NaN;
+    };
     const c = curva.contatori || {};
     if (c.oggi || c.settimana || c.mese) {
-      return { oggi: leggi(c.oggi), settimana: leggi(c.settimana), mese: leggi(c.mese) };
+      return { oggi: sommaContatori(c.oggi), settimana: sommaContatori(c.settimana),
+        mese: sommaContatori(c.mese) };
     }
     const eid = this._sensoreEnergia(curva);
     if (!eid) return null;
@@ -22397,19 +22436,12 @@ const ConGrafico = (Base) => class extends Base {
     dove.querySelectorAll(".dm-ap-chipc").forEach((b) => {
       b.addEventListener("click", () => {
         const c = this._curve[Number(b.dataset.curva)];
-        // le curve con un'altra unita' non si sovrappongono: accenderne una
-        // spegne quelle che parlano un'altra lingua
-        if (!c.accesa) {
-          this._curve.forEach((x) => {
-            if (x.accesa && (x.unita || "") !== (c.unita || "")) x.accesa = false;
-          });
-        }
-        c.accesa = !c.accesa;
-        if (!this._curve.some((x) => x.accesa)) c.accesa = true;
-        // i numeri sotto e il mirino parlano di QUESTA, quella che hai appena
-        // toccato: prima restavano sempre sulla prima accesa e premere un
-        // chip non cambiava niente
-        if (c.accesa) this._curvaScelta = c;
+        // UNA ALLA VOLTA. Prima si sommavano: premevi Forno e restava acceso
+        // anche Generale - due linee sovrapposte, e i numeri sotto di una
+        // sola delle due. Premere un chip adesso spegne gli altri; premere
+        // quello gia' acceso non lo spegne, se no il grafico resterebbe vuoto.
+        this._curve.forEach((x) => { x.accesa = x === c; });
+        this._curvaScelta = c;
         this._disegnaGrafico();
       });
     });
@@ -22444,29 +22476,51 @@ const ConGrafico = (Base) => class extends Base {
     // scrivere sopra a quello nuovo
     const mio = {};
     this._giroGrafico = mio;
-    posto.innerHTML = `<div class="dm-ap-chart-loading">${T("Caricamento...")}</div>`;
+    // NON butto via il disegno che c'e'. Prima lo sostituivo con
+    // "Caricamento...", alto una riga: il grafico spariva, la scritta saltava
+    // in cima e poi il grafico tornava - un rimbalzo a ogni cambio di curva.
+    // Adesso quello vecchio resta li' sbiadito, e la scritta si vede solo la
+    // prima volta, quando non c'e' ancora niente da tenere.
+    const gia = posto.querySelector("svg");
+    const altezzaPrima = posto.offsetHeight;
+    if (altezzaPrima > 60) posto.style.minHeight = altezzaPrima + "px";
+    if (gia) posto.classList.add("caricando");
+    else posto.innerHTML = `<div class="dm-ap-chart-loading">${T("Caricamento...")}</div>`;
     try {
       for (const c of accese) c.punti = await this._datiGrafico(c.entity, inizio, fine);
     } catch (e) {
       if (this._giroGrafico === mio) {
+        posto.classList.remove("caricando");
         posto.innerHTML = `<div class="dm-ap-chart-empty">${T("Errore caricamento dati")}</div>`;
       }
       return;
     }
     if (this._giroGrafico !== mio) return;
+    posto.classList.remove("caricando");
     posto.innerHTML = this._grafico(accese, giorni);
     const prima = accese.includes(this._curvaScelta) ? this._curvaScelta : accese[0];
-    if (sotto) sotto.innerHTML = this._minMedMax(prima.punti, prima.unita);
-    // i kWh dei tre periodi arrivano dopo (sono statistiche, non stati):
-    // finche' non ci sono restano minimo/media/massimo, che almeno dicono
-    // qualcosa. Se nel frattempo premi un altro chip, il giro vecchio non
-    // scrive sopra a quello nuovo.
+    // La struttura e' subito quella definitiva - riga del nome e tre riquadri,
+    // coi trattini - e i numeri ci entrano dentro quando arrivano. Prima
+    // disegnavo minimo/media/massimo e poi ci mettevo sopra i tre periodi, che
+    // hanno una riga in piu': su "Generale" non si vedeva (i suoi numeri sono
+    // gia' in casa), sugli altri arrivano dalle statistiche e il riquadro
+    // saltava di un pelo.
     if (sotto) {
+      sotto.innerHTML = this._trePeriodi(null, prima);
       this._kwhDellaCurva(prima).then((k) => {
-        if (this._giroGrafico !== mio || !k) return;
-        if (![k.oggi, k.settimana, k.mese].some(Number.isFinite)) return;
+        if (this._giroGrafico !== mio) return;
+        // niente kWh per questa curva (non e' energia, o non c'e' il sensore):
+        // ripiego su minimo/media/massimo, che e' alto uguale
+        if (!k || ![k.oggi, k.settimana, k.mese].some(Number.isFinite)) {
+          sotto.innerHTML = this._minMedMax(prima.punti, prima.unita, prima);
+          return;
+        }
         sotto.innerHTML = this._trePeriodi(k, prima);
-      }).catch(() => {});
+      }).catch(() => {
+        if (this._giroGrafico === mio) {
+          sotto.innerHTML = this._minMedMax(prima.punti, prima.unita, prima);
+        }
+      });
     }
     if (prima && prima.punti && prima.punti.length > 1) {
       // prima QUANDO, poi QUANTO: muovendo il dito stai navigando il tempo,
@@ -22506,7 +22560,28 @@ const RIGHE_OGGI = [
 ];
 
 
+// Le righe che ti sei aggiunto tu, messe nella stessa forma di quelle di
+// serie: cosi' l'elenco delle righe e' uno solo e la spunta, l'ordine, il
+// nome e il colore funzionano senza saperne niente.
+// `righe_mie` = [{id, entita, nome, come}], `come` = kwh | euro | valore.
+function righeMie(cfg) {
+  return ((cfg || {}).righe_mie || [])
+    .filter((r) => r && r.id && r.entita)
+    .map((r) => ({
+      id: r.id,
+      nome: (r.nome || r.entita) + " (tua)",
+      etichetta: r.nome || r.entita,
+      colore: r.colore || "#8ea1b8",
+      mia: r,
+    }));
+}
+
 class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
+  // Tutte le righe che il riquadro puo' avere: quelle di serie piu' le tue.
+  _elencoRighe() {
+    return [...RIGHE_OGGI, ...righeMie(this._config)];
+  }
+
   // Le righe del riquadro Oggi, nell'ordine della configurazione (`righe`).
   // Una riga che non e' nell'elenco non si vede.
   _righeOggi() {
@@ -22523,7 +22598,11 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       fv_casa: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f2c53c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Dal fotovoltaico</small></span><b class="dm-e-fv-casa">—</b></div>`,
       top: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>`,
     };
-    return righeInOrdine(this._config, RIGHE_OGGI, R, esc);
+    // le tue: stessa scocca delle altre, il valore lo riempie il set hass
+    righeMie(this._config).forEach((v) => {
+      R[v.id] = `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:${esc(v.colore)}"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>${esc(v.etichetta)}</small></span><b class="dm-e-mia" data-mia="${esc(v.id)}">\u2014</b></div>`;
+    });
+    return righeInOrdine(this._config, this._elencoRighe(), R, esc);
   }
 
   static getConfigElement() {
@@ -22647,10 +22726,20 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         String(x.label || "").trim().toLowerCase() === nome);
       return p ? p.energy : null;
     };
+    // IL CONSUMO VERO, non la sola rete. Il sensore dei Watt della casa misura
+    // quello che entra DALLA RETE: col fotovoltaico che copre quasi tutto quei
+    // kWh sono piccolissimi e sembrano sbagliati. Sommo quello che il
+    // fotovoltaico ha davvero mandato in casa - lo stesso conto della riga
+    // "Consumo totale" - e lo scrivo sotto al nome.
+    const conFv = (periodo, fv) => (cfg[fv] ? [periodo, cfg[fv]] : periodo);
     const fuori = [{ nome: cfg.power_label || "Generale", entity: cfg.power_entity,
       colore: "#0ea5e9", unita: "W",
-      contatori: { oggi: delPeriodo("oggi"), settimana: delPeriodo("settimana"),
-        mese: delPeriodo("mese") } }];
+      nota: cfg.fv_casa_oggi ? T("rete + fotovoltaico") : "",
+      contatori: {
+        oggi: conFv(delPeriodo("oggi"), "fv_casa_oggi"),
+        settimana: conFv(delPeriodo("settimana"), "fv_casa_settimana"),
+        mese: conFv(delPeriodo("mese"), "fv_casa_mese"),
+      } }];
     (cfg.circuits || []).forEach((c, i) => {
       if (!c || !c.entity) return;
       fuori.push({ nome: c.label || c.entity, entity: c.entity,
@@ -22786,13 +22875,89 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return this._euro(k * t.totale + (t.quota || 0) * this._giorniDelPeriodo(p.energy));
   }
 
+  // LE ORE DI OGGI. Il contatore "Ora" si ricorda solo l'ora appena finita:
+  // le altre stanno nelle statistiche a lungo termine, un secchiello per ora.
+  // Chiedo i kWh della rete e quelli del fotovoltaico arrivato in casa, e per
+  // ogni ora dico il consumo vero (la somma) e quanto e' costato (la sola
+  // rete per il prezzo: il sole non si paga).
+  async _oreDiOggi() {
+    const cfg = this._config;
+    const c_e = (this._hass || {}).states || {};
+    // Il SENSORE prima del contatore. Un contatore di utenza si azzera, si
+    // tara e si ricrea, e ogni volta lascia un gradino nelle statistiche che
+    // finisce tutto dentro a un'ora sola; il sensore che sale sempre no.
+    const sorgente = (v, riserva) => {
+      const primo = Array.isArray(v) ? v[0] : v;
+      return (primo && c_e[primo]) ? primo : riserva;
+    };
+    const rete = (((cfg.periods || []).find((p) =>
+      String(p.label || "").trim().toLowerCase() === "oggi") || {}).energy) || null;
+    const fv = sorgente(cfg.fv_casa_entita, cfg.fv_casa_oggi || null);
+    const quali = [rete, fv].filter(Boolean);
+    if (!quali.length) return null;
+    const ora = new Date();
+    const mezzanotte = new Date(ora.getFullYear(), ora.getMonth(), ora.getDate());
+    let risposta;
+    try {
+      risposta = await this._hass.callWS({
+        type: "recorder/statistics_during_period",
+        start_time: mezzanotte.toISOString(),
+        statistic_ids: quali,
+        period: "hour",
+        types: ["change"],
+      });
+    } catch (e) { return null; }
+    const perOra = new Map();
+    const metti = (eid, campo) => {
+      ((risposta || {})[eid] || []).forEach((g) => {
+        const q = typeof g.start === "number" ? g.start : Date.parse(g.start);
+        const v = Number(g.change);
+        if (!Number.isFinite(v)) return;
+        const riga = perOra.get(q) || { quando: new Date(q), rete: 0, fv: 0 };
+        riga[campo] += v;
+        perOra.set(q, riga);
+      });
+    };
+    if (rete) metti(rete, "rete");
+    if (fv) metti(fv, "fv");
+    return [...perOra.values()].sort((a, b) => b.quando - a.quando);
+  }
+
+  // L'elenco disegnato. Lo riempio DOPO aver aperto la finestra, perche' le
+  // statistiche arrivano dalla rete: prima c'e' il posto, poi i numeri.
+  _scriviOre(righe) {
+    const posto = this._root.querySelector(".dm-e-ore");
+    if (!posto) return;
+    if (!righe || !righe.length) {
+      posto.innerHTML = `<div class="dm-ap-vuoto">${T("Per ora non c'e' niente da mostrare.")}</div>`;
+      return;
+    }
+    const t = this._tariffa();
+    const quando = (d) => d.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" });
+    posto.innerHTML = righe.map((r) => {
+      const tot = r.rete + r.fv;
+      const euro = t.totale > 0 ? this._euro(r.rete * t.totale) : "\u2014";
+      return this._statRow2(quando(r.quando), numero(tot, 2) + " kWh", euro);
+    }).join("");
+  }
+
   _openStats() {
     const hass = this._hass;
     const cfg = this._config;
     const val = (id, digits, attr) => this._val(hass, id, digits, attr);
 
+    // dal piu' corto al piu' lungo: nella configurazione stanno nell'ordine
+    // in cui sono nati (Oggi, Mese, Ora, Settimana) e l'Ora in mezzo sembrava
+    // un errore. Quelli che non riconosco restano in fondo, come stavano.
+    const QUANTO_DURA = ["ora", "oggi", "settimana", "mese", "bimestre", "bolletta"];
+    const quanto = (p) => {
+      const i = QUANTO_DURA.indexOf(String(p.label || "").trim().toLowerCase());
+      return i < 0 ? QUANTO_DURA.length : i;
+    };
     const periodsHtml = (cfg.periods || [])
-      .map((p) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2)))
+      .map((p, i) => [p, i])
+      .sort((a, b) => quanto(a[0]) - quanto(b[0]) || a[1] - b[1])
+      .map(([p]) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2)))
       .join("");
 
     const prevHtml = (cfg.periods_prev || [])
@@ -22807,8 +22972,14 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     this._openDialog("Statistiche", `
       ${cfg.bill_today || cfg.bill_month ? this._contoHtml() : ""}
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div>${periodsHtml}</div>
+      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Oggi, ora per ora</div>
+        <div class="dm-ap-sec-nota">${T("i kWh sono il consumo vero, gli euro la sola parte presa dalla rete")}</div>
+        <div class="dm-e-ore"><div class="dm-ap-vuoto">${T("Caricamento...")}</div></div></div>
       ${prevHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Periodo precedente</div>${prevHtml}</div>` : ""}
     `);
+    // le ore arrivano dalla rete: la finestra e' gia' aperta, i numeri ci
+    // entrano dentro quando ci sono
+    this._oreDiOggi().then((r) => this._scriviOre(r)).catch(() => this._scriviOre(null));
     const overlay = this._root.querySelector(".dm-ap-overlay");
     const chartBtn = document.createElement("button");
     chartBtn.type = "button";
@@ -23030,6 +23201,23 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       }
     }
     { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
+    // LE RIGHE TUE: quello che dice l'entita', scritto come hai scelto.
+    // "valore" lascia fare a Home Assistant (numero e unita' sua), cosi' va
+    // bene anche per i gradi, l'umidita' o una percentuale.
+    righeMie(cfg).forEach((v) => {
+      const x = this._root.querySelector(`.dm-e-mia[data-mia="${v.id}"]`);
+      if (!x) return;
+      const st = hass.states[v.mia.entita];
+      if (!st || ["unknown", "unavailable"].includes(st.state)) { x.textContent = "\u2014"; return; }
+      const n = Number(st.state);
+      // "come sta": i decimali che ha davvero (al massimo due), se no una
+      // percentuale diventava "74,00 %" e i gradi "21,40 gradi"
+      const dec = Math.min(2, (String(st.state).split(".")[1] || "").length);
+      x.textContent = v.mia.come === "euro" ? this._euro(st.state)
+        : v.mia.come === "kwh" ? (Number.isFinite(n) ? numero(n, 2) + " kWh" : "\u2014")
+        : this._val(hass, v.mia.entita, Number.isFinite(n) ? dec : null);
+      x.title = st.attributes?.friendly_name || v.mia.entita;
+    });
     // I kWh arrivati dal fotovoltaico: oggi / settimana / mese. Faccio
     // vedere i periodi che esistono davvero, non tre trattini.
     [[".dm-e-fv-casa", "fv_casa"]].forEach(([sel, chi]) => {
@@ -23299,12 +23487,18 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
 
   _disegnaRighe() {
     if (!this._righe) return;
-    disegnaRighe(this._righe, RIGHE_OGGI, this._config, (c) => {
+    disegnaRighe(this._righe, [...RIGHE_OGGI, ...righeMie(this._config)], this._config, (c) => {
       this._config = c;
       this._emetti();
       this._disegnaRighe();
       this._riassunti();
     });
+    this._disegnaMie();
+    { const sc = this.querySelector(".ce-mia-nuova");
+      if (sc && this._hass) {
+        sc.hass = this._hass;
+        sc.includeDomains = ["sensor", "input_number", "counter", "number"];
+      } }
     { const v = this.querySelector(".ce-barre-vive");
       if (v) v.checked = !!this._config.barre_vive;
       const q = this.querySelector(".ce-barre-quante");
@@ -23423,6 +23617,86 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
 
   // Quello che arriva in casa dal fotovoltaico. Va bene sia un sensore in kWh
   // sia uno in Watt: i kWh me li calcolo io.
+  // LE RIGHE TUE: una riga per ognuna, con nome, come scriverla e il cestino.
+  // L'id se lo tiene: e' quello che finisce in `righe`, nei nomi e nei colori,
+  // e non deve cambiare quando ne togli una di mezzo.
+  _disegnaMie() {
+    const box = this.querySelector(".ce-mie");
+    if (!box) return;
+    const mie = this._config.righe_mie || [];
+    box.innerHTML = "";
+    mie.forEach((r, i) => {
+      const riga = document.createElement("div");
+      riga.className = "ce-riga";
+      riga.innerHTML = `<span class="ent"></span>
+        <input type="text" class="nome" style="flex:1 1 120px;min-width:0">
+        <select class="come">
+          <option value="valore">${T("come sta")}</option>
+          <option value="kwh">kWh</option>
+          <option value="euro">€</option>
+        </select>
+        <button type="button" class="via" title="${T("Togli questa riga")}">✕</button>`;
+      riga.querySelector(".ent").textContent = this._nomeDi(r.entita);
+      riga.querySelector(".ent").title = r.entita;
+      const nome = riga.querySelector(".nome");
+      nome.placeholder = this._nomeDi(r.entita);
+      nome.value = r.nome || "";
+      nome.addEventListener("change", () => this._cambiaMia(i, { nome: nome.value.trim() }));
+      const come = riga.querySelector(".come");
+      come.value = r.come || "valore";
+      come.addEventListener("change", () => this._cambiaMia(i, { come: come.value }));
+      riga.querySelector(".via").addEventListener("click", () => this._togliMia(i));
+      box.appendChild(riga);
+    });
+  }
+
+  _cambiaMia(i, pezzo) {
+    const mie = [...(this._config.righe_mie || [])];
+    if (!mie[i]) return;
+    mie[i] = { ...mie[i], ...pezzo };
+    this._config = { ...this._config, righe_mie: mie };
+    this._emetti();
+    this._disegnaMie();
+    this._disegnaRighe();
+  }
+
+  // togliendo una riga si toglie anche dall'ordine, dai nomi e dai colori:
+  // se no resta un id fantasma in `righe` che non disegna piu' niente
+  _togliMia(i) {
+    const mie = [...(this._config.righe_mie || [])];
+    const via = (mie[i] || {}).id;
+    mie.splice(i, 1);
+    const c = { ...this._config, righe_mie: mie };
+    if (Array.isArray(c.righe)) c.righe = c.righe.filter((x) => x !== via);
+    ["nomi_righe", "colori_righe"].forEach((k) => {
+      if (c[k] && c[k][via] !== undefined) { c[k] = { ...c[k] }; delete c[k][via]; }
+    });
+    this._config = c;
+    this._emetti();
+    this._disegnaMie();
+    this._disegnaRighe();
+  }
+
+  _aggiungiMia(entita) {
+    if (!entita) return;
+    const mie = [...(this._config.righe_mie || [])];
+    // un id che non si ripete mai, nemmeno dopo aver tolto e rimesso
+    let n = 1;
+    while (mie.some((x) => x.id === "mia_" + n)) n += 1;
+    const id = "mia_" + n;
+    const st = (this._hass.states[entita] || {}).attributes || {};
+    const u = String(st.unit_of_measurement || "").toLowerCase();
+    mie.push({ id, entita, nome: this._nomeDi(entita),
+      come: u === "kwh" ? "kwh" : (u === "€" || u === "eur") ? "euro" : "valore" });
+    const c = { ...this._config, righe_mie: mie };
+    // nasce accesa: se `righe` e' scritto, la metto in fondo
+    if (Array.isArray(c.righe)) c.righe = [...c.righe, id];
+    this._config = c;
+    this._emetti();
+    this._disegnaMie();
+    this._disegnaRighe();
+  }
+
   _disegnaFvCasa() {
     this._unSelettore(".ce-fvcasa-pick", "fv_casa_entita");
   }
@@ -23842,6 +24116,10 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
             <summary class="ce-tit">${titoloSez(VESTITO$1.righe, T("Righe del riquadro \u00abOggi\u00bb"))}</summary>
             <div class="ce-aiuto">${T("Spunta quelle da vedere e trascinale dalla maniglia \u283f per metterle in ordine. Nome e colore sono facoltativi (vuoto = quelli di serie).")}</div>
             <div class="ce-righe"></div>
+            <div class="ce-aiuto">${T("Puoi aggiungerne di tue: scegli l\u0027entita\u0027, dalle un nome e di\u0027 come scriverla. Compaiono qui sopra insieme alle altre, e da li\u0027 si spuntano, si spostano e si colorano come tutte.")}</div>
+            <div class="ce-mie"></div>
+            <div class="ce-riga"><span class="ent">${T("Aggiungi una riga tua")}</span>
+              <ha-entity-picker class="ce-mia-nuova" allow-custom-entity></ha-entity-picker></div>
           </details>
           <details class="ce-sez ce-tendina ce-sez-top" data-c="1" style="--c:#f06e82">
             <summary class="ce-tit">${titoloSez(VESTITO$1.top, T("Top consumo"))}</summary>
@@ -23909,6 +24187,15 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       this._form = form;
       this._formTutto = formTutto;
       this._righe = this.querySelector(".ce-righe");
+      const nuova = this.querySelector(".ce-mia-nuova");
+      if (nuova) {
+        nuova.addEventListener("value-changed", (ev) => {
+          ev.stopPropagation();
+          const id = ev.detail.value;
+          nuova.value = "";
+          this._aggiungiMia(id);
+        });
+      }
       this._circuiti = this.querySelector(".ce-circuiti");
       this._esito = this.querySelector(".ce-esito");
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());

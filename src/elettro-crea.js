@@ -390,13 +390,19 @@ export async function creaSensoriBase(hass, opzioni, dillo) {
   // contatore si e' azzerato, cosi' la formula vale per oggi, per il mese e
   // per il bimestre senza cambiare niente. Sull'ora la quota non c'entra.
   const QUOTA = "input_number.quota_fissa_energia_giorno";
+  const DA_AZZERAMENTO = "((now() - as_datetime(state_attr('%E%', 'last_reset'))).days + 1"
+    + " if state_attr('%E%', 'last_reset') else 1)";
   const GIORNI = {
     oggi: "1",
     mese: "now().day",
+    // La settimana ha la quota come tutti gli altri: prima non ce l'aveva, e
+    // di lunedi' "Oggi" e "Settimana" dicevano gli stessi kWh a due prezzi
+    // diversi. Conto dall'azzeramento come per il bimestre, cosi' va bene
+    // anche per un contatore nato a meta' settimana.
+    settimana: DA_AZZERAMENTO,
     // il bimestre non ha una data di inizio che io possa sapere: conto da
     // quando il contatore si e' azzerato, e dopo il primo rollover e' esatto
-    bimestre: "((now() - as_datetime(state_attr('%E%', 'last_reset'))).days + 1"
-      + " if state_attr('%E%', 'last_reset') else 1)",
+    bimestre: DA_AZZERAMENTO,
   };
   const perPrezzo = (entita, chiave) => {
     const base = "states('" + entita + "') | float(0) * states('" + prezzo + "') | float(0)";

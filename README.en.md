@@ -234,6 +234,25 @@ Almost everything is click-only; these only matter if you write the YAML by hand
 | `finestra_righe` | how much the pop-up text boxes cover the photo (0-100) |
 | `fv_casa_oggi` | the kWh that reached the house from solar today: the «From solar» and «Total use» rows need them |
 | `fv_casa_settimana` / `fv_casa_mese` | the same, for the other periods |
+| `righe_mie` | the rows you add yourself: `{id, entita, nome, come}`, where `come` is `kwh`, `euro` or `valore` |
+
+### The rows you add yourself
+
+The **Today** box had a fixed list: you could tick, untick, reorder and rename
+the rows, but not add one.
+
+In the **Rows of the «Today» box** drawer there is **Add a row of your own**:
+pick the entity, give it a name and say how to write it — **kWh**, **euros**
+or **as it is** (degrees, a percentage, whatever it is). You can put anything
+in there: the tumble dryer's meter, the battery charge, the bathroom
+temperature.
+
+They appear in the list together with the others, marked *(tua)*, so ticking,
+order, name and colour work the same way. Removing one also takes it out of
+the order, the names and the colours.
+
+It lives in `righe_mie`, and without that key nothing of what was there before
+changes.
 
 ---
 

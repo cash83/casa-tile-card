@@ -263,6 +263,71 @@
   }
 
   // ======================================================================
+  // Le righe che ti aggiungi tu (`righe_mie`). Entrano nello STESSO elenco
+  // di quelle di serie, quindi devono rispondere alla spunta, all'ordine, al
+  // nome e al colore senza codice loro.
+  dice('le righe tue: entita\' a piacere nel riquadro');
+  if (casa) {
+    hass.states['sensor.prova_gradi'] = { state: '21.4',
+      attributes: { unit_of_measurement: '\u00b0C', device_class: 'temperature',
+        friendly_name: 'Bagno temperatura' } };
+    hass.states['sensor.prova_perc'] = { state: '74',
+      attributes: { unit_of_measurement: '%', device_class: 'battery' } };
+    hass.states['sensor.prova_rotto'] = { state: 'unavailable', attributes: {} };
+    const mia = (righe_mie, righe, piu) => {
+      const el = document.createElement('casa-energia');
+      el.setConfig({ type: 'custom:casa-energia', name: 'Prova',
+        power_entity: 'sensor.prova_watt', righe, righe_mie,
+        periods: [{ label: 'Oggi', energy: 'sensor.prova_oggi' }], ...piu });
+      banco.appendChild(el);
+      el.hass = hass;
+      return el.shadowRoot;
+    };
+    const tre = [
+      { id: 'mia_1', entita: 'sensor.prova_fv_in_casa', nome: 'Asciugatrice', come: 'kwh' },
+      { id: 'mia_2', entita: 'sensor.prova_perc', nome: 'Batteria', come: 'valore' },
+      { id: 'mia_3', entita: 'sensor.prova_gradi', nome: 'Bagno', come: 'valore' },
+    ];
+    const r1 = mia(tre, ['consumo', 'mia_1', 'mia_2', 'mia_3']);
+    const val = (id) => (r1.querySelector(`.dm-e-mia[data-mia="${id}"]`) || {}).textContent;
+    prova('in kWh', val('mia_1'), '1,54 kWh');
+    // "come sta" tiene i decimali che il valore ha davvero: una percentuale
+    // non deve diventare 74,00
+    prova('una percentuale resta intera', val('mia_2'), '74 %');
+    prova('i gradi tengono il loro decimale', val('mia_3'), '21,4 \u00b0C');
+    // il nome scritto nell'editor e' quello che si vede
+    const et = [...r1.querySelectorAll('.dm-ap-cycle-row')]
+      .map((q) => (q.querySelector('small') || {}).textContent);
+    prova('i nomi sono i tuoi', et.slice(1).join('|'), 'Asciugatrice|Batteria|Bagno');
+    // una riga tua spenta non si vede, come quelle di serie
+    const r2 = mia(tre, ['consumo', 'mia_2']);
+    prova('spenta non compare', !!r2.querySelector('.dm-e-mia[data-mia="mia_1"]'), false);
+    prova('e quella accesa si', !!r2.querySelector('.dm-e-mia[data-mia="mia_2"]'), true);
+    // l'ordine e' quello di `righe`, non quello di `righe_mie`
+    const r3 = mia(tre, ['mia_3', 'mia_1', 'consumo']);
+    prova('l ordine e quello che hai messo tu',
+      [...r3.querySelectorAll('.dm-e-mia')].map((x) => x.dataset.mia).join(','), 'mia_3,mia_1');
+    // nome e colore si possono cambiare come per le righe di serie
+    const r4 = mia(tre, ['mia_1'], { nomi_righe: { mia_1: 'Altro nome' },
+      colori_righe: { mia_1: '#123456' } });
+    prova('il nome si puo cambiare',
+      r4.querySelector('.dm-ap-cycle-row small').textContent, 'Altro nome');
+    prova('e anche il colore',
+      r4.querySelector('.dm-ap-cycle-row').getAttribute('style'), '--c:#123456');
+    // un'entita' morta fa un trattino, non "unavailable"
+    const r5 = mia([{ id: 'mia_9', entita: 'sensor.prova_rotto', nome: 'Rotta' }], ['mia_9']);
+    prova('entita morta: trattino',
+      r5.querySelector('.dm-e-mia[data-mia="mia_9"]').textContent, '\u2014');
+    // un'entita' che non esiste proprio non deve rompere la scheda
+    const r6 = mia([{ id: 'mia_9', entita: 'sensor.non_esiste', nome: 'Boh' }], ['mia_9']);
+    prova('entita inesistente: trattino, e la scheda regge',
+      r6.querySelector('.dm-e-mia[data-mia="mia_9"]').textContent, '\u2014');
+    // senza `righe_mie` non cambia niente di quello che c'era prima
+    const r7 = mia([], ['consumo']);
+    prova('senza righe tue niente cambia', r7.querySelectorAll('.dm-e-mia').length, 0);
+  }
+
+  // ======================================================================
   dice('il costo del periodo precedente, ricavato');
   if (casa) {
     // 9,6386 kWh x 0,242 + 0,542 di quota = 2,873 -> "2,87 €"

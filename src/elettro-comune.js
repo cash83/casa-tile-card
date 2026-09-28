@@ -732,13 +732,17 @@ const STYLE = `
 .dm-ap-card.centrato .dm-ap-top-row{flex-direction:column;gap:12px}
 .dm-ap-card.centrato .dm-ap-hero{flex:0 0 auto;width:100%;height:196px}
 .dm-ap-card.centrato .dm-ap-cycle-side{flex:0 0 auto;width:100%}
-.dm-ap-card.centrato .dm-ap-cycle-list{display:grid;grid-template-columns:1fr 1fr;
-  align-content:start;gap:4px 8px}
-/* una riga dispari in fondo si prende tutta la larghezza, invece di
-   lasciare un buco accanto */
-.dm-ap-card.centrato .dm-ap-cycle-list>*:last-child:nth-child(odd){grid-column:1 / -1}
+/* DUE COLONNE VERE: si scende lungo la prima e, finita, si passa alla
+   seconda. Prima era una griglia, che riempie per RIGHE - la prima voce a
+   sinistra, la seconda a destra, la terza sotto a sinistra - e l'ordine
+   dell'editor si leggeva a zigzag: spostandone una di un posto saltava di
+   colonna. */
+.dm-ap-card.centrato .dm-ap-cycle-list{display:block;columns:2;column-gap:8px}
+.dm-ap-card.centrato .dm-ap-cycle-list>*{break-inside:avoid;
+  -webkit-column-break-inside:avoid;margin-bottom:4px}
+.dm-ap-card.centrato .dm-ap-cycle-list>*:last-child{margin-bottom:0}
 @media (max-width:480px){
-  .dm-ap-card.centrato .dm-ap-cycle-list{grid-template-columns:1fr}
+  .dm-ap-card.centrato .dm-ap-cycle-list{columns:1}
 }
 .dm-ap-cycle-row{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0}
 .dm-ap-cycle-row small{flex:0 0 auto;font-size:10.5px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:var(--dm-dim)}
@@ -801,8 +805,10 @@ const STYLE = `
 .dm-ap-chipc i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
 .dm-ap-chipc.scelto{opacity:1;border-color:#bae6fd;background:rgba(14,165,233,.12);
   color:var(--dm-text)}
-.dm-ap-mmm-chi{display:flex;align-items:center;gap:6px;margin:10px 0 -4px;font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dm-dim)}
+.dm-ap-mmm-posto{min-height:82px}
+.dm-ap-mmm-chi{display:flex;align-items:center;gap:6px;margin:10px 0 -4px;min-height:14px;font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-mmm-chi i{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.dm-ap-mmm-chi em{font-style:normal;font-weight:700;letter-spacing:.2px;text-transform:none;opacity:.7}
 .dm-ap-mmm{display:flex;gap:8px;margin:10px 0 2px}
 .dm-ap-mmm>div{flex:1 1 0;min-width:0;text-align:center;padding:7px 4px;border-radius:11px;
   border:1px solid var(--divider-color);background:rgba(127,127,127,.06)}
@@ -815,6 +821,8 @@ const STYLE = `
   .dm-ap-mmm b{font-size:12.5px}
 }
 .dm-ap-chart-empty{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
+.dm-ap-graf{transition:opacity .14s ease}
+.dm-ap-graf.caricando{opacity:.32}
 .dm-ap-chart-loading{padding:20px;text-align:center;font-size:13px;font-weight:700;color:var(--dm-dim)}
 .dm-ap-warn{display:flex;align-items:center;gap:6px;margin:0 13px 12px;padding:9px 12px;border-radius:13px;background:#fee2e2;color:#b91c1c;font-size:13px;font-weight:800}
 .dm-ap-warn[hidden]{display:none}
@@ -856,6 +864,8 @@ const STYLE = `
 .dm-ap-dialog-close{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border:0;border-radius:10px;background:var(--dm-soft);color:var(--dm-dim);cursor:pointer}
 .dm-ap-dialog-body{padding:12px 16px 18px;display:flex;flex-direction:column;gap:16px}
 .dm-ap-sec-cap{font-size:11.5px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--dm-blue-deep);margin:0 0 8px;padding-bottom:5px;border-bottom:2px solid var(--dm-border)}
+.dm-ap-sec-nota{margin:-6px 0 8px;font-size:11.5px;line-height:1.35;color:var(--dm-dim)}
+.dm-ap-vuoto{padding:10px 2px;font-size:12.5px;color:var(--dm-dim)}
 .dm-ap-sec{display:flex;flex-direction:column;gap:6px}
 .dm-ap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:13px;background:var(--dm-soft)}
 .dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text)}
