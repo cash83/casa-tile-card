@@ -8,10 +8,8 @@ import {
   mirinoGrafico,
   numero,
   unitaBella,
-  HERO_BUILDERS,
-  CHIP_SVGS,
+  disegnoDiScheda,
   ICON_CHART,
-  ICON_NOTIFCENTER,
   ICON_BOLT,
   ICON_EURO,
   ICON_TREND,
@@ -86,15 +84,13 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       max_power: 4500,
       periods: [],
       periods_prev: [],
-      weekdays: {},
       circuits: [],
       ...config,
     };
     vestiFinestra(this, this._config);
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "en" + Math.random().toString(36).slice(2, 8);
-    const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.energy)(this._heroId);
-    const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.energy;
+    const { hero, chip } = disegnoDiScheda(this._config, this._heroId, "energy");
     this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
       <article class="dm-ap-card ${this._config.layout === "centrato" ? "centrato" : ""} is-run">
         <div class="dm-ap-top">
@@ -104,7 +100,6 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
           </span>
           <span class="dm-ap-badge run"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label">ONLINE</span></span>
           <span class="dm-ap-tools">
-            ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
             <button type="button" class="dm-ap-tool dm-ap-andamento" title="Andamento">${ICON_ANDAMENTO}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
             <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
@@ -146,11 +141,6 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       metersEl.appendChild(div);
     });
 
-    this._root.querySelector(".dm-ap-notif-center")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      history.pushState(null, "", this._config.notification_path);
-      window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
-    });
     // i due interruttori della presa: quello grande e quello delle USB
     this._tastiAggancia();
     if (this._config.bill_today || this._config.bill_month) {
@@ -306,12 +296,21 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
 
   // Il costo di un periodo finito quando nessun sensore se l'e' segnato:
   // i kWh per il prezzo, piu' la quota fissa dei giorni che e' durato.
+  // Il costo di un periodo finito, quando il sensore del costo non tiene il
+  // periodo precedente: i kWh per il prezzo pieno, piu' la quota fissa dei
+  // giorni che il periodo e' durato.
+  //
+  // Ma se i kWh sono ZERO il periodo non c'e' stato: e' il contatore creato a
+  // meta' mese, che di mese scorso non ne ha uno. Li' la quota fissa da sola
+  // inventava un numero dal niente - "0,00 kWh - 7,05 EUR" - e sembrava vero.
+  // Zero kWh in una casa vuol dire che quel periodo non esiste, non che hai
+  // consumato niente pagando il fisso.
   _costoRicavato(p) {
     const st = p.energy ? this._hass.states[p.energy] : null;
     if (!st) return "\u2014";
     const k = Number(p.energy_attr ? (st.attributes || {})[p.energy_attr] : st.state);
     const t = this._tariffa();
-    if (!Number.isFinite(k) || !(t.totale > 0)) return "\u2014";
+    if (!(k > 0) || !(t.totale > 0)) return "\u2014";
     return this._euro(k * t.totale + (t.quota || 0) * this._giorniDelPeriodo(p.energy));
   }
 
@@ -333,15 +332,10 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       })
       .join("");
 
-    const weekEntries = Object.entries(cfg.weekdays || {});
-    const weekHtml = weekEntries.map(([label, entity]) => this._statRow(label, val(entity, 2))).join("");
-    const mediaHtml = cfg.media_entity ? this._statRow("Media settimanale", val(cfg.media_entity, 1)) : "";
-
     this._openDialog("Statistiche", `
       ${cfg.bill_today || cfg.bill_month ? this._contoHtml() : ""}
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div>${periodsHtml}</div>
       ${prevHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Periodo precedente</div>${prevHtml}</div>` : ""}
-      ${weekHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultimi 7 giorni</div>${weekHtml}${mediaHtml}</div>` : ""}
     `);
     const overlay = this._root.querySelector(".dm-ap-overlay");
     const chartBtn = document.createElement("button");
@@ -352,7 +346,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     chartBtn.textContent = T("Andamento");
     chartBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      this._apriGrafico(this._curveDellaCasa(), T("Andamento"));
+      this._apriGrafico(this._curveDellaCasa(), "Andamento");
     });
     overlay.querySelector(".dm-ap-dialog-body").appendChild(chartBtn);
   }
@@ -425,7 +419,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
 
   _topText(hass) {
     const cfg = this._config;
-    if (!cfg.top_auto) return cfg.top_entity ? (hass.states[cfg.top_entity]?.state ?? "—") : "—";
+    if (!cfg.top_auto) return "—";
     const { loads, non } = this._autoLoads(hass);
     const min = cfg.top_min_w ?? 5;
     let best = loads[0] && loads[0].live >= min ? loads[0] : null;
@@ -468,10 +462,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       .sort((a, b) => b.live - a.live);
 
     const rows = circuits.map((c) => this._statRow(c.label, `${numero(c.live, 0)} W`)).join("");
-    const topSt = cfg.top_entity ? hass.states[cfg.top_entity]?.state : null;
-
     this._openDialog("Circuiti", `
-      ${topSt ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">In evidenza</div>${this._statRow("Top consumo", topSt)}</div>` : ""}
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Tutti i circuiti (live)</div>${rows}</div>
     `);
   }

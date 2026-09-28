@@ -1,0 +1,469 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Prove delle schede</title>
+<!--
+  Le prove che hanno bisogno di un BROWSER: montano le tre schede vere con un
+  `hass` finto e guardano cosa scrivono davvero dentro al loro guscio.
+
+  `prove.js` prova i conti (si lancia con node). Questa pagina prova le schede
+  montate: le soglie dei watt, la barra, i kWh e i costi dei periodi, il ciclo,
+  i periodi ricavati da soli, tutti i pop-up e dove finiscono le scritte del
+  grafico.
+
+  Come si lancia:
+      npm run build
+      python -m http.server 8781
+  e poi si apre  http://127.0.0.1:8781/strumenti/prove-schede.html
+  (dal browser dice quante prove e quante cadute; `window.__esito` le ha tutte)
+
+  Due cose imparate sul campo, perche' non ci ricaschi:
+   - la scheda ACCORPA i cambi di stato che arrivano insieme e ridisegna dopo
+     150 ms: fra un valore e il successivo bisogna aspettare, se no si legge
+     quello di prima;
+   - le righe che si vedono le decide `righe`: se una riga non e' nell'elenco
+     il suo pezzo non esiste nemmeno, e querySelector torna null.
+-->
+<style>
+  body{font-family:Roboto,system-ui,sans-serif;margin:0;padding:18px;background:#0e1116;color:#e6edf3}
+  h1{font-size:18px;margin:0 0 12px}
+  .ok{color:#4ec98a}.ko{color:#ff6b6b;font-weight:700}
+  pre{white-space:pre-wrap;font-size:12.5px;line-height:1.55;margin:0}
+  .banco{position:absolute;left:-9999px;top:0;width:420px}
+</style>
+<h1>Prove delle schede dei consumi</h1>
+<pre id="esito">in corso…</pre>
+<div class="banco" id="banco"></div>
+
+<script type="module" src="../dist/casa-tile-card.js"></script>
+<script type="module">
+  // Aspetto che il bundle si registri.
+  for (let i = 0; i < 100 && !customElements.get('casa-elettrodomestico'); i++) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
+
+  const righe = [];
+  let fatte = 0, cadute = 0;
+  const dice = (t) => righe.push('\n--- ' + t);
+  function prova(cosa, avuto, atteso) {
+    fatte += 1;
+    const a = JSON.stringify(avuto), b = JSON.stringify(atteso);
+    if (a === b) righe.push('  <span class="ok">ok</span>  ' + cosa);
+    else { cadute += 1; righe.push('  <span class="ko">X</span>   ' + cosa
+      + '\n        atteso: ' + b + '\n        avuto:  ' + a); }
+  }
+
+  // ---------------------------------------------------------------- hass finto
+  const ORA = new Date();
+  const statoNum = (v, unit, extra = {}) => ({ state: String(v),
+    attributes: { unit_of_measurement: unit, ...extra } });
+  const hass = {
+    locale: { language: 'it' },
+    states: {
+      // la presa che misura
+      'sensor.prova_watt': statoNum(1500, 'W', { device_class: 'power', friendly_name: 'Prova Potenza' }),
+      'sensor.prova_kwh': statoNum(120.5, 'kWh', { device_class: 'energy', friendly_name: 'Prova Energia' }),
+      // i contatori dei periodi, con il periodo precedente dentro
+      'sensor.prova_oggi': { state: '2.5', attributes: { unit_of_measurement: 'kWh',
+        device_class: 'energy', last_period: '9.6386',
+        last_reset: new Date(ORA.getFullYear(), ORA.getMonth(), ORA.getDate()).toISOString(),
+        next_reset: new Date(ORA.getFullYear(), ORA.getMonth(), ORA.getDate() + 1).toISOString() } },
+      'sensor.prova_settimana': { state: '12', attributes: { unit_of_measurement: 'kWh',
+        last_period: '30',
+        last_reset: new Date(ORA.getTime() - 2 * 86400000).toISOString(),
+        next_reset: new Date(ORA.getTime() + 5 * 86400000).toISOString() } },
+      'sensor.prova_mese': { state: '50', attributes: { unit_of_measurement: 'kWh',
+        last_period: '201.76',
+        last_reset: new Date(ORA.getFullYear(), ORA.getMonth(), 1).toISOString(),
+        next_reset: new Date(ORA.getFullYear(), ORA.getMonth() + 1, 1).toISOString() } },
+      'sensor.prova_ora': { state: '0.3', attributes: { unit_of_measurement: 'kWh',
+        last_period: '0.9',
+        last_reset: new Date(ORA.getTime() - 20 * 60000).toISOString(),
+        next_reset: new Date(ORA.getTime() + 40 * 60000).toISOString() } },
+      // la tariffa
+      'input_number.prezzo_luce_energia': statoNum(0.1657, '€/kWh', { friendly_name: 'Prezzo luce: sola energia' }),
+      'input_number.prezzo_energia': statoNum(0.242, '€/kWh', { friendly_name: 'Prezzo luce: totale bolletta' }),
+      'input_number.quota_fissa_energia_giorno': statoNum(0.542, '€/giorno', { friendly_name: 'Quota fissa' }),
+      // le memorie dell'ultimo ciclo
+      'input_number.prova_ultimo_ciclo_kwh': statoNum(2.363, 'kWh'),
+      'input_number.prova_ultimo_ciclo_minuti': statoNum(275, 'min'),
+      'input_datetime.prova_ultimo_ciclo_fine': { state: '2026-09-27 14:10:38', attributes: {} },
+      'input_datetime.prova_ciclo_iniziato': { state: '2026-09-27 09:35:24', attributes: {} },
+      'sensor.prova_ciclo_kwh': statoNum(0, 'kWh'),
+      'binary_sensor.prova_in_funzione': { state: 'off', attributes: {} },
+      // per la casella (casa-tile)
+      'light.prova_luce': { state: 'on', attributes: { friendly_name: 'Luce prova',
+        brightness: 180, supported_color_modes: ['brightness'] } },
+      'switch.prova_presa': { state: 'off', attributes: { friendly_name: 'Presa prova' } },
+      'sensor.prova_temp': statoNum(21.4, '°C', { device_class: 'temperature',
+        friendly_name: 'Temperatura prova' } ),
+    },
+    callWS: async () => ({}),
+    callApi: async () => ({}),
+    callService: async () => ({}),
+  };
+
+  const banco = document.getElementById('banco');
+  function fai(tag, config) {
+    const el = document.createElement(tag);
+    el.setConfig(config);
+    banco.appendChild(el);
+    el.hass = hass;
+    return el;
+  }
+
+  // ======================================================================
+  dice('la scheda si monta senza errori');
+  let app = null, casa = null;
+  try {
+    app = fai('casa-elettrodomestico', {
+      type: 'custom:casa-elettrodomestico',
+      name: 'Prova', artwork: 'washer',
+      power_entity: 'sensor.prova_watt', max_power: 2500,
+      threshold_run: 10, threshold_standby: 1,
+      prezzo_entita: 'input_number.prezzo_luce_energia',
+      energia_kwh: 'sensor.prova_kwh',
+      period_entities: { today: { energy: 'sensor.prova_oggi' },
+                         month: { energy: 'sensor.prova_mese' } },
+      ciclo: { fine: 'input_datetime.prova_ultimo_ciclo_fine',
+               durata: 'input_number.prova_ultimo_ciclo_minuti',
+               consumo: 'input_number.prova_ultimo_ciclo_kwh',
+               contatore: 'sensor.prova_ciclo_kwh',
+               inizio: 'input_datetime.prova_ciclo_iniziato' },
+      soglia_acceso: 'binary_sensor.prova_in_funzione',
+      righe: ['fine', 'durata', 'consumo', 'costo', 'oggi', 'costo_oggi',
+              'mese', 'costo_mese'],
+    });
+    prova('casa-elettrodomestico si monta', !!app.shadowRoot, true);
+  } catch (e) { prova('casa-elettrodomestico si monta', 'errore: ' + e.message, true); }
+
+  try {
+    casa = fai('casa-energia', {
+      type: 'custom:casa-energia',
+      name: 'Casa prova', power_entity: 'sensor.prova_watt', max_power: 3300,
+      periods: [{ label: 'Oggi', energy: 'sensor.prova_oggi' },
+                { label: 'Mese', energy: 'sensor.prova_mese' }],
+      periods_prev: [
+        { label: 'Ieri', energy: 'sensor.prova_oggi', energy_attr: 'last_period' },
+        { label: 'Mese scorso', energy: 'sensor.prova_mese', energy_attr: 'last_period' },
+      ],
+      top_auto: true,
+    });
+    prova('casa-energia si monta', !!casa.shadowRoot, true);
+  } catch (e) { prova('casa-energia si monta', 'errore: ' + e.message, true); }
+
+  // ======================================================================
+  // La terza scheda: la casella. Qui controllo che si monti con le quattro
+  // disposizioni e coi tre tipi di cosa piu' comuni, e che il tondino della
+  // luce dica la percentuale giusta.
+  dice('la casella (casa-tile) si monta con tutte le disposizioni');
+  const disposizioni = ['classica', 'grande', 'stretta', 'minima'];
+  const caselle = [];
+  for (const d of disposizioni) {
+    try {
+      const t = fai('casa-tile', { type: 'custom:casa-tile',
+        entita: 'light.prova_luce', nome: 'Luce prova', disposizione: d });
+      caselle.push(t);
+      prova('disposizione ' + d, !!t.shadowRoot.querySelector('ha-card'), true);
+    } catch (e) { prova('disposizione ' + d, 'errore: ' + e.message, true); }
+  }
+  for (const [eid, che] of [['switch.prova_presa', 'una presa'],
+                            ['sensor.prova_temp', 'un sensore']]) {
+    try {
+      const t = fai('casa-tile', { type: 'custom:casa-tile', entita: eid });
+      prova('la casella regge ' + che, !!t.shadowRoot.querySelector('ha-card'), true);
+    } catch (e) { prova('la casella regge ' + che, 'errore: ' + e.message, true); }
+  }
+  // senza entita' non deve scoppiare: deve dirlo
+  try {
+    const t = fai('casa-tile', { type: 'custom:casa-tile' });
+    prova('senza entita non scoppia', !!t.shadowRoot, true);
+  } catch (e) { prova('senza entita non scoppia', 'errore: ' + e.message, true); }
+
+  // ======================================================================
+  dice('quanti giorni dura un periodo (serve alla quota fissa)');
+  if (casa) {
+    prova('il contatore di oggi dura 1 giorno', casa._giorniDelPeriodo('sensor.prova_oggi'), 1);
+    prova('quello della settimana, 7', casa._giorniDelPeriodo('sensor.prova_settimana'), 7);
+    const gg = casa._giorniDelPeriodo('sensor.prova_mese');
+    prova('quello del mese, fra 28 e 31', gg >= 28 && gg <= 31, true);
+    prova('sull ora la quota non c entra', casa._giorniDelPeriodo('sensor.prova_ora'), 0);
+    prova('un sensore che non esiste da 0', casa._giorniDelPeriodo('sensor.boh'), 0);
+  }
+
+  // ======================================================================
+  dice('il costo del periodo precedente, ricavato');
+  if (casa) {
+    // 9,6386 kWh x 0,242 + 0,542 di quota = 2,873 -> "2,87 €"
+    const ieri = casa._costoRicavato({ label: 'Ieri', energy: 'sensor.prova_oggi', energy_attr: 'last_period' });
+    prova('ieri = kWh x prezzo + quota di 1 giorno', ieri, '2,87 €');
+    // senza tariffa non se lo inventa
+    const t = casa._tariffa();
+    prova('la tariffa letta: totale', t.totale, 0.242);
+    prova('la tariffa letta: quota', t.quota, 0.542);
+    prova('la tariffa letta: sola energia', t.energia, 0.1657);
+    prova('senza kWh non inventa niente',
+      casa._costoRicavato({ label: 'x', energy: 'sensor.boh' }), '—');
+    // il contatore creato a meta mese: di mese scorso non ne ha uno, e
+    // last_period vale 0. La quota fissa da sola tirava fuori "7,05 EUR" dal
+    // niente accanto a "0,00 kWh".
+    hass.states['sensor.prova_mese_nuovo'] = { state: '50', attributes: {
+      unit_of_measurement: 'kWh', last_period: '0',
+      last_reset: new Date(ORA.getTime() - 13 * 86400000).toISOString(),
+      next_reset: new Date(ORA.getFullYear(), ORA.getMonth() + 1, 1).toISOString() } };
+    prova('zero kWh = periodo che non c e stato, non la sola quota fissa',
+      casa._costoRicavato({ label: 'Mese scorso', energy: 'sensor.prova_mese_nuovo',
+        energy_attr: 'last_period' }), '—');
+  }
+
+  // ======================================================================
+  dice('lo stato dai watt: le soglie');
+  if (app) {
+    const modo = () => app.shadowRoot.querySelector('.dm-ap-badge-label')?.textContent;
+    const classe = () => app.shadowRoot.querySelector('.dm-ap-card').className;
+    // La scheda accorpa i cambi che arrivano insieme: ridisegna dopo 150 ms.
+    // Fra un valore e l'altro devo aspettare, se no leggo quello di prima.
+    const watt = async (v) => {
+      hass.states['sensor.prova_watt'] = statoNum(v, 'W', { device_class: 'power' });
+      app.hass = hass;
+      await new Promise((r) => setTimeout(r, 260));
+    };
+    prova('1500 W = in funzione', modo(), 'IN FUNZIONE');
+    prova('e la scheda si veste da accesa', classe().includes('is-run'), true);
+    await watt(0.5);
+    prova('0,5 W (sotto la soglia dello standby) = spento', modo(), 'SPENTO');
+    prova('e si veste da spenta', classe().includes('is-off'), true);
+    await watt(5);
+    prova('5 W (fra le due soglie) = standby', modo(), 'STANDBY');
+    prova('e si veste da standby', classe().includes('is-standby'), true);
+    await watt(10);
+    prova('esattamente sulla soglia = in funzione', modo(), 'IN FUNZIONE');
+    // un valore che non e un numero non deve diventare "spento"
+    hass.states['sensor.prova_watt'] = { state: '1:20', attributes: {} };
+    app.hass = hass;
+    await new Promise((r) => setTimeout(r, 260));
+    prova('una scritta al posto dei watt non diventa spento', modo(), 'N/D');
+    hass.states['sensor.prova_watt'] = { state: 'unavailable', attributes: {} };
+    app.hass = hass;
+    await new Promise((r) => setTimeout(r, 260));
+    prova('sensore morto = N/D', modo(), 'N/D');
+    await watt(1500);
+    prova('torna in funzione', modo(), 'IN FUNZIONE');
+  }
+
+  // ======================================================================
+  dice('la barra della potenza non esce dal suo posto');
+  if (app) {
+    const larga = () => app.shadowRoot.querySelector('.dm-ap-bar i')?.style.width;
+    // massimo 2500 W: 1500 sono il 60%
+    prova('1500 su 2500 = 60%', larga(), '60%');
+    hass.states['sensor.prova_watt'] = statoNum(9000, 'W', { device_class: 'power' });
+    app.hass = hass;
+    await new Promise((r) => setTimeout(r, 260));
+    prova('oltre il massimo si ferma al 100%', larga(), '100%');
+    hass.states['sensor.prova_watt'] = statoNum(-40, 'W', { device_class: 'power' });
+    app.hass = hass;
+    await new Promise((r) => setTimeout(r, 260));
+    prova('un negativo non va sottozero', larga(), '0%');
+    hass.states['sensor.prova_watt'] = statoNum(1500, 'W', { device_class: 'power' });
+    app.hass = hass;
+    await new Promise((r) => setTimeout(r, 260));
+  }
+
+  // ======================================================================
+  dice('il ciclo: aperto anche a watt zero finche non lo chiudono');
+  if (app) {
+    // inizio 09:35 e fine 14:10 dello stesso giorno -> chiuso
+    prova('fine piu recente di inizio = chiuso', app._cicloAperto(hass), false);
+    hass.states['input_datetime.prova_ciclo_iniziato'] = { state: '2026-09-27 15:51:54', attributes: {} };
+    prova('inizio piu recente = ancora aperto', app._cicloAperto(hass), true);
+    hass.states['input_datetime.prova_ciclo_iniziato'] = { state: '2026-09-27 00:00:00', attributes: {} };
+    prova('mezzanotte non e una partenza vera', app._cicloAperto(hass), false);
+    hass.states['input_datetime.prova_ciclo_iniziato'] = { state: '2026-09-27 09:35:24', attributes: {} };
+  }
+
+  // ======================================================================
+  dice('l ultimo ciclo: i tre valori che scrive l automazione');
+  if (app) {
+    // 2,363 kWh, 275 minuti, finito alle 14:10 di ieri
+    prova('l energia', app._cicloDaMemorie(hass, 'energy'), '2,36 kWh');
+    prova('la durata in ore e minuti', app._cicloDaMemorie(hass, 'duration'), '4h 35m');
+    // 2,363 x 0,1657 = 0,3916...
+    const cst = app._cicloDaMemorie(hass, 'cost');
+    // 2,363 kWh x 0,1657 EUR = 0,391549... EUR
+    prova('il costo usa la SOLA energia', Math.round(cst * 10000) / 10000, 0.3915);
+    prova('la fine dice il giorno se non e oggi',
+      /^\d\d\/\d\d 14:10$/.test(app._cicloDaMemorie(hass, 'end'))
+        || app._cicloDaMemorie(hass, 'end').endsWith('14:10'), true);
+    // se non c e ancora stato nessun ciclo: trattini, non uno zero finto
+    const zero = { ...hass, states: { ...hass.states,
+      'input_number.prova_ultimo_ciclo_kwh': statoNum(0, 'kWh'),
+      'input_number.prova_ultimo_ciclo_minuti': statoNum(0, 'min') } };
+    prova('nessun ciclo ancora = niente, non zero', app._cicloDaMemorie(zero, 'energy'), null);
+    // un prezzo a zero non deve stampare "0,00 EUR"
+    const senzaPrezzo = { ...hass, states: { ...hass.states,
+      'input_number.prezzo_luce_energia': statoNum(0, 'EUR/kWh') } };
+    prova('prezzo a zero = niente costo', app._cicloDaMemorie(senzaPrezzo, 'cost'), null);
+  }
+
+  // ======================================================================
+  // Il caso della lavastoviglie: nessun ciclo mai registrato (durata 0,
+  // consumo 0). Tre righe dicono giustamente trattino, e la quarta diceva
+  // "0,00 EUR" perche' Number(null) fa zero, e zero e' un numero buono.
+  dice('un costo che non c e deve essere un trattino, non zero');
+  if (app) {
+    const riga = document.createElement('b');
+    app._scriviCosto(riga, null, null);
+    prova('niente costo = trattino', riga.textContent, '—');
+    app._scriviCosto(riga, undefined, undefined);
+    prova('nemmeno undefined diventa zero', riga.textContent, '—');
+    app._scriviCosto(riga, '', '');
+    prova('e nemmeno la stringa vuota', riga.textContent, '—');
+    app._scriviCosto(riga, 0, 0);
+    prova('uno zero VERO invece si scrive', riga.textContent, '0,00 €');
+    app._scriviCosto(riga, 0.3915, 0.5719);
+    prova('due numeri: prima la sola energia, poi la bolletta',
+      riga.textContent, '0,39 €0,57 €');
+    // e la scheda intera, montata come la lavastoviglie senza cicli
+    const senzaCicli = { ...hass, states: { ...hass.states,
+      'input_number.prova_ultimo_ciclo_kwh': statoNum(0, 'kWh'),
+      'input_number.prova_ultimo_ciclo_minuti': statoNum(0, 'min') } };
+    prova('la memoria del costo non c e', app._cicloDaMemorie(senzaCicli, 'cost'), null);
+  }
+
+  // ======================================================================
+  dice('il ciclo in corso: quello che si vede mentre lavora');
+  if (app) {
+    const primaVia = hass.states['input_datetime.prova_ciclo_iniziato'];
+    const oraVia = new Date(Date.now() - 95 * 60000);
+    const f = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-'
+      + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0')
+      + ':' + String(d.getMinutes()).padStart(2, '0') + ':00';
+    hass.states['input_datetime.prova_ciclo_iniziato'] = { state: f(oraVia), attributes: {} };
+    hass.states['sensor.prova_ciclo_kwh'] = statoNum(0.85, 'kWh');
+    const v = app._cicloVivoDaiNostri(hass);
+    prova('quanto ha consumato finora', v.energy, '0,85 kWh');
+    // partito 95 minuti fa: il minuto in corso lo conta o no, tolleranza di 1
+    prova('da quanto va', ['1h 35m', '1h 36m'].includes(v.duration), true);
+    prova('la riga della fine dice l ora di partenza',
+      v.end.startsWith('dalle '), true);
+    // e a zero watt il ciclo resta APERTO: il forno spegne la resistenza
+    hass.states['sensor.prova_ciclo_kwh'] = statoNum(0, 'kWh');
+    const v0 = app._cicloVivoDaiNostri(hass);
+    prova('a zero consumo il ciclo si vede ancora', v0.energy, '0,00 kWh');
+    prova('e continua a dire da quando', v0.end.startsWith('dalle '), true);
+    hass.states['input_datetime.prova_ciclo_iniziato'] = primaVia;
+    hass.states['sensor.prova_ciclo_kwh'] = statoNum(0, 'kWh');
+  }
+
+  // ======================================================================
+  dice('i periodi che la scheda si ricava da sola');
+  if (app) {
+    const per = app._periodi();
+    const ids = Object.keys(per);
+    prova('da oggi tira fuori anche ieri', ids.includes('yesterday'), true);
+    prova('dal mese anche il mese scorso', ids.includes('month_prev'), true);
+    prova('ieri legge last_period', per.yesterday.energy_attr, 'last_period');
+    prova('e punta al contatore di oggi', per.yesterday.energy, 'sensor.prova_oggi');
+  }
+
+  // ======================================================================
+  // I quattro numeri "da presa": kWh e costo di oggi e del mese. Il costo lo
+  // fa la scheda (kWh x prezzo) se non c e un sensore suo; e se il sensore del
+  // costo c e ma e rotto, deve fare il conto ugualmente.
+  dice('i kWh e i costi dei periodi, letti dalla scheda montata');
+  if (app) {
+    const testo = (sel) => app.shadowRoot.querySelector(sel)?.textContent.trim();
+    const aspetta = () => new Promise((r) => setTimeout(r, 260));
+    prova('i kWh di oggi', testo('.dm-c-oggi'), '2,50 kWh');
+    prova('i kWh del mese', testo('.dm-c-mese'), '50,00 kWh');
+    // 2,5 kWh x 0,1657 = 0,414 -> "0,41 EUR" (sola energia)
+    // e accanto il secondo numero: 2,5 x 0,242 = 0,605 -> "0,61 EUR" (in bolletta)
+    prova('il costo di oggi parte dai kWh', testo('.dm-c-costo-oggi'), '0,41 €0,61 €');
+    // 50 x 0,1657 = 8,285 e 50 x 0,242 = 12,10
+    prova('e quello del mese', testo('.dm-c-costo-mese'), '8,29 €12,10 €');
+    // un sensore del costo suo VINCE sulla moltiplicazione
+    hass.states['sensor.prova_costo_oggi'] = statoNum(0.99, 'EUR');
+    app.setConfig({ ...app._config,
+      period_entities: { today: { energy: 'sensor.prova_oggi', cost: 'sensor.prova_costo_oggi' },
+                         month: { energy: 'sensor.prova_mese' } } });
+    app.hass = hass; await aspetta();
+    prova('il sensore del costo vince', testo('.dm-c-costo-oggi').startsWith('0,99'), true);
+    // ma se e rotto NON deve lasciare il trattino: torna al conto
+    hass.states['sensor.prova_costo_oggi'] = { state: 'unavailable', attributes: {} };
+    app.hass = hass; await aspetta();
+    prova('se quel sensore e rotto rifa il conto',
+      testo('.dm-c-costo-oggi').startsWith('0,41'), true);
+    delete hass.states['sensor.prova_costo_oggi'];
+    app.setConfig({ ...app._config,
+      period_entities: { today: { energy: 'sensor.prova_oggi' },
+                         month: { energy: 'sensor.prova_mese' } } });
+    app.hass = hass; await aspetta();
+  }
+
+  // ======================================================================
+  dice('il titolo del popup dice di chi e');
+  if (app) {
+    prova('ci attacca il nome', app._titoloConNome('Andamento'), 'Andamento · Prova');
+    prova('se c e gia non lo ripete', app._titoloConNome('Prova'), 'Prova');
+  }
+
+  // ======================================================================
+  // Le finestrelle sono la parte che si rompe piu' facilmente: dentro c'e'
+  // HTML scritto a mano. Le apro TUTTE e guardo che ci sia il titolo col
+  // nome della scheda e che non sia scoppiato niente per strada.
+  dice('tutti i pop-up si aprono, e il titolo dice di quale scheda sono');
+  const errori = [];
+  window.addEventListener('error', (e) => errori.push(String(e.message)));
+  window.addEventListener('unhandledrejection', (e) => errori.push('promessa: ' + e.reason));
+
+  async function apri(el, come, atteso) {
+    const prima = errori.length;
+    try { await come(); } catch (e) { errori.push(atteso + ': ' + e.message); }
+    await new Promise((r) => setTimeout(r, 120));
+    const ov = el.shadowRoot.querySelector('.dm-ap-overlay');
+    const tit = ov && !ov.hidden ? ov.querySelector('.dm-ap-dialog-head h3').textContent : null;
+    const corpo = ov ? ov.querySelector('.dm-ap-dialog-body').textContent.trim() : '';
+    prova(atteso + ': si apre col nome nel titolo',
+      !!tit && tit.includes(atteso) && tit.includes(el._config.name), true);
+    prova(atteso + ': e dentro c e qualcosa', corpo.length > 3, true);
+    prova(atteso + ': nessun errore', errori.length === prima, true);
+    if (ov) { ov.hidden = true; ov.innerHTML = ''; }
+  }
+
+  if (app) {
+    // sull apparecchio Stato e Statistiche sono due finestre diverse
+    await apri(app, () => app._openStats(), 'Stato');
+    await apri(app, () => app._openWeek(), 'Statistiche');
+    await apri(app, () => app._apriGrafico([{ nome: 'Potenza',
+      entity: 'sensor.prova_watt', colore: '#0ea5e9', unita: 'W' }], 'Andamento'), 'Andamento');
+  }
+  if (casa) {
+    await apri(casa, () => casa._openStats(), 'Statistiche');
+    await apri(casa, () => casa._openConsumi(), 'Consumi');
+    // col top automatico spento si passa dall altra strada: quella dei circuiti
+    casa._config = { ...casa._config, top_auto: false,
+      circuits: [{ label: 'Cucina', entity: 'sensor.prova_watt' }] };
+    await apri(casa, () => casa._openConsumi(), 'Circuiti');
+    casa._config = { ...casa._config, top_auto: true };
+  }
+  prova('in tutto: nessun errore scappato', errori, []);
+
+  // ======================================================================
+  dice('le scritte sotto al grafico stanno sotto al loro punto');
+  if (app) {
+    const barre = Array.from({ length: 30 }, (_, i) => ({ value: i, label: String(i + 1) }));
+    const html = app._labelSpans(barre, 6, (b) => b.label, { barre: true });
+    const pos = [...html.matchAll(/left:([\d.]+)%/g)].map((m) => Number(m[1]));
+    // la prima barra sta fra il 10% e il 13% della larghezza
+    prova('la prima scritta e dentro al disegno', pos[0] > 10 && pos[0] < 14, true);
+    prova('l ultima arriva in fondo', pos[pos.length - 1] > 95 && pos[pos.length - 1] <= 100, true);
+    prova('sono sei', pos.length, 6);
+    prova('crescono', pos.every((v, i) => i === 0 || v > pos[i - 1]), true);
+  }
+
+  document.getElementById('esito').innerHTML = righe.join('\n')
+    + '\n\n' + '='.repeat(60) + '\n'
+    + (cadute === 0 ? '<span class="ok">Tutte a posto: ' + fatte + ' prove.</span>'
+                    : '<span class="ko">' + cadute + ' cadute su ' + fatte + '.</span>');
+  window.__esito = { fatte, cadute, righe: righe.map((r) => r.replace(/<[^>]+>/g, '')) };
+</script>

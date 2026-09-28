@@ -573,8 +573,6 @@ const ICON_CHART =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="9"/></svg>';
 const ICON_CLOSE =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
-const ICON_NOTIFCENTER =
-  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l4 4V6l-4 4H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>';
 const ICON_BOLT =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>';
 const ICON_FLAG =
@@ -623,7 +621,6 @@ const STYLE = `
 .dm-ap-chip svg{width:27px;height:27px}
 .dm-ap-headings{display:flex;flex-direction:column;min-width:0;flex:1;gap:1px}
 .dm-ap-name{font-size:14.5px;font-weight:900;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dm-text)}
-.dm-ap-room{font-size:11px;font-weight:750;color:var(--dm-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dm-ap-badge{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;padding:4px 7px;border-radius:999px;font-size:9.5px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
 .dm-ap-badge.run{background:#dcfce7;color:#15803d}
 .dm-ap-badge.standby{background:#dbeafe;color:#2563eb}
@@ -649,6 +646,9 @@ const STYLE = `
 .dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
 .dm-ap-card.is-run .dm-ap-hero{background:radial-gradient(120% 90% at 50% 8%,rgba(186,230,253,.85),rgba(224,242,254,.35) 62%,transparent)}
 .dm-ap-hero svg{width:100%;height:100%;display:block}
+/* una foto tua al posto del disegno: riempie il riquadro come farebbe l'SVG */
+.dm-ap-hero img{width:100%;height:100%;display:block;object-fit:contain}
+.dm-ap-chip img{width:100%;height:100%;object-fit:contain;border-radius:7px}
 /* spenta o non raggiungibile: sbiadisce il DISEGNO, non il riquadro.
    Prima il filtro stava sul riquadro e si portava via anche l'alone,
    cosi' la scheda spenta era un rettangolo grigio e piatto. */
@@ -750,8 +750,9 @@ const STYLE = `
 .dm-ap-power-open{cursor:pointer}
 .dm-ap-power-open:hover{filter:brightness(1.04)}
 .dm-ap-chart-svg{width:100%;height:auto;display:block;overflow:visible}
-.dm-ap-chart-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
-.dm-ap-chart-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* le scritte non si spalmano: ognuna sta alla frazione del suo punto */
+.dm-ap-chart-labels{position:relative;height:13px;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
+.dm-ap-chart-labels span{position:absolute;top:0;white-space:nowrap;transform:translateX(-50%)}
 /* LA FINESTRA DEL GRAFICO: le pastiglie dei periodi, le date a scelta, i
    chip delle curve e la riga minimo/media/massimo. Su telefono le pastiglie
    scorrono invece di andare a capo, e le date vanno una sotto l'altra. */
@@ -836,6 +837,17 @@ const STYLE = `
 .dm-ap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:13px;background:var(--dm-soft)}
 .dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text)}
 .dm-ap-row-val{font-size:14.5px;font-weight:500;color:var(--dm-dim)}
+/* CON UNA FOTO DIETRO. Il colore delle scritte si fermava alla finestra: le
+   righe restavano del colore di sempre e sopra a una foto non si leggevano.
+   Qui dentro al pop-up seguono quello che hai scelto, e i riquadri hanno il
+   loro comando di trasparenza, staccato da quello della finestra. */
+.dm-ap-dialog .dm-ap-row,
+.dm-ap-dialog .dm-ap-stat{background:var(--dm-righe,var(--dm-soft))}
+.dm-ap-dialog .dm-ap-row-label,
+.dm-ap-dialog .dm-ap-cycle-label{color:var(--dm-finestra-testo,var(--dm-text))}
+.dm-ap-dialog .dm-ap-row-val,
+.dm-ap-dialog .dm-ap-stat small{color:var(--dm-finestra-fioco,var(--dm-dim))}
+.dm-ap-dialog .dm-ap-sec-cap{color:var(--dm-finestra-testo,var(--dm-blue-deep))}
 .dm-ap-action-btn{flex:0 0 auto;border:0;border-radius:10px;padding:0 14px;height:26px;background:var(--dm-blue);color:#fff;font-size:13px;font-weight:850;cursor:pointer}
 .dm-ap-action-btn:active{filter:brightness(.92)}
 .dm-ap-stat{display:flex;flex-direction:column;gap:2px;padding:9px 10px;border-radius:13px;background:var(--dm-soft)}
@@ -1016,6 +1028,75 @@ export function numero(v, decimali) {
   }
 }
 
+// Il disegno della scheda: quello del catalogo, oppure una FOTO TUA se l'hai
+// messa. Un posto solo, cosi' le due schede dei consumi non possono
+// comportarsi in modo diverso - e la foto di "quando lavora" (anche una gif)
+// funziona come sulla casella animata.
+//   acceso - true quando la scheda sta lavorando
+// I disegni con il loro nome, in ordine di catalogo. Sta qui, accanto ai
+// disegni veri, perche' l'elenco della scheda della casa era una copia a
+// parte: aveva cinque voci - UPS, Server, NAS, Router, Proxmox - che un
+// disegno non ce l'hanno mai avuto. Con la tendina si sceglievano e usciva
+// il disegno di ripiego senza dire niente; con la griglia si vedevano cinque
+// quadretti vuoti. Un elenco solo, e il caso non si ripresenta.
+export const NOMI_DISEGNI = [
+  ["cucina", "Cucina (tutta la linea)"],
+  ["washer", "Lavatrice"],
+  ["dishwasher", "Lavastoviglie"],
+  ["dryer", "Asciugatrice"],
+  ["oven", "Forno"],
+  ["microonde", "Microonde"],
+  ["piano_cottura", "Piano cottura a induzione"],
+  ["cappa", "Cappa aspirante"],
+  ["caffe", "Macchina del caffe\'"],
+  ["bollitore", "Bollitore"],
+  ["tostapane", "Tostapane"],
+  ["friggitrice", "Friggitrice ad aria"],
+  ["congelatore", "Congelatore"],
+  ["frigorifero", "Frigorifero"],
+  ["dehumidifier", "Deumidificatore"],
+  ["condizionatore", "Condizionatore"],
+  ["ventilatore", "Ventilatore"],
+  ["boiler", "Boiler / scaldabagno"],
+  ["termoventilatore", "Termoventilatore"],
+  ["pompa_calore", "Pompa di calore"],
+  ["pellet", "Stufa a pellet"],
+  ["radiatore", "Radiatore elettrico"],
+  ["scaldasalviette", "Scaldasalviette"],
+  ["luce", "Luce"],
+  ["lampada", "Lampada"],
+  ["tv", "Televisore"],
+  ["pc_torre", "PC (torre)"],
+  ["pc_monitor", "PC (monitor)"],
+  ["minipc", "Mini PC (Home Assistant)"],
+  ["presa", "Presa smart"],
+  ["ciabatta", "Ciabatta / multipresa"],
+  ["robot", "Robot aspirapolvere"],
+  ["asciugacapelli", "Asciugacapelli"],
+  ["ferro", "Ferro da stiro"],
+  ["pompa", "Pompa dell\'acqua"],
+  ["acquario", "Acquario"],
+  ["stampante3d", "Stampante 3D"],
+  ["console", "Console da gioco"],
+  ["colonnina", "Colonnina di ricarica"],
+  ["powerstation", "Powerstation"],
+  ["energy", "Contatore della luce"],
+];
+
+export function disegnoDiScheda(cfg, id, disegnoDiSerie, acceso) {
+  const c = cfg || {};
+  const mia = (acceso && c.disegno_immagine_accesa) || c.disegno_immagine;
+  if (mia) {
+    const src = String(mia).replace(/"/g, "%22");
+    return { hero: `<img src="${src}" alt="">`, chip: `<img src="${src}" alt="">` };
+  }
+  const quale = HERO_BUILDERS[c.artwork] ? c.artwork : disegnoDiSerie;
+  return {
+    hero: HERO_BUILDERS[quale](id),
+    chip: CHIP_SVGS[quale] || CHIP_SVGS[disegnoDiSerie] || "",
+  };
+}
+
 export function vestiFinestra(host, cfg) {
   const c = cfg || {};
   // chiaro o scuro: senza attributo comanda il tema di Home Assistant
@@ -1040,6 +1121,20 @@ export function vestiFinestra(host, cfg) {
       : tinta);
   } else metti("--dm-finestra", null);
   metti("--dm-finestra-testo", c.finestra_scritta || null);
+  // il colore "fioco" dei numeri: lo stesso, un po' piu' spento. Se no con
+  // una scritta chiara su una foto scura i valori restavano grigi e illeggibili
+  metti("--dm-finestra-fioco", c.finestra_scritta
+    ? `color-mix(in srgb, ${c.finestra_scritta} 78%, transparent)` : null);
+  // i riquadri delle scritte dentro al pop-up: quanto coprono la foto.
+  // 100 = pieni, 0 = si vede la foto attraverso. Il colore e' quello della
+  // finestra, se l'hai scelto.
+  const r = c.finestra_righe;
+  if (r !== undefined && r !== null && r !== "") {
+    const q = quanta(r, 100);
+    const fondo = c.finestra_sfondo || "var(--dm-card)";
+    metti("--dm-righe", q >= 100 ? fondo
+      : `color-mix(in srgb, ${fondo} ${q}%, transparent)`);
+  } else metti("--dm-righe", null);
   // il velo dietro: nero quanto dice velo_scuro (0 = niente velo)
   if (c.velo_scuro !== undefined && c.velo_scuro !== null && c.velo_scuro !== "") {
     metti("--dm-velo", `rgba(15,23,42,${quanta(c.velo_scuro, 55) / 100})`);
@@ -1072,7 +1167,6 @@ export {
   CHIP_SVGS,
   ICON_CHART,
   ICON_CLOSE,
-  ICON_NOTIFCENTER,
   ICON_BOLT,
   ICON_FLAG,
   ICON_TIMER,

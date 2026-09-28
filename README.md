@@ -227,6 +227,9 @@ Quasi tutto si fa a clic; queste servono solo se scrivi il YAML a mano.
 | `ciclo` | le entità dell'ultimo ciclo (le scrive il tasto) |
 | `warn_entities` | gli avvisi in fascia: `{entity, on_state, label}` |
 | `tasti` | i tasti di accensione: `{entity, nome, icona}` |
+| `disegno_immagine` | una foto tua al posto del disegno (il tasto la carica da solo) |
+| `disegno_immagine_accesa` | la foto di quando lavora: anche una gif |
+| `finestra_righe` | quanto coprono la foto i riquadri delle scritte nel pop-up (0-100) |
 
 ---
 

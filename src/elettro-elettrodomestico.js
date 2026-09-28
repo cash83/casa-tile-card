@@ -9,10 +9,8 @@ import {
   mirinoGrafico,
   numero,
   unitaBella,
-  HERO_BUILDERS,
-  CHIP_SVGS,
+  disegnoDiScheda,
   ICON_CHART,
-  ICON_NOTIFCENTER,
   ICON_BOLT,
   ICON_FLAG,
   ICON_TIMER,
@@ -28,7 +26,7 @@ import {
 } from './elettro-comune.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
 import { ConFinestrelle } from './elettro-condivisi.js';
-import { ConGrafico } from './elettro-grafico.js';
+import { ConGrafico, coloreScala } from './elettro-grafico.js';
 
 // Le righe dell'Ultimo ciclo, col nome che si vede nell'editor.
 const ICON_ANDAMENTO =
@@ -76,14 +74,10 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     return righeInOrdine(c, elenco, R, esc);
   }
 
-  // Le barre in piu': un elenco {entita', nome, fondo scala}. Accetto anche la
-  // vecchia forma a barra singola, cosi' chi ce l'ha non si accorge di niente.
+  // Le barre in piu': un elenco {entita', nome, fondo scala}.
   _barreExtra() {
     const c = this._config || {};
     const elenco = Array.isArray(c.barre) ? c.barre.slice() : [];
-    if (c.barra2_entita && !elenco.some((b) => b && b.entity === c.barra2_entita)) {
-      elenco.unshift({ entity: c.barra2_entita, label: c.barra2_nome, max: c.barra2_max });
-    }
     return elenco.filter((b) => b && b.entity).map((b) => ({
       entity: b.entity,
       label: b.label || this._nomeEntita(b.entity),
@@ -124,11 +118,10 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     vestiFinestra(this, this._config);
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "dw" + Math.random().toString(36).slice(2, 8);
-    const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.dishwasher)(this._heroId);
+    const { hero, chip } = disegnoDiScheda(this._config, this._heroId, "dishwasher");
     // niente righe accese = niente riquadro: resta solo l'attuale
     const righe = this._righeCiclo();
 
-    const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.dishwasher;
     this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
       <article class="dm-ap-card ${this._config.layout === "centrato" ? "centrato" : ""}">
         ${this._config.label ? `<span class="dm-test-flag">${esc(this._config.label)}</span>` : ""}
@@ -136,14 +129,11 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
           <span class="dm-ap-chip">${chip}</span>
           <span class="dm-ap-headings">
             <span class="dm-ap-name"></span>
-            <span class="dm-ap-room" hidden></span>
           </span>
           <span class="dm-ap-badge"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label"></span></span>
           <span class="dm-ap-tools">
-            ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
             <button type="button" class="dm-ap-tool dm-ap-andamento" title="Andamento">${ICON_ANDAMENTO}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
-            <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
         </div>
         ${this._tastiHtml()}
@@ -180,16 +170,6 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
         </div>
       </article>`);
     this._root.querySelector(".dm-ap-name").textContent = this._config.name;
-    if (this._config.room) {
-      const room = this._root.querySelector(".dm-ap-room");
-      room.hidden = false;
-      room.textContent = this._config.room;
-    }
-    this._root.querySelector(".dm-ap-notif-center")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      history.pushState(null, "", this._config.notification_path);
-      window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
-    });
     this._tastiAggancia();
     this._root.querySelector(".dm-ap-stats").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -202,15 +182,10 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       const cfg = this._config;
       this._apriGrafico([{
         nome: cfg.power_label || "Potenza",
-        entity: cfg.power_history_entity || cfg.power_entity,
+        entity: cfg.power_entity,
         colore: "#0ea5e9",
         unita: cfg.power_unit || "W",
       }], "Andamento");
-    });
-    this._root.querySelector(".dm-ap-consumi").addEventListener("click", (e) => {
-      e.stopPropagation();
-      this._ultimoTasto = e.currentTarget;
-      this._openPowerHistory();
     });
     // la foto dell'apparecchio: com'e' messo adesso
     const heroEl = this._root.querySelector(".dm-ap-hero");
@@ -228,7 +203,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
         e.stopPropagation();
         const c = this._config;
         this._apriGrafico([{ nome: c.power_label || "Potenza",
-          entity: c.power_history_entity || c.power_entity,
+          entity: c.power_entity,
           colore: "#0ea5e9", unita: c.power_unit || "W" }], "Andamento");
       });
     }
@@ -376,7 +351,9 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       const kwh = unita === "wh" ? Number(en.state) / 1000 : Number(en.state);
       out.energy = `${numero(kwh, 2)} kWh`;
       const prezzo = Number(hass.states[this._config.prezzo_entita]?.state);
-      if (Number.isFinite(prezzo)) out.cost = kwh * prezzo;
+      // se il prezzo non c'e' o e' zero, il costo non e' "0,00 EUR": non c'e'.
+      // L'altro ramo (i pezzi nostri) questo controllo lo faceva gia'.
+      if (Number.isFinite(prezzo) && prezzo > 0) out.cost = kwh * prezzo;
       const pieno = this._prezzoPieno(hass);
       if (pieno > 0) out.cost_pieno = kwh * pieno;
     }
@@ -466,7 +443,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const costTxt = Number.isFinite(Number(cost)) ? `${numero(cost, 2)} \u20ac` : "\u2014";
     const NOMI = { today: "Oggi", yesterday: "Ieri", week: "Settimana", month: "Mese",
       month_prev: "Mese scorso", year: "Anno", year_prev: "Anno scorso" };
-    const label = (cfg.period_labels || {})[periodKey] || NOMI[periodKey] || periodKey;
+    const label = NOMI[periodKey] || periodKey;
     // le colonne vuote non si mostrano: su una presa i cicli non esistono
     const celle = [];
     if (cycles !== "\u2014") celle.push(["Cicli", esc(cycles)]);
@@ -619,7 +596,9 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
           : "";
         // il fumetto: il numero c'e' sempre, anche quando non ci sta scritto
         const fumetto = b.fumetto || ((b.label ? b.label + ": " : "") + label);
-        return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${color}"><title>${esc(fumetto)}</title></rect>${text}`;
+        // il colore dice quanto: stessa scala della linea
+        const tinta = color || coloreScala(b.value / max);
+        return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${tinta}"><title>${esc(fumetto)}</title></rect>${text}`;
       })
       .join("");
     const axis = `<line x1="${plotX0}" y1="${labelSpace}" x2="${plotX0}" y2="${height}" stroke="#94a3b840" stroke-width="1"/>
@@ -683,19 +662,19 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     return rows.map((r) => ({ t: new Date(r.start), value: Math.max(0, Number(r.change ?? 0)) }));
   }
 
-  async _openPowerHistory() {
+  // I due istogrammi dei kWh - il mese per giorni, l'anno per mesi - che
+  // stanno SOTTO alla linea dell'Andamento. Prima erano una finestra a parte,
+  // il tondino "Consumi": stessa roba da due porte diverse.
+  async _graficiInPiu(posto) {
+    if (!posto) return;
     const cfg = this._config;
     const energyEntity = cfg.energy_stat_entity;
+    if (!energyEntity) return;
 
-    this._openDialog(
-      "Consumi",
-      energyEntity
-        ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Questo mese</div><div class="dm-ap-chart-loading" data-chart="month">Caricamento...</div></div>
-           <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Quest'anno</div><div class="dm-ap-chart-loading" data-chart="year">Caricamento...</div></div>`
-        : `<div class="dm-ap-chart-empty">${T("Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.")}</div>`,
-    );
-    const overlay = this._root.querySelector(".dm-ap-overlay");
-    const slot = (name) => overlay?.querySelector(`[data-chart="${name}"]`);
+    posto.innerHTML = `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">${T("Questo mese")}</div><div class="dm-ap-chart-loading" data-chart="month">${T("Caricamento...")}</div></div>
+      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">${T("Quest'anno")}</div><div class="dm-ap-chart-loading" data-chart="year">${T("Caricamento...")}</div></div>`;
+    const overlay = posto;
+    const slot = (name) => overlay.querySelector(`[data-chart="${name}"]`);
 
     if (energyEntity) {
       const now = new Date();
@@ -721,8 +700,8 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
                 + String(now.getMonth() + 1).padStart(2, "0")
                 + " · " + numero(v, 2) + " kWh" + inEuro(v) });
           }
-          const dayLabels = this._labelSpans(bars, 6, (b) => b.label);
-          el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars, "#0ea5e9")}${dayLabels}</div>`;
+          const dayLabels = this._labelSpans(bars, 6, (b) => b.label, { barre: true });
+          el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars)}${dayLabels}</div>`;
           mirinoBarre(slot("month"), bars, (b) => b.fumetto);
         })
         .catch(() => {
@@ -750,8 +729,8 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
               fumetto: meseLungo(d) + " " + now.getFullYear()
                 + " · " + numero(v, 2) + " kWh" + inEuroA(v) });
           }
-          const labels = `<div class="dm-ap-chart-labels">${bars.map((b) => `<span>${esc(b.label)}</span>`).join("")}</div>`;
-          el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars, "#0ea5e9")}${labels}</div>`;
+          const labels = this._labelSpans(bars, 12, (b) => esc(b.label), { barre: true });
+          el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars)}${labels}</div>`;
           mirinoBarre(slot("year"), bars, (b) => b.fumetto);
         })
         .catch(() => {
@@ -930,15 +909,19 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       const st = eidKwh ? hass.states[eidKwh] : null;
       const k = st && !["unavailable", "unknown"].includes(st.state) ? Number(st.state) : NaN;
       // se un sensore del costo ce l'hai gia' (magari l'hai fatto tu) quello
-      // vince sulla moltiplicazione; il secondo numero glielo metto lo stesso
-      const uno = eidCosto && hass.states[eidCosto]
-        ? Number(hass.states[eidCosto].state)
+      // vince sulla moltiplicazione; il secondo numero glielo metto lo stesso.
+      // Ma se quel sensore e' rotto (unavailable) NON deve lasciare il trattino:
+      // i kWh ci sono, il prezzo pure, e il conto lo so fare.
+      const stCosto = eidCosto ? hass.states[eidCosto] : null;
+      const suo = stCosto && !["unavailable", "unknown"].includes(stCosto.state)
+        ? Number(stCosto.state) : NaN;
+      const uno = Number.isFinite(suo) ? suo
         : (Number.isFinite(k) && prezzo > 0 ? k * prezzo : NaN);
       const due = Number.isFinite(k) && prezzoPieno > 0 ? k * prezzoPieno : NaN;
       return [uno, due];
     };
     const kwhOggi = cfg.oggi_energia || (pe.today || {}).energy;
-    const kwhSett = cfg.settimana_energia || (pe.week || {}).energy;
+    const kwhSett = (pe.week || {}).energy;
     const kwhMese = cfg.mese_energia || (pe.month || {}).energy;
     const periodi = [
       [".dm-c-oggi", kwhOggi, " kWh", 2],
@@ -953,7 +936,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       x.textContent = numeroDi(eid, unita, dec);
     });
     [[".dm-c-costo-oggi", cfg.oggi_costo || (pe.today || {}).cost, kwhOggi],
-     [".dm-c-costo-settimana", cfg.settimana_costo || (pe.week || {}).cost, kwhSett],
+     [".dm-c-costo-settimana", (pe.week || {}).cost, kwhSett],
      [".dm-c-costo-mese", cfg.mese_costo || (pe.month || {}).cost, kwhMese]].forEach(([sel, eidCosto, eidKwh]) => {
       const x = this._root.querySelector(sel);
       if (!x) return;

@@ -57,3 +57,38 @@ Le **chiavi della configurazione** — `icona`, `colore`, `posti`,
 `mostra_cursore`, `finestra_*` — stanno scritte dentro alle plance di chi
 usa la card. Tradurle vorrebbe dire rompere ogni installazione esistente.
 Qui si traduce solo quello che si LEGGE.
+
+## Le prove
+
+Due pezzi, perche' provano due cose diverse.
+
+**`prove.js`** - i conti. Importa le funzioni VERE dal sorgente (niente
+formule ricopiate) e le mette alla frusta: il numero scritto all'italiana,
+il colore della scala, l'accorpamento dei punti del grafico che NON deve
+perdere i picchi, quali prese contano nel top, quale prezzo e' quello giusto.
+
+```
+node strumenti/prove.js
+```
+
+**`prove-schede.html`** - le schede montate. Costruisce `casa-tile`,
+`casa-energia` e `casa-elettrodomestico` con un `hass` finto e guarda cosa
+scrivono davvero dentro al loro guscio: le soglie dei watt, la barra della
+potenza, i kWh e i costi dei periodi (numero per numero), l'ultimo ciclo, il
+ciclo in corso, i periodi che si ricava da sola, tutti i pop-up e dove
+finiscono le scritte sotto al grafico.
+
+```
+npm run build
+python -m http.server 8781
+```
+e poi `http://127.0.0.1:8781/strumenti/prove-schede.html`.
+
+Due trappole che costano un'ora se non le sai:
+
+- la scheda **accorpa** i cambi di stato che arrivano insieme e ridisegna
+  dopo 150 ms. Fra un valore e il prossimo bisogna aspettare, se no si legge
+  quello di prima e sembra che la soglia non funzioni;
+- le righe che si vedono le decide `righe`. Se una riga non e' nell'elenco il
+  suo pezzo non esiste nel guscio, e `querySelector` torna `null`: non e' un
+  difetto, e' che quella riga non l'hai chiesta.

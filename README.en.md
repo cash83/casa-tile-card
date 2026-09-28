@@ -224,6 +224,9 @@ Almost everything is click-only; these only matter if you write the YAML by hand
 | `ciclo` | the last-cycle entities (the button writes them) |
 | `warn_entities` | the warning banner: `{entity, on_state, label}` |
 | `tasti` | the power buttons: `{entity, nome, icona}` |
+| `disegno_immagine` | a photo of yours instead of the drawing (the button uploads it for you) |
+| `disegno_immagine_accesa` | the photo for when it is working: a gif works too |
+| `finestra_righe` | how much the pop-up text boxes cover the photo (0-100) |
 
 ---
 

@@ -27,7 +27,15 @@ export const PERIODI_GRAFICO = [
 // La scala del colore, dal basso verso l'alto: quando il numero e' piccolo
 // la riga e' calma, quando sale si scalda. E' la stessa idea del colore che
 // segue la temperatura sulla casella.
-const SCALA = ["#2fbfb0", "#3fb4ea", "#eab308", "#f97316", "#ef4444"];
+export const SCALA = ["#2fbfb0", "#3fb4ea", "#eab308", "#f97316", "#ef4444"];
+
+// Il colore di un valore sulla scala, con `f` da 0 (poco) a 1 (tanto). Serve
+// alle barre: la linea usa la stessa scala come sfumatura.
+export function coloreScala(f) {
+  const n = SCALA.length;
+  const i = Math.min(n - 1, Math.max(0, Math.round((Number(f) || 0) * (n - 1))));
+  return SCALA[i];
+}
 
 // oltre questo la cronologia dettagliata non c'e' piu': si passa alle
 // statistiche a lungo termine
@@ -217,8 +225,12 @@ export const ConGrafico = (Base) => class extends Base {
       ${chip}
       <div class="dm-ap-graf"><div class="dm-ap-chart-loading">${T("Caricamento...")}</div></div>
       <div class="dm-ap-mmm-posto"></div>
+      <div class="dm-ap-piu-grafici"></div>
     `);
     const dove = this._root.querySelector(".dm-ap-overlay");
+    // se la scheda ha altri grafici da mettere sotto (gli istogrammi dei kWh)
+    // se li disegna lei: qui non si sa, e non serve saperlo
+    if (this._graficiInPiu) this._graficiInPiu(dove.querySelector(".dm-ap-piu-grafici"));
     dove.querySelectorAll(".dm-ap-per").forEach((b) => {
       b.addEventListener("click", () => {
         const id = b.dataset.per;
@@ -307,11 +319,13 @@ export const ConGrafico = (Base) => class extends Base {
     const prima = accese[0];
     if (sotto) sotto.innerHTML = this._minMedMax(prima.punti, prima.unita);
     if (prima && prima.punti && prima.punti.length > 1) {
-      mirinoGrafico(posto, prima.punti, (pt) => this._fmtAxis(pt.y)
-        + (prima.unita ? " " + prima.unita : "") + "  \u00b7  "
-        + pt.t.toLocaleString(laLocale(), giorni <= 2
-          ? { hour: "2-digit", minute: "2-digit" }
-          : { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }));
+      // prima QUANDO, poi QUANTO: muovendo il dito stai navigando il tempo,
+      // la data e' la domanda e il valore la risposta. Le barre lo facevano
+      // gia' cosi', la linea al contrario.
+      mirinoGrafico(posto, prima.punti, (pt) => pt.t.toLocaleString(laLocale(), giorni <= 2
+        ? { hour: "2-digit", minute: "2-digit" }
+        : { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+        + "  ·  " + this._fmtAxis(pt.y) + (prima.unita ? " " + prima.unita : ""));
     }
   }
 };

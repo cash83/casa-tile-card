@@ -7,14 +7,18 @@
 import { RIGHE_OGGI } from './elettro-energia.js';
 import { VERSIONE } from './versione.js';
 import { ConEditor } from './elettro-condivisi.js';
-import { tastiDi } from './elettro-comune.js';
+import { numero, tastiDi, NOMI_DISEGNI as DISEGNI } from './elettro-comune.js';
 import { T, TH, traduciSchema } from './lingua.js';
+import { rigaFoto, STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
 import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez } from './elettro-righe-editor.js';
 import { creaFonte, creaRisparmio, ID_TOTALE, prezzoDellaCasa, idDellaVoce, VOCI_TARIFFA, scriviTariffa, INGREDIENTE, creaSensoriBase, prezziDelKWh } from './elettro-crea.js';
 
-// quello che si legge sotto al campo
-const AIUTI = {};
+// quello che si legge sotto al campo. L'etichetta dice come si chiama
+// l'impostazione; qui sotto c'e' a cosa serve - che e' la domanda vera.
+const AIUTI = {
+  finestra_righe: "Quanto coprono quello che c'e' dietro: 100 = pieni, 0 = si vede la foto attraverso. Serve quando hai messo una foto di sfondo e le scritte non si leggono.",
+};
 
 // il campo tiene una lista: quello che c'era prima (un'entita' sola) vale uguale
 const lista = (v) => (Array.isArray(v) ? v : (v ? [v] : []));
@@ -39,7 +43,6 @@ const ETICHETTE = {
   bill_month: "Conto del mese voce per voce (es. sensor.costi_luce_mese)",
   bolletta_energia: "Contatore dei kWh del periodo della bolletta (bimestre)",
   bolletta_costo: "Contatore degli euro dello stesso periodo",
-  notification_path: "Pagina delle notifiche (facoltativa, es. /lovelace/notifiche)",
   layout: "Disposizione della scheda",
   tema: "Chiaro o scuro (questa scheda soltanto)",
   finestra_apertura: "Come si apre il pop-up",
@@ -49,39 +52,15 @@ const ETICHETTE = {
   finestra_sfondo: "Pop-up: la tinta della finestra (vuoto = come le schede)",
   finestra_trasparenza: "Pop-up: quanto e' trasparente la finestra",
   finestra_scritta: "Pop-up: il colore delle scritte",
+  finestra_righe: "Pop-up: i riquadri delle scritte",
   velo_scuro: "Pop-up: quanto scurisce quello che c'e' dietro",
   velo_sfoca: "Pop-up: quanto sfoca quello che c'e' dietro",
 };
 
+
 const SCHEMA_TUTTO = [
   { name: "name", selector: { text: {} } },
   { name: "power_entity", required: true, selector: { entity: { domain: "sensor", device_class: "power" } } },
-  { name: "artwork", selector: { select: { mode: "dropdown", options: [
-    { value: "washer", label: "Lavatrice" },
-    { value: "dishwasher", label: "Lavastoviglie" },
-    { value: "dryer", label: "Asciugatrice" },
-    { value: "oven", label: "Forno" },
-    { value: "microonde", label: "Microonde" },
-    { value: "frigorifero", label: "Frigorifero" },
-    { value: "dehumidifier", label: "Deumidificatore" },
-    { value: "condizionatore", label: "Condizionatore" },
-    { value: "ventilatore", label: "Ventilatore" },
-    { value: "boiler", label: "Boiler / scaldabagno" },
-    { value: "luce", label: "Luce" },
-    { value: "lampada", label: "Lampada" },
-    { value: "tv", label: "Televisore" },
-    { value: "pc_torre", label: "PC (torre)" },
-    { value: "pc_monitor", label: "PC (monitor)" },
-    { value: "minipc", label: "Mini PC (Home Assistant)" },
-    { value: "presa", label: "Presa smart" },
-    { value: "ciabatta", label: "Ciabatta / multipresa" },
-    { value: "powerstation", label: "Powerstation" },
-    { value: "energy", label: "Contatore della luce" },
-    { value: "ups", label: "Gruppo di continuita'" },
-    { value: "server", label: "Server" },
-    { value: "nas", label: "NAS" },
-    { value: "fritzbox", label: "Router" },
-    { value: "proxmox", label: "Proxmox" }] } } },
   { name: "g_aspetto", type: "expandable", flatten: true, title: "Aspetto e finestra del pop-up", schema: [
     { name: "layout", selector: { select: { mode: "dropdown", options: [
       { value: "classico", label: "Classico - la foto a sinistra" },
@@ -92,7 +71,6 @@ const SCHEMA_TUTTO = [
       { value: "chiaro", label: "Sempre chiaro" },
       { value: "scuro", label: "Sempre scuro" },
     ] } } },
-    { name: "notification_path", selector: { text: {} } },
     { name: "finestra_apertura", selector: { select: { mode: "dropdown", options: [
       { value: "sfuma", label: "Sale e sfuma - discreta" },
       { value: "sboccia", label: "Sboccia dal tondino che hai premuto" },
@@ -103,10 +81,10 @@ const SCHEMA_TUTTO = [
       selector: { number: { min: 80, max: 2000, step: 20, mode: "slider", unit_of_measurement: "ms" } } },
     { name: "finestra_largo",
       selector: { number: { min: 400, max: 1400, step: 20, mode: "slider", unit_of_measurement: "px" } } },
-    { name: "finestra_immagine", selector: { text: {} } },
     { name: "finestra_sfondo", selector: { color_rgb: {} } },
     { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "finestra_scritta", selector: { color_rgb: {} } },
+    { name: "finestra_righe", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
   ] },
@@ -491,6 +469,17 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     sel.value = lista(this._config.pannelli_entita);
   }
 
+  // Quale sensore dei kWh e' scelto davvero. Se non l'hai scritto tu, la
+  // casella lo indovina dalla presa (..._power -> ..._energy) e fa vedere
+  // quello: se il conto del riassunto non guardasse qui, direbbe "2 sorgenti"
+  // sopra a tre caselle piene. Un posto solo, per tutti e due.
+  _kWhScelto() {
+    if (this._config.energia_kwh) return this._config.energia_kwh;
+    const dallaPresa = String(this._config.power_entity || "")
+      .replace(/_power$/, "_energy").replace(/_potenza$/, "_energia");
+    return this._kWhPossibili().includes(dallaPresa) ? dallaPresa : "";
+  }
+
   _disegnaKwh() {
     const sel = this.querySelector(".ce-kwh-pick");
     if (!sel) return;
@@ -505,10 +494,7 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         this._scriviScelta("energia_kwh", ev.detail.value || "");
       });
     }
-    const mio = this._config.energia_kwh;
-    const dallaPresa = String(this._config.power_entity || "")
-      .replace(/_power$/, "_energy").replace(/_potenza$/, "_energia");
-    sel.value = mio || (buoni.includes(dallaPresa) ? dallaPresa : "");
+    sel.value = this._kWhScelto();
   }
 
   // i campi della tariffa partono da quello che gli aiutanti dicono adesso:
@@ -526,14 +512,50 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
 
   // quello che si legge su ogni tendina CHIUSA, senza doverla aprire
   _riassunti() {
+    this._rinfrescaFoto();
     const metti = (sel, testo) => {
       const x = this.querySelector(sel + " .ce-riassunto");
       if (x) x.textContent = testo ? " \u00b7 " + testo : "";
     };
     const t = (this.querySelector(".ce-t-totale") || {}).textContent || "";
     metti(".ce-sez-tariffa", t && t !== "\u2014" ? t : "");
+    // Il riquadro fa vedere TRE caselle (i sensori da cui parto) ma il
+    // numero contava i PERIODI del contatore di casa: ora, oggi, settimana,
+    // mese. Diceva "4 agganciati" sopra a tre caselle, e sembrava che una
+    // fosse sparita. Adesso il riassunto dice tutte e due le cose, cosi'
+    // ognuna si puo' contare con gli occhi.
     const quanti = (this._config.periods || []).filter((x) => x && x.energy).length;
-    metti(".ce-sez-contatori", quanti ? quanti + " " + T(quanti === 1 ? "agganciato" : "agganciati") : T("da fare"));
+    const sorgenti = [this._kWhScelto(), this._config.pannelli_entita,
+      this._config.batteria_entita]
+      .filter((x) => (Array.isArray(x) ? x.length : !!x)).length;
+    const pezzi = [];
+    if (sorgenti) pezzi.push(sorgenti + " " + T(sorgenti === 1 ? "sorgente" : "sorgenti"));
+    if (quanti) pezzi.push(quanti + " " + T(quanti === 1 ? "contatore" : "contatori"));
+    metti(".ce-sez-contatori", pezzi.length ? pezzi.join(" · ") : T("da fare"));
+    // E qui sotto, nel riquadro, si leggono uno per uno: il numero in cima
+    // dev'essere sempre contabile con gli occhi, se no e' una parola in aria.
+    // Col loro valore accanto si capisce al volo COSA sono, senza spiegazioni:
+    // sono gli stessi numeri che poi si leggono sulla scheda.
+    const dove = this.querySelector(".ce-fatti");
+    if (dove) {
+      const RITMO = ["Ora", "Oggi", "Ieri", "Settimana", "Mese", "Anno"];
+      const posto = (x) => {
+        const i = RITMO.indexOf(String(x.label || ""));
+        return i < 0 ? RITMO.length : i;
+      };
+      const fatti = (this._config.periods || [])
+        .filter((x) => x && x.energy)
+        .slice()
+        .sort((a, b) => posto(a) - posto(b))
+        .map((x) => {
+          const st = this._hass && this._hass.states[x.energy];
+          const val = st && !["unknown", "unavailable"].includes(st.state)
+            ? numero(Number(st.state), 2) : null;
+          return T(x.label || "?") + (val ? " " + val : "");
+        });
+      dove.textContent = fatti.length
+        ? fatti.join(" · ") + " kWh" : "—";
+    }
     const tasti = tastiDi(this._config).length;
     metti(".ce-sez-tasti", tasti ? tasti + " " + T(tasti === 1 ? "tasto" : "tasti") : T("nessuno"));
     // le righe accese: dalla configurazione, non dal disegno (il disegno
@@ -674,7 +696,7 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
-      this.innerHTML = `<style>${STILE_EDITOR}</style>` + TH(`<div class="ce-versione">casa-energia \u00b7 casa-tile v${VERSIONE}</div>
+      this.innerHTML = `<style>${STILE_EDITOR}${STILE_FOTO}${STILE_DISEGNI}</style>` + TH(`<div class="ce-versione">casa-energia \u00b7 casa-tile v${VERSIONE}</div>
         <div class="ce-form"></div>
         <details class="ce-sez ce-tendina ce-sez-tariffa" data-c="1" style="--c:#2fbfb0">
           <summary class="ce-tit">${titoloSez(VESTITO.tariffa, T("La tua tariffa"))}</summary>
@@ -693,10 +715,11 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
           <div class="ce-aiuto">${T("Pannelli e batteria sono facoltativi: se li metti faccio anche i loro kWh di oggi e del mese, e le righe <i>Dai pannelli</i> e <i>Dalla batteria</i>. Della batteria scegli il sensore che dice <b>quanto ha dato alla casa</b>, non la percentuale.")}</div>
           <div class="ce-riga"><span class="ent">Sensore dei pannelli (se ce l'hai)</span><ha-entities-picker class="ce-pannelli-pick"></ha-entities-picker></div>
-          <button type="button" class="ce-prepara ce-pannelli-tutti">Prendile tutte</button>
+          <button type="button" class="ce-prepara ce-pannelli-tutti">Cercali tu: i pannelli</button>
           <div class="ce-riga"><span class="ent">Sensore della batteria (se ce l'hai)</span><ha-entities-picker class="ce-batteria-pick"></ha-entities-picker></div>
-          <button type="button" class="ce-prepara ce-batteria-tutti">Prendile tutte</button>
+          <button type="button" class="ce-prepara ce-batteria-tutti">Cercali tu: le batterie</button>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
+          <div class="ce-riga ce-fatti-riga"><span class="ent">I kWh di casa, contati per</span><b class="ce-fatti">&mdash;</b></div>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
         </details>
         <div class="ce-esito" hidden></div>
@@ -757,7 +780,14 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         return f;
       };
       const form = faiModulo(SCHEMA_SEMPLICE, ".ce-form");
+      // la griglia dei disegni va SUBITO SOTTO ai tre campi di sempre: e' li'
+      // che si sceglie la faccia della scheda
+      this._attaccaDisegno(this.querySelector(".ce-form"), DISEGNI, "energy");
       const formTutto = faiModulo(SCHEMA_RESTO, ".ce-form-tutto");
+      // La foto del pop-up non e' un campo di testo: e' la riga con il tasto
+      // che apre la galleria, come nella casella animata. La metto in fondo
+      // al cassetto dell'aspetto, che e' dove si va a cercarla.
+      this._attaccaFoto(this.querySelector(".ce-form-tutto").parentElement);
       this._avanzate = this.querySelector(".ce-avanzate");
       const spunta = this.querySelector(".ce-tutto");
       if (spunta) {
@@ -789,15 +819,26 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
               && (u === "kwh" || u === "wh") && come.test(id)
               && !/_returned|restituit|forecast|previs/i.test(id);
           });
+          // Lo dico nel riquadro dei messaggi, non con window.alert: dentro
+          // a una finestra incastrata l'alert non compare, e il tasto
+          // sembrava non fare niente.
+          const dillo = (testo, male) => {
+            this._esito.hidden = false;
+            this._esito.classList.toggle("male", !!male);
+            this._esito.textContent = testo;
+          };
           if (!trovati.length) {
-            window.alert("Non ho trovato contatori che sembrino " + chi + ".");
+            dillo(T("Non ho trovato niente che somigli a quello che cerca questo tasto."), true);
             return;
           }
+          // sovrascrive quello che hai scelto a mano: come per gli altri
+          // tasti che rifanno le cose, la seconda premuta e' la conferma
+          if (!confermaDoppia(b, T("Ne ho trovati") + " " + trovati.length
+              + ": " + T("premi di nuovo"))) return;
           this._scriviScelta(chi + "_entita", trovati);
           const sel = this.querySelector(".ce-" + chi + "-pick");
           if (sel) sel.value = trovati;
-          window.alert("Presi " + trovati.length + ":\n" + trovati.join("\n")
-            + "\n\nSe ne aggiungi un altro in futuro, torna qui e ripremi.");
+          dillo(T("Presi") + " " + trovati.length + ": " + trovati.join(", "));
         });
       });
       const scegli = this.querySelector(".ce-barra-nuova");

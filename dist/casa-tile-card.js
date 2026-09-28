@@ -676,7 +676,7 @@ const EN = {
   "Barra principale: il nome (vuoto = Potenza attuale)": "Main bar: the name (empty = Current power)",
   "Barra principale: l'unita' (vuoto = W)": "Main bar: the unit (empty = W)",
   "Sopra quanti watt la scheda dice <b>in funzione</b>, e sotto quanti <b>in standby</b>. I <b>secondi di fermo</b> dicono quando il ciclo e' finito davvero: il forno spegne e riaccende la resistenza, la lavatrice ha le pause dell'ammollo, e senza attesa ogni pausa sembrerebbe la fine. Finche' aspetta, l'Ultimo ciclo resta coi trattini. Cambiato il numero, ripremi <i>Crea le statistiche</i>: riscrivo l'automazione. Se l'apparecchio ha una sua integrazione che dice lo stato vero, mettila in fondo: comanda quella e le soglie non servono piu'.": "Above how many watts the card says <b>running</b>, and below how many <b>standby</b>. The <b>idle seconds</b> say when the cycle is really over: an oven switches its element on and off, a washing machine has soaking pauses, and with no wait every pause would look like the end. While it waits, Last cycle keeps showing dashes. Change the number, then press <i>Create the statistics</i> again: I rewrite the automation. If the appliance has its own integration telling the real state, put it at the bottom: that one wins and the thresholds stop mattering.",
-  "Secondi di fermo prima di dire che ha finito (vuoto = 100)": "Idle seconds before calling it finished (empty = 100)",
+  "Secondi di fermo prima di dire che ha finito (vuoto = 100). Questo numero sta nell'automazione: dopo averlo cambiato premi «Crea i sensori»": "Idle seconds before calling it finished (empty = 100). This number lives in the automation: after changing it press «Create the sensors»",
   "Le barre sotto alla potenza": "The bars under the power one",
   "altre misure sotto alla potenza": "other readings under the power bar",
   "Barre in WATT: una per ogni cosa che vuoi vedere (quante ne vuoi)": "Bars in WATTS: one for each thing you want to see (as many as you like)",
@@ -736,6 +736,33 @@ const EN = {
   "barre": "bars",
   "agganciati": "wired up",
   "da fare": "to do",
+  "sorgente": "source",
+  "Cercali tu: i pannelli": "Find the panels for me",
+  "Cercali tu: le batterie": "Find the batteries for me",
+  "Non ho trovato niente che somigli a quello che cerca questo tasto.": "I found nothing matching what this button looks for.",
+  "Ne ho trovati": "I found",
+  "Presi": "Taken",
+  "Pop-up: i riquadri delle scritte": "Pop-up: the text boxes",
+  "Quanto coprono quello che c'e' dietro: 100 = pieni, 0 = si vede la foto attraverso. Serve quando hai messo una foto di sfondo e le scritte non si leggono.": "How much they cover what is behind: 100 = solid, 0 = the photo shows through. Useful when you set a background photo and the text is hard to read.",
+  "Il disegno della scheda": "The card drawing",
+  "Cerca il disegno: lavatrice, forno, presa...": "Search the drawing: washer, oven, socket...",
+  "Nessun disegno con questo nome.": "No drawing by that name.",
+  "Oppure una foto tua al posto del disegno": "Or a photo of yours instead of the drawing",
+  "Immagine di quando lavora (anche una gif)": "Image for when it is working (a gif works too)",
+  "La seconda si vede solo mentre lavora: a riposo torna quella di sopra.": "The second one shows only while it works: at rest the one above comes back.",
+  "Foto di sfondo del pop-up": "Pop-up background photo",
+  "Usa un'immagine mia (telefono o PC)": "Use a photo of mine (phone or PC)",
+  "oppure l'indirizzo: /local/mia.jpg": "or the address: /local/mine.jpg",
+  "Tocca per scegliere un'altra foto": "Tap to pick another photo",
+  "Scegli un'altra foto": "Pick another photo",
+  "Togli la foto": "Remove the photo",
+  "Sto caricando": "Uploading",
+  "Non sono riuscito a caricarla": "I could not upload it",
+  "premi di nuovo": "press again",
+  "contatore": "counter",
+  "contatori": "counters",
+  "I kWh di casa, contati per": "The house kWh, counted for",
+  "sorgenti": "sources",
   "Mostra altre impostazioni": "Show other settings",
   "Prese contate": "Sockets counted",
   "su": "of",
@@ -1061,7 +1088,6 @@ const EN = {
   "Strumenti": "Tools",
   "Esegui": "Run",
   "Interruttori": "Switches",
-  "Centro Notifiche": "Notification centre",
   "Mese Precedente": "Previous month",
   "Anno": "Year",
   "Anno Precedente": "Previous year",
@@ -4573,8 +4599,6 @@ const ICON_CHART =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="9"/></svg>';
 const ICON_CLOSE =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>';
-const ICON_NOTIFCENTER =
-  '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l4 4V6l-4 4H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>';
 const ICON_BOLT =
   '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>';
 const ICON_FLAG =
@@ -4623,7 +4647,6 @@ const STYLE = `
 .dm-ap-chip svg{width:27px;height:27px}
 .dm-ap-headings{display:flex;flex-direction:column;min-width:0;flex:1;gap:1px}
 .dm-ap-name{font-size:14.5px;font-weight:900;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dm-text)}
-.dm-ap-room{font-size:11px;font-weight:750;color:var(--dm-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dm-ap-badge{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;padding:4px 7px;border-radius:999px;font-size:9.5px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
 .dm-ap-badge.run{background:#dcfce7;color:#15803d}
 .dm-ap-badge.standby{background:#dbeafe;color:#2563eb}
@@ -4649,6 +4672,9 @@ const STYLE = `
 .dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
 .dm-ap-card.is-run .dm-ap-hero{background:radial-gradient(120% 90% at 50% 8%,rgba(186,230,253,.85),rgba(224,242,254,.35) 62%,transparent)}
 .dm-ap-hero svg{width:100%;height:100%;display:block}
+/* una foto tua al posto del disegno: riempie il riquadro come farebbe l'SVG */
+.dm-ap-hero img{width:100%;height:100%;display:block;object-fit:contain}
+.dm-ap-chip img{width:100%;height:100%;object-fit:contain;border-radius:7px}
 /* spenta o non raggiungibile: sbiadisce il DISEGNO, non il riquadro.
    Prima il filtro stava sul riquadro e si portava via anche l'alone,
    cosi' la scheda spenta era un rettangolo grigio e piatto. */
@@ -4750,8 +4776,9 @@ const STYLE = `
 .dm-ap-power-open{cursor:pointer}
 .dm-ap-power-open:hover{filter:brightness(1.04)}
 .dm-ap-chart-svg{width:100%;height:auto;display:block;overflow:visible}
-.dm-ap-chart-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
-.dm-ap-chart-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* le scritte non si spalmano: ognuna sta alla frazione del suo punto */
+.dm-ap-chart-labels{position:relative;height:13px;margin-top:4px;font-size:10px;font-weight:800;color:var(--dm-dim)}
+.dm-ap-chart-labels span{position:absolute;top:0;white-space:nowrap;transform:translateX(-50%)}
 /* LA FINESTRA DEL GRAFICO: le pastiglie dei periodi, le date a scelta, i
    chip delle curve e la riga minimo/media/massimo. Su telefono le pastiglie
    scorrono invece di andare a capo, e le date vanno una sotto l'altra. */
@@ -4836,6 +4863,17 @@ const STYLE = `
 .dm-ap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:13px;background:var(--dm-soft)}
 .dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text)}
 .dm-ap-row-val{font-size:14.5px;font-weight:500;color:var(--dm-dim)}
+/* CON UNA FOTO DIETRO. Il colore delle scritte si fermava alla finestra: le
+   righe restavano del colore di sempre e sopra a una foto non si leggevano.
+   Qui dentro al pop-up seguono quello che hai scelto, e i riquadri hanno il
+   loro comando di trasparenza, staccato da quello della finestra. */
+.dm-ap-dialog .dm-ap-row,
+.dm-ap-dialog .dm-ap-stat{background:var(--dm-righe,var(--dm-soft))}
+.dm-ap-dialog .dm-ap-row-label,
+.dm-ap-dialog .dm-ap-cycle-label{color:var(--dm-finestra-testo,var(--dm-text))}
+.dm-ap-dialog .dm-ap-row-val,
+.dm-ap-dialog .dm-ap-stat small{color:var(--dm-finestra-fioco,var(--dm-dim))}
+.dm-ap-dialog .dm-ap-sec-cap{color:var(--dm-finestra-testo,var(--dm-blue-deep))}
 .dm-ap-action-btn{flex:0 0 auto;border:0;border-radius:10px;padding:0 14px;height:26px;background:var(--dm-blue);color:#fff;font-size:13px;font-weight:850;cursor:pointer}
 .dm-ap-action-btn:active{filter:brightness(.92)}
 .dm-ap-stat{display:flex;flex-direction:column;gap:2px;padding:9px 10px;border-radius:13px;background:var(--dm-soft)}
@@ -5016,6 +5054,75 @@ function numero(v, decimali) {
   }
 }
 
+// Il disegno della scheda: quello del catalogo, oppure una FOTO TUA se l'hai
+// messa. Un posto solo, cosi' le due schede dei consumi non possono
+// comportarsi in modo diverso - e la foto di "quando lavora" (anche una gif)
+// funziona come sulla casella animata.
+//   acceso - true quando la scheda sta lavorando
+// I disegni con il loro nome, in ordine di catalogo. Sta qui, accanto ai
+// disegni veri, perche' l'elenco della scheda della casa era una copia a
+// parte: aveva cinque voci - UPS, Server, NAS, Router, Proxmox - che un
+// disegno non ce l'hanno mai avuto. Con la tendina si sceglievano e usciva
+// il disegno di ripiego senza dire niente; con la griglia si vedevano cinque
+// quadretti vuoti. Un elenco solo, e il caso non si ripresenta.
+const NOMI_DISEGNI = [
+  ["cucina", "Cucina (tutta la linea)"],
+  ["washer", "Lavatrice"],
+  ["dishwasher", "Lavastoviglie"],
+  ["dryer", "Asciugatrice"],
+  ["oven", "Forno"],
+  ["microonde", "Microonde"],
+  ["piano_cottura", "Piano cottura a induzione"],
+  ["cappa", "Cappa aspirante"],
+  ["caffe", "Macchina del caffe\'"],
+  ["bollitore", "Bollitore"],
+  ["tostapane", "Tostapane"],
+  ["friggitrice", "Friggitrice ad aria"],
+  ["congelatore", "Congelatore"],
+  ["frigorifero", "Frigorifero"],
+  ["dehumidifier", "Deumidificatore"],
+  ["condizionatore", "Condizionatore"],
+  ["ventilatore", "Ventilatore"],
+  ["boiler", "Boiler / scaldabagno"],
+  ["termoventilatore", "Termoventilatore"],
+  ["pompa_calore", "Pompa di calore"],
+  ["pellet", "Stufa a pellet"],
+  ["radiatore", "Radiatore elettrico"],
+  ["scaldasalviette", "Scaldasalviette"],
+  ["luce", "Luce"],
+  ["lampada", "Lampada"],
+  ["tv", "Televisore"],
+  ["pc_torre", "PC (torre)"],
+  ["pc_monitor", "PC (monitor)"],
+  ["minipc", "Mini PC (Home Assistant)"],
+  ["presa", "Presa smart"],
+  ["ciabatta", "Ciabatta / multipresa"],
+  ["robot", "Robot aspirapolvere"],
+  ["asciugacapelli", "Asciugacapelli"],
+  ["ferro", "Ferro da stiro"],
+  ["pompa", "Pompa dell\'acqua"],
+  ["acquario", "Acquario"],
+  ["stampante3d", "Stampante 3D"],
+  ["console", "Console da gioco"],
+  ["colonnina", "Colonnina di ricarica"],
+  ["powerstation", "Powerstation"],
+  ["energy", "Contatore della luce"],
+];
+
+function disegnoDiScheda(cfg, id, disegnoDiSerie, acceso) {
+  const c = cfg || {};
+  const mia = (acceso && c.disegno_immagine_accesa) || c.disegno_immagine;
+  if (mia) {
+    const src = String(mia).replace(/"/g, "%22");
+    return { hero: `<img src="${src}" alt="">`, chip: `<img src="${src}" alt="">` };
+  }
+  const quale = HERO_BUILDERS[c.artwork] ? c.artwork : disegnoDiSerie;
+  return {
+    hero: HERO_BUILDERS[quale](id),
+    chip: CHIP_SVGS[quale] || CHIP_SVGS[disegnoDiSerie] || "",
+  };
+}
+
 function vestiFinestra(host, cfg) {
   const c = cfg || {};
   // chiaro o scuro: senza attributo comanda il tema di Home Assistant
@@ -5040,6 +5147,20 @@ function vestiFinestra(host, cfg) {
       : tinta);
   } else metti("--dm-finestra", null);
   metti("--dm-finestra-testo", c.finestra_scritta || null);
+  // il colore "fioco" dei numeri: lo stesso, un po' piu' spento. Se no con
+  // una scritta chiara su una foto scura i valori restavano grigi e illeggibili
+  metti("--dm-finestra-fioco", c.finestra_scritta
+    ? `color-mix(in srgb, ${c.finestra_scritta} 78%, transparent)` : null);
+  // i riquadri delle scritte dentro al pop-up: quanto coprono la foto.
+  // 100 = pieni, 0 = si vede la foto attraverso. Il colore e' quello della
+  // finestra, se l'hai scelto.
+  const r = c.finestra_righe;
+  if (r !== undefined && r !== null && r !== "") {
+    const q = quanta(r, 100);
+    const fondo = c.finestra_sfondo || "var(--dm-card)";
+    metti("--dm-righe", q >= 100 ? fondo
+      : `color-mix(in srgb, ${fondo} ${q}%, transparent)`);
+  } else metti("--dm-righe", null);
   // il velo dietro: nero quanto dice velo_scuro (0 = niente velo)
   if (c.velo_scuro !== undefined && c.velo_scuro !== null && c.velo_scuro !== "") {
     metti("--dm-velo", `rgba(15,23,42,${quanta(c.velo_scuro, 55) / 100})`);
@@ -5133,7 +5254,7 @@ const STATI_ITALIANI = {
   "unavailable": { mode: "unavailable", label: "N/D" },
 };
 
-const DISEGNI$1 = [
+const DISEGNI = [
   ["dishwasher", ["lavastovigli", "dishwasher"]],
   ["piano_cottura", ["piano_cottura", "induzion", "piastr", "hob", "cooktop"]],
   ["cappa", ["cappa", "aspirant", "hood"]],
@@ -5183,7 +5304,7 @@ const pulisci = (s) => String(s || "").toLowerCase()
 
 function disegnoDi(cfg) {
   const testo = [cfg.icona, cfg.name, cfg.entity].map(pulisci).join(" ");
-  for (const [disegno, parole] of DISEGNI$1) {
+  for (const [disegno, parole] of DISEGNI) {
     if (parole.some((p) => testo.includes(p))) return disegno;
   }
   return "washer";
@@ -5232,7 +5353,7 @@ function cicloDi(hass, cfg) {
 // se il suo dispositivo ha anche un sensore in Watt: vuol dire che con quello
 // la scheda si riempie davvero, non solo a meta'.
 function trovaPerDisegno(hass, disegno) {
-  const parole = (DISEGNI$1.find(([d]) => d === disegno) || [null, []])[1];
+  const parole = (DISEGNI.find(([d]) => d === disegno) || [null, []])[1];
   if (!parole.length) return [];
   const st = (hass && hass.states) || {};
   const reg = (hass && hass.entities) || {};
@@ -9980,7 +10101,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.94.1";
+const VERSIONE = "2.95.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -21096,6 +21217,223 @@ function scollegaEntita(cfg, spariti) {
   return c;
 }
 
+// La riga per scegliere una foto, fatta come quella della casella animata:
+// l'anteprima, il tasto che apre la galleria del telefono o le cartelle del
+// PC, il campo per scrivere l'indirizzo se la foto sta gia' sul box, e il
+// tasto per toglierla. Tutto su una riga sola.
+//
+// Le due schede dei consumi avevano solo un campo di testo nudo dove andava
+// scritto "/local/qualcosa.jpg" a mano: per riempirlo bisognava gia' sapere
+// come si carica un file su Home Assistant, che e' esattamente la cosa che il
+// tasto risparmia.
+//
+// Sta qui in mezzo, in un pezzo solo, cosi' non ci sono copie che invecchiano
+// ognuna per conto suo.
+
+
+const STILE_FOTO = `
+.dm-foto{margin:10px 0 2px}
+.dm-foto-riga{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dm-foto-ant{width:64px;height:44px;border-radius:8px;object-fit:cover;
+  border:1px solid var(--divider-color,#444);background:#0003;cursor:pointer}
+.dm-foto-ant[hidden]{display:none}
+.dm-foto-bt{border:1px solid var(--divider-color,#555);
+  background:var(--card-background-color,#1c1c1c);
+  color:var(--primary-text-color,#e1e1e1);border-radius:9px;padding:8px 12px;
+  font-size:13px;font-weight:600;cursor:pointer}
+.dm-foto-bt:hover{border-color:var(--primary-color,#03a9f4)}
+.dm-foto-bt[hidden]{display:none}
+.dm-foto-via{opacity:.75}
+.dm-foto-ind{flex:1;min-width:160px;border-radius:9px;padding:8px 10px;
+  border:1px solid var(--divider-color,#555);
+  background:var(--card-background-color,#1c1c1c);
+  color:var(--primary-text-color,#e1e1e1);font-size:13px}
+.dm-foto-nota{flex-basis:100%;font-size:12.5px;
+  color:var(--secondary-text-color,#9b9b9b);margin-top:2px;word-break:break-all}
+.dm-foto-nota.errore{color:#ff8a80}
+`;
+
+// Carica il file dentro a Home Assistant e torna l'indirizzo da salvare.
+async function caricaFoto(hass, file) {
+  const dati = new FormData();
+  dati.append("file", file);
+  const risposta = await fetch("/api/image/upload", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + hass.auth.data.access_token },
+    body: dati,
+  });
+  if (!risposta.ok) throw new Error("HTTP " + risposta.status);
+  const info = await risposta.json();
+  return "/api/image/serve/" + info.id + "/original";
+}
+
+// La riga intera, pronta da appendere. Torna anche `aggiorna(valore)`, per
+// rinfrescarla quando la configurazione cambia da fuori.
+//   dammiHass - una funzione: l'hass arriva DOPO che la riga e' gia' fatta
+//   scrivi    - lo chiamo con il nuovo indirizzo, o con "" se togli la foto
+function rigaFoto({ dammiHass, valore, tasto, scrivi }) {
+  const box = document.createElement("div");
+  box.className = "dm-foto";
+  const riga = document.createElement("div");
+  riga.className = "dm-foto-riga";
+
+  const ant = document.createElement("img");
+  ant.className = "dm-foto-ant";
+  ant.alt = "";
+  ant.title = T("Tocca per scegliere un'altra foto");
+
+  const file = document.createElement("input");
+  file.type = "file";
+  file.accept = "image/*";
+  file.style.display = "none";
+
+  const scegli = document.createElement("button");
+  scegli.className = "dm-foto-bt";
+  scegli.type = "button";
+  scegli.textContent = tasto || T("Usa un'immagine mia (telefono o PC)");
+
+  const indirizzo = document.createElement("input");
+  indirizzo.type = "text";
+  indirizzo.className = "dm-foto-ind";
+  indirizzo.placeholder = T("oppure l'indirizzo: /local/mia.jpg");
+
+  const via = document.createElement("button");
+  via.className = "dm-foto-bt dm-foto-via";
+  via.type = "button";
+  via.textContent = T("Togli la foto");
+
+  const nota = document.createElement("div");
+  nota.className = "dm-foto-nota";
+
+  // l'input di QUESTA riga, non il primo della pagina: se no si apre la
+  // galleria di un altro campo e la foto finisce nel posto sbagliato
+  const apri = () => file.click();
+  ant.addEventListener("click", apri);
+  scegli.addEventListener("click", apri);
+
+  file.addEventListener("change", async () => {
+    const f = file.files && file.files[0];
+    if (!f) return;
+    nota.className = "dm-foto-nota";
+    nota.textContent = T("Sto caricando") + " " + f.name + "...";
+    try {
+      scrivi(await caricaFoto(dammiHass(), f));
+    } catch (e) {
+      nota.className = "dm-foto-nota errore";
+      nota.textContent = T("Non sono riuscito a caricarla") + ": " + e.message;
+    }
+  });
+  indirizzo.addEventListener("change", () => scrivi(indirizzo.value.trim()));
+  via.addEventListener("click", () => scrivi(""));
+
+  riga.append(ant, scegli, file, indirizzo, via, nota);
+  box.appendChild(riga);
+
+  const aggiorna = (v) => {
+    const c = v || "";
+    ant.hidden = !c;
+    if (c) ant.src = c;
+    via.hidden = !c;
+    scegli.textContent = c
+      ? T("Scegli un'altra foto")
+      : (tasto || T("Usa un'immagine mia (telefono o PC)"));
+    if (document.activeElement !== indirizzo) indirizzo.value = c;
+    if (!nota.classList.contains("errore")) nota.textContent = "";
+  };
+  aggiorna(valore);
+  box.aggiorna = aggiorna;
+  return box;
+}
+
+// ---------------------------------------------------------------------------
+// LA SCELTA DEL DISEGNO: la griglia, non la tendina.
+//
+// Una tendina fa leggere venticinque nomi uno per volta per cercare una cosa
+// che si riconosce a colpo d'occhio. La griglia li fa vedere tutti insieme,
+// col filtro per scriverci dentro, e in fondo il tasto per usare una foto tua
+// al posto del disegno - piu' quella di quando la scheda lavora, che puo'
+// essere anche una gif. E' la stessa scelta della casella animata.
+
+const STILE_DISEGNI = `
+.dm-dis{margin:8px 0 2px}
+.dm-dis-cerca{width:100%;box-sizing:border-box;border-radius:9px;padding:9px 11px;
+  margin-bottom:8px;border:1px solid var(--divider-color,#555);
+  background:var(--card-background-color,#1c1c1c);
+  color:var(--primary-text-color,#e1e1e1);font-size:13px}
+.dm-dis-griglia{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));
+  gap:6px;max-height:268px;overflow:auto;padding:2px;border-radius:10px}
+.dm-dis-uno{display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 3px 5px;border-radius:10px;cursor:pointer;
+  border:1px solid transparent;background:var(--secondary-background-color,#222);
+  color:var(--primary-text-color,#e1e1e1)}
+.dm-dis-uno:hover{border-color:var(--divider-color,#666)}
+.dm-dis-uno.scelto{border-color:var(--primary-color,#03a9f4);
+  box-shadow:0 0 0 1px var(--primary-color,#03a9f4) inset}
+.dm-dis-uno svg,.dm-dis-uno img{width:34px;height:34px;display:block;object-fit:contain}
+.dm-dis-uno b{font-size:10px;font-weight:600;line-height:1.15;text-align:center;
+  max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-dis-vuoto{font-size:12.5px;color:var(--secondary-text-color,#9b9b9b);padding:8px 2px}
+`;
+
+// elenco = [[chiave, nome], ...]   disegna(chiave) -> l'HTML dell'anteprima
+function sceltaDisegno({ elenco, disegna, scelto, scrivi }) {
+  const box = document.createElement("div");
+  box.className = "dm-dis";
+
+  const cerca = document.createElement("input");
+  cerca.type = "search";
+  cerca.className = "dm-dis-cerca";
+  cerca.placeholder = T("Cerca il disegno: lavatrice, forno, presa...");
+
+  const griglia = document.createElement("div");
+  griglia.className = "dm-dis-griglia";
+  const vuoto = document.createElement("div");
+  vuoto.className = "dm-dis-vuoto";
+  vuoto.hidden = true;
+  vuoto.textContent = T("Nessun disegno con questo nome.");
+
+  let qualeScelto = scelto;
+  const tasti = elenco.map(([chiave, nome]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "dm-dis-uno";
+    b.title = nome;
+    b.dataset.chiave = chiave;
+    // il nome sta nel dizionario, il disegno e' nostro: niente da proteggere
+    b.innerHTML = disegna(chiave) + "<b></b>";
+    b.querySelector("b").textContent = T(nome);
+    b.addEventListener("click", () => {
+      qualeScelto = chiave;
+      tasti.forEach((x) => x.classList.toggle("scelto", x.dataset.chiave === chiave));
+      scrivi(chiave);
+    });
+    griglia.appendChild(b);
+    return b;
+  });
+
+  const filtra = () => {
+    const q = cerca.value.trim().toLowerCase();
+    let visti = 0;
+    tasti.forEach((b) => {
+      const ok = !q || b.title.toLowerCase().includes(q)
+        || b.dataset.chiave.includes(q);
+      b.hidden = !ok;
+      if (ok) visti += 1;
+    });
+    vuoto.hidden = visti > 0;
+  };
+  cerca.addEventListener("input", filtra);
+
+  box.append(cerca, griglia, vuoto);
+
+  box.aggiorna = (v) => {
+    qualeScelto = v;
+    tasti.forEach((x) => x.classList.toggle("scelto", x.dataset.chiave === v));
+  };
+  box.aggiorna(qualeScelto);
+  return box;
+}
+
 // -*- coding: utf-8 -*-
 // Quello che le DUE schede dei consumi (casa-energia e casa-elettrodomestico)
 // e i loro DUE editor facevano uguale, ognuno con la sua copia.
@@ -21180,14 +21518,20 @@ const ConFinestrelle = (Base) => class extends Base {
   // Il costo su una riga sola: la sola energia e, staccata, quanto ti costa
   // in bolletta. Due righe per dire due numeri erano troppe, ma attaccate
   // sembravano un numero lungo: la seconda va piu' piccola e piu' chiara.
+  // ATTENZIONE a Number(): Number(null) fa 0, e zero e' un numero buono.
+  // Percio' un costo che NON C'E' finiva scritto "0,00 \u20ac" accanto a tre
+  // righe col trattino - la lavastoviglie senza nessun ciclo registrato.
+  // Un numero e' un numero; niente, e' niente.
   _scriviCosto(el, solo, pieno) {
     if (!el) return;
-    el.textContent = Number.isFinite(Number(solo))
-      ? `${numero(Number(solo), 2)} \u20ac` : "\u2014";
-    if (Number.isFinite(Number(solo)) && Number.isFinite(Number(pieno)) && Number(pieno) > 0) {
+    const conto = (v) => (v === null || v === undefined || v === "" ? NaN : Number(v));
+    const uno = conto(solo);
+    const inBolletta = conto(pieno);
+    el.textContent = Number.isFinite(uno) ? `${numero(uno, 2)} \u20ac` : "\u2014";
+    if (Number.isFinite(uno) && Number.isFinite(inBolletta) && inBolletta > 0) {
       const due = document.createElement("span");
       due.className = "dm-ap-due";
-      due.textContent = `${numero(Number(pieno), 2)} \u20ac`;
+      due.textContent = `${numero(inBolletta, 2)} \u20ac`;
       el.appendChild(due);
       el.title = T("prima la sola energia, poi quanto costa in bolletta");
     } else {
@@ -21244,6 +21588,17 @@ const ConFinestrelle = (Base) => class extends Base {
     overlay.style.setProperty("--dm-nasce", x.toFixed(1) + "% " + y.toFixed(1) + "%");
   }
 
+  // "Andamento" da solo non dice di chi e'. Ci attacco il nome della scheda,
+  // a meno che non ci sia gia' dentro (il grafico di una barra si chiama gia'
+  // col nome di quella presa).
+  _titoloConNome(title) {
+    const t = T(title);
+    const nome = (this._config || {}).name;
+    if (!nome || !t) return t;
+    if (t.toLowerCase().includes(String(nome).toLowerCase())) return t;
+    return t + " · " + nome;
+  }
+
   _openDialog(title, bodyHtml, partenza) {
     let overlay = this._root.querySelector(".dm-ap-overlay");
     if (!overlay) {
@@ -21272,7 +21627,7 @@ const ConFinestrelle = (Base) => class extends Base {
     // qui passa il contenuto di TUTTE le finestrelle delle due schede: il
     // titolo e le scritte dentro si traducono in un punto solo
     overlay.innerHTML = `<div class="dm-ap-dialog">
-      <div class="dm-ap-dialog-head"><h3>${esc(T(title))}</h3><button type="button" class="dm-ap-dialog-close">${ICON_CLOSE}</button></div>
+      <div class="dm-ap-dialog-head"><h3>${esc(this._titoloConNome(title))}</h3><button type="button" class="dm-ap-dialog-close">${ICON_CLOSE}</button></div>
       <div class="dm-ap-dialog-body">${TH(bodyHtml)}</div>
     </div>`;
     const finestra = overlay.querySelector(".dm-ap-dialog");
@@ -21307,8 +21662,15 @@ const ConFinestrelle = (Base) => class extends Base {
   // Sceglie fino a "count" indici distribuiti in modo uniforme (incluso il
   // primo e l'ultimo) per non affollare l'asse con un'etichetta per ogni
   // singolo punto/barra.
-  _labelSpans(items, count, formatFn) {
+  // Le scritte sotto al grafico, messe ognuna sotto al SUO punto. Il disegno
+  // comincia dopo l'asse (30 su 300, cioe' un decimo), quindi spalmarle su
+  // tutta la larghezza le spostava a sinistra - e lo scarto cresceva verso
+  // destra. `barre: true` le centra sulla fetta della barra, se no le mette
+  // sul punto della linea.
+  _labelSpans(items, count, formatFn, opzioni) {
     if (!items.length) return "";
+    const ASSE = 10;
+    const barre = !!(opzioni && opzioni.barre);
     const n = Math.min(count, items.length);
     const idxs = [];
     for (let i = 0; i < n; i++) {
@@ -21316,7 +21678,10 @@ const ConFinestrelle = (Base) => class extends Base {
     }
     const seen = new Set();
     const unique = idxs.filter((i) => (seen.has(i) ? false : (seen.add(i), true)));
-    return `<div class="dm-ap-chart-labels">${unique.map((i) => `<span>${formatFn(items[i], i)}</span>`).join("")}</div>`;
+    const dove = (i) => (barre
+      ? ASSE + ((i + 0.5) / items.length) * (100 - ASSE)
+      : ASSE + (items.length > 1 ? i / (items.length - 1) : 0.5) * (100 - ASSE));
+    return `<div class="dm-ap-chart-labels">${unique.map((i) => `<span style="left:${dove(i).toFixed(2)}%">${formatFn(items[i], i)}</span>`).join("")}</div>`;
   }
 
   // La scheda dice se vuole la linea morbida (energia) o spigolosa
@@ -21363,6 +21728,79 @@ const ConEditor = (Base) => class extends Base {
     this.dispatchEvent(new CustomEvent("config-changed", {
       detail: { config: this._config }, bubbles: true, composed: true,
     }));
+  }
+
+  // LA SCELTA DEL DISEGNO, al posto della tendina. La griglia, il filtro, e
+  // sotto le due foto tue: quella di sempre e quella di quando lavora (che
+  // puo' essere una gif). Come sulla casella animata.
+  _attaccaDisegno(dove, elenco, diSerie) {
+    if (!dove || this._grigliaDisegni) return;
+    const eti = document.createElement("div");
+    eti.className = "ce-aiuto";
+    eti.textContent = T("Il disegno della scheda");
+    this._grigliaDisegni = sceltaDisegno({
+      elenco,
+      // l'anteprima: il tondino del disegno se ce l'ha, se no il disegno
+      // grande rimpicciolito dal vestito
+      disegna: (k) => CHIP_SVGS[k]
+        || (HERO_BUILDERS[k] ? HERO_BUILDERS[k]("g" + k) : ""),
+      scelto: (this._config || {}).artwork || diSerie,
+      scrivi: (k) => this._scriviScelta("artwork", k),
+    });
+    const etiFoto = document.createElement("div");
+    etiFoto.className = "ce-aiuto";
+    etiFoto.textContent = T("Oppure una foto tua al posto del disegno");
+    this._fotoDisegno = rigaFoto({
+      dammiHass: () => this._hass,
+      valore: (this._config || {}).disegno_immagine,
+      scrivi: (v) => {
+        this._scriviScelta("disegno_immagine", v);
+        this._fotoDisegno.aggiorna(v);
+      },
+    });
+    this._fotoAccesa = rigaFoto({
+      dammiHass: () => this._hass,
+      valore: (this._config || {}).disegno_immagine_accesa,
+      tasto: T("Immagine di quando lavora (anche una gif)"),
+      scrivi: (v) => {
+        this._scriviScelta("disegno_immagine_accesa", v);
+        this._fotoAccesa.aggiorna(v);
+      },
+    });
+    const nota = document.createElement("div");
+    nota.className = "ce-aiuto";
+    nota.textContent = T("La seconda si vede solo mentre lavora: a riposo torna quella di sopra.");
+    dove.append(eti, this._grigliaDisegni, etiFoto, this._fotoDisegno,
+      this._fotoAccesa, nota);
+  }
+
+  // La foto di sfondo del pop-up: non un campo dove scrivere "/local/x.jpg"
+  // a mano - per riempirlo bisognava gia' sapere come si carica un file su
+  // Home Assistant - ma la riga con il tasto, come nella casella animata.
+  // Le due schede dei consumi la chiamano una volta, quando si costruiscono.
+  _attaccaFoto(dove) {
+    if (!dove || this._rigaFoto) return;
+    const eti = document.createElement("div");
+    eti.className = "ce-aiuto";
+    eti.textContent = T("Foto di sfondo del pop-up");
+    this._rigaFoto = rigaFoto({
+      dammiHass: () => this._hass,
+      valore: (this._config || {}).finestra_immagine,
+      scrivi: (v) => {
+        this._scriviScelta("finestra_immagine", v);
+        this._rigaFoto.aggiorna(v);
+      },
+    });
+    dove.append(eti, this._rigaFoto);
+  }
+
+  // quando la configurazione arriva da fuori, la riga si rimette a posto
+  _rinfrescaFoto() {
+    const c = this._config || {};
+    if (this._rigaFoto) this._rigaFoto.aggiorna(c.finestra_immagine);
+    if (this._fotoDisegno) this._fotoDisegno.aggiorna(c.disegno_immagine);
+    if (this._fotoAccesa) this._fotoAccesa.aggiorna(c.disegno_immagine_accesa);
+    if (this._grigliaDisegni) this._grigliaDisegni.aggiorna(c.artwork);
   }
 
   // le scelte dei riquadri sono configurazione: le scrivo subito, se no Home
@@ -21476,6 +21914,14 @@ const PERIODI_GRAFICO = [
 // la riga e' calma, quando sale si scalda. E' la stessa idea del colore che
 // segue la temperatura sulla casella.
 const SCALA = ["#2fbfb0", "#3fb4ea", "#eab308", "#f97316", "#ef4444"];
+
+// Il colore di un valore sulla scala, con `f` da 0 (poco) a 1 (tanto). Serve
+// alle barre: la linea usa la stessa scala come sfumatura.
+function coloreScala(f) {
+  const n = SCALA.length;
+  const i = Math.min(n - 1, Math.max(0, Math.round((Number(f) || 0) * (n - 1))));
+  return SCALA[i];
+}
 
 // oltre questo la cronologia dettagliata non c'e' piu': si passa alle
 // statistiche a lungo termine
@@ -21665,8 +22111,12 @@ const ConGrafico = (Base) => class extends Base {
       ${chip}
       <div class="dm-ap-graf"><div class="dm-ap-chart-loading">${T("Caricamento...")}</div></div>
       <div class="dm-ap-mmm-posto"></div>
+      <div class="dm-ap-piu-grafici"></div>
     `);
     const dove = this._root.querySelector(".dm-ap-overlay");
+    // se la scheda ha altri grafici da mettere sotto (gli istogrammi dei kWh)
+    // se li disegna lei: qui non si sa, e non serve saperlo
+    if (this._graficiInPiu) this._graficiInPiu(dove.querySelector(".dm-ap-piu-grafici"));
     dove.querySelectorAll(".dm-ap-per").forEach((b) => {
       b.addEventListener("click", () => {
         const id = b.dataset.per;
@@ -21755,11 +22205,13 @@ const ConGrafico = (Base) => class extends Base {
     const prima = accese[0];
     if (sotto) sotto.innerHTML = this._minMedMax(prima.punti, prima.unita);
     if (prima && prima.punti && prima.punti.length > 1) {
-      mirinoGrafico(posto, prima.punti, (pt) => this._fmtAxis(pt.y)
-        + (prima.unita ? " " + prima.unita : "") + "  \u00b7  "
-        + pt.t.toLocaleString(laLocale(), giorni <= 2
-          ? { hour: "2-digit", minute: "2-digit" }
-          : { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }));
+      // prima QUANDO, poi QUANTO: muovendo il dito stai navigando il tempo,
+      // la data e' la domanda e il valore la risposta. Le barre lo facevano
+      // gia' cosi', la linea al contrario.
+      mirinoGrafico(posto, prima.punti, (pt) => pt.t.toLocaleString(laLocale(), giorni <= 2
+        ? { hour: "2-digit", minute: "2-digit" }
+        : { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+        + "  ·  " + this._fmtAxis(pt.y) + (prima.unita ? " " + prima.unita : ""));
     }
   }
 };
@@ -21831,15 +22283,13 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       max_power: 4500,
       periods: [],
       periods_prev: [],
-      weekdays: {},
       circuits: [],
       ...config,
     };
     vestiFinestra(this, this._config);
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "en" + Math.random().toString(36).slice(2, 8);
-    const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.energy)(this._heroId);
-    const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.energy;
+    const { hero, chip } = disegnoDiScheda(this._config, this._heroId, "energy");
     this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
       <article class="dm-ap-card ${this._config.layout === "centrato" ? "centrato" : ""} is-run">
         <div class="dm-ap-top">
@@ -21849,7 +22299,6 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
           </span>
           <span class="dm-ap-badge run"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label">ONLINE</span></span>
           <span class="dm-ap-tools">
-            ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
             <button type="button" class="dm-ap-tool dm-ap-andamento" title="Andamento">${ICON_ANDAMENTO$1}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
             <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
@@ -21891,11 +22340,6 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       metersEl.appendChild(div);
     });
 
-    this._root.querySelector(".dm-ap-notif-center")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      history.pushState(null, "", this._config.notification_path);
-      window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
-    });
     // i due interruttori della presa: quello grande e quello delle USB
     this._tastiAggancia();
     if (this._config.bill_today || this._config.bill_month) {
@@ -22051,12 +22495,21 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
 
   // Il costo di un periodo finito quando nessun sensore se l'e' segnato:
   // i kWh per il prezzo, piu' la quota fissa dei giorni che e' durato.
+  // Il costo di un periodo finito, quando il sensore del costo non tiene il
+  // periodo precedente: i kWh per il prezzo pieno, piu' la quota fissa dei
+  // giorni che il periodo e' durato.
+  //
+  // Ma se i kWh sono ZERO il periodo non c'e' stato: e' il contatore creato a
+  // meta' mese, che di mese scorso non ne ha uno. Li' la quota fissa da sola
+  // inventava un numero dal niente - "0,00 kWh - 7,05 EUR" - e sembrava vero.
+  // Zero kWh in una casa vuol dire che quel periodo non esiste, non che hai
+  // consumato niente pagando il fisso.
   _costoRicavato(p) {
     const st = p.energy ? this._hass.states[p.energy] : null;
     if (!st) return "\u2014";
     const k = Number(p.energy_attr ? (st.attributes || {})[p.energy_attr] : st.state);
     const t = this._tariffa();
-    if (!Number.isFinite(k) || !(t.totale > 0)) return "\u2014";
+    if (!(k > 0) || !(t.totale > 0)) return "\u2014";
     return this._euro(k * t.totale + (t.quota || 0) * this._giorniDelPeriodo(p.energy));
   }
 
@@ -22078,15 +22531,10 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       })
       .join("");
 
-    const weekEntries = Object.entries(cfg.weekdays || {});
-    const weekHtml = weekEntries.map(([label, entity]) => this._statRow(label, val(entity, 2))).join("");
-    const mediaHtml = cfg.media_entity ? this._statRow("Media settimanale", val(cfg.media_entity, 1)) : "";
-
     this._openDialog("Statistiche", `
       ${cfg.bill_today || cfg.bill_month ? this._contoHtml() : ""}
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Consumi per periodo</div>${periodsHtml}</div>
       ${prevHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Periodo precedente</div>${prevHtml}</div>` : ""}
-      ${weekHtml ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Ultimi 7 giorni</div>${weekHtml}${mediaHtml}</div>` : ""}
     `);
     const overlay = this._root.querySelector(".dm-ap-overlay");
     const chartBtn = document.createElement("button");
@@ -22097,7 +22545,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     chartBtn.textContent = T("Andamento");
     chartBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      this._apriGrafico(this._curveDellaCasa(), T("Andamento"));
+      this._apriGrafico(this._curveDellaCasa(), "Andamento");
     });
     overlay.querySelector(".dm-ap-dialog-body").appendChild(chartBtn);
   }
@@ -22170,7 +22618,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
 
   _topText(hass) {
     const cfg = this._config;
-    if (!cfg.top_auto) return cfg.top_entity ? (hass.states[cfg.top_entity]?.state ?? "—") : "—";
+    if (!cfg.top_auto) return "—";
     const { loads, non } = this._autoLoads(hass);
     const min = cfg.top_min_w ?? 5;
     let best = loads[0] && loads[0].live >= min ? loads[0] : null;
@@ -22213,10 +22661,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       .sort((a, b) => b.live - a.live);
 
     const rows = circuits.map((c) => this._statRow(c.label, `${numero(c.live, 0)} W`)).join("");
-    const topSt = cfg.top_entity ? hass.states[cfg.top_entity]?.state : null;
-
     this._openDialog("Circuiti", `
-      ${topSt ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">In evidenza</div>${this._statRow("Top consumo", topSt)}</div>` : ""}
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Tutti i circuiti (live)</div>${rows}</div>
     `);
   }
@@ -22395,8 +22840,11 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
 // sensore, e chi li ha gia' configurati a mano li ritrova come erano.
 
 
-// quello che si legge sotto al campo
-const AIUTI = {};
+// quello che si legge sotto al campo. L'etichetta dice come si chiama
+// l'impostazione; qui sotto c'e' a cosa serve - che e' la domanda vera.
+const AIUTI$1 = {
+  finestra_righe: "Quanto coprono quello che c'e' dietro: 100 = pieni, 0 = si vede la foto attraverso. Serve quando hai messo una foto di sfondo e le scritte non si leggono.",
+};
 
 // il campo tiene una lista: quello che c'era prima (un'entita' sola) vale uguale
 const lista = (v) => (Array.isArray(v) ? v : (v ? [v] : []));
@@ -22421,7 +22869,6 @@ const ETICHETTE$1 = {
   bill_month: "Conto del mese voce per voce (es. sensor.costi_luce_mese)",
   bolletta_energia: "Contatore dei kWh del periodo della bolletta (bimestre)",
   bolletta_costo: "Contatore degli euro dello stesso periodo",
-  notification_path: "Pagina delle notifiche (facoltativa, es. /lovelace/notifiche)",
   layout: "Disposizione della scheda",
   tema: "Chiaro o scuro (questa scheda soltanto)",
   finestra_apertura: "Come si apre il pop-up",
@@ -22431,39 +22878,15 @@ const ETICHETTE$1 = {
   finestra_sfondo: "Pop-up: la tinta della finestra (vuoto = come le schede)",
   finestra_trasparenza: "Pop-up: quanto e' trasparente la finestra",
   finestra_scritta: "Pop-up: il colore delle scritte",
+  finestra_righe: "Pop-up: i riquadri delle scritte",
   velo_scuro: "Pop-up: quanto scurisce quello che c'e' dietro",
   velo_sfoca: "Pop-up: quanto sfoca quello che c'e' dietro",
 };
 
+
 const SCHEMA_TUTTO$1 = [
   { name: "name", selector: { text: {} } },
   { name: "power_entity", required: true, selector: { entity: { domain: "sensor", device_class: "power" } } },
-  { name: "artwork", selector: { select: { mode: "dropdown", options: [
-    { value: "washer", label: "Lavatrice" },
-    { value: "dishwasher", label: "Lavastoviglie" },
-    { value: "dryer", label: "Asciugatrice" },
-    { value: "oven", label: "Forno" },
-    { value: "microonde", label: "Microonde" },
-    { value: "frigorifero", label: "Frigorifero" },
-    { value: "dehumidifier", label: "Deumidificatore" },
-    { value: "condizionatore", label: "Condizionatore" },
-    { value: "ventilatore", label: "Ventilatore" },
-    { value: "boiler", label: "Boiler / scaldabagno" },
-    { value: "luce", label: "Luce" },
-    { value: "lampada", label: "Lampada" },
-    { value: "tv", label: "Televisore" },
-    { value: "pc_torre", label: "PC (torre)" },
-    { value: "pc_monitor", label: "PC (monitor)" },
-    { value: "minipc", label: "Mini PC (Home Assistant)" },
-    { value: "presa", label: "Presa smart" },
-    { value: "ciabatta", label: "Ciabatta / multipresa" },
-    { value: "powerstation", label: "Powerstation" },
-    { value: "energy", label: "Contatore della luce" },
-    { value: "ups", label: "Gruppo di continuita'" },
-    { value: "server", label: "Server" },
-    { value: "nas", label: "NAS" },
-    { value: "fritzbox", label: "Router" },
-    { value: "proxmox", label: "Proxmox" }] } } },
   { name: "g_aspetto", type: "expandable", flatten: true, title: "Aspetto e finestra del pop-up", schema: [
     { name: "layout", selector: { select: { mode: "dropdown", options: [
       { value: "classico", label: "Classico - la foto a sinistra" },
@@ -22474,7 +22897,6 @@ const SCHEMA_TUTTO$1 = [
       { value: "chiaro", label: "Sempre chiaro" },
       { value: "scuro", label: "Sempre scuro" },
     ] } } },
-    { name: "notification_path", selector: { text: {} } },
     { name: "finestra_apertura", selector: { select: { mode: "dropdown", options: [
       { value: "sfuma", label: "Sale e sfuma - discreta" },
       { value: "sboccia", label: "Sboccia dal tondino che hai premuto" },
@@ -22485,10 +22907,10 @@ const SCHEMA_TUTTO$1 = [
       selector: { number: { min: 80, max: 2000, step: 20, mode: "slider", unit_of_measurement: "ms" } } },
     { name: "finestra_largo",
       selector: { number: { min: 400, max: 1400, step: 20, mode: "slider", unit_of_measurement: "px" } } },
-    { name: "finestra_immagine", selector: { text: {} } },
     { name: "finestra_sfondo", selector: { color_rgb: {} } },
     { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "finestra_scritta", selector: { color_rgb: {} } },
+    { name: "finestra_righe", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
   ] },
@@ -22873,6 +23295,17 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     sel.value = lista(this._config.pannelli_entita);
   }
 
+  // Quale sensore dei kWh e' scelto davvero. Se non l'hai scritto tu, la
+  // casella lo indovina dalla presa (..._power -> ..._energy) e fa vedere
+  // quello: se il conto del riassunto non guardasse qui, direbbe "2 sorgenti"
+  // sopra a tre caselle piene. Un posto solo, per tutti e due.
+  _kWhScelto() {
+    if (this._config.energia_kwh) return this._config.energia_kwh;
+    const dallaPresa = String(this._config.power_entity || "")
+      .replace(/_power$/, "_energy").replace(/_potenza$/, "_energia");
+    return this._kWhPossibili().includes(dallaPresa) ? dallaPresa : "";
+  }
+
   _disegnaKwh() {
     const sel = this.querySelector(".ce-kwh-pick");
     if (!sel) return;
@@ -22887,10 +23320,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         this._scriviScelta("energia_kwh", ev.detail.value || "");
       });
     }
-    const mio = this._config.energia_kwh;
-    const dallaPresa = String(this._config.power_entity || "")
-      .replace(/_power$/, "_energy").replace(/_potenza$/, "_energia");
-    sel.value = mio || (buoni.includes(dallaPresa) ? dallaPresa : "");
+    sel.value = this._kWhScelto();
   }
 
   // i campi della tariffa partono da quello che gli aiutanti dicono adesso:
@@ -22908,14 +23338,50 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
 
   // quello che si legge su ogni tendina CHIUSA, senza doverla aprire
   _riassunti() {
+    this._rinfrescaFoto();
     const metti = (sel, testo) => {
       const x = this.querySelector(sel + " .ce-riassunto");
       if (x) x.textContent = testo ? " \u00b7 " + testo : "";
     };
     const t = (this.querySelector(".ce-t-totale") || {}).textContent || "";
     metti(".ce-sez-tariffa", t && t !== "\u2014" ? t : "");
+    // Il riquadro fa vedere TRE caselle (i sensori da cui parto) ma il
+    // numero contava i PERIODI del contatore di casa: ora, oggi, settimana,
+    // mese. Diceva "4 agganciati" sopra a tre caselle, e sembrava che una
+    // fosse sparita. Adesso il riassunto dice tutte e due le cose, cosi'
+    // ognuna si puo' contare con gli occhi.
     const quanti = (this._config.periods || []).filter((x) => x && x.energy).length;
-    metti(".ce-sez-contatori", quanti ? quanti + " " + T(quanti === 1 ? "agganciato" : "agganciati") : T("da fare"));
+    const sorgenti = [this._kWhScelto(), this._config.pannelli_entita,
+      this._config.batteria_entita]
+      .filter((x) => (Array.isArray(x) ? x.length : !!x)).length;
+    const pezzi = [];
+    if (sorgenti) pezzi.push(sorgenti + " " + T(sorgenti === 1 ? "sorgente" : "sorgenti"));
+    if (quanti) pezzi.push(quanti + " " + T(quanti === 1 ? "contatore" : "contatori"));
+    metti(".ce-sez-contatori", pezzi.length ? pezzi.join(" · ") : T("da fare"));
+    // E qui sotto, nel riquadro, si leggono uno per uno: il numero in cima
+    // dev'essere sempre contabile con gli occhi, se no e' una parola in aria.
+    // Col loro valore accanto si capisce al volo COSA sono, senza spiegazioni:
+    // sono gli stessi numeri che poi si leggono sulla scheda.
+    const dove = this.querySelector(".ce-fatti");
+    if (dove) {
+      const RITMO = ["Ora", "Oggi", "Ieri", "Settimana", "Mese", "Anno"];
+      const posto = (x) => {
+        const i = RITMO.indexOf(String(x.label || ""));
+        return i < 0 ? RITMO.length : i;
+      };
+      const fatti = (this._config.periods || [])
+        .filter((x) => x && x.energy)
+        .slice()
+        .sort((a, b) => posto(a) - posto(b))
+        .map((x) => {
+          const st = this._hass && this._hass.states[x.energy];
+          const val = st && !["unknown", "unavailable"].includes(st.state)
+            ? numero(Number(st.state), 2) : null;
+          return T(x.label || "?") + (val ? " " + val : "");
+        });
+      dove.textContent = fatti.length
+        ? fatti.join(" · ") + " kWh" : "—";
+    }
     const tasti = tastiDi(this._config).length;
     metti(".ce-sez-tasti", tasti ? tasti + " " + T(tasti === 1 ? "tasto" : "tasti") : T("nessuno"));
     // le righe accese: dalla configurazione, non dal disegno (il disegno
@@ -23056,7 +23522,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
-      this.innerHTML = `<style>${STILE_EDITOR}</style>` + TH(`<div class="ce-versione">casa-energia \u00b7 casa-tile v${VERSIONE}</div>
+      this.innerHTML = `<style>${STILE_EDITOR}${STILE_FOTO}${STILE_DISEGNI}</style>` + TH(`<div class="ce-versione">casa-energia \u00b7 casa-tile v${VERSIONE}</div>
         <div class="ce-form"></div>
         <details class="ce-sez ce-tendina ce-sez-tariffa" data-c="1" style="--c:#2fbfb0">
           <summary class="ce-tit">${titoloSez(VESTITO$1.tariffa, T("La tua tariffa"))}</summary>
@@ -23075,10 +23541,11 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
           <div class="ce-aiuto">${T("Pannelli e batteria sono facoltativi: se li metti faccio anche i loro kWh di oggi e del mese, e le righe <i>Dai pannelli</i> e <i>Dalla batteria</i>. Della batteria scegli il sensore che dice <b>quanto ha dato alla casa</b>, non la percentuale.")}</div>
           <div class="ce-riga"><span class="ent">Sensore dei pannelli (se ce l'hai)</span><ha-entities-picker class="ce-pannelli-pick"></ha-entities-picker></div>
-          <button type="button" class="ce-prepara ce-pannelli-tutti">Prendile tutte</button>
+          <button type="button" class="ce-prepara ce-pannelli-tutti">Cercali tu: i pannelli</button>
           <div class="ce-riga"><span class="ent">Sensore della batteria (se ce l'hai)</span><ha-entities-picker class="ce-batteria-pick"></ha-entities-picker></div>
-          <button type="button" class="ce-prepara ce-batteria-tutti">Prendile tutte</button>
+          <button type="button" class="ce-prepara ce-batteria-tutti">Cercali tu: le batterie</button>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
+          <div class="ce-riga ce-fatti-riga"><span class="ent">I kWh di casa, contati per</span><b class="ce-fatti">&mdash;</b></div>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
         </details>
         <div class="ce-esito" hidden></div>
@@ -23130,7 +23597,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         const f = document.createElement("ha-form");
         f.schema = traduciSchema(schema);
         f.computeLabel = (x) => T(x.title || ETICHETTE$1[x.name] || x.name);
-        f.computeHelper = (x) => T(AIUTI[x.name] || "");
+        f.computeHelper = (x) => T(AIUTI$1[x.name] || "");
         f.addEventListener("value-changed", (e) => {
           e.stopPropagation();
           this._cambiatoForm(e.detail.value || {});
@@ -23139,7 +23606,14 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         return f;
       };
       const form = faiModulo(SCHEMA_SEMPLICE$1, ".ce-form");
+      // la griglia dei disegni va SUBITO SOTTO ai tre campi di sempre: e' li'
+      // che si sceglie la faccia della scheda
+      this._attaccaDisegno(this.querySelector(".ce-form"), NOMI_DISEGNI, "energy");
       const formTutto = faiModulo(SCHEMA_RESTO, ".ce-form-tutto");
+      // La foto del pop-up non e' un campo di testo: e' la riga con il tasto
+      // che apre la galleria, come nella casella animata. La metto in fondo
+      // al cassetto dell'aspetto, che e' dove si va a cercarla.
+      this._attaccaFoto(this.querySelector(".ce-form-tutto").parentElement);
       this._avanzate = this.querySelector(".ce-avanzate");
       const spunta = this.querySelector(".ce-tutto");
       if (spunta) {
@@ -23171,15 +23645,26 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
               && (u === "kwh" || u === "wh") && come.test(id)
               && !/_returned|restituit|forecast|previs/i.test(id);
           });
+          // Lo dico nel riquadro dei messaggi, non con window.alert: dentro
+          // a una finestra incastrata l'alert non compare, e il tasto
+          // sembrava non fare niente.
+          const dillo = (testo, male) => {
+            this._esito.hidden = false;
+            this._esito.classList.toggle("male", !!male);
+            this._esito.textContent = testo;
+          };
           if (!trovati.length) {
-            window.alert("Non ho trovato contatori che sembrino " + chi + ".");
+            dillo(T("Non ho trovato niente che somigli a quello che cerca questo tasto."), true);
             return;
           }
+          // sovrascrive quello che hai scelto a mano: come per gli altri
+          // tasti che rifanno le cose, la seconda premuta e' la conferma
+          if (!confermaDoppia(b, T("Ne ho trovati") + " " + trovati.length
+              + ": " + T("premi di nuovo"))) return;
           this._scriviScelta(chi + "_entita", trovati);
           const sel = this.querySelector(".ce-" + chi + "-pick");
           if (sel) sel.value = trovati;
-          window.alert("Presi " + trovati.length + ":\n" + trovati.join("\n")
-            + "\n\nSe ne aggiungi un altro in futuro, torna qui e ripremi.");
+          dillo(T("Presi") + " " + trovati.length + ": " + trovati.join(", "));
         });
       });
       const scegli = this.querySelector(".ce-barra-nuova");
@@ -23288,14 +23773,10 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return righeInOrdine(c, elenco, R, esc);
   }
 
-  // Le barre in piu': un elenco {entita', nome, fondo scala}. Accetto anche la
-  // vecchia forma a barra singola, cosi' chi ce l'ha non si accorge di niente.
+  // Le barre in piu': un elenco {entita', nome, fondo scala}.
   _barreExtra() {
     const c = this._config || {};
     const elenco = Array.isArray(c.barre) ? c.barre.slice() : [];
-    if (c.barra2_entita && !elenco.some((b) => b && b.entity === c.barra2_entita)) {
-      elenco.unshift({ entity: c.barra2_entita, label: c.barra2_nome, max: c.barra2_max });
-    }
     return elenco.filter((b) => b && b.entity).map((b) => ({
       entity: b.entity,
       label: b.label || this._nomeEntita(b.entity),
@@ -23336,11 +23817,10 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     vestiFinestra(this, this._config);
     this._root = this._root || this.attachShadow({ mode: "open" });
     this._heroId = "dw" + Math.random().toString(36).slice(2, 8);
-    const hero = (HERO_BUILDERS[this._config.artwork] || HERO_BUILDERS.dishwasher)(this._heroId);
+    const { hero, chip } = disegnoDiScheda(this._config, this._heroId, "dishwasher");
     // niente righe accese = niente riquadro: resta solo l'attuale
     const righe = this._righeCiclo();
 
-    const chip = CHIP_SVGS[this._config.artwork] || CHIP_SVGS.dishwasher;
     this._root.innerHTML = `<style>${STYLE}</style>` + TH(`
       <article class="dm-ap-card ${this._config.layout === "centrato" ? "centrato" : ""}">
         ${this._config.label ? `<span class="dm-test-flag">${esc(this._config.label)}</span>` : ""}
@@ -23348,14 +23828,11 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
           <span class="dm-ap-chip">${chip}</span>
           <span class="dm-ap-headings">
             <span class="dm-ap-name"></span>
-            <span class="dm-ap-room" hidden></span>
           </span>
           <span class="dm-ap-badge"><i class="dm-ap-dot"></i><span class="dm-ap-badge-label"></span></span>
           <span class="dm-ap-tools">
-            ${this._config.notification_path ? `<button type="button" class="dm-ap-tool dm-ap-notif-center" title="Centro Notifiche">${ICON_NOTIFCENTER}</button>` : ""}
             <button type="button" class="dm-ap-tool dm-ap-andamento" title="Andamento">${ICON_ANDAMENTO}</button>
             <button type="button" class="dm-ap-tool dm-ap-stats" title="Statistiche">${ICON_CHART}</button>
-            <button type="button" class="dm-ap-tool dm-ap-consumi" title="Consumi">${ICON_BOLT}</button>
           </span>
         </div>
         ${this._tastiHtml()}
@@ -23392,16 +23869,6 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
         </div>
       </article>`);
     this._root.querySelector(".dm-ap-name").textContent = this._config.name;
-    if (this._config.room) {
-      const room = this._root.querySelector(".dm-ap-room");
-      room.hidden = false;
-      room.textContent = this._config.room;
-    }
-    this._root.querySelector(".dm-ap-notif-center")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      history.pushState(null, "", this._config.notification_path);
-      window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
-    });
     this._tastiAggancia();
     this._root.querySelector(".dm-ap-stats").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -23414,15 +23881,10 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const cfg = this._config;
       this._apriGrafico([{
         nome: cfg.power_label || "Potenza",
-        entity: cfg.power_history_entity || cfg.power_entity,
+        entity: cfg.power_entity,
         colore: "#0ea5e9",
         unita: cfg.power_unit || "W",
       }], "Andamento");
-    });
-    this._root.querySelector(".dm-ap-consumi").addEventListener("click", (e) => {
-      e.stopPropagation();
-      this._ultimoTasto = e.currentTarget;
-      this._openPowerHistory();
     });
     // la foto dell'apparecchio: com'e' messo adesso
     const heroEl = this._root.querySelector(".dm-ap-hero");
@@ -23440,7 +23902,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
         e.stopPropagation();
         const c = this._config;
         this._apriGrafico([{ nome: c.power_label || "Potenza",
-          entity: c.power_history_entity || c.power_entity,
+          entity: c.power_entity,
           colore: "#0ea5e9", unita: c.power_unit || "W" }], "Andamento");
       });
     }
@@ -23588,7 +24050,9 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const kwh = unita === "wh" ? Number(en.state) / 1000 : Number(en.state);
       out.energy = `${numero(kwh, 2)} kWh`;
       const prezzo = Number(hass.states[this._config.prezzo_entita]?.state);
-      if (Number.isFinite(prezzo)) out.cost = kwh * prezzo;
+      // se il prezzo non c'e' o e' zero, il costo non e' "0,00 EUR": non c'e'.
+      // L'altro ramo (i pezzi nostri) questo controllo lo faceva gia'.
+      if (Number.isFinite(prezzo) && prezzo > 0) out.cost = kwh * prezzo;
       const pieno = this._prezzoPieno(hass);
       if (pieno > 0) out.cost_pieno = kwh * pieno;
     }
@@ -23678,7 +24142,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const costTxt = Number.isFinite(Number(cost)) ? `${numero(cost, 2)} \u20ac` : "\u2014";
     const NOMI = { today: "Oggi", yesterday: "Ieri", week: "Settimana", month: "Mese",
       month_prev: "Mese scorso", year: "Anno", year_prev: "Anno scorso" };
-    const label = (cfg.period_labels || {})[periodKey] || NOMI[periodKey] || periodKey;
+    const label = NOMI[periodKey] || periodKey;
     // le colonne vuote non si mostrano: su una presa i cicli non esistono
     const celle = [];
     if (cycles !== "\u2014") celle.push(["Cicli", esc(cycles)]);
@@ -23831,7 +24295,9 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
           : "";
         // il fumetto: il numero c'e' sempre, anche quando non ci sta scritto
         const fumetto = b.fumetto || ((b.label ? b.label + ": " : "") + label);
-        return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${color}"><title>${esc(fumetto)}</title></rect>${text}`;
+        // il colore dice quanto: stessa scala della linea
+        const tinta = color || coloreScala(b.value / max);
+        return `<rect x="${x}" y="${y}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${tinta}"><title>${esc(fumetto)}</title></rect>${text}`;
       })
       .join("");
     const axis = `<line x1="${plotX0}" y1="${labelSpace}" x2="${plotX0}" y2="${height}" stroke="#94a3b840" stroke-width="1"/>
@@ -23895,19 +24361,19 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return rows.map((r) => ({ t: new Date(r.start), value: Math.max(0, Number(r.change ?? 0)) }));
   }
 
-  async _openPowerHistory() {
+  // I due istogrammi dei kWh - il mese per giorni, l'anno per mesi - che
+  // stanno SOTTO alla linea dell'Andamento. Prima erano una finestra a parte,
+  // il tondino "Consumi": stessa roba da due porte diverse.
+  async _graficiInPiu(posto) {
+    if (!posto) return;
     const cfg = this._config;
     const energyEntity = cfg.energy_stat_entity;
+    if (!energyEntity) return;
 
-    this._openDialog(
-      "Consumi",
-      energyEntity
-        ? `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">Questo mese</div><div class="dm-ap-chart-loading" data-chart="month">Caricamento...</div></div>
-           <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Quest'anno</div><div class="dm-ap-chart-loading" data-chart="year">Caricamento...</div></div>`
-        : `<div class="dm-ap-chart-empty">${T("Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.")}</div>`,
-    );
-    const overlay = this._root.querySelector(".dm-ap-overlay");
-    const slot = (name) => overlay?.querySelector(`[data-chart="${name}"]`);
+    posto.innerHTML = `<div class="dm-ap-sec"><div class="dm-ap-sec-cap">${T("Questo mese")}</div><div class="dm-ap-chart-loading" data-chart="month">${T("Caricamento...")}</div></div>
+      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">${T("Quest'anno")}</div><div class="dm-ap-chart-loading" data-chart="year">${T("Caricamento...")}</div></div>`;
+    const overlay = posto;
+    const slot = (name) => overlay.querySelector(`[data-chart="${name}"]`);
 
     if (energyEntity) {
       const now = new Date();
@@ -23933,8 +24399,8 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
                 + String(now.getMonth() + 1).padStart(2, "0")
                 + " · " + numero(v, 2) + " kWh" + inEuro(v) });
           }
-          const dayLabels = this._labelSpans(bars, 6, (b) => b.label);
-          el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars, "#0ea5e9")}${dayLabels}</div>`;
+          const dayLabels = this._labelSpans(bars, 6, (b) => b.label, { barre: true });
+          el.outerHTML = `<div data-chart="month">${this._barChartSvg(bars)}${dayLabels}</div>`;
           mirinoBarre(slot("month"), bars, (b) => b.fumetto);
         })
         .catch(() => {
@@ -23962,8 +24428,8 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
               fumetto: meseLungo(d) + " " + now.getFullYear()
                 + " · " + numero(v, 2) + " kWh" + inEuroA(v) });
           }
-          const labels = `<div class="dm-ap-chart-labels">${bars.map((b) => `<span>${esc(b.label)}</span>`).join("")}</div>`;
-          el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars, "#0ea5e9")}${labels}</div>`;
+          const labels = this._labelSpans(bars, 12, (b) => esc(b.label), { barre: true });
+          el.outerHTML = `<div data-chart="year">${this._barChartSvg(bars)}${labels}</div>`;
           mirinoBarre(slot("year"), bars, (b) => b.fumetto);
         })
         .catch(() => {
@@ -24142,15 +24608,19 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const st = eidKwh ? hass.states[eidKwh] : null;
       const k = st && !["unavailable", "unknown"].includes(st.state) ? Number(st.state) : NaN;
       // se un sensore del costo ce l'hai gia' (magari l'hai fatto tu) quello
-      // vince sulla moltiplicazione; il secondo numero glielo metto lo stesso
-      const uno = eidCosto && hass.states[eidCosto]
-        ? Number(hass.states[eidCosto].state)
+      // vince sulla moltiplicazione; il secondo numero glielo metto lo stesso.
+      // Ma se quel sensore e' rotto (unavailable) NON deve lasciare il trattino:
+      // i kWh ci sono, il prezzo pure, e il conto lo so fare.
+      const stCosto = eidCosto ? hass.states[eidCosto] : null;
+      const suo = stCosto && !["unavailable", "unknown"].includes(stCosto.state)
+        ? Number(stCosto.state) : NaN;
+      const uno = Number.isFinite(suo) ? suo
         : (Number.isFinite(k) && prezzo > 0 ? k * prezzo : NaN);
       const due = Number.isFinite(k) && prezzoPieno > 0 ? k * prezzoPieno : NaN;
       return [uno, due];
     };
     const kwhOggi = cfg.oggi_energia || (pe.today || {}).energy;
-    const kwhSett = cfg.settimana_energia || (pe.week || {}).energy;
+    const kwhSett = (pe.week || {}).energy;
     const kwhMese = cfg.mese_energia || (pe.month || {}).energy;
     const periodi = [
       [".dm-c-oggi", kwhOggi, " kWh", 2],
@@ -24165,7 +24635,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
       x.textContent = numeroDi(eid, unita, dec);
     });
     [[".dm-c-costo-oggi", cfg.oggi_costo || (pe.today || {}).cost, kwhOggi],
-     [".dm-c-costo-settimana", cfg.settimana_costo || (pe.week || {}).cost, kwhSett],
+     [".dm-c-costo-settimana", (pe.week || {}).cost, kwhSett],
      [".dm-c-costo-mese", cfg.mese_costo || (pe.month || {}).cost, kwhMese]].forEach(([sel, eidCosto, eidKwh]) => {
       const x = this._root.querySelector(sel);
       if (!x) return;
@@ -24220,56 +24690,20 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
 // Le voci che "Compila da solo" deve lasciare stare: non le trova guardando
 // il dispositivo, le hai messe tu.
 const MIE_NON_DEL_DISPOSITIVO = [
-  "name", "righe", "nomi_righe", "notification_path", "grid_options", "casa_misura",
+  "name", "righe", "nomi_righe", "grid_options", "casa_misura",
   "prezzo_entita", "reset_script", "helper_memoria", "ciclo_attesa_sec", "label",
   "tema", "layout", "finestra_apertura", "finestra_apertura_durata", "finestra_largo",
   "finestra_immagine", "finestra_sfondo", "finestra_trasparenza", "finestra_scritta",
+  "finestra_righe", "disegno_immagine", "disegno_immagine_accesa",
   "velo_scuro", "velo_sfoca",
 ];
 
-const DISEGNI = [
-  ["cucina", "Cucina (tutta la linea)"],
-  ["washer", "Lavatrice"],
-  ["dishwasher", "Lavastoviglie"],
-  ["dryer", "Asciugatrice"],
-  ["oven", "Forno"],
-  ["microonde", "Microonde"],
-  ["piano_cottura", "Piano cottura a induzione"],
-  ["cappa", "Cappa aspirante"],
-  ["caffe", "Macchina del caffe\'"],
-  ["bollitore", "Bollitore"],
-  ["tostapane", "Tostapane"],
-  ["friggitrice", "Friggitrice ad aria"],
-  ["congelatore", "Congelatore"],
-  ["frigorifero", "Frigorifero"],
-  ["dehumidifier", "Deumidificatore"],
-  ["condizionatore", "Condizionatore"],
-  ["ventilatore", "Ventilatore"],
-  ["boiler", "Boiler / scaldabagno"],
-  ["termoventilatore", "Termoventilatore"],
-  ["pompa_calore", "Pompa di calore"],
-  ["pellet", "Stufa a pellet"],
-  ["radiatore", "Radiatore elettrico"],
-  ["scaldasalviette", "Scaldasalviette"],
-  ["luce", "Luce"],
-  ["lampada", "Lampada"],
-  ["tv", "Televisore"],
-  ["pc_torre", "PC (torre)"],
-  ["pc_monitor", "PC (monitor)"],
-  ["minipc", "Mini PC (Home Assistant)"],
-  ["presa", "Presa smart"],
-  ["ciabatta", "Ciabatta / multipresa"],
-  ["robot", "Robot aspirapolvere"],
-  ["asciugacapelli", "Asciugacapelli"],
-  ["ferro", "Ferro da stiro"],
-  ["pompa", "Pompa dell\'acqua"],
-  ["acquario", "Acquario"],
-  ["stampante3d", "Stampante 3D"],
-  ["console", "Console da gioco"],
-  ["colonnina", "Colonnina di ricarica"],
-  ["powerstation", "Powerstation"],
-  ["energy", "Contatore della luce"],
-];
+
+// quello che si legge sotto al campo. L'etichetta dice come si chiama
+// l'impostazione; qui sotto c'e' a cosa serve - che e' la domanda vera.
+const AIUTI = {
+  finestra_righe: "Quanto coprono quello che c'e' dietro: 100 = pieni, 0 = si vede la foto attraverso. Serve quando hai messo una foto di sfondo e le scritte non si leggono.",
+};
 
 const ETICHETTE = {
   interruttori_lista: "Piu' prese (ciabatte): una fila di tastini col loro nome",
@@ -24278,7 +24712,7 @@ const ETICHETTE = {
   power_entity: "Barra principale: il sensore che legge (i W della presa, o un altro numero)",
   threshold_run: "Sopra questi W e' «in funzione»",
   threshold_standby: "Sopra questi W e' «in standby»",
-  ciclo_attesa_sec: "Secondi di fermo prima di dire che ha finito (vuoto = 100)",
+  ciclo_attesa_sec: "Secondi di fermo prima di dire che ha finito (vuoto = 100). Questo numero sta nell'automazione: dopo averlo cambiato premi «Crea i sensori»",
   max_power: "Barra principale: fondo scala (dove arriva quando e' piena)",
   power_label: "Barra principale: il nome (vuoto = Potenza attuale)",
   power_unit: "Barra principale: l'unita' (vuoto = W)",
@@ -24297,7 +24731,6 @@ const ETICHETTE = {
   vivo_residuo: "Ciclo in corso: minuti che mancano (per l'ora di fine)",
   vivo_programma: "Ciclo in corso: programma scelto",
   vivo_fase: "Ciclo in corso: fase (asciugatura, risciacquo...)",
-  notification_path: "Pagina delle notifiche (facoltativa)",
   layout: "Disposizione della scheda",
   tema: "Chiaro o scuro (questa scheda soltanto)",
   finestra_apertura: "Come si apre il pop-up",
@@ -24307,6 +24740,7 @@ const ETICHETTE = {
   finestra_sfondo: "Pop-up: la tinta della finestra (vuoto = come le schede)",
   finestra_trasparenza: "Pop-up: quanto e' trasparente la finestra",
   finestra_scritta: "Pop-up: il colore delle scritte",
+  finestra_righe: "Pop-up: i riquadri delle scritte",
   velo_scuro: "Pop-up: quanto scurisce quello che c'e' dietro",
   velo_sfoca: "Pop-up: quanto sfoca quello che c'e' dietro",
 };
@@ -24314,7 +24748,6 @@ const ETICHETTE = {
 const SCHEMA_TUTTO = [
   // in vista solo l'essenziale: come si chiama, che faccia ha, cosa misura
   { name: "name", selector: { text: {} } },
-  { name: "artwork", selector: { select: { mode: "dropdown", options: DISEGNI.map(([value, label]) => ({ value, label })) } } },
   { name: "power_entity", selector: { entity: { domain: "sensor" } } },
   // il resto in cassetti, che si aprono solo se servono
   { name: "g_acceso", type: "expandable", flatten: true, title: "Quando e' acceso", schema: [
@@ -24344,7 +24777,6 @@ const SCHEMA_TUTTO = [
       { value: "classico", label: "Classico - la foto a sinistra" },
       { value: "centrato", label: "Centrato - la foto in mezzo, i numeri sotto" },
     ] } } },
-    { name: "notification_path", selector: { text: {} } },
     { name: "tema", selector: { select: { mode: "dropdown", options: [
       { value: "auto", label: "Automatico - come Home Assistant" },
       { value: "chiaro", label: "Sempre chiaro" },
@@ -24360,10 +24792,10 @@ const SCHEMA_TUTTO = [
       selector: { number: { min: 80, max: 2000, step: 20, mode: "slider", unit_of_measurement: "ms" } } },
     { name: "finestra_largo",
       selector: { number: { min: 400, max: 1400, step: 20, mode: "slider", unit_of_measurement: "px" } } },
-    { name: "finestra_immagine", selector: { text: {} } },
     { name: "finestra_sfondo", selector: { color_rgb: {} } },
     { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "finestra_scritta", selector: { color_rgb: {} } },
+    { name: "finestra_righe", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
   ] },
@@ -24474,7 +24906,6 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         || { label: this._nomeDi(eid), entity: eid, max: 1000 });
       if (elenco.length) c.barre = elenco; else delete c.barre;
       delete c.barre_entita;
-      ["barra2_entita", "barra2_nome", "barra2_max"].forEach((k) => delete c[k]);
     }
     this._config = c;
     this._emetti();
@@ -24614,7 +25045,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       variables: {
         scheda: cfg.name || "",
         oggi: cfg.oggi_energia || (pe.today || {}).energy || "",
-        settimana: cfg.settimana_energia || (pe.week || {}).energy || "",
+        settimana: (pe.week || {}).energy || "",
         mese: cfg.mese_energia || (pe.month || {}).energy || "",
         ciclo_contatore: ci.contatore || "",
         ciclo_kwh: ci.consumo || "",
@@ -24643,6 +25074,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
 
   // quello che si legge su ogni tendina chiusa
   _riassunti() {
+    this._rinfrescaFoto();
     const metti = (sel, testo) => {
       const x = this.querySelector(sel + " .ce-riassunto");
       if (x) x.textContent = testo ? " \u00b7 " + testo : "";
@@ -24867,7 +25299,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         // i contatori che la scheda gia' usa: quelli si riusano, non si rifanno
         gia: {
           oggi: this._config.oggi_energia || ((this._config.period_entities || {}).today || {}).energy,
-          settimana: this._config.settimana_energia || ((this._config.period_entities || {}).week || {}).energy,
+          settimana: ((this._config.period_entities || {}).week || {}).energy,
           mese: this._config.mese_energia || ((this._config.period_entities || {}).month || {}).energy,
         },
         nome: this._config.name || this._nomeDispositivo(kwh || potenza),
@@ -24908,7 +25340,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
-      this.innerHTML = `<style>${STILE_EDITOR}</style>` + TH(`<div class="ce-versione">casa-elettrodomestico \u00b7 casa-tile v${VERSIONE}</div>
+      this.innerHTML = `<style>${STILE_EDITOR}${STILE_FOTO}${STILE_DISEGNI}</style>` + TH(`<div class="ce-versione">casa-elettrodomestico \u00b7 casa-tile v${VERSIONE}</div>
         <div class="ce-form"></div>
         <details class="ce-sez ce-tendina ce-sez-capisci" data-c="1" style="--c:#7cc4ff">
           <summary class="ce-tit">${titoloSez(VESTITO.capisci, T("Capisci da solo l\u0027apparecchio"))}</summary>
@@ -24962,6 +25394,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         const f = document.createElement("ha-form");
         f.schema = traduciSchema(schema);
         f.computeLabel = (x) => T(x.title || ETICHETTE[x.name] || x.name);
+        f.computeHelper = (x) => T(AIUTI[x.name] || "");
         f.addEventListener("value-changed", (e) => {
           e.stopPropagation();
           this._cambiatoForm(e.detail.value || {});
@@ -24970,6 +25403,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         return f;
       };
       const form = faiModulo(SCHEMA_SEMPLICE, this.querySelector(".ce-form"));
+      this._attaccaDisegno(this.querySelector(".ce-form"), NOMI_DISEGNI, "dishwasher");
       this._form = form;
       // la presa sta in cima solo finche' il cassetto delle barre e' chiuso
       this._spostaPresa = () => {
@@ -24996,6 +25430,8 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         }
         cassetti.appendChild(box);
         this._moduli.push(faiModulo(g.schema, box));
+        // la foto del pop-up sta nel cassetto dell'aspetto, in fondo
+        if (g.chiave === "g_aspetto") this._attaccaFoto(box);
         // i nomi delle barre vanno dove le barre si scelgono, non altrove
         if (g.chiave === "g_barre") {
           const nota = this.querySelector(".ce-barre-nota");

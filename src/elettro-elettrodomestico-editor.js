@@ -8,6 +8,8 @@ import { VERSIONE } from './versione.js';
 import { ConEditor } from './elettro-condivisi.js';
 import { esc, tastiDi } from './elettro-comune.js';
 import { T, TH, traduciSchema } from './lingua.js';
+import { rigaFoto, STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
+import { NOMI_DISEGNI as DISEGNI } from './elettro-comune.js';
 import { preparaElettrodomestico, trovaPerDisegno } from './elettro-prepara.js';
 import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez, vestiSez } from './elettro-righe-editor.js';
 import { creaCicli, prezzoDellaCasa, INGREDIENTE, creaSensoriElettrodomestico, prezziDelKWh } from './elettro-crea.js';
@@ -15,56 +17,20 @@ import { creaCicli, prezzoDellaCasa, INGREDIENTE, creaSensoriElettrodomestico, p
 // Le voci che "Compila da solo" deve lasciare stare: non le trova guardando
 // il dispositivo, le hai messe tu.
 const MIE_NON_DEL_DISPOSITIVO = [
-  "name", "righe", "nomi_righe", "notification_path", "grid_options", "casa_misura",
+  "name", "righe", "nomi_righe", "grid_options", "casa_misura",
   "prezzo_entita", "reset_script", "helper_memoria", "ciclo_attesa_sec", "label",
   "tema", "layout", "finestra_apertura", "finestra_apertura_durata", "finestra_largo",
   "finestra_immagine", "finestra_sfondo", "finestra_trasparenza", "finestra_scritta",
+  "finestra_righe", "disegno_immagine", "disegno_immagine_accesa",
   "velo_scuro", "velo_sfoca",
 ];
 
-const DISEGNI = [
-  ["cucina", "Cucina (tutta la linea)"],
-  ["washer", "Lavatrice"],
-  ["dishwasher", "Lavastoviglie"],
-  ["dryer", "Asciugatrice"],
-  ["oven", "Forno"],
-  ["microonde", "Microonde"],
-  ["piano_cottura", "Piano cottura a induzione"],
-  ["cappa", "Cappa aspirante"],
-  ["caffe", "Macchina del caffe\'"],
-  ["bollitore", "Bollitore"],
-  ["tostapane", "Tostapane"],
-  ["friggitrice", "Friggitrice ad aria"],
-  ["congelatore", "Congelatore"],
-  ["frigorifero", "Frigorifero"],
-  ["dehumidifier", "Deumidificatore"],
-  ["condizionatore", "Condizionatore"],
-  ["ventilatore", "Ventilatore"],
-  ["boiler", "Boiler / scaldabagno"],
-  ["termoventilatore", "Termoventilatore"],
-  ["pompa_calore", "Pompa di calore"],
-  ["pellet", "Stufa a pellet"],
-  ["radiatore", "Radiatore elettrico"],
-  ["scaldasalviette", "Scaldasalviette"],
-  ["luce", "Luce"],
-  ["lampada", "Lampada"],
-  ["tv", "Televisore"],
-  ["pc_torre", "PC (torre)"],
-  ["pc_monitor", "PC (monitor)"],
-  ["minipc", "Mini PC (Home Assistant)"],
-  ["presa", "Presa smart"],
-  ["ciabatta", "Ciabatta / multipresa"],
-  ["robot", "Robot aspirapolvere"],
-  ["asciugacapelli", "Asciugacapelli"],
-  ["ferro", "Ferro da stiro"],
-  ["pompa", "Pompa dell\'acqua"],
-  ["acquario", "Acquario"],
-  ["stampante3d", "Stampante 3D"],
-  ["console", "Console da gioco"],
-  ["colonnina", "Colonnina di ricarica"],
-  ["powerstation", "Powerstation"],
-  ["energy", "Contatore della luce"],
-];
+
+// quello che si legge sotto al campo. L'etichetta dice come si chiama
+// l'impostazione; qui sotto c'e' a cosa serve - che e' la domanda vera.
+const AIUTI = {
+  finestra_righe: "Quanto coprono quello che c'e' dietro: 100 = pieni, 0 = si vede la foto attraverso. Serve quando hai messo una foto di sfondo e le scritte non si leggono.",
+};
 
 const ETICHETTE = {
   interruttori_lista: "Piu' prese (ciabatte): una fila di tastini col loro nome",
@@ -73,7 +39,7 @@ const ETICHETTE = {
   power_entity: "Barra principale: il sensore che legge (i W della presa, o un altro numero)",
   threshold_run: "Sopra questi W e' «in funzione»",
   threshold_standby: "Sopra questi W e' «in standby»",
-  ciclo_attesa_sec: "Secondi di fermo prima di dire che ha finito (vuoto = 100)",
+  ciclo_attesa_sec: "Secondi di fermo prima di dire che ha finito (vuoto = 100). Questo numero sta nell'automazione: dopo averlo cambiato premi «Crea i sensori»",
   max_power: "Barra principale: fondo scala (dove arriva quando e' piena)",
   power_label: "Barra principale: il nome (vuoto = Potenza attuale)",
   power_unit: "Barra principale: l'unita' (vuoto = W)",
@@ -92,7 +58,6 @@ const ETICHETTE = {
   vivo_residuo: "Ciclo in corso: minuti che mancano (per l'ora di fine)",
   vivo_programma: "Ciclo in corso: programma scelto",
   vivo_fase: "Ciclo in corso: fase (asciugatura, risciacquo...)",
-  notification_path: "Pagina delle notifiche (facoltativa)",
   layout: "Disposizione della scheda",
   tema: "Chiaro o scuro (questa scheda soltanto)",
   finestra_apertura: "Come si apre il pop-up",
@@ -102,6 +67,7 @@ const ETICHETTE = {
   finestra_sfondo: "Pop-up: la tinta della finestra (vuoto = come le schede)",
   finestra_trasparenza: "Pop-up: quanto e' trasparente la finestra",
   finestra_scritta: "Pop-up: il colore delle scritte",
+  finestra_righe: "Pop-up: i riquadri delle scritte",
   velo_scuro: "Pop-up: quanto scurisce quello che c'e' dietro",
   velo_sfoca: "Pop-up: quanto sfoca quello che c'e' dietro",
 };
@@ -109,7 +75,6 @@ const ETICHETTE = {
 const SCHEMA_TUTTO = [
   // in vista solo l'essenziale: come si chiama, che faccia ha, cosa misura
   { name: "name", selector: { text: {} } },
-  { name: "artwork", selector: { select: { mode: "dropdown", options: DISEGNI.map(([value, label]) => ({ value, label })) } } },
   { name: "power_entity", selector: { entity: { domain: "sensor" } } },
   // il resto in cassetti, che si aprono solo se servono
   { name: "g_acceso", type: "expandable", flatten: true, title: "Quando e' acceso", schema: [
@@ -139,7 +104,6 @@ const SCHEMA_TUTTO = [
       { value: "classico", label: "Classico - la foto a sinistra" },
       { value: "centrato", label: "Centrato - la foto in mezzo, i numeri sotto" },
     ] } } },
-    { name: "notification_path", selector: { text: {} } },
     { name: "tema", selector: { select: { mode: "dropdown", options: [
       { value: "auto", label: "Automatico - come Home Assistant" },
       { value: "chiaro", label: "Sempre chiaro" },
@@ -155,10 +119,10 @@ const SCHEMA_TUTTO = [
       selector: { number: { min: 80, max: 2000, step: 20, mode: "slider", unit_of_measurement: "ms" } } },
     { name: "finestra_largo",
       selector: { number: { min: 400, max: 1400, step: 20, mode: "slider", unit_of_measurement: "px" } } },
-    { name: "finestra_immagine", selector: { text: {} } },
     { name: "finestra_sfondo", selector: { color_rgb: {} } },
     { name: "finestra_trasparenza", selector: { number: { min: 0, max: 90, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "finestra_scritta", selector: { color_rgb: {} } },
+    { name: "finestra_righe", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "velo_scuro", selector: { number: { min: 0, max: 100, step: 5, mode: "slider", unit_of_measurement: "%" } } },
     { name: "velo_sfoca", selector: { number: { min: 0, max: 30, step: 1, mode: "slider", unit_of_measurement: "px" } } },
   ] },
@@ -269,7 +233,6 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         || { label: this._nomeDi(eid), entity: eid, max: 1000 });
       if (elenco.length) c.barre = elenco; else delete c.barre;
       delete c.barre_entita;
-      ["barra2_entita", "barra2_nome", "barra2_max"].forEach((k) => delete c[k]);
     }
     this._config = c;
     this._emetti();
@@ -409,7 +372,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       variables: {
         scheda: cfg.name || "",
         oggi: cfg.oggi_energia || (pe.today || {}).energy || "",
-        settimana: cfg.settimana_energia || (pe.week || {}).energy || "",
+        settimana: (pe.week || {}).energy || "",
         mese: cfg.mese_energia || (pe.month || {}).energy || "",
         ciclo_contatore: ci.contatore || "",
         ciclo_kwh: ci.consumo || "",
@@ -438,6 +401,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
 
   // quello che si legge su ogni tendina chiusa
   _riassunti() {
+    this._rinfrescaFoto();
     const metti = (sel, testo) => {
       const x = this.querySelector(sel + " .ce-riassunto");
       if (x) x.textContent = testo ? " \u00b7 " + testo : "";
@@ -662,7 +626,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         // i contatori che la scheda gia' usa: quelli si riusano, non si rifanno
         gia: {
           oggi: this._config.oggi_energia || ((this._config.period_entities || {}).today || {}).energy,
-          settimana: this._config.settimana_energia || ((this._config.period_entities || {}).week || {}).energy,
+          settimana: ((this._config.period_entities || {}).week || {}).energy,
           mese: this._config.mese_energia || ((this._config.period_entities || {}).month || {}).energy,
         },
         nome: this._config.name || this._nomeDispositivo(kwh || potenza),
@@ -703,7 +667,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
   _disegna() {
     if (!this._costruito) {
       this._costruito = true;
-      this.innerHTML = `<style>${STILE_EDITOR}</style>` + TH(`<div class="ce-versione">casa-elettrodomestico \u00b7 casa-tile v${VERSIONE}</div>
+      this.innerHTML = `<style>${STILE_EDITOR}${STILE_FOTO}${STILE_DISEGNI}</style>` + TH(`<div class="ce-versione">casa-elettrodomestico \u00b7 casa-tile v${VERSIONE}</div>
         <div class="ce-form"></div>
         <details class="ce-sez ce-tendina ce-sez-capisci" data-c="1" style="--c:#7cc4ff">
           <summary class="ce-tit">${titoloSez(VESTITO.capisci, T("Capisci da solo l\u0027apparecchio"))}</summary>
@@ -757,6 +721,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         const f = document.createElement("ha-form");
         f.schema = traduciSchema(schema);
         f.computeLabel = (x) => T(x.title || ETICHETTE[x.name] || x.name);
+        f.computeHelper = (x) => T(AIUTI[x.name] || "");
         f.addEventListener("value-changed", (e) => {
           e.stopPropagation();
           this._cambiatoForm(e.detail.value || {});
@@ -765,6 +730,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         return f;
       };
       const form = faiModulo(SCHEMA_SEMPLICE, this.querySelector(".ce-form"));
+      this._attaccaDisegno(this.querySelector(".ce-form"), DISEGNI, "dishwasher");
       this._form = form;
       // la presa sta in cima solo finche' il cassetto delle barre e' chiuso
       this._spostaPresa = () => {
@@ -791,6 +757,8 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         }
         cassetti.appendChild(box);
         this._moduli.push(faiModulo(g.schema, box));
+        // la foto del pop-up sta nel cassetto dell'aspetto, in fondo
+        if (g.chiave === "g_aspetto") this._attaccaFoto(box);
         // i nomi delle barre vanno dove le barre si scelgono, non altrove
         if (g.chiave === "g_barre") {
           const nota = this.querySelector(".ce-barre-nota");

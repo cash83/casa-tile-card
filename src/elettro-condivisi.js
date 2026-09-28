@@ -18,6 +18,8 @@ import { ICONE, disegnoMdi } from './icone.js';
 import { scegliLingua, T, TH } from './lingua.js';
 import { aiutantiVeri, cancellaQuesti, scollegaEntita, ID_TOTALE } from './elettro-crea.js';
 import { quali_cancellare } from './elettro-righe-editor.js';
+import { rigaFoto, sceltaDisegno } from './editor-foto.js';
+import { HERO_BUILDERS, CHIP_SVGS } from './elettro-comune.js';
 
 // ---------------------------------------------------------------- le schede
 // Il disegno di un tasto: l'icona scelta (le stesse della casella). Se non
@@ -87,14 +89,20 @@ export const ConFinestrelle = (Base) => class extends Base {
   // Il costo su una riga sola: la sola energia e, staccata, quanto ti costa
   // in bolletta. Due righe per dire due numeri erano troppe, ma attaccate
   // sembravano un numero lungo: la seconda va piu' piccola e piu' chiara.
+  // ATTENZIONE a Number(): Number(null) fa 0, e zero e' un numero buono.
+  // Percio' un costo che NON C'E' finiva scritto "0,00 \u20ac" accanto a tre
+  // righe col trattino - la lavastoviglie senza nessun ciclo registrato.
+  // Un numero e' un numero; niente, e' niente.
   _scriviCosto(el, solo, pieno) {
     if (!el) return;
-    el.textContent = Number.isFinite(Number(solo))
-      ? `${numero(Number(solo), 2)} \u20ac` : "\u2014";
-    if (Number.isFinite(Number(solo)) && Number.isFinite(Number(pieno)) && Number(pieno) > 0) {
+    const conto = (v) => (v === null || v === undefined || v === "" ? NaN : Number(v));
+    const uno = conto(solo);
+    const inBolletta = conto(pieno);
+    el.textContent = Number.isFinite(uno) ? `${numero(uno, 2)} \u20ac` : "\u2014";
+    if (Number.isFinite(uno) && Number.isFinite(inBolletta) && inBolletta > 0) {
       const due = document.createElement("span");
       due.className = "dm-ap-due";
-      due.textContent = `${numero(Number(pieno), 2)} \u20ac`;
+      due.textContent = `${numero(inBolletta, 2)} \u20ac`;
       el.appendChild(due);
       el.title = T("prima la sola energia, poi quanto costa in bolletta");
     } else {
@@ -151,6 +159,17 @@ export const ConFinestrelle = (Base) => class extends Base {
     overlay.style.setProperty("--dm-nasce", x.toFixed(1) + "% " + y.toFixed(1) + "%");
   }
 
+  // "Andamento" da solo non dice di chi e'. Ci attacco il nome della scheda,
+  // a meno che non ci sia gia' dentro (il grafico di una barra si chiama gia'
+  // col nome di quella presa).
+  _titoloConNome(title) {
+    const t = T(title);
+    const nome = (this._config || {}).name;
+    if (!nome || !t) return t;
+    if (t.toLowerCase().includes(String(nome).toLowerCase())) return t;
+    return t + " · " + nome;
+  }
+
   _openDialog(title, bodyHtml, partenza) {
     let overlay = this._root.querySelector(".dm-ap-overlay");
     if (!overlay) {
@@ -179,7 +198,7 @@ export const ConFinestrelle = (Base) => class extends Base {
     // qui passa il contenuto di TUTTE le finestrelle delle due schede: il
     // titolo e le scritte dentro si traducono in un punto solo
     overlay.innerHTML = `<div class="dm-ap-dialog">
-      <div class="dm-ap-dialog-head"><h3>${esc(T(title))}</h3><button type="button" class="dm-ap-dialog-close">${ICON_CLOSE}</button></div>
+      <div class="dm-ap-dialog-head"><h3>${esc(this._titoloConNome(title))}</h3><button type="button" class="dm-ap-dialog-close">${ICON_CLOSE}</button></div>
       <div class="dm-ap-dialog-body">${TH(bodyHtml)}</div>
     </div>`;
     const finestra = overlay.querySelector(".dm-ap-dialog");
@@ -214,8 +233,15 @@ export const ConFinestrelle = (Base) => class extends Base {
   // Sceglie fino a "count" indici distribuiti in modo uniforme (incluso il
   // primo e l'ultimo) per non affollare l'asse con un'etichetta per ogni
   // singolo punto/barra.
-  _labelSpans(items, count, formatFn) {
+  // Le scritte sotto al grafico, messe ognuna sotto al SUO punto. Il disegno
+  // comincia dopo l'asse (30 su 300, cioe' un decimo), quindi spalmarle su
+  // tutta la larghezza le spostava a sinistra - e lo scarto cresceva verso
+  // destra. `barre: true` le centra sulla fetta della barra, se no le mette
+  // sul punto della linea.
+  _labelSpans(items, count, formatFn, opzioni) {
     if (!items.length) return "";
+    const ASSE = 10;
+    const barre = !!(opzioni && opzioni.barre);
     const n = Math.min(count, items.length);
     const idxs = [];
     for (let i = 0; i < n; i++) {
@@ -223,7 +249,10 @@ export const ConFinestrelle = (Base) => class extends Base {
     }
     const seen = new Set();
     const unique = idxs.filter((i) => (seen.has(i) ? false : (seen.add(i), true)));
-    return `<div class="dm-ap-chart-labels">${unique.map((i) => `<span>${formatFn(items[i], i)}</span>`).join("")}</div>`;
+    const dove = (i) => (barre
+      ? ASSE + ((i + 0.5) / items.length) * (100 - ASSE)
+      : ASSE + (items.length > 1 ? i / (items.length - 1) : 0.5) * (100 - ASSE));
+    return `<div class="dm-ap-chart-labels">${unique.map((i) => `<span style="left:${dove(i).toFixed(2)}%">${formatFn(items[i], i)}</span>`).join("")}</div>`;
   }
 
   // La scheda dice se vuole la linea morbida (energia) o spigolosa
@@ -270,6 +299,79 @@ export const ConEditor = (Base) => class extends Base {
     this.dispatchEvent(new CustomEvent("config-changed", {
       detail: { config: this._config }, bubbles: true, composed: true,
     }));
+  }
+
+  // LA SCELTA DEL DISEGNO, al posto della tendina. La griglia, il filtro, e
+  // sotto le due foto tue: quella di sempre e quella di quando lavora (che
+  // puo' essere una gif). Come sulla casella animata.
+  _attaccaDisegno(dove, elenco, diSerie) {
+    if (!dove || this._grigliaDisegni) return;
+    const eti = document.createElement("div");
+    eti.className = "ce-aiuto";
+    eti.textContent = T("Il disegno della scheda");
+    this._grigliaDisegni = sceltaDisegno({
+      elenco,
+      // l'anteprima: il tondino del disegno se ce l'ha, se no il disegno
+      // grande rimpicciolito dal vestito
+      disegna: (k) => CHIP_SVGS[k]
+        || (HERO_BUILDERS[k] ? HERO_BUILDERS[k]("g" + k) : ""),
+      scelto: (this._config || {}).artwork || diSerie,
+      scrivi: (k) => this._scriviScelta("artwork", k),
+    });
+    const etiFoto = document.createElement("div");
+    etiFoto.className = "ce-aiuto";
+    etiFoto.textContent = T("Oppure una foto tua al posto del disegno");
+    this._fotoDisegno = rigaFoto({
+      dammiHass: () => this._hass,
+      valore: (this._config || {}).disegno_immagine,
+      scrivi: (v) => {
+        this._scriviScelta("disegno_immagine", v);
+        this._fotoDisegno.aggiorna(v);
+      },
+    });
+    this._fotoAccesa = rigaFoto({
+      dammiHass: () => this._hass,
+      valore: (this._config || {}).disegno_immagine_accesa,
+      tasto: T("Immagine di quando lavora (anche una gif)"),
+      scrivi: (v) => {
+        this._scriviScelta("disegno_immagine_accesa", v);
+        this._fotoAccesa.aggiorna(v);
+      },
+    });
+    const nota = document.createElement("div");
+    nota.className = "ce-aiuto";
+    nota.textContent = T("La seconda si vede solo mentre lavora: a riposo torna quella di sopra.");
+    dove.append(eti, this._grigliaDisegni, etiFoto, this._fotoDisegno,
+      this._fotoAccesa, nota);
+  }
+
+  // La foto di sfondo del pop-up: non un campo dove scrivere "/local/x.jpg"
+  // a mano - per riempirlo bisognava gia' sapere come si carica un file su
+  // Home Assistant - ma la riga con il tasto, come nella casella animata.
+  // Le due schede dei consumi la chiamano una volta, quando si costruiscono.
+  _attaccaFoto(dove) {
+    if (!dove || this._rigaFoto) return;
+    const eti = document.createElement("div");
+    eti.className = "ce-aiuto";
+    eti.textContent = T("Foto di sfondo del pop-up");
+    this._rigaFoto = rigaFoto({
+      dammiHass: () => this._hass,
+      valore: (this._config || {}).finestra_immagine,
+      scrivi: (v) => {
+        this._scriviScelta("finestra_immagine", v);
+        this._rigaFoto.aggiorna(v);
+      },
+    });
+    dove.append(eti, this._rigaFoto);
+  }
+
+  // quando la configurazione arriva da fuori, la riga si rimette a posto
+  _rinfrescaFoto() {
+    const c = this._config || {};
+    if (this._rigaFoto) this._rigaFoto.aggiorna(c.finestra_immagine);
+    if (this._fotoDisegno) this._fotoDisegno.aggiorna(c.disegno_immagine);
+    if (this._fotoAccesa) this._fotoAccesa.aggiorna(c.disegno_immagine_accesa);
+    if (this._grigliaDisegni) this._grigliaDisegni.aggiorna(c.artwork);
   }
 
   // le scelte dei riquadri sono configurazione: le scrivo subito, se no Home
