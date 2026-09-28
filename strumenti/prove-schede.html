@@ -225,6 +225,44 @@
   }
 
   // ======================================================================
+  // UNA riga sola per il fotovoltaico. Prima ce n'erano quattro - pannelli,
+  // batteria, dal sole, dal fotovoltaico - e le prime tre dicevano cose che
+  // si sovrapponevano: i kWh che il sole manda in batteria e la batteria
+  // rende poi alla casa venivano contati due volte. Adesso la riga dice una
+  // cosa sola e vera: quanto e' ARRIVATO in casa, oggi / settimana / mese.
+  dice('dal fotovoltaico: una riga, tre periodi, sole e batteria insieme');
+  if (casa) {
+    hass.states['sensor.prova_fv_sett'] = statoNum(9.81, 'kWh', { device_class: 'energy' });
+    hass.states['sensor.prova_fv_mese'] = statoNum(49.745, 'kWh', { device_class: 'energy' });
+    const fv = (cfg) => {
+      const el = document.createElement('casa-energia');
+      el.setConfig({ type: 'custom:casa-energia', name: 'Prova',
+        power_entity: 'sensor.prova_watt', righe: ['fv_casa'],
+        periods: [{ label: 'Oggi', energy: 'sensor.prova_oggi' }], ...cfg });
+      banco.appendChild(el);
+      el.hass = hass;
+      return el.shadowRoot.querySelector('.dm-e-fv-casa');
+    };
+    const tutti = fv({ fv_casa_oggi: 'sensor.prova_fv_in_casa',
+                       fv_casa_settimana: 'sensor.prova_fv_sett',
+                       fv_casa_mese: 'sensor.prova_fv_mese' });
+    prova('i tre periodi in fila', tutti.textContent, '1,54 / 9,81 / 49,75 kWh');
+    prova('e dice quali sono', tutti.title, 'oggi / settimana / mese');
+    // i contatori nuovi non hanno ancora la settimana e il mese: non voglio
+    // due zeri finti accanto al numero vero
+    const solo = fv({ fv_casa_oggi: 'sensor.prova_fv_in_casa' });
+    prova('solo oggi: un numero solo', solo.textContent, '1,54 kWh');
+    prova('e lo dice', solo.title, 'oggi');
+    // niente contatori: trattino, non uno zero
+    prova('senza contatori: trattino', fv({}).textContent, '\u2014');
+    // le chiavi vecchie non risuscitano la riga: il codice che le leggeva
+    // non c'e' piu'
+    const vecchie = fv({ pannelli_oggi: 'sensor.prova_oggi',
+                         batteria_oggi: 'sensor.prova_mese' });
+    prova('pannelli_oggi e batteria_oggi non contano piu', vecchie.textContent, '\u2014');
+  }
+
+  // ======================================================================
   dice('il costo del periodo precedente, ricavato');
   if (casa) {
     // 9,6386 kWh x 0,242 + 0,542 di quota = 2,873 -> "2,87 €"

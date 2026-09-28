@@ -37,8 +37,7 @@ export const RIGHE_OGGI = [
   { id: "energia", nome: "Energia attuale (senza tasse)", etichetta: "Energia attuale", colore: "#2fbfb0" },
   { id: "mese", nome: "Mese (+ tasse)", etichetta: "Mese (+ tasse)", colore: "#a283f2" },
   { id: "bolletta", nome: "Bolletta (il bimestre, kWh e €)", etichetta: "Bolletta", colore: "#e07b39" },
-  { id: "pannelli", nome: "kWh dai pannelli (oggi e mese)", etichetta: "Dai pannelli", colore: "#f2c53c" },
-  { id: "batteria", nome: "kWh dalla batteria (oggi e mese)", etichetta: "Dalla batteria", colore: "#7ecf6a" },
+  { id: "fv_casa", nome: "kWh arrivati dal fotovoltaico, sole e batteria insieme (oggi, settimana, mese)", etichetta: "Dal fotovoltaico", colore: "#f2c53c" },
   { id: "consumo_vero", nome: "Consumo totale (rete + fotovoltaico)", etichetta: "Consumo totale", colore: "#2fbfb0" },
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
@@ -58,8 +57,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>`,
       bolletta: `${this._config.bolletta_energia || this._config.bolletta_costo ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e07b39"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Bolletta</small></span><b class="dm-e-bolletta">\u2014</b></div>` : ""}`,
       consumo_vero: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo totale</small></span><b class="dm-e-consumo-vero">—</b></div>`,
-      pannelli: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f2c53c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Dai pannelli</small></span><b class="dm-e-pannelli">\u2014</b></div>`}`,
-      batteria: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#7ecf6a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Dalla batteria</small></span><b class="dm-e-batteria">\u2014</b></div>`}`,
+      fv_casa: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f2c53c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Dal fotovoltaico</small></span><b class="dm-e-fv-casa">—</b></div>`,
       top: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>`,
     };
     return righeInOrdine(this._config, RIGHE_OGGI, R, esc);
@@ -179,8 +177,17 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   _curveDellaCasa() {
     const cfg = this._config;
     const tinte = ["#f28c3c", "#43b86a", "#a283f2", "#3fb4ea", "#f06e82", "#2fbfb0"];
+    // i tre contatori del Generale sono quelli della scheda: cosi' sotto al
+    // grafico si leggono gli stessi numeri del riquadro, non un conto a parte
+    const delPeriodo = (nome) => {
+      const p = (cfg.periods || []).find((x) =>
+        String(x.label || "").trim().toLowerCase() === nome);
+      return p ? p.energy : null;
+    };
     const fuori = [{ nome: cfg.power_label || "Generale", entity: cfg.power_entity,
-      colore: "#0ea5e9", unita: "W" }];
+      colore: "#0ea5e9", unita: "W",
+      contatori: { oggi: delPeriodo("oggi"), settimana: delPeriodo("settimana"),
+        mese: delPeriodo("mese") } }];
     (cfg.circuits || []).forEach((c, i) => {
       if (!c || !c.entity) return;
       fuori.push({ nome: c.label || c.entity, entity: c.entity,
@@ -560,9 +567,9 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       }
     }
     { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
-    // i kWh arrivati dai pannelli e dalla batteria: oggi / mese, come il risparmio
-    // oggi / settimana / mese: faccio vedere i periodi che esistono davvero
-    [[".dm-e-pannelli", "pannelli"], [".dm-e-batteria", "batteria"]].forEach(([sel, chi]) => {
+    // I kWh arrivati dal fotovoltaico: oggi / settimana / mese. Faccio
+    // vedere i periodi che esistono davvero, non tre trattini.
+    [[".dm-e-fv-casa", "fv_casa"]].forEach(([sel, chi]) => {
       const x = this._root.querySelector(sel);
       if (!x) return;
       const n = (e) => {

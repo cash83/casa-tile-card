@@ -197,6 +197,92 @@ export const ConGrafico = (Base) => class extends Base {
       <div><small>${T("Massimo")}</small><b>${esc(scrivi(max))}</b></div>
     </div>`;
   }
+  // I TRE NUMERI SOTTO AL GRAFICO: oggi, questa settimana, questo mese.
+  // Minimo/media/massimo parlavano solo del pezzo di tempo disegnato e non si
+  // potevano confrontare con niente. Questi sono i kWh della curva accesa,
+  // negli stessi periodi del riquadro della scheda, e cambiano col chip.
+  _trePeriodi(kwh, curva) {
+    const scrivi = (v) => (Number.isFinite(v) ? numero(v, 2) + " kWh" : "\u2014");
+    // di chi sono questi numeri: coi chip si accendono piu' curve insieme e
+    // senza il nome non si capiva a quale delle due guardare
+    const chi = curva && curva.nome
+      ? `<div class="dm-ap-mmm-chi"><i style="background:${curva.colore || "#94a3b8"}"></i>${esc(curva.nome)}</div>`
+      : "";
+    return `${chi}<div class="dm-ap-mmm">
+      <div><small>${T("Oggi")}</small><b>${esc(scrivi(kwh.oggi))}</b></div>
+      <div><small>${T("Settimana")}</small><b>${esc(scrivi(kwh.settimana))}</b></div>
+      <div><small>${T("Mese")}</small><b>${esc(scrivi(kwh.mese))}</b></div>
+    </div>`;
+  }
+
+  // Il sensore dei kWh di una curva. La scheda me lo puo' dire lei (`energia`);
+  // se no lo cerco accanto a quello dei Watt: Home Assistant chiama le due
+  // misure della stessa presa <nome>_power e <nome>_energy.
+  _sensoreEnergia(curva) {
+    const st = (this._hass || {}).states || {};
+    if (curva.energia && st[curva.energia]) return curva.energia;
+    const nudo = String(curva.entity || "").replace(/^sensor\./, "");
+    const radice = nudo.replace(/_(power|potenza|watt)$/i, "");
+    if (radice === nudo) return null;
+    for (const coda of ["_energy", "_energia", "_kwh"]) {
+      const c = "sensor." + radice + coda;
+      const s = st[c];
+      if (s && String((s.attributes || {}).device_class || "") === "energy") return c;
+    }
+    return null;
+  }
+
+  // Quanti kWh ha fatto questa curva oggi, questa settimana e questo mese.
+  // Due strade: i contatori che la scheda ha gia' (esatti, e sono gli stessi
+  // numeri che si leggono nel riquadro), o le statistiche a lungo termine del
+  // sensore che sale sempre. Se non c'e' ne' l'uno ne' l'altro torna null e
+  // sotto al grafico restano minimo/media/massimo.
+  async _kwhDellaCurva(curva) {
+    const st = (this._hass || {}).states || {};
+    const leggi = (e) => {
+      const x = e ? st[e] : null;
+      const v = x && !["unknown", "unavailable"].includes(x.state) ? Number(x.state) : NaN;
+      return Number.isFinite(v) ? v : NaN;
+    };
+    const c = curva.contatori || {};
+    if (c.oggi || c.settimana || c.mese) {
+      return { oggi: leggi(c.oggi), settimana: leggi(c.settimana), mese: leggi(c.mese) };
+    }
+    const eid = this._sensoreEnergia(curva);
+    if (!eid) return null;
+    const ora = new Date();
+    const mezzanotte = new Date(ora.getFullYear(), ora.getMonth(), ora.getDate());
+    const primoDelMese = new Date(ora.getFullYear(), ora.getMonth(), 1);
+    // la settimana comincia di lunedi', come i contatori di Home Assistant
+    const lunedi = new Date(mezzanotte.getTime()
+      - ((mezzanotte.getDay() + 6) % 7) * 86400000);
+    const da = new Date(Math.min(primoDelMese.getTime(), lunedi.getTime()));
+    let risposta;
+    try {
+      risposta = await this._hass.callWS({
+        type: "recorder/statistics_during_period",
+        start_time: da.toISOString(),
+        statistic_ids: [eid],
+        period: "day",
+        types: ["change"],
+      });
+    } catch (e) { return null; }
+    const giorni = (risposta || {})[eid] || [];
+    if (!giorni.length) return null;
+    const somma = (dalle) => {
+      let t = null;
+      giorni.forEach((g) => {
+        const q = typeof g.start === "number" ? g.start : Date.parse(g.start);
+        const v = Number(g.change);
+        if (q >= dalle && Number.isFinite(v)) t = (t === null ? 0 : t) + v;
+      });
+      return t === null ? NaN : t;
+    };
+    return { oggi: somma(mezzanotte.getTime()),
+      settimana: somma(lunedi.getTime()),
+      mese: somma(primoDelMese.getTime()) };
+  }
+
   // ---------------------------------------------------------- la finestra
   // `curve` = [{nome, entity, colore, unita}]. La prima e' accesa, le altre
   // si accendono coi chip. Non c'e' niente da configurare: sono le entita'
@@ -209,6 +295,7 @@ export const ConGrafico = (Base) => class extends Base {
       return;
     }
     this._curve = buone.map((c, i) => ({ ...c, accesa: i === 0 }));
+    this._curvaScelta = this._curve[0];
     this._graficoQuando = this._graficoQuando || { id: "24h" };
     const chip = buone.length > 1
       ? `<div class="dm-ap-chip-riga">${buone.map((c, i) => `<button type="button"
@@ -271,6 +358,10 @@ export const ConGrafico = (Base) => class extends Base {
         }
         c.accesa = !c.accesa;
         if (!this._curve.some((x) => x.accesa)) c.accesa = true;
+        // i numeri sotto e il mirino parlano di QUESTA, quella che hai appena
+        // toccato: prima restavano sempre sulla prima accesa e premere un
+        // chip non cambiava niente
+        if (c.accesa) this._curvaScelta = c;
         this._disegnaGrafico();
       });
     });
@@ -316,8 +407,19 @@ export const ConGrafico = (Base) => class extends Base {
     }
     if (this._giroGrafico !== mio) return;
     posto.innerHTML = this._grafico(accese, giorni);
-    const prima = accese[0];
+    const prima = accese.includes(this._curvaScelta) ? this._curvaScelta : accese[0];
     if (sotto) sotto.innerHTML = this._minMedMax(prima.punti, prima.unita);
+    // i kWh dei tre periodi arrivano dopo (sono statistiche, non stati):
+    // finche' non ci sono restano minimo/media/massimo, che almeno dicono
+    // qualcosa. Se nel frattempo premi un altro chip, il giro vecchio non
+    // scrive sopra a quello nuovo.
+    if (sotto) {
+      this._kwhDellaCurva(prima).then((k) => {
+        if (this._giroGrafico !== mio || !k) return;
+        if (![k.oggi, k.settimana, k.mese].some(Number.isFinite)) return;
+        sotto.innerHTML = this._trePeriodi(k, prima);
+      }).catch(() => {});
+    }
     if (prima && prima.punti && prima.punti.length > 1) {
       // prima QUANDO, poi QUANTO: muovendo il dito stai navigando il tempo,
       // la data e' la domanda e il valore la risposta. Le barre lo facevano

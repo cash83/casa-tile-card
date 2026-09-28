@@ -839,17 +839,20 @@ export async function creaFonte(hass, opzioni, dillo) {
 }
 
 /**
- * Il risparmio dei pannelli, dalla sola entita' della produzione solare.
+ * Il risparmio del fotovoltaico, dalla sola entita' dei kWh che arrivano in
+ * casa (di giorno dal sole, di sera dalla batteria). Non dalla produzione:
+ * quella comprende anche l'energia finita in batteria, che in casa non e'
+ * ancora arrivata e quindi non ha ancora risparmiato niente.
  * Se gli dai i Watt si fa l'integrale; poi trasforma i kWh in euro con la
  * tariffa e li mette in due contatori, oggi e mese. Torna le due entita'.
  */
 export async function creaRisparmio(hass, opzioni, dillo) {
   const parla = dillo || (() => {});
-  const pannelli = opzioni.pannelli;
-  if (!pannelli || !hass.states[pannelli]) throw new Error("Scegli il sensore dei pannelli.");
+  const fonte = opzioni.fonte;
+  if (!fonte || !hass.states[fonte]) throw new Error("Scegli il sensore del fotovoltaico che arriva in casa.");
   const prezzo = opzioni.prezzo_entita;
   if (!prezzo) throw new Error("Prima scrivi la tariffa.");
-  const base = nomeSorgente(hass, pannelli);
+  const base = nomeSorgente(hass, fonte);
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
@@ -860,22 +863,22 @@ export async function creaRisparmio(hass, opzioni, dillo) {
   };
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
 
-  // 1. i kWh dei pannelli: se il sensore e' in Watt me li calcolo
-  const st = hass.states[pannelli];
+  // 1. i kWh: se il sensore e' in Watt me li calcolo
+  const st = hass.states[fonte];
   const unita = String((st.attributes || {}).unit_of_measurement || "").toLowerCase();
-  let kwh = pannelli;
+  let kwh = fonte;
   if (unita === "w" || unita === "kw") {
     const nome = base + " energia";
     kwh = gia("integration", nome);
     if (!kwh) {
-      parla("Calcolo i kWh dei pannelli dai Watt...");
-      await creaIntegrale(hass, nome, pannelli);
+      parla("Calcolo i kWh dai Watt...");
+      await creaIntegrale(hass, nome, fonte);
       await rinfresca();
       kwh = await sistemaNome(hass, gia("integration", nome), nome, parla);
-    } else parla("I kWh dei pannelli c'erano gia'.");
+    } else parla("I kWh c'erano gia'.");
   }
 
-  // 2. quanti euro sono: i kWh prodotti per quello che avresti pagato
+  // 2. quanti euro sono: i kWh arrivati per quello che avresti pagato
   const nomeEuro = "Risparmio fotovoltaico";
   let euro = gia("template", nomeEuro)
     || Object.keys(hass.states).find((x) => x.startsWith("sensor.")
@@ -1104,8 +1107,10 @@ export function aiutantiDellaScheda(hass, cfg) {
    "bolletta_energia", "bolletta_costo", "bill_today", "bill_month"].forEach((k) => metti(cfg[k]));
   // la scheda della casa tiene i suoi contatori qui dentro
   [...(cfg.periods || []), ...(cfg.periods_prev || [])].forEach((r) => { metti(r.energy); metti(r.cost); });
-  // pannelli, batteria e risparmio: oggi, settimana, mese
-  ["pannelli", "batteria", "risparmio"].forEach((chi) => {
+  // il fotovoltaico in casa e il risparmio: oggi, settimana, mese (pannelli e
+  // batteria non li fa piu' nessuno, ma le schede vecchie li hanno ancora
+  // scritti dentro e vanno riconosciuti per poterli scollegare)
+  ["fv_casa", "pannelli", "batteria", "risparmio"].forEach((chi) => {
     ["oggi", "settimana", "mese"].forEach((q) => metti(cfg[chi + "_" + q]));
   });
   // i pezzi dell'ultimo ciclo: il contatore, le quattro memorie e la soglia
@@ -1216,7 +1221,7 @@ export function scollegaEntita(cfg, spariti) {
     "mese_energia", "mese_costo", "bolletta_energia", "bolletta_costo", "energy_stat_entity",
     "soglia_acceso"];
   CHIAVI.forEach((k) => { if (via.has(c[k])) delete c[k]; });
-  ["pannelli", "batteria", "risparmio"].forEach((chi) => {
+  ["fv_casa", "pannelli", "batteria", "risparmio"].forEach((chi) => {
     ["oggi", "settimana", "mese"].forEach((q) => {
       if (via.has(c[chi + "_" + q])) delete c[chi + "_" + q];
     });

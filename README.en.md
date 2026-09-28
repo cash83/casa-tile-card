@@ -126,8 +126,13 @@ already selected.
 **2. The counters.** The **Counters** box: choose which kWh sensor the home starts
 from and press the button. It creates the counters for hour, today, week, month
 and bill, plus the cost of each period with the standing charge counted over the
-right days. In the same box you point at the **solar** sensor and the **battery**
-one.
+right days. In the same box, if you have solar, you point at **one sensor
+only**: the one that says how many kWh reach the house - from the sun by day,
+from the battery in the evening. Out of it come the meters for today, this
+week and this month, the **From solar** row, the **Total use** and the
+**saving** in euros. The panels' production is not what is needed: it also
+includes the energy that went into the battery, which has not reached the
+house yet.
 
 On appliances the button is called **Create statistics and costs** and does the
 same in miniature: today's and this month's kWh, and if you tick **Follow the
@@ -227,7 +232,7 @@ Almost everything is click-only; these only matter if you write the YAML by hand
 | `disegno_immagine` | a photo of yours instead of the drawing (the button uploads it for you) |
 | `disegno_immagine_accesa` | the photo for when it is working: a gif works too |
 | `finestra_righe` | how much the pop-up text boxes cover the photo (0-100) |
-| `fv_casa_oggi` | the kWh that reached the house from solar today: the «Total use» row needs them |
+| `fv_casa_oggi` | the kWh that reached the house from solar today: the «From solar» and «Total use» rows need them |
 | `fv_casa_settimana` / `fv_casa_mese` | the same, for the other periods |
 
 ---

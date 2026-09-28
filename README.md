@@ -128,8 +128,12 @@ già scelto.
 **2. I contatori.** Riquadro **I contatori**: scegli da quale sensore dei kWh
 parte la casa e premi il tasto. Nascono i contatori di ora, oggi, settimana, mese
 e bolletta, più il costo di ogni periodo con la quota fissa contata sui giorni
-giusti. Nello stesso riquadro indichi il sensore dei **pannelli** e quello della
-**batteria**.
+giusti. Nello stesso riquadro, se hai il fotovoltaico, indichi **un sensore
+solo**: quello che dice quanti kWh arrivano in casa - di giorno dal sole, di
+sera dalla batteria. Da quello nascono i contatori di oggi, settimana e mese,
+la riga **Dal fotovoltaico**, il **Consumo totale** e il **risparmio** in euro.
+Non serve la produzione dei pannelli: quella comprende anche l'energia finita
+in batteria, che in casa non e' ancora arrivata.
 
 Sugli apparecchi il tasto si chiama **Crea statistiche e costi** e fa lo stesso in
 piccolo: i kWh di oggi e del mese, e se spunti **Segui i cicli** anche la soglia
@@ -230,7 +234,7 @@ Quasi tutto si fa a clic; queste servono solo se scrivi il YAML a mano.
 | `disegno_immagine` | una foto tua al posto del disegno (il tasto la carica da solo) |
 | `disegno_immagine_accesa` | la foto di quando lavora: anche una gif |
 | `finestra_righe` | quanto coprono la foto i riquadri delle scritte nel pop-up (0-100) |
-| `fv_casa_oggi` | i kWh arrivati in casa dal fotovoltaico oggi: servono alla riga «Consumo totale» |
+| `fv_casa_oggi` | i kWh arrivati in casa dal fotovoltaico oggi: servono alla riga «Dal fotovoltaico» e al «Consumo totale» |
 | `fv_casa_settimana` / `fv_casa_mese` | gli stessi, per gli altri periodi |
 
 ---

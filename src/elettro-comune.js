@@ -801,6 +801,8 @@ const STYLE = `
 .dm-ap-chipc i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
 .dm-ap-chipc.scelto{opacity:1;border-color:#bae6fd;background:rgba(14,165,233,.12);
   color:var(--dm-text)}
+.dm-ap-mmm-chi{display:flex;align-items:center;gap:6px;margin:10px 0 -4px;font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dm-dim)}
+.dm-ap-mmm-chi i{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
 .dm-ap-mmm{display:flex;gap:8px;margin:10px 0 2px}
 .dm-ap-mmm>div{flex:1 1 0;min-width:0;text-align:center;padding:7px 4px;border-radius:11px;
   border:1px solid var(--divider-color);background:rgba(127,127,127,.06)}

@@ -737,75 +737,29 @@ const EN = {
   "agganciati": "wired up",
   "da fare": "to do",
   "sorgente": "source",
-  "Cercali tu: i pannelli": "Find the panels for me",
-  "Cercali tu: le batterie": "Find the batteries for me",
-  "Non ho trovato niente che somigli a quello che cerca questo tasto.": "I found nothing matching what this button looks for.",
-  "Ne ho trovati": "I found",
-  "Presi": "Taken",
+  "Dal fotovoltaico": "From solar",
+  "kWh arrivati dal fotovoltaico, sole e batteria insieme (oggi, settimana, mese)": "kWh that arrived from solar, sun and battery together (today, week, month)",
   "Consumo totale": "Total use",
   "Consumo totale (rete + fotovoltaico)": "Total use (grid + solar)",
   "dalla rete": "from the grid",
   "dal fotovoltaico": "from solar",
-  "Sensore di quello che arriva in casa": "Sensor for what reaches the house",
   "Contatore dei kWh arrivati in casa dal fotovoltaico, oggi (serve alla riga «Consumo totale»)": "Counter of the kWh that reached the house from solar, today (the «Total use» row needs it)",
-  "Quanto ne arriva davvero in casa dal fotovoltaico: e' il numero che serve al <b>consumo totale</b>. Non e' pannelli piu' batteria - quelli si sovrappongono, perche' i kWh che il sole manda in batteria e la batteria rende poi alla casa li conteresti due volte.": "How much actually reaches the house from solar: this is the number the <b>total use</b> row needs. It is not panels plus battery - those overlap, because the kWh the sun sends to the battery and the battery then gives back to the house would be counted twice.",
   "Sì": "Yes",
   "No": "No",
   "Annunci": "Announcements",
-  "Su quali casse": "On which speakers",
-  "Come parla": "How it speaks",
-  "Quando puo' parlare": "When it may speak",
-  "Volume della voce": "Voice volume",
-  "Poi torna a": "Then back to",
   "Aspetta": "Waits",
   "Dalle": "From",
   "Alle": "To",
-  "Il volume lo rimette a posto solo sulle Alexa: le altre lo fanno da sole.": "It only puts the volume back on the Alexas: the others do it themselves.",
-  "Adesso puo' parlare.": "It may speak right now.",
-  "Adesso non parlerebbe: sei fuori dalla finestra.": "It would not speak now: you are outside the window.",
-  "Alexa: il volume glielo mettiamo e togliamo noi.": "Alexa: we raise and lower its volume ourselves.",
-  "Annuncia da sola e si rimette come stava.": "Announces by itself and puts itself back as it was.",
-  "Questa cassa non sa annunciare: non ha come farlo.": "This speaker cannot announce: it has no way to.",
-  "Nessuna cassa scelta: aprile con la matita e dimmi quali sono.": "No speakers chosen: open with the pencil and tell me which ones.",
-  "cassa accesa": "speaker on",
   "casse accese": "speakers on",
-  "nessuna accesa": "none on",
-  "non sanno annunciare": "cannot announce",
   "cassa": "speaker",
   "casse": "speakers",
-  "NON DISTURBARE": "DO NOT DISTURB",
-  "NESSUNA CASSA": "NO SPEAKER",
-  "FUORI ORARIO": "OUTSIDE HOURS",
   "Altre impostazioni": "Other settings",
-  "Con che voce": "With which voice",
   "Voce": "Voice",
-  "Non disturbare": "Do not disturb",
-  "Acceso: non parla a nessuno": "On: it speaks to nobody",
-  "Spento: parla quando serve": "Off: it speaks when needed",
-  "Riaccendi": "Turn back on",
-  "Fai silenzio": "Go quiet",
   "Prova": "Test",
-  "Parla": "Speak",
-  "Scrivi cosa deve dire": "Write what it should say",
-  "Scrivi prima cosa deve dire.": "Write what it should say first.",
-  "Non c'e' nessuna cassa accesa.": "There is no speaker on.",
-  "Parla sulle casse accese, anche fuori orario.": "Speaks on the speakers that are on, even outside hours.",
-  "Detto su": "Said on",
   "Gli aiutanti": "The helpers",
   "Questi li crea il pacchetto <code>annunci_vocali.yaml</code> e di solito non si toccano. Stanno qui per quando qualcosa va storto o ne hai di tuoi.": "These are created by the <code>annunci_vocali.yaml</code> package and are usually left alone. They are here for when something goes wrong or you have your own.",
-  "Le casse fra cui scegliere": "The speakers to choose from",
-  "Chi guardare per il rientro": "Who to watch for the return home",
   "Quelle che compaiono come chip sulla scheda. Mettici tutte quelle che potresti voler far parlare: quali sono accese lo decidi poi a tocchi, senza riaprire di qui.": "The ones that appear as chips on the card. Put in every one you might want to speak: which are on you then decide by tapping, without coming back here.",
   "Chi conta come «in casa». Servono ai promemoria: se la persona non c'è all'ora prevista, l'annuncio resta in sospeso e parte al rientro. Va bene qualunque entità che dica home oppure on.": "Who counts as «at home». The reminders need them: if the person is not in at the scheduled time, the announcement stays pending and fires when they return. Any entity that says home or on will do.",
-  "Aiutante: volume della voce": "Helper: voice volume",
-  "Aiutante: volume a cui tornare": "Helper: volume to go back to",
-  "Aiutante: quanto aspettare": "Helper: how long to wait",
-  "Aiutante: non prima delle": "Helper: not before",
-  "Aiutante: non dopo le": "Helper: not after",
-  "Aiutante: non disturbare": "Helper: do not disturb",
-  "Aiutante: con che voce": "Helper: with which voice",
-  "Aiutante: le casse accese": "Helper: the speakers that are on",
-  "Lo script che parla": "The script that speaks",
   "Annunci vocali": "Voice announcements",
   "Echo Dot": "Echo Dot",
   "Echo con schermo": "Echo with a screen",
@@ -850,7 +804,7 @@ const EN = {
   "Scrivi i prezzi come stanno in bolletta: il totale lo faccio io. Si scrive qui una volta sola - gli apparecchi, le prese e le luci lo leggono da qui.": "Write the prices as they are on your bill: I work out the total. You write it here once - appliances, sockets and lights read it from here.",
   "I contatori": "The meters",
   "Dimmi da quale sensore dei kWh parte la casa e faccio io il resto: i contatori di ora, oggi, settimana, mese e ieri, e il costo di ognuno. Quelli che ci sono gia' li riuso.": "Tell me which kWh sensor the house starts from and I do the rest: the meters for hour, today, week, month and yesterday, and the cost of each. The ones that already exist I reuse.",
-  "Pannelli e batteria sono facoltativi: se li metti faccio anche i loro kWh di oggi e del mese, e le righe <i>Dai pannelli</i> e <i>Dalla batteria</i>. Della batteria scegli il sensore che dice <b>quanto ha dato alla casa</b>, non la percentuale.": "Panels and battery are optional: add them and I also make their kWh for today and this month, and the <i>From the panels</i> and <i>From the battery</i> rows. For the battery pick the sensor that says <b>how much it gave to the house</b>, not the percentage.",
+  "Il fotovoltaico e' facoltativo. Serve <b>un sensore solo</b>: quello che dice quanti kWh arrivano in casa - di giorno dal sole, di sera dalla batteria. Da quello faccio i contatori di oggi, settimana e mese, il <b>consumo totale</b> e il <b>risparmio</b> in euro. Non serve quanto hanno prodotto i pannelli: quello comprende anche l'energia finita in batteria, che in casa non e' ancora arrivata.": "Solar is optional. It needs <b>one sensor only</b>: the one that says how many kWh reach the house - from the sun by day, from the battery in the evening. Out of it I make the meters for today, this week and this month, the <b>total use</b> and the <b>saving</b> in euros. How much the panels produced is not what is needed: that includes the energy that went into the battery, which has not reached the house yet.",
   "Spunta quelle da vedere e trascinale dalla maniglia ⠿ per metterle in ordine. Nome e colore sono facoltativi (vuoto = quelli di serie).": "Tick the ones to show and drag them by the ⠿ handle to put them in order. Name and colour are optional (empty = the built-in ones).",
   "Le barre sotto la scheda": "The bars under the card",
   "Se non sai quali mettere, <b>Proponi da solo</b> guarda le prese di casa e ti mette le quattro che consumano di piu'.": "If you don't know which ones to use, <b>Work them out for me</b> looks at the sockets in the house and gives you the four that use the most.",
@@ -983,9 +937,7 @@ const EN = {
   "Totale della bolletta": "Bill total",
   "&mdash;": "&mdash;",
   "Scrivi la tariffa": "Save the tariff",
-  "Sensore dei pannelli (se ce l'hai)": "Solar panel sensor (if you have one)",
   "Prendile tutte": "Take them all",
-  "Sensore della batteria (se ce l'hai)": "Battery sensor (if you have one)",
   "Crea contatori e costi": "Create meters and costs",
   "tutti": "all",
   "nessuno": "none",
@@ -1020,7 +972,6 @@ const EN = {
   "Questa e' la scheda <b>principale</b>: il prezzo si scrive qui, una volta sola. Gli apparecchi, le prese e le luci lo leggono da qui, non lo richiedono.<br> Scrivi le voci come stanno in bolletta: il totale lo faccio io, ed e' quello che uso per la spesa della casa. Sugli apparecchi invece vale la <b>sola energia</b>, se no le tasse le paghi due volte.": "This is the <b>main</b> card: the price is written here, once. Appliances, sockets and lights read it from here, they never ask for it again.<br> Write the items as they are on your bill: I work out the total, and that is what I use for what the house spends. On appliances, instead, only the <b>energy alone</b> counts, otherwise you pay the taxes twice.",
   "Crea i sensori base": "Create the basic sensors",
   "Il prezzo l'hai gia' scritto qui sopra: qui scegli solo <b>da quale sensore dei kWh</b> parte la casa. Creo io i contatori (ora, oggi, settimana, mese e ieri) e il costo di ogni periodo, e li aggancio alla scheda; quelli che ci sono gia' li riuso.<br> Il conto voce per voce della bolletta, i cicli degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: stanno nella guida, in <i>esempi/luce</i>.": "You already wrote the price above: here you only pick <b>which kWh sensor</b> the house starts from. I create the meters (hour, today, week, month and yesterday) and the cost of each period, and I wire them to the card; the ones that already exist I reuse.<br> The itemised bill, the appliance cycles and the solar saving are not made from here: they are in the guide, under <i>esempi/luce</i>.",
-  "Dei pannelli e della batteria faccio i kWh di oggi e del mese, e li metto nelle righe <i>Dai pannelli</i> e <i>Dalla batteria</i> (spuntale qui sopra). Va bene sia un sensore in kWh sia uno in Watt. Per la batteria scegli quello che dice <b>quanto ha dato alla casa</b> (la scarica), non la percentuale.": "Out of the panels and the battery I make today's and this month's kWh, and I put them in the <i>From the panels</i> and <i>From the battery</i> rows (tick them above). A sensor in kWh is fine, and so is one in watts. For the battery pick the one that says <b>how much it gave to the house</b> (the discharge), not the percentage.",
   "Spunta quelli da buttare. Lo storico che hanno raccolto si perde; la presa e i sensori del dispositivo non si toccano. Ci sono anche le <b>memorie dell'ultimo ciclo</b> e l'<b>automazione</b> che le riempie: se butti quelle, il riquadro dell'ultimo ciclo resta vuoto.": "Tick the ones to throw away. The history they collected is lost; the socket and the device's own sensors are never touched. There are also the <b>last-cycle memories</b> and the <b>automation</b> that fills them: throw those away and the last-cycle box stays empty.",
   "Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.": "This is where the kWh go, and this card counts none. Power over time is in the button next door, Trend.",
   "Andamento": "Trend",
@@ -1056,7 +1007,6 @@ const EN = {
   "Quello che paghi (tutto compreso)": "What you pay (everything included)",
   "Energia attuale (senza tasse)": "Energy alone (no taxes)",
   "Bolletta (il bimestre, kWh e €)": "Bill (the two months, kWh and €)",
-  "kWh dai pannelli (oggi e mese)": "kWh from the panels (today and this month)",
   "kWh dalla batteria (oggi e mese)": "kWh from the battery (today and this month)",
   "Top consumo": "Top consumer",
   "Fine": "End",
@@ -4960,6 +4910,8 @@ const STYLE = `
 .dm-ap-chipc i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
 .dm-ap-chipc.scelto{opacity:1;border-color:#bae6fd;background:rgba(14,165,233,.12);
   color:var(--dm-text)}
+.dm-ap-mmm-chi{display:flex;align-items:center;gap:6px;margin:10px 0 -4px;font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--dm-dim)}
+.dm-ap-mmm-chi i{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
 .dm-ap-mmm{display:flex;gap:8px;margin:10px 0 2px}
 .dm-ap-mmm>div{flex:1 1 0;min-width:0;text-align:center;padding:7px 4px;border-radius:11px;
   border:1px solid var(--divider-color);background:rgba(127,127,127,.06)}
@@ -10269,7 +10221,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.95.2";
+const VERSIONE = "2.95.4";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -21006,17 +20958,20 @@ async function creaFonte(hass, opzioni, dillo) {
 }
 
 /**
- * Il risparmio dei pannelli, dalla sola entita' della produzione solare.
+ * Il risparmio del fotovoltaico, dalla sola entita' dei kWh che arrivano in
+ * casa (di giorno dal sole, di sera dalla batteria). Non dalla produzione:
+ * quella comprende anche l'energia finita in batteria, che in casa non e'
+ * ancora arrivata e quindi non ha ancora risparmiato niente.
  * Se gli dai i Watt si fa l'integrale; poi trasforma i kWh in euro con la
  * tariffa e li mette in due contatori, oggi e mese. Torna le due entita'.
  */
 async function creaRisparmio(hass, opzioni, dillo) {
   const parla = dillo || (() => {});
-  const pannelli = opzioni.pannelli;
-  if (!pannelli || !hass.states[pannelli]) throw new Error("Scegli il sensore dei pannelli.");
+  const fonte = opzioni.fonte;
+  if (!fonte || !hass.states[fonte]) throw new Error("Scegli il sensore del fotovoltaico che arriva in casa.");
   const prezzo = opzioni.prezzo_entita;
   if (!prezzo) throw new Error("Prima scrivi la tariffa.");
-  const base = nomeSorgente(hass, pannelli);
+  const base = nomeSorgente(hass, fonte);
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
@@ -21027,22 +20982,22 @@ async function creaRisparmio(hass, opzioni, dillo) {
   };
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
 
-  // 1. i kWh dei pannelli: se il sensore e' in Watt me li calcolo
-  const st = hass.states[pannelli];
+  // 1. i kWh: se il sensore e' in Watt me li calcolo
+  const st = hass.states[fonte];
   const unita = String((st.attributes || {}).unit_of_measurement || "").toLowerCase();
-  let kwh = pannelli;
+  let kwh = fonte;
   if (unita === "w" || unita === "kw") {
     const nome = base + " energia";
     kwh = gia("integration", nome);
     if (!kwh) {
-      parla("Calcolo i kWh dei pannelli dai Watt...");
-      await creaIntegrale(hass, nome, pannelli);
+      parla("Calcolo i kWh dai Watt...");
+      await creaIntegrale(hass, nome, fonte);
       await rinfresca();
       kwh = await sistemaNome(hass, gia("integration", nome), nome, parla);
-    } else parla("I kWh dei pannelli c'erano gia'.");
+    } else parla("I kWh c'erano gia'.");
   }
 
-  // 2. quanti euro sono: i kWh prodotti per quello che avresti pagato
+  // 2. quanti euro sono: i kWh arrivati per quello che avresti pagato
   const nomeEuro = "Risparmio fotovoltaico";
   let euro = gia("template", nomeEuro)
     || Object.keys(hass.states).find((x) => x.startsWith("sensor.")
@@ -21271,8 +21226,10 @@ function aiutantiDellaScheda(hass, cfg) {
    "bolletta_energia", "bolletta_costo", "bill_today", "bill_month"].forEach((k) => metti(cfg[k]));
   // la scheda della casa tiene i suoi contatori qui dentro
   [...(cfg.periods || []), ...(cfg.periods_prev || [])].forEach((r) => { metti(r.energy); metti(r.cost); });
-  // pannelli, batteria e risparmio: oggi, settimana, mese
-  ["pannelli", "batteria", "risparmio"].forEach((chi) => {
+  // il fotovoltaico in casa e il risparmio: oggi, settimana, mese (pannelli e
+  // batteria non li fa piu' nessuno, ma le schede vecchie li hanno ancora
+  // scritti dentro e vanno riconosciuti per poterli scollegare)
+  ["fv_casa", "pannelli", "batteria", "risparmio"].forEach((chi) => {
     ["oggi", "settimana", "mese"].forEach((q) => metti(cfg[chi + "_" + q]));
   });
   // i pezzi dell'ultimo ciclo: il contatore, le quattro memorie e la soglia
@@ -21383,7 +21340,7 @@ function scollegaEntita(cfg, spariti) {
     "mese_energia", "mese_costo", "bolletta_energia", "bolletta_costo", "energy_stat_entity",
     "soglia_acceso"];
   CHIAVI.forEach((k) => { if (via.has(c[k])) delete c[k]; });
-  ["pannelli", "batteria", "risparmio"].forEach((chi) => {
+  ["fv_casa", "pannelli", "batteria", "risparmio"].forEach((chi) => {
     ["oggi", "settimana", "mese"].forEach((q) => {
       if (via.has(c[chi + "_" + q])) delete c[chi + "_" + q];
     });
@@ -22288,6 +22245,92 @@ const ConGrafico = (Base) => class extends Base {
       <div><small>${T("Massimo")}</small><b>${esc(scrivi(max))}</b></div>
     </div>`;
   }
+  // I TRE NUMERI SOTTO AL GRAFICO: oggi, questa settimana, questo mese.
+  // Minimo/media/massimo parlavano solo del pezzo di tempo disegnato e non si
+  // potevano confrontare con niente. Questi sono i kWh della curva accesa,
+  // negli stessi periodi del riquadro della scheda, e cambiano col chip.
+  _trePeriodi(kwh, curva) {
+    const scrivi = (v) => (Number.isFinite(v) ? numero(v, 2) + " kWh" : "\u2014");
+    // di chi sono questi numeri: coi chip si accendono piu' curve insieme e
+    // senza il nome non si capiva a quale delle due guardare
+    const chi = curva && curva.nome
+      ? `<div class="dm-ap-mmm-chi"><i style="background:${curva.colore || "#94a3b8"}"></i>${esc(curva.nome)}</div>`
+      : "";
+    return `${chi}<div class="dm-ap-mmm">
+      <div><small>${T("Oggi")}</small><b>${esc(scrivi(kwh.oggi))}</b></div>
+      <div><small>${T("Settimana")}</small><b>${esc(scrivi(kwh.settimana))}</b></div>
+      <div><small>${T("Mese")}</small><b>${esc(scrivi(kwh.mese))}</b></div>
+    </div>`;
+  }
+
+  // Il sensore dei kWh di una curva. La scheda me lo puo' dire lei (`energia`);
+  // se no lo cerco accanto a quello dei Watt: Home Assistant chiama le due
+  // misure della stessa presa <nome>_power e <nome>_energy.
+  _sensoreEnergia(curva) {
+    const st = (this._hass || {}).states || {};
+    if (curva.energia && st[curva.energia]) return curva.energia;
+    const nudo = String(curva.entity || "").replace(/^sensor\./, "");
+    const radice = nudo.replace(/_(power|potenza|watt)$/i, "");
+    if (radice === nudo) return null;
+    for (const coda of ["_energy", "_energia", "_kwh"]) {
+      const c = "sensor." + radice + coda;
+      const s = st[c];
+      if (s && String((s.attributes || {}).device_class || "") === "energy") return c;
+    }
+    return null;
+  }
+
+  // Quanti kWh ha fatto questa curva oggi, questa settimana e questo mese.
+  // Due strade: i contatori che la scheda ha gia' (esatti, e sono gli stessi
+  // numeri che si leggono nel riquadro), o le statistiche a lungo termine del
+  // sensore che sale sempre. Se non c'e' ne' l'uno ne' l'altro torna null e
+  // sotto al grafico restano minimo/media/massimo.
+  async _kwhDellaCurva(curva) {
+    const st = (this._hass || {}).states || {};
+    const leggi = (e) => {
+      const x = e ? st[e] : null;
+      const v = x && !["unknown", "unavailable"].includes(x.state) ? Number(x.state) : NaN;
+      return Number.isFinite(v) ? v : NaN;
+    };
+    const c = curva.contatori || {};
+    if (c.oggi || c.settimana || c.mese) {
+      return { oggi: leggi(c.oggi), settimana: leggi(c.settimana), mese: leggi(c.mese) };
+    }
+    const eid = this._sensoreEnergia(curva);
+    if (!eid) return null;
+    const ora = new Date();
+    const mezzanotte = new Date(ora.getFullYear(), ora.getMonth(), ora.getDate());
+    const primoDelMese = new Date(ora.getFullYear(), ora.getMonth(), 1);
+    // la settimana comincia di lunedi', come i contatori di Home Assistant
+    const lunedi = new Date(mezzanotte.getTime()
+      - ((mezzanotte.getDay() + 6) % 7) * 86400000);
+    const da = new Date(Math.min(primoDelMese.getTime(), lunedi.getTime()));
+    let risposta;
+    try {
+      risposta = await this._hass.callWS({
+        type: "recorder/statistics_during_period",
+        start_time: da.toISOString(),
+        statistic_ids: [eid],
+        period: "day",
+        types: ["change"],
+      });
+    } catch (e) { return null; }
+    const giorni = (risposta || {})[eid] || [];
+    if (!giorni.length) return null;
+    const somma = (dalle) => {
+      let t = null;
+      giorni.forEach((g) => {
+        const q = typeof g.start === "number" ? g.start : Date.parse(g.start);
+        const v = Number(g.change);
+        if (q >= dalle && Number.isFinite(v)) t = (t === null ? 0 : t) + v;
+      });
+      return t === null ? NaN : t;
+    };
+    return { oggi: somma(mezzanotte.getTime()),
+      settimana: somma(lunedi.getTime()),
+      mese: somma(primoDelMese.getTime()) };
+  }
+
   // ---------------------------------------------------------- la finestra
   // `curve` = [{nome, entity, colore, unita}]. La prima e' accesa, le altre
   // si accendono coi chip. Non c'e' niente da configurare: sono le entita'
@@ -22300,6 +22343,7 @@ const ConGrafico = (Base) => class extends Base {
       return;
     }
     this._curve = buone.map((c, i) => ({ ...c, accesa: i === 0 }));
+    this._curvaScelta = this._curve[0];
     this._graficoQuando = this._graficoQuando || { id: "24h" };
     const chip = buone.length > 1
       ? `<div class="dm-ap-chip-riga">${buone.map((c, i) => `<button type="button"
@@ -22362,6 +22406,10 @@ const ConGrafico = (Base) => class extends Base {
         }
         c.accesa = !c.accesa;
         if (!this._curve.some((x) => x.accesa)) c.accesa = true;
+        // i numeri sotto e il mirino parlano di QUESTA, quella che hai appena
+        // toccato: prima restavano sempre sulla prima accesa e premere un
+        // chip non cambiava niente
+        if (c.accesa) this._curvaScelta = c;
         this._disegnaGrafico();
       });
     });
@@ -22407,8 +22455,19 @@ const ConGrafico = (Base) => class extends Base {
     }
     if (this._giroGrafico !== mio) return;
     posto.innerHTML = this._grafico(accese, giorni);
-    const prima = accese[0];
+    const prima = accese.includes(this._curvaScelta) ? this._curvaScelta : accese[0];
     if (sotto) sotto.innerHTML = this._minMedMax(prima.punti, prima.unita);
+    // i kWh dei tre periodi arrivano dopo (sono statistiche, non stati):
+    // finche' non ci sono restano minimo/media/massimo, che almeno dicono
+    // qualcosa. Se nel frattempo premi un altro chip, il giro vecchio non
+    // scrive sopra a quello nuovo.
+    if (sotto) {
+      this._kwhDellaCurva(prima).then((k) => {
+        if (this._giroGrafico !== mio || !k) return;
+        if (![k.oggi, k.settimana, k.mese].some(Number.isFinite)) return;
+        sotto.innerHTML = this._trePeriodi(k, prima);
+      }).catch(() => {});
+    }
     if (prima && prima.punti && prima.punti.length > 1) {
       // prima QUANDO, poi QUANTO: muovendo il dito stai navigando il tempo,
       // la data e' la domanda e il valore la risposta. Le barre lo facevano
@@ -22441,8 +22500,7 @@ const RIGHE_OGGI = [
   { id: "energia", nome: "Energia attuale (senza tasse)", etichetta: "Energia attuale", colore: "#2fbfb0" },
   { id: "mese", nome: "Mese (+ tasse)", etichetta: "Mese (+ tasse)", colore: "#a283f2" },
   { id: "bolletta", nome: "Bolletta (il bimestre, kWh e €)", etichetta: "Bolletta", colore: "#e07b39" },
-  { id: "pannelli", nome: "kWh dai pannelli (oggi e mese)", etichetta: "Dai pannelli", colore: "#f2c53c" },
-  { id: "batteria", nome: "kWh dalla batteria (oggi e mese)", etichetta: "Dalla batteria", colore: "#7ecf6a" },
+  { id: "fv_casa", nome: "kWh arrivati dal fotovoltaico, sole e batteria insieme (oggi, settimana, mese)", etichetta: "Dal fotovoltaico", colore: "#f2c53c" },
   { id: "consumo_vero", nome: "Consumo totale (rete + fotovoltaico)", etichetta: "Consumo totale", colore: "#2fbfb0" },
   { id: "top", nome: "Top consumo", etichetta: "Top consumo", colore: "#f06e82" },
 ];
@@ -22462,8 +22520,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>`,
       bolletta: `${this._config.bolletta_energia || this._config.bolletta_costo ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e07b39"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Bolletta</small></span><b class="dm-e-bolletta">\u2014</b></div>` : ""}`,
       consumo_vero: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo totale</small></span><b class="dm-e-consumo-vero">—</b></div>`,
-      pannelli: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f2c53c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Dai pannelli</small></span><b class="dm-e-pannelli">\u2014</b></div>`}`,
-      batteria: `${`<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#7ecf6a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Dalla batteria</small></span><b class="dm-e-batteria">\u2014</b></div>`}`,
+      fv_casa: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f2c53c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Dal fotovoltaico</small></span><b class="dm-e-fv-casa">—</b></div>`,
       top: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f06e82"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_TREND}</span><small>Top consumo</small></span><b class="dm-e-top">\u2014</b></div>`,
     };
     return righeInOrdine(this._config, RIGHE_OGGI, R, esc);
@@ -22583,8 +22640,17 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   _curveDellaCasa() {
     const cfg = this._config;
     const tinte = ["#f28c3c", "#43b86a", "#a283f2", "#3fb4ea", "#f06e82", "#2fbfb0"];
+    // i tre contatori del Generale sono quelli della scheda: cosi' sotto al
+    // grafico si leggono gli stessi numeri del riquadro, non un conto a parte
+    const delPeriodo = (nome) => {
+      const p = (cfg.periods || []).find((x) =>
+        String(x.label || "").trim().toLowerCase() === nome);
+      return p ? p.energy : null;
+    };
     const fuori = [{ nome: cfg.power_label || "Generale", entity: cfg.power_entity,
-      colore: "#0ea5e9", unita: "W" }];
+      colore: "#0ea5e9", unita: "W",
+      contatori: { oggi: delPeriodo("oggi"), settimana: delPeriodo("settimana"),
+        mese: delPeriodo("mese") } }];
     (cfg.circuits || []).forEach((c, i) => {
       if (!c || !c.entity) return;
       fuori.push({ nome: c.label || c.entity, entity: c.entity,
@@ -22964,9 +23030,9 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       }
     }
     { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
-    // i kWh arrivati dai pannelli e dalla batteria: oggi / mese, come il risparmio
-    // oggi / settimana / mese: faccio vedere i periodi che esistono davvero
-    [[".dm-e-pannelli", "pannelli"], [".dm-e-batteria", "batteria"]].forEach(([sel, chi]) => {
+    // I kWh arrivati dal fotovoltaico: oggi / settimana / mese. Faccio
+    // vedere i periodi che esistono davvero, non tre trattini.
+    [[".dm-e-fv-casa", "fv_casa"]].forEach(([sel, chi]) => {
       const x = this._root.querySelector(sel);
       if (!x) return;
       const n = (e) => {
@@ -23355,10 +23421,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     }).sort();
   }
 
-  // I pannelli: va bene sia un sensore in kWh sia uno in Watt (i kWh me li
-  // calcolo io). Metto davanti quelli che sembrano solari.
-  // Quello che arriva in casa dal fotovoltaico: stesso filtro della
-  // batteria (kWh o Watt), perche' puo' essere l'uno o l'altro.
+  // Quello che arriva in casa dal fotovoltaico. Va bene sia un sensore in kWh
+  // sia uno in Watt: i kWh me li calcolo io.
   _disegnaFvCasa() {
     this._unSelettore(".ce-fvcasa-pick", "fv_casa_entita");
   }
@@ -23388,28 +23452,6 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     sel.value = Array.isArray(mio) ? mio : (mio ? [mio] : []);
   }
 
-  _disegnaBatteria() {
-    const sel = this.querySelector(".ce-batteria-pick");
-    if (!sel || !this._hass) return;
-    sel.hass = this._hass;
-    const st = this._hass.states;
-    sel.includeDomains = ["sensor"];
-    sel.entityFilter = (e) => {
-      const id = typeof e === "string" ? e : e.entity_id;
-      const a = (st[id] || {}).attributes || {};
-      const u = String(a.unit_of_measurement || "").toLowerCase();
-      return (a.device_class === "power" && (u === "w" || u === "kw"))
-        || (a.device_class === "energy" && (u === "kwh" || u === "wh"));
-    };
-    if (!sel._agganciato) {
-      sel._agganciato = true;
-      sel.addEventListener("value-changed", (ev) => {
-        ev.stopPropagation();
-        this._scriviScelta("batteria_entita", ev.detail.value || "");
-      });
-    }
-    sel.value = lista(this._config.batteria_entita);
-  }
 
   // Il Top consumo: una riga di parole (separate da virgola) invece di
   // diciotto caselle, piu' due elenchi di prese - una per lasciarle fuori,
@@ -23533,28 +23575,6 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._disegnaPrese();
   }
 
-  _disegnaPannelli() {
-    const sel = this.querySelector(".ce-pannelli-pick");
-    if (!sel || !this._hass) return;
-    sel.hass = this._hass;
-    const st = this._hass.states;
-    const buono = (id) => {
-      const a = (st[id] || {}).attributes || {};
-      const u = String(a.unit_of_measurement || "").toLowerCase();
-      return (a.device_class === "power" && (u === "w" || u === "kw"))
-        || (a.device_class === "energy" && (u === "kwh" || u === "wh"));
-    };
-    sel.includeDomains = ["sensor"];
-    sel.entityFilter = (e) => buono(typeof e === "string" ? e : e.entity_id);
-    if (!sel._agganciato) {
-      sel._agganciato = true;
-      sel.addEventListener("value-changed", (ev) => {
-        ev.stopPropagation();
-        this._scriviScelta("pannelli_entita", ev.detail.value || "");
-      });
-    }
-    sel.value = lista(this._config.pannelli_entita);
-  }
 
   // Quale sensore dei kWh e' scelto davvero. Se non l'hai scritto tu, la
   // casella lo indovina dalla presa (..._power -> ..._energy) e fa vedere
@@ -23612,8 +23632,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     // fosse sparita. Adesso il riassunto dice tutte e due le cose, cosi'
     // ognuna si puo' contare con gli occhi.
     const quanti = (this._config.periods || []).filter((x) => x && x.energy).length;
-    const sorgenti = [this._kWhScelto(), this._config.pannelli_entita,
-      this._config.batteria_entita]
+    const sorgenti = [this._kWhScelto(), this._config.fv_casa_entita]
       .filter((x) => (Array.isArray(x) ? x.length : !!x)).length;
     const pezzi = [];
     if (sorgenti) pezzi.push(sorgenti + " " + T(sorgenti === 1 ? "sorgente" : "sorgenti"));
@@ -23753,10 +23772,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       this._emetti();
       this._form.data = this._datiForm();
     if (this._formTutto) this._formTutto.data = this._datiForm();
-      // i kWh delle due fonti: pannelli e batteria
-      for (const [chiave, sel, nome] of [["pannelli", ".ce-pannelli-pick", "Pannelli energia"],
-        ["batteria", ".ce-batteria-pick", "Batteria energia"],
-        ["fv_casa", ".ce-fvcasa-pick", "Fotovoltaico in casa"]]) {
+      // i kWh del fotovoltaico che arriva in casa
+      for (const [chiave, sel, nome] of [["fv_casa", ".ce-fvcasa-pick", "Fotovoltaico in casa"]]) {
         const ent = lista((this.querySelector(sel) || {}).value || this._config[chiave + "_entita"]);
         if (!ent.length) continue;
         const p = await creaFonte(this._hass, { entita: ent, nome }, (t) => this._dillo(t));
@@ -23765,13 +23782,18 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
           [chiave + "_entita"]: ent };
         this._emetti();
       }
-      const pannelli = (this.querySelector(".ce-pannelli-pick") || {}).value || this._config.pannelli_entita;
-      if (pannelli) {
+      // Il risparmio esce dallo STESSO sensore: sono gli euro di quello che
+      // e' arrivato in casa. Prima nasceva dalla produzione dei pannelli, e
+      // contava come risparmiata anche l'energia ferma in batteria, che non
+      // hai ancora usato.
+      const fvCasa = (this.querySelector(".ce-fvcasa-pick") || {}).value
+        || this._config.fv_casa_entita;
+      if (fvCasa && (Array.isArray(fvCasa) ? fvCasa.length : true)) {
         const piu = await creaRisparmio(this._hass, {
-          pannelli,
+          fonte: Array.isArray(fvCasa) ? fvCasa[0] : fvCasa,
           prezzo_entita: this._hass.states[ID_TOTALE] ? ID_TOTALE : prezzoDellaCasa(this._hass),
         }, (t) => this._dillo(t));
-        this._config = { ...this._config, ...piu, pannelli_entita: pannelli };
+        this._config = { ...this._config, ...piu, fv_casa_entita: fvCasa };
         this._emetti();
       }
       this._dillo("La scheda e' agganciata ai sensori nuovi. Salva e chiudi.");
@@ -23801,13 +23823,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
           <summary class="ce-tit">${titoloSez(VESTITO$1.contatori, T("I contatori"))}</summary>
           <div class="ce-aiuto">${T("Dimmi da quale sensore dei kWh parte la casa e faccio io il resto: i contatori di ora, oggi, settimana, mese e ieri, e il costo di ognuno. Quelli che ci sono gia' li riuso.")}</div>
           <div class="ce-riga"><span class="ent">Sensore dei kWh</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
-          <div class="ce-aiuto">${T("Pannelli e batteria sono facoltativi: se li metti faccio anche i loro kWh di oggi e del mese, e le righe <i>Dai pannelli</i> e <i>Dalla batteria</i>. Della batteria scegli il sensore che dice <b>quanto ha dato alla casa</b>, non la percentuale.")}</div>
-          <div class="ce-riga"><span class="ent">Sensore dei pannelli (se ce l'hai)</span><ha-entities-picker class="ce-pannelli-pick"></ha-entities-picker></div>
-          <button type="button" class="ce-prepara ce-pannelli-tutti">Cercali tu: i pannelli</button>
-          <div class="ce-riga"><span class="ent">Sensore della batteria (se ce l'hai)</span><ha-entities-picker class="ce-batteria-pick"></ha-entities-picker></div>
-          <div class="ce-aiuto">${T("Quanto ne arriva davvero in casa dal fotovoltaico: e' il numero che serve al <b>consumo totale</b>. Non e' pannelli piu' batteria - quelli si sovrappongono, perche' i kWh che il sole manda in batteria e la batteria rende poi alla casa li conteresti due volte.")}</div>
-          <div class="ce-riga"><span class="ent">Sensore di quello che arriva in casa</span><ha-entities-picker class="ce-fvcasa-pick"></ha-entities-picker></div>
-          <button type="button" class="ce-prepara ce-batteria-tutti">Cercali tu: le batterie</button>
+          <div class="ce-aiuto">${T("Il fotovoltaico e' facoltativo. Serve <b>un sensore solo</b>: quello che dice quanti kWh arrivano in casa - di giorno dal sole, di sera dalla batteria. Da quello faccio i contatori di oggi, settimana e mese, il <b>consumo totale</b> e il <b>risparmio</b> in euro. Non serve quanto hanno prodotto i pannelli: quello comprende anche l'energia finita in batteria, che in casa non e' ancora arrivata.")}</div>
+          <div class="ce-riga"><span class="ent">Sensore del fotovoltaico che arriva in casa</span><ha-entities-picker class="ce-fvcasa-pick"></ha-entities-picker></div>
           <button type="button" class="ce-prepara ce-crea">Crea contatori e costi</button>
           <div class="ce-riga ce-fatti-riga"><span class="ent">I kWh di casa, contati per</span><b class="ce-fatti">&mdash;</b></div>
           <button type="button" class="ce-prepara ce-cancella">Cancella gli aiutanti di questa scheda</button>
@@ -23897,40 +23914,6 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       this.querySelector(".ce-crea").addEventListener("click", () => this._creaSensori());
       this.querySelector(".ce-scrivi-tariffa").addEventListener("click", () => this._scriviTariffa());
       this.querySelector(".ce-barre-auto").addEventListener("click", () => this._proponiBarre());
-      [["pannelli", /solar|fotovolt|pv/i], ["batteria", /discharg|scaric/i]].forEach(([chi, come]) => {
-        const b = this.querySelector(".ce-" + chi + "-tutti");
-        if (!b) return;
-        b.addEventListener("click", () => {
-          const st = (this._hass || {}).states || {};
-          const trovati = Object.keys(st).filter((id) => {
-            const a = st[id].attributes || {};
-            const u = String(a.unit_of_measurement || "").toLowerCase();
-            return id.startsWith("sensor.") && a.device_class === "energy"
-              && (u === "kwh" || u === "wh") && come.test(id)
-              && !/_returned|restituit|forecast|previs/i.test(id);
-          });
-          // Lo dico nel riquadro dei messaggi, non con window.alert: dentro
-          // a una finestra incastrata l'alert non compare, e il tasto
-          // sembrava non fare niente.
-          const dillo = (testo, male) => {
-            this._esito.hidden = false;
-            this._esito.classList.toggle("male", !!male);
-            this._esito.textContent = testo;
-          };
-          if (!trovati.length) {
-            dillo(T("Non ho trovato niente che somigli a quello che cerca questo tasto."), true);
-            return;
-          }
-          // sovrascrive quello che hai scelto a mano: come per gli altri
-          // tasti che rifanno le cose, la seconda premuta e' la conferma
-          if (!confermaDoppia(b, T("Ne ho trovati") + " " + trovati.length
-              + ": " + T("premi di nuovo"))) return;
-          this._scriviScelta(chi + "_entita", trovati);
-          const sel = this.querySelector(".ce-" + chi + "-pick");
-          if (sel) sel.value = trovati;
-          dillo(T("Presi") + " " + trovati.length + ": " + trovati.join(", "));
-        });
-      });
       const scegli = this.querySelector(".ce-barra-nuova");
       if (scegli) {
         scegli.addEventListener("value-changed", (ev) => {
@@ -23975,8 +23958,6 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._riassunti();
     this._disegnaTasti();
     this._disegnaPrese();
-    this._disegnaPannelli();
-    this._disegnaBatteria();
     this._disegnaFvCasa();
     this._disegnaPrezzo();
     this._disegnaTariffa();
@@ -24149,6 +24130,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
         entity: cfg.power_entity,
         colore: "#0ea5e9",
         unita: cfg.power_unit || "W",
+        contatori: this._contatoriDiQui(),
       }], "Andamento");
     });
     // la foto dell'apparecchio: com'e' messo adesso
@@ -24167,7 +24149,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
         e.stopPropagation();
         const c = this._config;
         this._apriGrafico([{ nome: c.power_label || "Potenza",
-          entity: c.power_entity,
+          entity: c.power_entity, contatori: this._contatoriDiQui(),
           colore: "#0ea5e9", unita: c.power_unit || "W" }], "Andamento");
       });
     }
@@ -24337,6 +24319,15 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // I periodi da far vedere: quelli della configurazione piu' quelli finiti,
   // che la scheda si ricava da sola dall'attributo `last_period` del
   // contatore. Niente da configurare e nessun aiutante in piu'.
+  // I tre contatori di questo apparecchio, per i numeri sotto al grafico.
+  // La settimana non la fa la scheda: se non c'e' resta un trattino invece
+  // di un numero preso da un'altra parte.
+  _contatoriDiQui() {
+    const pe = this._config.period_entities || {};
+    const e = (k) => ((pe[k] || {}).energy) || null;
+    return { oggi: e("today"), settimana: e("week"), mese: e("month") };
+  }
+
   _periodi() {
     const cfg = this._config;
     const hass = this._hass;

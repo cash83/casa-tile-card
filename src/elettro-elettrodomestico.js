@@ -185,6 +185,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
         entity: cfg.power_entity,
         colore: "#0ea5e9",
         unita: cfg.power_unit || "W",
+        contatori: this._contatoriDiQui(),
       }], "Andamento");
     });
     // la foto dell'apparecchio: com'e' messo adesso
@@ -203,7 +204,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
         e.stopPropagation();
         const c = this._config;
         this._apriGrafico([{ nome: c.power_label || "Potenza",
-          entity: c.power_entity,
+          entity: c.power_entity, contatori: this._contatoriDiQui(),
           colore: "#0ea5e9", unita: c.power_unit || "W" }], "Andamento");
       });
     }
@@ -373,6 +374,15 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
   // I periodi da far vedere: quelli della configurazione piu' quelli finiti,
   // che la scheda si ricava da sola dall'attributo `last_period` del
   // contatore. Niente da configurare e nessun aiutante in piu'.
+  // I tre contatori di questo apparecchio, per i numeri sotto al grafico.
+  // La settimana non la fa la scheda: se non c'e' resta un trattino invece
+  // di un numero preso da un'altra parte.
+  _contatoriDiQui() {
+    const pe = this._config.period_entities || {};
+    const e = (k) => ((pe[k] || {}).energy) || null;
+    return { oggi: e("today"), settimana: e("week"), mese: e("month") };
+  }
+
   _periodi() {
     const cfg = this._config;
     const hass = this._hass;
