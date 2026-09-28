@@ -210,6 +210,16 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     }
   }
 
+  // vedi casa-energia: la colonna di sinistra si riempie per prima
+  _sistemaColonne() {
+    const lista = this._root && this._root.querySelector(".dm-ap-cycle-list");
+    if (!lista) return;
+    const perColonna = Math.max(1, Math.ceil(lista.children.length / 2));
+    if (lista._perColonna === perColonna) return;
+    lista._perColonna = perColonna;
+    lista.style.setProperty("--righe", perColonna);
+  }
+
   _cycleAttr(hass, key) {
     const cfg = this._config;
     // niente sensore del ciclo: allora sono le tre memorie che riempie
@@ -895,6 +905,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
     this._scriviCosto(this._root.querySelector(".dm-c-cost"), cost, costPieno);
 
+    this._sistemaColonne();
     this._tastiAggiorna(hass);
 
     // le quattro righe "da presa": kWh e costo di oggi e del mese

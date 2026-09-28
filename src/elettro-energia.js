@@ -424,6 +424,21 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     }).join("");
   }
 
+  // Quante voci per colonna. La sinistra si riempie per prima: la meta'
+  // arrotondata per ECCESSO, cosi' con 11 voci fa 6 e 5 e il vuoto - se c'e'
+  // - resta in fondo a destra. Le conto dal disegno e non dalla
+  // configurazione, perche' certe righe si disegnano solo se hanno i loro
+  // sensori: contando le chiavi ne conterei anche di invisibili.
+  _sistemaColonne() {
+    const lista = this._root && this._root.querySelector(".dm-ap-cycle-list");
+    if (!lista) return;
+    const quante = lista.children.length;
+    const perColonna = Math.max(1, Math.ceil(quante / 2));
+    if (lista._perColonna === perColonna) return;
+    lista._perColonna = perColonna;
+    lista.style.setProperty("--righe", perColonna);
+  }
+
   _openStats() {
     const hass = this._hass;
     const cfg = this._config;
@@ -683,6 +698,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         x.textContent = [kwh, euro].filter(Boolean).join(" \u00b7 ") || "\u2014";
       }
     }
+    this._sistemaColonne();
     { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
     // LE RIGHE TUE: quello che dice l'entita', scritto come hai scelto.
     // "valore" lascia fare a Home Assistant (numero e unita' sua), cosi' va

@@ -732,17 +732,22 @@ const STYLE = `
 .dm-ap-card.centrato .dm-ap-top-row{flex-direction:column;gap:12px}
 .dm-ap-card.centrato .dm-ap-hero{flex:0 0 auto;width:100%;height:196px}
 .dm-ap-card.centrato .dm-ap-cycle-side{flex:0 0 auto;width:100%}
-/* DUE COLONNE VERE: si scende lungo la prima e, finita, si passa alla
-   seconda. Prima era una griglia, che riempie per RIGHE - la prima voce a
-   sinistra, la seconda a destra, la terza sotto a sinistra - e l'ordine
-   dell'editor si leggeva a zigzag: spostandone una di un posto saltava di
-   colonna. */
-.dm-ap-card.centrato .dm-ap-cycle-list{display:block;columns:2;column-gap:8px}
-.dm-ap-card.centrato .dm-ap-cycle-list>*{break-inside:avoid;
-  -webkit-column-break-inside:avoid;margin-bottom:4px}
-.dm-ap-card.centrato .dm-ap-cycle-list>*:last-child{margin-bottom:0}
+/* DUE COLONNE, RIEMPITE UNA ALLA VOLTA. Si scende lungo la sinistra e,
+   finita, si passa alla destra. Quante voci per colonna lo dice la variabile
+   --righe, che la scheda calcola: la meta' arrotondata per eccesso, cosi' la
+   sinistra e' sempre piena e l'eventuale vuoto resta in fondo a destra.
+   Due strade gia' scartate: la griglia normale riempie per RIGHE (prima voce
+   a sinistra, seconda a destra) e l'ordine si legge a zigzag; le colonne
+   della stampa (columns) le bilancia il browser per ALTEZZA, quindi il punto
+   dove si spezza cambia se una riga va a capo.
+   QUI DENTRO NIENTE BACKTICK: questo foglio sta in un template literal, e un
+   backtick lo chiude a meta'. */
+.dm-ap-card.centrato .dm-ap-cycle-list{display:grid;grid-auto-flow:column;
+  grid-template-rows:repeat(var(--righe,1),auto);
+  grid-auto-columns:minmax(0,1fr);align-content:start;gap:4px 8px}
 @media (max-width:480px){
-  .dm-ap-card.centrato .dm-ap-cycle-list{columns:1}
+  .dm-ap-card.centrato .dm-ap-cycle-list{grid-auto-flow:row;
+    grid-template-rows:none;grid-template-columns:1fr}
 }
 .dm-ap-cycle-row{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0}
 .dm-ap-cycle-row small{flex:0 0 auto;font-size:10.5px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:var(--dm-dim)}

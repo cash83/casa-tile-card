@@ -4848,17 +4848,22 @@ const STYLE = `
 .dm-ap-card.centrato .dm-ap-top-row{flex-direction:column;gap:12px}
 .dm-ap-card.centrato .dm-ap-hero{flex:0 0 auto;width:100%;height:196px}
 .dm-ap-card.centrato .dm-ap-cycle-side{flex:0 0 auto;width:100%}
-/* DUE COLONNE VERE: si scende lungo la prima e, finita, si passa alla
-   seconda. Prima era una griglia, che riempie per RIGHE - la prima voce a
-   sinistra, la seconda a destra, la terza sotto a sinistra - e l'ordine
-   dell'editor si leggeva a zigzag: spostandone una di un posto saltava di
-   colonna. */
-.dm-ap-card.centrato .dm-ap-cycle-list{display:block;columns:2;column-gap:8px}
-.dm-ap-card.centrato .dm-ap-cycle-list>*{break-inside:avoid;
-  -webkit-column-break-inside:avoid;margin-bottom:4px}
-.dm-ap-card.centrato .dm-ap-cycle-list>*:last-child{margin-bottom:0}
+/* DUE COLONNE, RIEMPITE UNA ALLA VOLTA. Si scende lungo la sinistra e,
+   finita, si passa alla destra. Quante voci per colonna lo dice la variabile
+   --righe, che la scheda calcola: la meta' arrotondata per eccesso, cosi' la
+   sinistra e' sempre piena e l'eventuale vuoto resta in fondo a destra.
+   Due strade gia' scartate: la griglia normale riempie per RIGHE (prima voce
+   a sinistra, seconda a destra) e l'ordine si legge a zigzag; le colonne
+   della stampa (columns) le bilancia il browser per ALTEZZA, quindi il punto
+   dove si spezza cambia se una riga va a capo.
+   QUI DENTRO NIENTE BACKTICK: questo foglio sta in un template literal, e un
+   backtick lo chiude a meta'. */
+.dm-ap-card.centrato .dm-ap-cycle-list{display:grid;grid-auto-flow:column;
+  grid-template-rows:repeat(var(--righe,1),auto);
+  grid-auto-columns:minmax(0,1fr);align-content:start;gap:4px 8px}
 @media (max-width:480px){
-  .dm-ap-card.centrato .dm-ap-cycle-list{columns:1}
+  .dm-ap-card.centrato .dm-ap-cycle-list{grid-auto-flow:row;
+    grid-template-rows:none;grid-template-columns:1fr}
 }
 .dm-ap-cycle-row{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0}
 .dm-ap-cycle-row small{flex:0 0 auto;font-size:10.5px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:var(--dm-dim)}
@@ -10238,7 +10243,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.7";
+const VERSIONE = "2.96.8";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -22941,6 +22946,21 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     }).join("");
   }
 
+  // Quante voci per colonna. La sinistra si riempie per prima: la meta'
+  // arrotondata per ECCESSO, cosi' con 11 voci fa 6 e 5 e il vuoto - se c'e'
+  // - resta in fondo a destra. Le conto dal disegno e non dalla
+  // configurazione, perche' certe righe si disegnano solo se hanno i loro
+  // sensori: contando le chiavi ne conterei anche di invisibili.
+  _sistemaColonne() {
+    const lista = this._root && this._root.querySelector(".dm-ap-cycle-list");
+    if (!lista) return;
+    const quante = lista.children.length;
+    const perColonna = Math.max(1, Math.ceil(quante / 2));
+    if (lista._perColonna === perColonna) return;
+    lista._perColonna = perColonna;
+    lista.style.setProperty("--righe", perColonna);
+  }
+
   _openStats() {
     const hass = this._hass;
     const cfg = this._config;
@@ -23200,6 +23220,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         x.textContent = [kwh, euro].filter(Boolean).join(" \u00b7 ") || "\u2014";
       }
     }
+    this._sistemaColonne();
     { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
     // LE RIGHE TUE: quello che dice l'entita', scritto come hai scelto.
     // "valore" lascia fare a Home Assistant (numero e unita' sua), cosi' va
@@ -24442,6 +24463,16 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     }
   }
 
+  // vedi casa-energia: la colonna di sinistra si riempie per prima
+  _sistemaColonne() {
+    const lista = this._root && this._root.querySelector(".dm-ap-cycle-list");
+    if (!lista) return;
+    const perColonna = Math.max(1, Math.ceil(lista.children.length / 2));
+    if (lista._perColonna === perColonna) return;
+    lista._perColonna = perColonna;
+    lista.style.setProperty("--righe", perColonna);
+  }
+
   _cycleAttr(hass, key) {
     const cfg = this._config;
     // niente sensore del ciclo: allora sono le tre memorie che riempie
@@ -25127,6 +25158,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     { const x = this._root.querySelector(".dm-c-energy"); if (x) x.textContent = energy ?? "\u2014"; }
     this._scriviCosto(this._root.querySelector(".dm-c-cost"), cost, costPieno);
 
+    this._sistemaColonne();
     this._tastiAggiorna(hass);
 
     // le quattro righe "da presa": kWh e costo di oggi e del mese
