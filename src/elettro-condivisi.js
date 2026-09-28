@@ -456,3 +456,21 @@ export const ConEditor = (Base) => class extends Base {
     });
   }
 };
+
+// Sono dentro all'elenco «aggiungi scheda»? Letto nel codice di Home
+// Assistant (hui-card-picker._renderCardElement): la scheda vera la infila
+// dentro a <div class="preview"> nell'ombra di `hui-card-picker`, quindi il
+// padrone della mia ombra e' lui. Li' basta un figurino e mi rimpicciolisco.
+// Nelle versioni vecchie c'era un `hui-card-element-preview`: guardo tutti e
+// due, e se un domani cambia ancora non si rompe niente - resto grande.
+// Sono dentro all'elenco «aggiungi scheda»? Home Assistant ci mette la
+// scheda VERA, a grandezza naturale, dentro a `hui-card-element-preview`.
+// Li' basta un figurino, quindi mi rimpicciolisco. Se quel pezzo un giorno
+// cambiasse nome non si rompe niente: resto grande come prima.
+export function guardaSeAnteprima(el) {
+  try {
+    const radice = el.getRootNode();
+    const chi = radice && radice.host ? String(radice.host.tagName || "") : "";
+    if (/CARD-PICKER|CARD-ELEMENT-PREVIEW/i.test(chi)) el.classList.add("in-anteprima");
+  } catch (e) { /* in un posto strano: pazienza, resta grande */ }
+}

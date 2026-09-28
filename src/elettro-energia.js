@@ -21,7 +21,7 @@ import {
 const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
-import { ConFinestrelle } from './elettro-condivisi.js';
+import { ConFinestrelle, guardaSeAnteprima } from './elettro-condivisi.js';
 import { ConGrafico } from './elettro-grafico.js';
 
 // Le righe che puo' avere il riquadro Oggi, con il nome che si vede nell'editor.
@@ -97,6 +97,10 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const potenza = Object.keys(st).find((k) => k.startsWith("sensor.")
       && (st[k].attributes || {}).device_class === "power") || "";
     return { type: "custom:casa-energia", name: "Energia Casa", power_entity: potenza, top_auto: true };
+  }
+
+  connectedCallback() {
+    guardaSeAnteprima(this);
   }
 
   setConfig(config) {

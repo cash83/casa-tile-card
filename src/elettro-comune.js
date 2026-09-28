@@ -729,6 +729,9 @@ const STYLE = `
 /* CENTRATO: la foto si mette in mezzo, larga quanto la scheda, e i numeri
    le vanno sotto su due colonne. E' la stessa scheda, cambia la
    disposizione - si sceglie dall'editor, riquadro Aspetto. */
+/* Nell'elenco «aggiungi scheda» la scheda si fa piccola: li' e' un
+   figurino, non una scheda da usare. Fuori di li' non cambia niente. */
+:host(.in-anteprima){zoom:.48}
 .dm-ap-card.centrato .dm-ap-top-row{flex-direction:column;gap:12px}
 .dm-ap-card.centrato .dm-ap-hero{flex:0 0 auto;width:100%;height:196px}
 .dm-ap-card.centrato .dm-ap-cycle-side{flex:0 0 auto;width:100%}

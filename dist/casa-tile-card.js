@@ -4845,6 +4845,9 @@ const STYLE = `
 /* CENTRATO: la foto si mette in mezzo, larga quanto la scheda, e i numeri
    le vanno sotto su due colonne. E' la stessa scheda, cambia la
    disposizione - si sceglie dall'editor, riquadro Aspetto. */
+/* Nell'elenco «aggiungi scheda» la scheda si fa piccola: li' e' un
+   figurino, non una scheda da usare. Fuori di li' non cambia niente. */
+:host(.in-anteprima){zoom:.48}
 .dm-ap-card.centrato .dm-ap-top-row{flex-direction:column;gap:12px}
 .dm-ap-card.centrato .dm-ap-hero{flex:0 0 auto;width:100%;height:196px}
 .dm-ap-card.centrato .dm-ap-cycle-side{flex:0 0 auto;width:100%}
@@ -10243,7 +10246,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.9";
+const VERSIONE = "2.96.15";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -22076,6 +22079,24 @@ const ConEditor = (Base) => class extends Base {
   }
 };
 
+// Sono dentro all'elenco «aggiungi scheda»? Letto nel codice di Home
+// Assistant (hui-card-picker._renderCardElement): la scheda vera la infila
+// dentro a <div class="preview"> nell'ombra di `hui-card-picker`, quindi il
+// padrone della mia ombra e' lui. Li' basta un figurino e mi rimpicciolisco.
+// Nelle versioni vecchie c'era un `hui-card-element-preview`: guardo tutti e
+// due, e se un domani cambia ancora non si rompe niente - resto grande.
+// Sono dentro all'elenco «aggiungi scheda»? Home Assistant ci mette la
+// scheda VERA, a grandezza naturale, dentro a `hui-card-element-preview`.
+// Li' basta un figurino, quindi mi rimpicciolisco. Se quel pezzo un giorno
+// cambiasse nome non si rompe niente: resto grande come prima.
+function guardaSeAnteprima(el) {
+  try {
+    const radice = el.getRootNode();
+    const chi = radice && radice.host ? String(radice.host.tagName || "") : "";
+    if (/CARD-PICKER|CARD-ELEMENT-PREVIEW/i.test(chi)) el.classList.add("in-anteprima");
+  } catch (e) { /* in un posto strano: pazienza, resta grande */ }
+}
+
 // -*- coding: utf-8 -*-
 // IL GRAFICO STORICO delle schede dei consumi: 24 ore, 7 giorni, 30 giorni,
 // oppure due date a scelta.
@@ -22619,6 +22640,10 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const potenza = Object.keys(st).find((k) => k.startsWith("sensor.")
       && (st[k].attributes || {}).device_class === "power") || "";
     return { type: "custom:casa-energia", name: "Energia Casa", power_entity: potenza, top_auto: true };
+  }
+
+  connectedCallback() {
+    guardaSeAnteprima(this);
   }
 
   setConfig(config) {
@@ -24351,6 +24376,10 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // fai riempire dal tasto "Capisci da solo").
   static getStubConfig() {
     return { type: "custom:casa-elettrodomestico", name: "", artwork: "washer" };
+  }
+
+  connectedCallback() {
+    guardaSeAnteprima(this);
   }
 
   setConfig(config) {

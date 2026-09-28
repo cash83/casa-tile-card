@@ -25,7 +25,7 @@ import {
   vestiFinestra,
 } from './elettro-comune.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
-import { ConFinestrelle } from './elettro-condivisi.js';
+import { ConFinestrelle, guardaSeAnteprima } from './elettro-condivisi.js';
 import { ConGrafico, coloreScala } from './elettro-grafico.js';
 
 // Le righe dell'Ultimo ciclo, col nome che si vede nell'editor.
@@ -98,6 +98,10 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
   // fai riempire dal tasto "Capisci da solo").
   static getStubConfig() {
     return { type: "custom:casa-elettrodomestico", name: "", artwork: "washer" };
+  }
+
+  connectedCallback() {
+    guardaSeAnteprima(this);
   }
 
   setConfig(config) {
