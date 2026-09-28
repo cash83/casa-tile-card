@@ -33,7 +33,7 @@ consumando di più e le barre dei circuiti.
 
 ## La casella — `custom:casa-tile`
 
-Aggiungi una scheda e cerca **Casa · casella animata**.
+Aggiungi una scheda e cerca **Casa · tuttofare**.
 
 **Icone.** 209 in tutto: 63 disegnate a mano più quelle di Home Assistant, con la
 ricerca in italiano («tenda» trova la tapparella). La card ne sceglie una
@@ -97,12 +97,16 @@ portate dentro a casa-tile e ampliate.
 
 ### `custom:casa-energia` — la luce di casa
 
+Nella tendina: **Casa · energia di tutta la casa**.
+
 Watt adesso · consumi e costi per periodo (ora, oggi, settimana, mese, bolletta) ·
 **sola energia** e **+ tasse** · **chi consuma di più**, trovato da solo fra tutte
 le prese che misurano, compreso il **«Non misurato»** · **risparmio del
 fotovoltaico** · barre dei circuiti · il **conto voce per voce** come in bolletta.
 
 ### `custom:casa-elettrodomestico` — un apparecchio o una presa
+
+Nella tendina: **Casa · elettrodomestico o presa**.
 
 Stato (in funzione, standby, spento) · barra della potenza · **ultimo ciclo**:
 fine, durata, consumo e costo · consumi e costi di oggi, della settimana e del

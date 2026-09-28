@@ -46,21 +46,21 @@ window.customCards = window.customCards || [];
 if (!window.customCards.some((x) => x && x.type === "casa-tile")) {
 window.customCards.push({
   type: "casa-tile",
-  name: "Casa · casella animata",
-  description: "Casella con icona animata: si muove solo quando l'entità è attiva. Si configura a moduli, senza YAML.",
+  name: "Casa · tuttofare",
+  description: "La casella buona per qualunque cosa: luce, tapparella, presa, persona, meteo, cassa. L'icona si muove solo mentre l'entità è attiva, al posto suo ci puoi mettere una foto tua, e i pezzi (nome, valore, icona, misure) li sposti dove vuoi dentro la casella. Si configura a clic, senza YAML.",
   preview: true,
   documentationURL: "https://www.home-assistant.io/dashboards/",
 });
 }
 
 [
-  ["casa-elettrodomestico", "Casa \u00b7 consumi",
+  ["casa-elettrodomestico", "Casa \u00b7 elettrodomestico o presa",
    "Una scheda per elettrodomestici E prese: watt, acceso/spento, ultimo ciclo oppure kWh e costi di oggi e del mese. Capisce da sola le entita' del dispositivo."],
   ["casa-energia", "Casa · energia di tutta la casa",
    "La scheda grande: watt adesso, consumi e costi per ora, oggi, settimana, mese e bolletta, chi consuma di piu', risparmio dei pannelli. Di solito ne basta una."],
 ].forEach(([type, name, description]) => {
   if (!window.customCards.some((x) => x && x.type === type)) {
-    window.customCards.push({ type, name, description });
+    window.customCards.push({ type, name, description, preview: true });
   }
 });
 

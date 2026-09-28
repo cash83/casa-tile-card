@@ -33,7 +33,7 @@ what is using the most, and the circuit bars.
 
 ## The tile — `custom:casa-tile`
 
-Add a card and look for **Casa · animated tile**.
+Add a card and look for **Casa · tuttofare** (the names in the picker are the same in every language).
 
 **Icons.** 209 of them: 63 hand-drawn plus Home Assistant's own, with search in
 Italian and English. The card picks one by looking at the entity; you can use your
@@ -96,12 +96,16 @@ brought inside casa-tile and extended.
 
 ### `custom:casa-energia` — the home's electricity
 
+In the picker: **Casa · energia di tutta la casa**.
+
 Watts now · energy and cost per period (hour, today, week, month, bill) ·
 **energy only** and **+ taxes** · **what is using the most**, found by itself
 among every metering socket, including the **"Unmetered"** share · **solar
 savings** · circuit bars · the **bill broken down item by item**.
 
 ### `custom:casa-elettrodomestico` — an appliance or a socket
+
+In the picker: **Casa · elettrodomestico o presa**.
 
 State (running, standby, off) · power bar · **last cycle**: end, duration, energy
 and cost · energy and costs for today, this week and this month ·
