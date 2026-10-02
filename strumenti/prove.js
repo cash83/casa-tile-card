@@ -7,8 +7,8 @@
 
 import { numero, unitaBella, giornoBreve, meseBreve, meseLungo, tastiDi } from '../src/elettro-comune.js';
 import { coloreScala, aPezzetti, SCALA, PERIODI_GRAFICO } from '../src/elettro-grafico.js';
-import { preseDiCasa, contaNelTop, inFinestra, preparaElettrodomestico } from '../src/elettro-prepara.js';
-import { prezziDelKWh, prezzoDellaCasa, INGREDIENTE, idDellaVoce, VOCI_TARIFFA } from '../src/elettro-crea.js';
+import { preseDiCasa, contaNelTop, preparaElettrodomestico } from '../src/elettro-prepara.js';
+import { prezzoDellaCasa, INGREDIENTE } from '../src/elettro-crea.js';
 
 let fatte = 0;
 let cadute = 0;

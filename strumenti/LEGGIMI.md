@@ -92,3 +92,31 @@ Due trappole che costano un'ora se non le sai:
 - le righe che si vedono le decide `righe`. Se una riga non e' nell'elenco il
   suo pezzo non esiste nel guscio, e `querySelector` torna `null`: non e' un
   difetto, e' che quella riga non l'hai chiesta.
+
+## I tre controlli automatici
+
+```
+npm run controlla
+```
+
+Fa tre passate, e nessuna delle tre guarda se il codice e' bello: guardano
+solo se c'e' qualcosa che non va.
+
+**1. `eslint`** - con le regole scritte in `eslint.config.mjs`. Non impone uno
+stile: cerca i nomi che non esistono, le chiavi scritte due volte nello stesso
+oggetto (quella e' la piu' cattiva: vince la seconda e la prima sparisce in
+silenzio), il codice che non si raggiunge, gli `import` che nessuno usa.
+
+**2. `controlla_doppioni.js`** - legge i moduli col parser vero e cerca due
+funzioni col corpo identico, lo stesso disegno SVG scritto piu' volte, e lo
+stesso selettore CSS dichiarato due volte nello stesso foglio. Salta quello
+che sta dentro a un `@media`: li' due regole uguali sono apposta.
+
+**3. `controlla_morto.js`** - roba esportata che nessuno importa (nemmeno le
+prove), classi CSS nei fogli e mai messe su niente, metodi `_qualcosa()` che
+nessuno chiama.
+
+Le voci del dizionario NON si controllano con questi: per quelle c'e'
+`controlla_scritte.py`, che guarda il verso che conta (scritte senza
+traduzione). L'elenco contrario - "chiavi che non servono piu'" - e' sempre
+pieno di falsi allarmi, perche' mezze scritte si compongono a pezzi.

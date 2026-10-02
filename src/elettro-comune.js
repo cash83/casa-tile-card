@@ -647,11 +647,13 @@ const STYLE = `
   background:rgba(127,127,127,.10);color:var(--secondary-text-color);line-height:1.5}
 .dm-ap-presa.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.14)}
 .dm-ap-presa.assente{opacity:.45;cursor:default}
+/* il tasto che sta chiedendo "sta lavorando: premi ancora" */
+.dm-ap-presa.chiede{color:#b45309;border-color:#fcd34d;background:rgba(251,191,36,.18)}
 .dm-ap-presa:active{transform:scale(.97)}
 .dm-ap-presa svg{flex:0 0 auto}
 .dm-ap-tool.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.12)}
 .dm-ap-top-row{display:flex;align-items:stretch;gap:10px;margin:0 13px}
-.dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
+.dm-ap-hero{cursor:pointer;position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
 .dm-ap-card.is-run .dm-ap-hero{background:radial-gradient(120% 90% at 50% 8%,rgba(186,230,253,.85),rgba(224,242,254,.35) 62%,transparent)}
 .dm-ap-hero svg{width:100%;height:100%;display:block}
 /* una foto tua al posto del disegno: riempie il riquadro come farebbe l'SVG */
@@ -903,7 +905,6 @@ const STYLE = `
 .dm-ap-week-stat{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
 .dm-ap-week-stat small{font-size:9px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-week-stat b{font-size:13px;font-weight:850;color:var(--dm-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
-.dm-ap-hero{cursor:pointer}
 .dm-ap-reset-note{font-size:12px;color:var(--dm-dim);text-align:center;margin-top:4px}
 
 /* Sul telefono resta la stessa finestra del PC, solo coi margini piu'
@@ -1093,7 +1094,7 @@ export const NOMI_DISEGNI = [
   ["microonde", "Microonde"],
   ["piano_cottura", "Piano cottura a induzione"],
   ["cappa", "Cappa aspirante"],
-  ["caffe", "Macchina del caffe\'"],
+  ["caffe", "Macchina del caffe'"],
   ["bollitore", "Bollitore"],
   ["tostapane", "Tostapane"],
   ["friggitrice", "Friggitrice ad aria"],
@@ -1119,7 +1120,7 @@ export const NOMI_DISEGNI = [
   ["robot", "Robot aspirapolvere"],
   ["asciugacapelli", "Asciugacapelli"],
   ["ferro", "Ferro da stiro"],
-  ["pompa", "Pompa dell\'acqua"],
+  ["pompa", "Pompa dell'acqua"],
   ["acquario", "Acquario"],
   ["stampante3d", "Stampante 3D"],
   ["console", "Console da gioco"],

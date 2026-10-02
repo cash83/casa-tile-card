@@ -1,12 +1,11 @@
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
 
-import { svecchiaMisure } from './editor-schede.js';
+import { ConSchede, svecchiaMisure } from './editor-schede.js';
 import { ConColori } from './editor-colori.js';
 import { inFinestra } from './elettro-prepara.js';
 import { ConIcone } from './editor-icone.js';
 import { ConPosti } from './editor-posti.js';
-import { ConSchede } from './editor-schede.js';
 import { iconaAutomatica } from './icone.js';
 import { T, laLingua, scegliLingua, traduciSchema } from './lingua.js';
 import { DIPENDE, ETICHETTE, SEZIONI, SOLO_AZIONE, SOLO_PER, STILE_SELETTORE } from './schema.js';

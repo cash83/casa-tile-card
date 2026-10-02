@@ -598,6 +598,78 @@
     prova('crescono', pos.every((v, i) => i === 0 || v > pos[i - 1]), true);
   }
 
+  // ======================================================================
+  dice('il tasto della presa chiede prima di spegnere a meta lavaggio');
+  {
+    // Una scheda tutta sua: serve un tasto e serve poter contare le chiamate
+    // al servizio, che il banco di sopra non registra.
+    async function conTasto(watt, presaAccesa, tag, chiedi) {
+      const chiamate = [];
+      const suo = {
+        language: 'it', locale: { language: 'it' },
+        states: {
+          'sensor.ct_watt': statoNum(watt, 'W', { device_class: 'power' }),
+          'switch.ct_presa': { state: presaAccesa ? 'on' : 'off',
+            attributes: { friendly_name: 'Presa lavatrice' } },
+        },
+        callWS: async () => ({}), callApi: async () => ({}),
+        callService: async (d, srv, p) => { chiamate.push(d + '.' + srv + ' ' + p.entity_id); },
+      };
+      const el = document.createElement(tag || 'casa-elettrodomestico');
+      el.setConfig({ type: 'custom:' + (tag || 'casa-elettrodomestico'), name: 'Lavatrice',
+        artwork: 'washer', power_entity: 'sensor.ct_watt', max_power: 2500,
+        threshold_run: 10, threshold_standby: 1, interruttore: 'switch.ct_presa',
+        chiedi_prima: chiedi !== false });
+      banco.appendChild(el);
+      el.hass = suo;
+      await new Promise((r) => setTimeout(r, 120));
+      const b = el.shadowRoot.querySelector('.dm-ap-tasto');
+      return { el, b, suo, chiamate,
+        scritta: () => b.querySelector('.dm-ap-tasto-nome').textContent };
+    }
+
+    const lava = await conTasto(1200, true);
+    prova('la scheda sa che sta lavorando', lava.el._staLavorando, true);
+    lava.b.click();
+    await new Promise((r) => setTimeout(r, 40));
+    prova('il primo clic non spegne', lava.chiamate.length, 0);
+    prova('il tasto chiede', lava.scritta(), 'Sta lavorando: premi ancora');
+    // un aggiornamento di stato non deve cancellare la domanda: il nome del
+    // tasto si riscrive a ogni giro, e prima se la mangiava
+    lava.el.hass = { ...lava.suo,
+      states: { ...lava.suo.states, 'sensor.ct_watt': statoNum(1201, 'W') } };
+    await new Promise((r) => setTimeout(r, 80));
+    prova('la domanda resiste all aggiornamento', lava.scritta(), 'Sta lavorando: premi ancora');
+    lava.b.click();
+    await new Promise((r) => setTimeout(r, 40));
+    prova('il secondo clic spegne', lava.chiamate[0], 'switch.toggle switch.ct_presa');
+    prova('e il nome torna quello di prima', lava.scritta(), 'Presa lavatrice');
+
+    // e dove non c'e' niente da rovinare non deve chiedere
+    const ferma = await conTasto(2, true);
+    ferma.b.click();
+    await new Promise((r) => setTimeout(r, 40));
+    prova('a riposo spegne subito', ferma.chiamate.length, 1);
+
+    const spenta = await conTasto(1200, false);
+    spenta.b.click();
+    await new Promise((r) => setTimeout(r, 40));
+    prova('accendere non chiede mai', spenta.chiamate.length, 1);
+
+    // senza la spunta nell'editor non deve chiedere niente a nessuno: e'
+    // quello che e' successo al PC della scrivania, che non e' una lavatrice
+    const senza = await conTasto(1200, true, 'casa-elettrodomestico', false);
+    senza.b.click();
+    await new Promise((r) => setTimeout(r, 40));
+    prova('senza la spunta spegne subito', senza.chiamate.length, 1);
+    prova('e il tasto non diventa arancione', senza.b.classList.contains('chiede'), false);
+
+    const casaE = await conTasto(1200, true, 'casa-energia');
+    casaE.b.click();
+    await new Promise((r) => setTimeout(r, 40));
+    prova('la scheda di casa non chiede', casaE.chiamate.length, 1);
+  }
+
   document.getElementById('esito').innerHTML = righe.join('\n')
     + '\n\n' + '='.repeat(60) + '\n'
     + (cadute === 0 ? '<span class="ok">Tutte a posto: ' + fatte + ' prove.</span>'

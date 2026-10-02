@@ -901,6 +901,10 @@ ELETTRO = {
 ELETTRO_SCHEDE = {
     "Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.":
         "This is where the kWh go, and this card counts none. Power over time is in the button next door, Trend.",
+    "Sta lavorando: premi ancora": "It is running: press again",
+    "contatori": "meters",
+    "Chiedi prima di spegnere mentre lavora": "Ask before switching off while it works",
+    "Due premute invece di una, ma solo per SPEGNERE e solo mentre l'apparecchio e' in funzione. Serve alla lavatrice, che un dito storto fermerebbe a meta' lavaggio. Per una luce o un PC lascialo spento.": "Two presses instead of one, but only to TURN OFF and only while the appliance is running. The washing machine needs it: one stray finger would stop it mid-cycle. For a light or a PC leave it off.",
     "Andamento": "Trend",
     "24 h": "24 h",
     "7 gg": "7 d",

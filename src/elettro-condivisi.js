@@ -13,13 +13,12 @@
 // casella (ConMusica(ConPezzi(...))). Quello che le due schede fanno davvero
 // in modo diverso (le loro finestre, i loro conti) resta nei loro file.
 
-import { esc, numero, tastiDi, ICON_CLOSE } from './elettro-comune.js';
+import { esc, numero, tastiDi, ICON_CLOSE, HERO_BUILDERS, CHIP_SVGS } from './elettro-comune.js';
 import { ICONE, disegnoMdi } from './icone.js';
 import { scegliLingua, T, TH } from './lingua.js';
 import { aiutantiVeri, cancellaQuesti, scollegaEntita, ID_TOTALE } from './elettro-crea.js';
 import { quali_cancellare } from './elettro-righe-editor.js';
 import { rigaFoto, sceltaDisegno } from './editor-foto.js';
-import { HERO_BUILDERS, CHIP_SVGS } from './elettro-comune.js';
 
 // ---------------------------------------------------------------- le schede
 // Il disegno di un tasto: l'icona scelta (le stesse della casella). Se non
@@ -50,9 +49,48 @@ export const ConFinestrelle = (Base) => class extends Base {
       b._agganciato = true;
       b.addEventListener("click", (e) => {
         e.stopPropagation();
+        // Spegnere la presa mentre l'apparecchio lavora vuol dire fermare il
+        // lavaggio a meta'. Quindi la prima premuta chiede e la seconda fa.
+        if (!this._chiediPrima(b, t.entity)) return;
         this._hass?.callService(t.entity.split(".")[0], "toggle", { entity_id: t.entity });
       });
     });
+  }
+
+  // La domanda la fa il tasto stesso, com'e' gia' nell'editor: la premuta
+  // chiede, quella dopo spegne, e dopo sei secondi si dimentica da se'.
+  //
+  // Non la fa mai da sola: la si accende nell'editor, scheda per scheda
+  // (`chiedi_prima`). Serve alla lavatrice, non al PC della scrivania ne'
+  // alle luci - li' due premute per spegnere sono solo una seccatura.
+  // E anche dove e' accesa chiede SOLO per spegnere (accendere non rompe
+  // niente) e SOLO mentre l'apparecchio lavora, cioe' quando la scheda ha
+  // messo `_staLavorando`: la scheda di casa non lo mette mai.
+  _chiediPrima(b, entity) {
+    if (b._chiesto) {
+      this._scordaDomanda(b);
+      return true;
+    }
+    if (!this._config.chiedi_prima) return true;
+    const st = ((this._hass || {}).states[entity] || {}).state;
+    const acceso = !!st && !["off", "unavailable", "unknown"].includes(st);
+    if (!this._staLavorando || !acceso) return true;
+    const eti = b.querySelector(".dm-ap-tasto-nome");
+    b._chiesto = true;
+    b._primaDiceva = eti ? eti.textContent : "";
+    if (eti) eti.textContent = T("Sta lavorando: premi ancora");
+    b.classList.add("chiede");
+    b._attesa = setTimeout(() => this._scordaDomanda(b), 6000);
+    return false;
+  }
+
+  _scordaDomanda(b) {
+    if (!b || !b._chiesto) return;
+    clearTimeout(b._attesa);
+    b._chiesto = false;
+    b.classList.remove("chiede");
+    const eti = b.querySelector(".dm-ap-tasto-nome");
+    if (eti) eti.textContent = b._primaDiceva;
   }
 
   _tastiAggiorna(hass) {
@@ -61,8 +99,9 @@ export const ConFinestrelle = (Base) => class extends Base {
       if (!b) return;
       const stato = hass.states[t.entity] || {};
       const st = stato.state;
-      // il nome vero. A setConfig `hass` non c'era ancora e restava l'id
-      if (!t.nome) {
+      // il nome vero. A setConfig `hass` non c'era ancora e restava l'id.
+      // Mentre il tasto sta chiedendo no: gli cancellerebbe la domanda.
+      if (!t.nome && !b._chiesto) {
         const nome = (stato.attributes || {}).friendly_name || t.entity;
         if (b.title !== nome) b.title = nome;
         const eti = b.querySelector(".dm-ap-tasto-nome");

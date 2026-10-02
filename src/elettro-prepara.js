@@ -142,22 +142,6 @@ function potenzaDi(hass, eid) {
   return fratelli(hass, eid).find((k) => k.startsWith("sensor.") && classe(hass, k) === "power") || null;
 }
 
-// I sensori del ciclo li chiamo <nome>_ciclo, <nome>_cicli_oggi e
-// <nome>_cicli_mese: li cerco col nome della casella, parola per parola.
-function cicloDi(hass, cfg) {
-  const st = (hass && hass.states) || {};
-  const nomi = new Set();
-  const n = pulisci(cfg.name);
-  if (n) nomi.add(n);
-  n.split("_").filter((p) => p.length > 3).forEach((p) => nomi.add(p));
-  const obj = String(cfg.entity || "").split(".")[1] || "";
-  if (obj) nomi.add(obj.split("_")[0]);
-  for (const k of nomi) {
-    if (st[`sensor.${k}_ciclo`]) return k;
-  }
-  return null;
-}
-
 
 // Dal disegno alle entita': cerco in casa chi si chiama come quell'apparecchio
 // e restituisco i candidati, il migliore per primo. Un candidato vale di piu'

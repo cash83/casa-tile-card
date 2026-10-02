@@ -6,7 +6,6 @@
 import { laLingua, laLocale, scegliLingua, T, TH } from './lingua.js';
 import {
   mirinoBarre,
-  mirinoGrafico,
   numero,
   unitaBella,
   disegnoDiScheda,
@@ -18,7 +17,6 @@ import {
   giornoBreve,
   meseBreve,
   meseLungo,
-  WEEKDAY_FULL_IT,
   DEFAULT_STATE_MAP,
   STYLE,
   esc,
@@ -225,7 +223,6 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
   }
 
   _cycleAttr(hass, key) {
-    const cfg = this._config;
     // niente sensore del ciclo: allora sono le tre memorie che riempie
     // l'automazione fatta dalla scheda (fine, minuti, kWh)
     return this._cicloDaMemorie(hass, key);
@@ -819,6 +816,10 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       mode = "standby";
       label = "STANDBY";
     }
+
+    // Sta lavorando: lo sanno i tasti, che prima di spegnere la presa a meta'
+    // lavaggio chiedono conferma (`_chiediPrima` in elettro-condivisi.js).
+    this._staLavorando = mode === "running";
 
     const card = this._root.querySelector(".dm-ap-card");
     card.classList.remove("is-run", "is-standby", "is-off", "is-unavailable", "has-alarm");

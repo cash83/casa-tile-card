@@ -6,10 +6,9 @@
 import { RIGHE_CICLO } from './elettro-elettrodomestico.js';
 import { VERSIONE } from './versione.js';
 import { ConEditor } from './elettro-condivisi.js';
-import { esc, tastiDi } from './elettro-comune.js';
+import { esc, tastiDi, NOMI_DISEGNI as DISEGNI } from './elettro-comune.js';
 import { T, TH, traduciSchema } from './lingua.js';
-import { rigaFoto, STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
-import { NOMI_DISEGNI as DISEGNI } from './elettro-comune.js';
+import { STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
 import { preparaElettrodomestico, trovaPerDisegno } from './elettro-prepara.js';
 import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez, vestiSez } from './elettro-righe-editor.js';
 import { creaCicli, prezzoDellaCasa, INGREDIENTE, creaSensoriElettrodomestico, prezziDelKWh } from './elettro-crea.js';
@@ -700,6 +699,9 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
             <summary class="ce-tit">${titoloSez(VESTITO.tasti, T("Tasti di accensione"))}</summary>
             <div class="ce-aiuto">${T("Ogni tasto e\u0027 un tondino nella barra in alto della scheda: premuto accende o spegne, e resta verde finche\u0027 e\u0027 acceso. Aggiungi quello che vuoi - una presa, una luce, una ventola - e scegli la sua icona.")}</div>
             <div class="ce-tasti"></div>
+            <label class="ce-riga"><input type="checkbox" class="ce-chiedi">
+              <span>${T("Chiedi prima di spegnere mentre lavora")}</span></label>
+            <div class="ce-aiuto">${T("Due premute invece di una, ma solo per SPEGNERE e solo mentre l'apparecchio e' in funzione. Serve alla lavatrice, che un dito storto fermerebbe a meta' lavaggio. Per una luce o un PC lascialo spento.")}</div>
           </details>
           <details class="ce-sez ce-tendina ce-sez-righe" data-c="1" style="--c:#e2ad1c">
             <summary class="ce-tit">${titoloSez(VESTITO.righe, T("Righe dell\u0027\u00abUltimo ciclo\u00bb"))}</summary>
@@ -789,6 +791,14 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           ["oggi", "settimana", "mese"].filter((x) =>
             (this.querySelector(".ce-p-" + x) || {}).checked)));
       });
+      const spuntaChiedi = this.querySelector(".ce-chiedi");
+      if (spuntaChiedi) {
+        spuntaChiedi.checked = !!this._config.chiedi_prima;
+        // togliendo la spunta la voce sparisce dalla configurazione, invece
+        // di restarci scritta "false": e' spenta di suo
+        spuntaChiedi.addEventListener("change", () =>
+          this._scriviScelta("chiedi_prima", spuntaChiedi.checked || ""));
+      }
       const spuntaCicli = this.querySelector(".ce-cicli");
       if (spuntaCicli) {
         spuntaCicli.checked = !!this._config.ciclo;

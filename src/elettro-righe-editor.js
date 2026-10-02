@@ -81,8 +81,9 @@ export const STILE_EDITOR = `
 .ce-conferma{border-color:#f0a020;color:#f0a020;font-weight:800}
 .ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
   border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;
-  white-space:pre-wrap;font-size:12.5px;box-shadow:0 -6px 12px -8px rgba(0,0,0,.6)}
-.ce-esito.male{border-color:var(--error-color,#e05b5b)}
+  white-space:pre-wrap;font-size:12.5px;color:var(--secondary-text-color);
+  box-shadow:0 -6px 12px -8px rgba(0,0,0,.6)}
+.ce-esito.male{border-color:var(--error-color,#e05b5b);color:var(--error-color,#e05b5b)}
 
 .ce-scelta{margin-top:8px;border:1px solid var(--divider-color);border-radius:10px;padding:8px}
 .ce-scelta label{display:flex;gap:8px;align-items:center;padding:3px 2px;font-size:13px}
@@ -125,8 +126,6 @@ export const STILE_EDITOR = `
   details.ce-sez>summary::-webkit-details-marker{display:none}
   details.ce-sez>summary:before{content:'\\25b8 ';opacity:.6;flex:0 0 auto}
   details.ce-sez[open]>summary:before{content:'\\25be ';opacity:.6}
-  .ce-esito{margin-top:10px;font-size:12.5px;white-space:pre-wrap;color:var(--secondary-text-color)}
-  .ce-esito.male{color:var(--error-color,#e46)}
   .ce-riga select{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
   .ce-tasto{display:flex;align-items:center;gap:8px;margin:6px 0}
   .ce-tasto .chi{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}

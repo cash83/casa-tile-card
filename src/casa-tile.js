@@ -1784,7 +1784,7 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     this._valore.title = sparito && this._ultimoBuono
       ? "Ultimo valore letto: adesso il sensore non risponde" : "";
     this._valore.textContent = scritto;
-    const numerico = /^[0-9.,\-]/.test(String(scritto).trim());
+    const numerico = /^[0-9.,-]/.test(String(scritto).trim());
     this._valore.classList.toggle("parola", !!scritto && !numerico);
     if (this._velo && this._velo.hasAttribute("aperto")) this._aggiornaFinestra();
     this._disegnaTempo(st);

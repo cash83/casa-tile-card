@@ -334,6 +334,15 @@ async function prezzoDelKWh(hass, opzioni, dillo, conto) {
  * Crea (o ritrova) contatori e costi. `dillo(testo)` racconta cosa sta facendo.
  * Torna il pezzo di configurazione da mettere nella scheda.
  */
+// Cerca una voce di configurazione gia' fatta, per dominio e nome. Sta qui
+// fuori perche' quattro funzioni qui sotto la facevano uguale, ognuna con la
+// sua copia: quattro posti dove sbagliare lo stesso confronto.
+function cercaVoce(voci, reg, dominio, nome) {
+  const v = voci.find((x) => x.domain === dominio
+    && String(x.title || "").toLowerCase() === nome.toLowerCase());
+  return v ? entitaDellaVoce(reg, v.entry_id) : null;
+}
+
 export async function creaSensoriBase(hass, opzioni, dillo) {
   const sorgente = opzioni.sorgente;
   if (!sorgente || !hass.states[sorgente]) throw new Error("Scegli il sensore dei kWh della casa.");
@@ -348,12 +357,7 @@ export async function creaSensoriBase(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  // cerca una voce di configurazione gia' fatta, per dominio e nome
-  const gia = (dominio, nome) => {
-    const v = voci.find((x) => x.domain === dominio
-      && String(x.title || "").toLowerCase() === nome.toLowerCase());
-    return v ? entitaDellaVoce(reg, v.entry_id) : null;
-  };
+  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
 
   // 1. il prezzo in euro al kWh
   const prezzo = await prezzoDelKWh(hass, opzioni, dillo, conto);
@@ -612,11 +616,7 @@ export async function creaCicli(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => {
-    const v = voci.find((x) => x.domain === dominio
-      && String(x.title || "").toLowerCase() === nome.toLowerCase());
-    return v ? entitaDellaVoce(reg, v.entry_id) : null;
-  };
+  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
   const esiste = (eid) => !!hass.states[eid];
 
@@ -782,11 +782,7 @@ export async function creaFonte(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => {
-    const v = voci.find((x) => x.domain === dominio
-      && String(x.title || "").toLowerCase() === nome.toLowerCase());
-    return v ? entitaDellaVoce(reg, v.entry_id) : null;
-  };
+  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
 
   // piu' apparecchi (due batterie, due inverter): prima li sommo con l'aiutante
@@ -862,11 +858,7 @@ export async function creaRisparmio(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => {
-    const v = voci.find((x) => x.domain === dominio
-      && String(x.title || "").toLowerCase() === nome.toLowerCase());
-    return v ? entitaDellaVoce(reg, v.entry_id) : null;
-  };
+  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
 
   // 1. i kWh: se il sensore e' in Watt me li calcolo

@@ -5,7 +5,6 @@
 
 import { laLingua, laLocale, scegliLingua, T, TH } from './lingua.js';
 import {
-  mirinoGrafico,
   numero,
   unitaBella,
   disegnoDiScheda,

@@ -287,10 +287,6 @@ svg .rotaspazzola { transform-origin: 42px 50px;
 svg .aspiragira { transform-origin: 42px 44px;
   animation: casa-aspira-gira calc(3.4s / var(--vel, 1)) ease-in-out infinite; }
 /* la tapparella che si muove davvero: le stecche scorrono nel vano */
-@keyframes casa-tappagiu { from { transform: translateY(0); } to { transform: translateY(6.6px); } }
-@keyframes casa-tappasu { from { transform: translateY(0); } to { transform: translateY(-6.6px); } }
-svg .tappagiu { animation: casa-tappagiu calc(.9s / var(--vel, 1)) linear infinite; }
-svg .tappasu { animation: casa-tappasu calc(.9s / var(--vel, 1)) linear infinite; }
 svg .bar { transform-origin: 50% 100%; animation: casa-eq calc(.9s / var(--vel, 1)) ease-in-out infinite; }
 svg .b2 { animation-delay: .15s; } svg .b3 { animation-delay: .3s; } svg .b4 { animation-delay: .45s; }
 svg .calore { animation: casa-sale calc(2.2s / var(--vel, 1)) ease-out infinite; }

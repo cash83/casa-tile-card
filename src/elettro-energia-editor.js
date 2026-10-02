@@ -9,7 +9,7 @@ import { VERSIONE } from './versione.js';
 import { ConEditor } from './elettro-condivisi.js';
 import { numero, tastiDi, NOMI_DISEGNI as DISEGNI } from './elettro-comune.js';
 import { T, TH, traduciSchema } from './lingua.js';
-import { rigaFoto, STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
+import { STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
 import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez } from './elettro-righe-editor.js';
 import { creaFonte, creaRisparmio, ID_TOTALE, prezzoDellaCasa, idDellaVoce, VOCI_TARIFFA, scriviTariffa, INGREDIENTE, creaSensoriBase, prezziDelKWh } from './elettro-crea.js';

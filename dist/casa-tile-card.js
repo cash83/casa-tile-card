@@ -773,16 +773,10 @@ const EN = {
   "Immagine di quando lavora (anche una gif)": "Image for when it is working (a gif works too)",
   "La seconda si vede solo mentre lavora: a riposo torna quella di sopra.": "The second one shows only while it works: at rest the one above comes back.",
   "Foto di sfondo del pop-up": "Pop-up background photo",
-  "Usa un'immagine mia (telefono o PC)": "Use a photo of mine (phone or PC)",
   "oppure l'indirizzo: /local/mia.jpg": "or the address: /local/mine.jpg",
-  "Tocca per scegliere un'altra foto": "Tap to pick another photo",
-  "Scegli un'altra foto": "Pick another photo",
-  "Togli la foto": "Remove the photo",
-  "Sto caricando": "Uploading",
   "Non sono riuscito a caricarla": "I could not upload it",
   "premi di nuovo": "press again",
-  "contatore": "counter",
-  "contatori": "counters",
+  "contatori": "meters",
   "I kWh di casa, contati per": "The house kWh, counted for",
   "sorgenti": "sources",
   "Mostra altre impostazioni": "Show other settings",
@@ -974,6 +968,9 @@ const EN = {
   "Il prezzo l'hai gia' scritto qui sopra: qui scegli solo <b>da quale sensore dei kWh</b> parte la casa. Creo io i contatori (ora, oggi, settimana, mese e ieri) e il costo di ogni periodo, e li aggancio alla scheda; quelli che ci sono gia' li riuso.<br> Il conto voce per voce della bolletta, i cicli degli elettrodomestici e il risparmio del fotovoltaico non si fanno da qui: stanno nella guida, in <i>esempi/luce</i>.": "You already wrote the price above: here you only pick <b>which kWh sensor</b> the house starts from. I create the meters (hour, today, week, month and yesterday) and the cost of each period, and I wire them to the card; the ones that already exist I reuse.<br> The itemised bill, the appliance cycles and the solar saving are not made from here: they are in the guide, under <i>esempi/luce</i>.",
   "Spunta quelli da buttare. Lo storico che hanno raccolto si perde; la presa e i sensori del dispositivo non si toccano. Ci sono anche le <b>memorie dell'ultimo ciclo</b> e l'<b>automazione</b> che le riempie: se butti quelle, il riquadro dell'ultimo ciclo resta vuoto.": "Tick the ones to throw away. The history they collected is lost; the socket and the device's own sensors are never touched. There are also the <b>last-cycle memories</b> and the <b>automation</b> that fills them: throw those away and the last-cycle box stays empty.",
   "Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.": "This is where the kWh go, and this card counts none. Power over time is in the button next door, Trend.",
+  "Sta lavorando: premi ancora": "It is running: press again",
+  "Chiedi prima di spegnere mentre lavora": "Ask before switching off while it works",
+  "Due premute invece di una, ma solo per SPEGNERE e solo mentre l'apparecchio e' in funzione. Serve alla lavatrice, che un dito storto fermerebbe a meta' lavaggio. Per una luce o un PC lascialo spento.": "Two presses instead of one, but only to TURN OFF and only while the appliance is running. The washing machine needs it: one stray finger would stop it mid-cycle. For a light or a PC leave it off.",
   "Andamento": "Trend",
   "24 h": "24 h",
   "7 gg": "7 d",
@@ -4763,11 +4760,13 @@ const STYLE = `
   background:rgba(127,127,127,.10);color:var(--secondary-text-color);line-height:1.5}
 .dm-ap-presa.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.14)}
 .dm-ap-presa.assente{opacity:.45;cursor:default}
+/* il tasto che sta chiedendo "sta lavorando: premi ancora" */
+.dm-ap-presa.chiede{color:#b45309;border-color:#fcd34d;background:rgba(251,191,36,.18)}
 .dm-ap-presa:active{transform:scale(.97)}
 .dm-ap-presa svg{flex:0 0 auto}
 .dm-ap-tool.acceso{color:#16a34a;border-color:#86efac;background:rgba(34,197,94,.12)}
 .dm-ap-top-row{display:flex;align-items:stretch;gap:10px;margin:0 13px}
-.dm-ap-hero{position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
+.dm-ap-hero{cursor:pointer;position:relative;flex:1 1 50%;min-width:0;display:grid;place-items:center;height:182px;margin:0;border-radius:18px;background:radial-gradient(120% 90% at 50% 8%,rgba(224,242,254,.65),rgba(241,245,249,.35) 60%,transparent);overflow:hidden}
 .dm-ap-card.is-run .dm-ap-hero{background:radial-gradient(120% 90% at 50% 8%,rgba(186,230,253,.85),rgba(224,242,254,.35) 62%,transparent)}
 .dm-ap-hero svg{width:100%;height:100%;display:block}
 /* una foto tua al posto del disegno: riempie il riquadro come farebbe l'SVG */
@@ -5019,7 +5018,6 @@ const STYLE = `
 .dm-ap-week-stat{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
 .dm-ap-week-stat small{font-size:9px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:var(--dm-dim)}
 .dm-ap-week-stat b{font-size:13px;font-weight:850;color:var(--dm-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
-.dm-ap-hero{cursor:pointer}
 .dm-ap-reset-note{font-size:12px;color:var(--dm-dim);text-align:center;margin-top:4px}
 
 /* Sul telefono resta la stessa finestra del PC, solo coi margini piu'
@@ -5209,7 +5207,7 @@ const NOMI_DISEGNI = [
   ["microonde", "Microonde"],
   ["piano_cottura", "Piano cottura a induzione"],
   ["cappa", "Cappa aspirante"],
-  ["caffe", "Macchina del caffe\'"],
+  ["caffe", "Macchina del caffe'"],
   ["bollitore", "Bollitore"],
   ["tostapane", "Tostapane"],
   ["friggitrice", "Friggitrice ad aria"],
@@ -5235,7 +5233,7 @@ const NOMI_DISEGNI = [
   ["robot", "Robot aspirapolvere"],
   ["asciugacapelli", "Asciugacapelli"],
   ["ferro", "Ferro da stiro"],
-  ["pompa", "Pompa dell\'acqua"],
+  ["pompa", "Pompa dell'acqua"],
   ["acquario", "Acquario"],
   ["stampante3d", "Stampante 3D"],
   ["console", "Console da gioco"],
@@ -5464,22 +5462,6 @@ function potenzaDi(hass, eid) {
   if (!eid) return null;
   if (classe(hass, eid) === "power") return eid;
   return fratelli(hass, eid).find((k) => k.startsWith("sensor.") && classe(hass, k) === "power") || null;
-}
-
-// I sensori del ciclo li chiamo <nome>_ciclo, <nome>_cicli_oggi e
-// <nome>_cicli_mese: li cerco col nome della casella, parola per parola.
-function cicloDi(hass, cfg) {
-  const st = (hass && hass.states) || {};
-  const nomi = new Set();
-  const n = pulisci(cfg.name);
-  if (n) nomi.add(n);
-  n.split("_").filter((p) => p.length > 3).forEach((p) => nomi.add(p));
-  const obj = String(cfg.entity || "").split(".")[1] || "";
-  if (obj) nomi.add(obj.split("_")[0]);
-  for (const k of nomi) {
-    if (st[`sensor.${k}_ciclo`]) return k;
-  }
-  return null;
 }
 
 
@@ -10246,7 +10228,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.15";
+const VERSIONE = "2.96.18";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -16154,10 +16136,6 @@ svg .rotaspazzola { transform-origin: 42px 50px;
 svg .aspiragira { transform-origin: 42px 44px;
   animation: casa-aspira-gira calc(3.4s / var(--vel, 1)) ease-in-out infinite; }
 /* la tapparella che si muove davvero: le stecche scorrono nel vano */
-@keyframes casa-tappagiu { from { transform: translateY(0); } to { transform: translateY(6.6px); } }
-@keyframes casa-tappasu { from { transform: translateY(0); } to { transform: translateY(-6.6px); } }
-svg .tappagiu { animation: casa-tappagiu calc(.9s / var(--vel, 1)) linear infinite; }
-svg .tappasu { animation: casa-tappasu calc(.9s / var(--vel, 1)) linear infinite; }
 svg .bar { transform-origin: 50% 100%; animation: casa-eq calc(.9s / var(--vel, 1)) ease-in-out infinite; }
 svg .b2 { animation-delay: .15s; } svg .b3 { animation-delay: .3s; } svg .b4 { animation-delay: .45s; }
 svg .calore { animation: casa-sale calc(2.2s / var(--vel, 1)) ease-out infinite; }
@@ -19637,7 +19615,7 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     this._valore.title = sparito && this._ultimoBuono
       ? "Ultimo valore letto: adesso il sensore non risponde" : "";
     this._valore.textContent = scritto;
-    const numerico = /^[0-9.,\-]/.test(String(scritto).trim());
+    const numerico = /^[0-9.,-]/.test(String(scritto).trim());
     this._valore.classList.toggle("parola", !!scritto && !numerico);
     if (this._velo && this._velo.hasAttribute("aperto")) this._aggiornaFinestra();
     this._disegnaTempo(st);
@@ -19837,8 +19815,9 @@ const STILE_EDITOR = `
 .ce-conferma{border-color:#f0a020;color:#f0a020;font-weight:800}
 .ce-esito{position:sticky;bottom:0;z-index:2;background:var(--card-background-color,#1c1c1c);
   border:1px solid var(--divider-color);border-radius:10px;padding:8px 10px;margin-top:10px;
-  white-space:pre-wrap;font-size:12.5px;box-shadow:0 -6px 12px -8px rgba(0,0,0,.6)}
-.ce-esito.male{border-color:var(--error-color,#e05b5b)}
+  white-space:pre-wrap;font-size:12.5px;color:var(--secondary-text-color);
+  box-shadow:0 -6px 12px -8px rgba(0,0,0,.6)}
+.ce-esito.male{border-color:var(--error-color,#e05b5b);color:var(--error-color,#e05b5b)}
 
 .ce-scelta{margin-top:8px;border:1px solid var(--divider-color);border-radius:10px;padding:8px}
 .ce-scelta label{display:flex;gap:8px;align-items:center;padding:3px 2px;font-size:13px}
@@ -19881,8 +19860,6 @@ const STILE_EDITOR = `
   details.ce-sez>summary::-webkit-details-marker{display:none}
   details.ce-sez>summary:before{content:'\\25b8 ';opacity:.6;flex:0 0 auto}
   details.ce-sez[open]>summary:before{content:'\\25be ';opacity:.6}
-  .ce-esito{margin-top:10px;font-size:12.5px;white-space:pre-wrap;color:var(--secondary-text-color)}
-  .ce-esito.male{color:var(--error-color,#e46)}
   .ce-riga select{flex:1 1 40%;min-width:0;padding:5px 7px;border-radius:7px;border:1px solid var(--divider-color,#555);background:var(--card-background-color,#111);color:inherit;font:inherit;font-size:13px}
   .ce-tasto{display:flex;align-items:center;gap:8px;margin:6px 0}
   .ce-tasto .chi{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
@@ -20478,6 +20455,15 @@ async function prezzoDelKWh(hass, opzioni, dillo, conto) {
  * Crea (o ritrova) contatori e costi. `dillo(testo)` racconta cosa sta facendo.
  * Torna il pezzo di configurazione da mettere nella scheda.
  */
+// Cerca una voce di configurazione gia' fatta, per dominio e nome. Sta qui
+// fuori perche' quattro funzioni qui sotto la facevano uguale, ognuna con la
+// sua copia: quattro posti dove sbagliare lo stesso confronto.
+function cercaVoce(voci, reg, dominio, nome) {
+  const v = voci.find((x) => x.domain === dominio
+    && String(x.title || "").toLowerCase() === nome.toLowerCase());
+  return v ? entitaDellaVoce(reg, v.entry_id) : null;
+}
+
 async function creaSensoriBase(hass, opzioni, dillo) {
   const sorgente = opzioni.sorgente;
   if (!sorgente || !hass.states[sorgente]) throw new Error("Scegli il sensore dei kWh della casa.");
@@ -20492,12 +20478,7 @@ async function creaSensoriBase(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  // cerca una voce di configurazione gia' fatta, per dominio e nome
-  const gia = (dominio, nome) => {
-    const v = voci.find((x) => x.domain === dominio
-      && String(x.title || "").toLowerCase() === nome.toLowerCase());
-    return v ? entitaDellaVoce(reg, v.entry_id) : null;
-  };
+  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
 
   // 1. il prezzo in euro al kWh
   const prezzo = await prezzoDelKWh(hass, opzioni, dillo, conto);
@@ -20756,11 +20737,7 @@ async function creaCicli(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => {
-    const v = voci.find((x) => x.domain === dominio
-      && String(x.title || "").toLowerCase() === nome.toLowerCase());
-    return v ? entitaDellaVoce(reg, v.entry_id) : null;
-  };
+  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
   const esiste = (eid) => !!hass.states[eid];
 
@@ -20926,11 +20903,7 @@ async function creaFonte(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => {
-    const v = voci.find((x) => x.domain === dominio
-      && String(x.title || "").toLowerCase() === nome.toLowerCase());
-    return v ? entitaDellaVoce(reg, v.entry_id) : null;
-  };
+  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
 
   // piu' apparecchi (due batterie, due inverter): prima li sommo con l'aiutante
@@ -21006,11 +20979,7 @@ async function creaRisparmio(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => {
-    const v = voci.find((x) => x.domain === dominio
-      && String(x.title || "").toLowerCase() === nome.toLowerCase());
-    return v ? entitaDellaVoce(reg, v.entry_id) : null;
-  };
+  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
 
   // 1. i kWh: se il sensore e' in Watt me li calcolo
@@ -21672,9 +21641,48 @@ const ConFinestrelle = (Base) => class extends Base {
       b._agganciato = true;
       b.addEventListener("click", (e) => {
         e.stopPropagation();
+        // Spegnere la presa mentre l'apparecchio lavora vuol dire fermare il
+        // lavaggio a meta'. Quindi la prima premuta chiede e la seconda fa.
+        if (!this._chiediPrima(b, t.entity)) return;
         this._hass?.callService(t.entity.split(".")[0], "toggle", { entity_id: t.entity });
       });
     });
+  }
+
+  // La domanda la fa il tasto stesso, com'e' gia' nell'editor: la premuta
+  // chiede, quella dopo spegne, e dopo sei secondi si dimentica da se'.
+  //
+  // Non la fa mai da sola: la si accende nell'editor, scheda per scheda
+  // (`chiedi_prima`). Serve alla lavatrice, non al PC della scrivania ne'
+  // alle luci - li' due premute per spegnere sono solo una seccatura.
+  // E anche dove e' accesa chiede SOLO per spegnere (accendere non rompe
+  // niente) e SOLO mentre l'apparecchio lavora, cioe' quando la scheda ha
+  // messo `_staLavorando`: la scheda di casa non lo mette mai.
+  _chiediPrima(b, entity) {
+    if (b._chiesto) {
+      this._scordaDomanda(b);
+      return true;
+    }
+    if (!this._config.chiedi_prima) return true;
+    const st = ((this._hass || {}).states[entity] || {}).state;
+    const acceso = !!st && !["off", "unavailable", "unknown"].includes(st);
+    if (!this._staLavorando || !acceso) return true;
+    const eti = b.querySelector(".dm-ap-tasto-nome");
+    b._chiesto = true;
+    b._primaDiceva = eti ? eti.textContent : "";
+    if (eti) eti.textContent = T("Sta lavorando: premi ancora");
+    b.classList.add("chiede");
+    b._attesa = setTimeout(() => this._scordaDomanda(b), 6000);
+    return false;
+  }
+
+  _scordaDomanda(b) {
+    if (!b || !b._chiesto) return;
+    clearTimeout(b._attesa);
+    b._chiesto = false;
+    b.classList.remove("chiede");
+    const eti = b.querySelector(".dm-ap-tasto-nome");
+    if (eti) eti.textContent = b._primaDiceva;
   }
 
   _tastiAggiorna(hass) {
@@ -21683,8 +21691,9 @@ const ConFinestrelle = (Base) => class extends Base {
       if (!b) return;
       const stato = hass.states[t.entity] || {};
       const st = stato.state;
-      // il nome vero. A setConfig `hass` non c'era ancora e restava l'id
-      if (!t.nome) {
+      // il nome vero. A setConfig `hass` non c'era ancora e restava l'id.
+      // Mentre il tasto sta chiedendo no: gli cancellerebbe la domanda.
+      if (!t.nome && !b._chiesto) {
         const nome = (stato.attributes || {}).friendly_name || t.entity;
         if (b.title !== nome) b.title = nome;
         const eti = b.querySelector(".dm-ap-tasto-nome");
@@ -24503,7 +24512,6 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
   }
 
   _cycleAttr(hass, key) {
-    const cfg = this._config;
     // niente sensore del ciclo: allora sono le tre memorie che riempie
     // l'automazione fatta dalla scheda (fine, minuti, kWh)
     return this._cicloDaMemorie(hass, key);
@@ -25097,6 +25105,10 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
       mode = "standby";
       label = "STANDBY";
     }
+
+    // Sta lavorando: lo sanno i tasti, che prima di spegnere la presa a meta'
+    // lavaggio chiedono conferma (`_chiediPrima` in elettro-condivisi.js).
+    this._staLavorando = mode === "running";
 
     const card = this._root.querySelector(".dm-ap-card");
     card.classList.remove("is-run", "is-standby", "is-off", "is-unavailable", "has-alarm");
@@ -25977,6 +25989,9 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
             <summary class="ce-tit">${titoloSez(VESTITO.tasti, T("Tasti di accensione"))}</summary>
             <div class="ce-aiuto">${T("Ogni tasto e\u0027 un tondino nella barra in alto della scheda: premuto accende o spegne, e resta verde finche\u0027 e\u0027 acceso. Aggiungi quello che vuoi - una presa, una luce, una ventola - e scegli la sua icona.")}</div>
             <div class="ce-tasti"></div>
+            <label class="ce-riga"><input type="checkbox" class="ce-chiedi">
+              <span>${T("Chiedi prima di spegnere mentre lavora")}</span></label>
+            <div class="ce-aiuto">${T("Due premute invece di una, ma solo per SPEGNERE e solo mentre l'apparecchio e' in funzione. Serve alla lavatrice, che un dito storto fermerebbe a meta' lavaggio. Per una luce o un PC lascialo spento.")}</div>
           </details>
           <details class="ce-sez ce-tendina ce-sez-righe" data-c="1" style="--c:#e2ad1c">
             <summary class="ce-tit">${titoloSez(VESTITO.righe, T("Righe dell\u0027\u00abUltimo ciclo\u00bb"))}</summary>
@@ -26066,6 +26081,14 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           ["oggi", "settimana", "mese"].filter((x) =>
             (this.querySelector(".ce-p-" + x) || {}).checked)));
       });
+      const spuntaChiedi = this.querySelector(".ce-chiedi");
+      if (spuntaChiedi) {
+        spuntaChiedi.checked = !!this._config.chiedi_prima;
+        // togliendo la spunta la voce sparisce dalla configurazione, invece
+        // di restarci scritta "false": e' spenta di suo
+        spuntaChiedi.addEventListener("change", () =>
+          this._scriviScelta("chiedi_prima", spuntaChiedi.checked || ""));
+      }
       const spuntaCicli = this.querySelector(".ce-cicli");
       if (spuntaCicli) {
         spuntaCicli.checked = !!this._config.ciclo;

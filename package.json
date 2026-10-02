@@ -1,6 +1,6 @@
 {
   "name": "casa-tile-card",
-  "version": "2.96.15",
+  "version": "2.96.18",
   "description": "Casa Tile Card - casella animata per Home Assistant",
   "author": "cash83",
   "license": "MIT",
@@ -8,9 +8,12 @@
   "private": true,
   "scripts": {
     "build": "rollup -c",
-    "watch": "rollup -c --watch"
+    "watch": "rollup -c --watch",
+    "controlla": "eslint src strumenti && node strumenti/controlla_doppioni.js && node strumenti/controlla_morto.js"
   },
   "devDependencies": {
+    "acorn": "^8.18.0",
+    "eslint": "^10.11.0",
     "rollup": "^4.24.0"
   }
 }
