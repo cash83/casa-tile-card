@@ -1,7 +1,9 @@
 // -*- coding: utf-8 -*-
 // Il selettore delle icone, i nomi suggeriti e le immagini.
 
-import { riempiRiquadro } from './aiuti.js';
+// `elenco` qui si chiama `comeElenco`: nel file ci sono gia' due
+// variabili locali con quel nome, e coprirebbero l'aiuto.
+import { riempiRiquadro, comeElenco } from './aiuti.js';
 import { COLORI, coloreLampada, daRgb } from './colori.js';
 import { ICONE, MDI_PAROLE, NOMI_ICONE, NOMI_MDI, SINONIMI, disegnoMdi, iconaAutomatica } from './icone.js';
 import { T, TH } from './lingua.js';
@@ -263,7 +265,7 @@ export const ConIcone = (Base) => class extends Base {
   _costruisciNomi(forza) {
     const box = this._nomiMisure;
     if (!box) return;
-    const scelte = this._config.info_entita || [];
+    const scelte = comeElenco(this._config.info_entita);
     // se l'elenco e' lo stesso non tocco niente: rifare il riquadro fa
     // saltare la pagina in cima e perdere il campo dove sta scrivendo
     const firma = scelte.join(",");
@@ -363,7 +365,7 @@ export const ConIcone = (Base) => class extends Base {
   _costruisciTrovati() {
     const box = this._sensori;
     const trovati = this._trovaSensori();
-    const scelti0 = this._config.info_entita || [];
+    const scelti0 = comeElenco(this._config.info_entita);
     // Stessi sensori: non rifaccio il riquadro, aggiorno solo i numeri e le
     // spunte. Le spunte NON stanno nella firma apposta: mettendocele, ogni
     // volta che ne spuntavi una l'elenco si rifaceva da capo e la pagina
@@ -407,7 +409,7 @@ export const ConIcone = (Base) => class extends Base {
 
     const elenco = document.createElement("div");
     elenco.className = "trovati";
-    const scelti = this._config.info_entita || [];
+    const scelti = comeElenco(this._config.info_entita);
     trovati.forEach((eid) => {
       const st = this._hass.states[eid];
       const riga = document.createElement("label");
@@ -417,7 +419,7 @@ export const ConIcone = (Base) => class extends Base {
       spunta.type = "checkbox";
       spunta.checked = scelti.includes(eid);
       spunta.addEventListener("change", () => {
-        const ora = (this._config.info_entita || []).slice();
+        const ora = comeElenco(this._config.info_entita).slice();
         const dove = ora.indexOf(eid);
         if (spunta.checked && dove === -1) ora.push(eid);
         if (!spunta.checked && dove !== -1) ora.splice(dove, 1);

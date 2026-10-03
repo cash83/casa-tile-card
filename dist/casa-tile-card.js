@@ -1127,6 +1127,37 @@ const EN = {
 // Aiuti di servizio: tempi, misure, parole, memorie condivise.
 
 
+// Il numero che c'e' DAVVERO dentro a uno stato.
+//
+// `Number("")` fa 0. `Number(null)` fa 0. `Number("  ")` fa 0. E `isFinite(0)`
+// e' vero, quindi il controllo passa e la scheda scrive "0,00 kWh" dove la
+// verita' era "non lo so". Un contatore appena creato, un template che non ha
+// ancora reso niente, un'entita' sparita: tutti casi veri, tutti bugie.
+//
+// Qui invece torna NaN tutto quello che non e' un numero scritto, e chi legge
+// se ne accorge con il solito `Number.isFinite`.
+function numeroVero(v) {
+  if (v === null || v === undefined || typeof v === "boolean") return NaN;
+  const t = String(v).trim();
+  if (t === "" || t === "unknown" || t === "unavailable" || t === "none") return NaN;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+// Una voce della configurazione che DEVE essere un elenco.
+//
+// `comeElenco(c.tasti).forEach(...)` copre il vuoto ma non il tipo sbagliato: se
+// nello YAML uno scrive `info_entita: sensor.x` invece di una lista, li'
+// dentro c'e' una stringa, `.forEach` non esiste e la scheda MUORE dentro a
+// setConfig - in plancia resta un riquadro rosso al posto della scheda.
+// Qui: niente diventa [], un elenco resta com'e', una cosa sola diventa un
+// elenco di una cosa (che e' quasi sempre quello che intendeva).
+function comeElenco(v) {
+  if (Array.isArray(v)) return v;
+  if (v === null || v === undefined || v === "") return [];
+  return [v];
+}
+
 // come si chiama un tastino delle funzioni: "cerca", "sfoglia", "coda",
 // "pieno". Serve per dargli un posto suo nella disposizione.
 const nomeAttrezzo = (b) => {
@@ -1360,6 +1391,7 @@ function soloDalPallino(cursore) {
 
 // -*- coding: utf-8 -*-
 // Le impostazioni: sezioni, nomi in italiano, chi le vede.
+
 
 const SEZIONI = [
   {
@@ -1671,8 +1703,8 @@ const DIPENDE = {
     ? String(c.entity || "").split(".")[0] === "weather" : !!c.sfondo_meteo),
   meteo_entita: (c) => (c.sfondo_meteo === undefined
     ? String(c.entity || "").split(".")[0] === "weather" : !!c.sfondo_meteo),
-  info_nomi_auto: (c) => (c.info_entita || []).length > 0,
-  segui_attivo: (c) => (c.lettori || []).length > 0 || c.multiroom !== false,
+  info_nomi_auto: (c) => comeElenco(c.info_entita).length > 0,
+  segui_attivo: (c) => comeElenco(c.lettori).length > 0 || c.multiroom !== false,
   // la soglia serve a QUALSIASI casella con un numero (casa-tile.js,
   // _accesoNormale): il vecchio confronto con "sopra"/"sotto" non poteva
   // essere vero e la teneva nascosta a chi non usa acceso_entita
@@ -5140,8 +5172,8 @@ function tastiDi(cfg) {
     if (!entity || fuori.some((x) => x.entity === entity)) return;
     fuori.push({ entity, icona: icona || "", nome: nome || "" });
   };
-  (c.tasti || []).forEach((t) => metti(t && t.entity, t && t.icona, t && t.nome));
-  (c.interruttori || []).forEach((t) => metti(t && t.entity, t && t.icona, t && t.label));
+  comeElenco(c.tasti).forEach((t) => metti(t && t.entity, t && t.icona, t && t.nome));
+  comeElenco(c.interruttori).forEach((t) => metti(t && t.entity, t && t.icona, t && t.label));
   metti(c.interruttore, "", "");
   metti(c.interruttore_usb, "usb", "");
   return fuori;
@@ -5174,23 +5206,6 @@ function meseLungo(d) {
 function unitaBella(u) {
   const t = String(u || "").trim();
   return SIMBOLI[t.toUpperCase()] || t;
-}
-
-// Il numero che c'e' DAVVERO dentro a uno stato.
-//
-// `Number("")` fa 0. `Number(null)` fa 0. `Number("  ")` fa 0. E `isFinite(0)`
-// e' vero, quindi il controllo passa e la scheda scrive "0,00 kWh" dove la
-// verita' era "non lo so". Un contatore appena creato, un template che non ha
-// ancora reso niente, un'entita' sparita: tutti casi veri, tutti bugie.
-//
-// Qui invece torna NaN tutto quello che non e' un numero scritto, e chi legge
-// se ne accorge con il solito `Number.isFinite`.
-function numeroVero(v) {
-  if (v === null || v === undefined || typeof v === "boolean") return NaN;
-  const t = String(v).trim();
-  if (t === "" || t === "unknown" || t === "unavailable" || t === "none") return NaN;
-  const n = Number(t);
-  return Number.isFinite(n) ? n : NaN;
 }
 
 function numero(v, decimali) {
@@ -5385,10 +5400,10 @@ function preseDiCasa(hass) {
 // poi chi e' tolto a mano, poi le parole.
 function contaNelTop(cfg, id) {
   const c = cfg || {};
-  if ((c.top_include || []).includes(id)) return true;
-  if ((c.top_exclude_entita || []).includes(id)) return false;
+  if (comeElenco(c.top_include).includes(id)) return true;
+  if (comeElenco(c.top_exclude_entita).includes(id)) return false;
   if (id === c.power_entity) return false;
-  const parole = (c.top_exclude || ESCLUSI_DI_SERIE).concat(c.top_exclude_piu || [])
+  const parole = (c.top_exclude || ESCLUSI_DI_SERIE).concat(comeElenco(c.top_exclude_piu))
     .map((x) => String(x).toLowerCase());
   return !parole.some((x) => id.toLowerCase().includes(x));
 }
@@ -5658,7 +5673,7 @@ function preparaEnergia(hass, cfg) {
 // il resto (grafici messi a mano) resta dov'e'.
 function inFinestra(hass, cfg) {
   const scheda = cfg.azione === "energia" ? preparaEnergia(hass, cfg) : preparaElettrodomestico(hass, cfg);
-  const altre = (cfg.finestra_cards || []).filter((c) => !c || c.type !== scheda.type);
+  const altre = comeElenco(cfg.finestra_cards).filter((c) => !c || c.type !== scheda.type);
   const c2 = { ...cfg, azione: "finestra", finestra_cards: [scheda, ...altre] };
   if (!c2.finestra_titolo && cfg.name) c2.finestra_titolo = cfg.name;
   return c2;
@@ -7227,7 +7242,7 @@ const ConIcone = (Base) => class extends Base {
   _costruisciNomi(forza) {
     const box = this._nomiMisure;
     if (!box) return;
-    const scelte = this._config.info_entita || [];
+    const scelte = comeElenco(this._config.info_entita);
     // se l'elenco e' lo stesso non tocco niente: rifare il riquadro fa
     // saltare la pagina in cima e perdere il campo dove sta scrivendo
     const firma = scelte.join(",");
@@ -7327,7 +7342,7 @@ const ConIcone = (Base) => class extends Base {
   _costruisciTrovati() {
     const box = this._sensori;
     const trovati = this._trovaSensori();
-    const scelti0 = this._config.info_entita || [];
+    const scelti0 = comeElenco(this._config.info_entita);
     // Stessi sensori: non rifaccio il riquadro, aggiorno solo i numeri e le
     // spunte. Le spunte NON stanno nella firma apposta: mettendocele, ogni
     // volta che ne spuntavi una l'elenco si rifaceva da capo e la pagina
@@ -7371,7 +7386,7 @@ const ConIcone = (Base) => class extends Base {
 
     const elenco = document.createElement("div");
     elenco.className = "trovati";
-    const scelti = this._config.info_entita || [];
+    const scelti = comeElenco(this._config.info_entita);
     trovati.forEach((eid) => {
       const st = this._hass.states[eid];
       const riga = document.createElement("label");
@@ -7381,7 +7396,7 @@ const ConIcone = (Base) => class extends Base {
       spunta.type = "checkbox";
       spunta.checked = scelti.includes(eid);
       spunta.addEventListener("change", () => {
-        const ora = (this._config.info_entita || []).slice();
+        const ora = comeElenco(this._config.info_entita).slice();
         const dove = ora.indexOf(eid);
         if (spunta.checked && dove === -1) ora.push(eid);
         if (!spunta.checked && dove !== -1) ora.splice(dove, 1);
@@ -10249,7 +10264,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.21";
+const VERSIONE = "2.96.22";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -10592,7 +10607,7 @@ class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLElement))
         .map((k) => (DIPENDE[k](this._config) ? "1" : "0")).join("");
       const forma = (this._config.entity || "") + "|" + (this._config.azione || "")
         + "|" + (this._config.disposizione || "")
-        + "|" + ((this._config.acceso_entita || []).length ? "1" : "0")
+        + "|" + (comeElenco(this._config.acceso_entita).length ? "1" : "0")
         + "|" + dip;
       if (this._formaOra !== forma) {
         this._formaOra = forma;
@@ -11379,9 +11394,8 @@ const ConDisegni = (Base) => class extends Base {
       if (["off", "unavailable", "unknown", "idle", "standby"].includes(t)) return false;
       return t === "on" || t.indexOf("charg") >= 0 || t.indexOf("carica") >= 0;
     };
-    const elenco = (x) => (Array.isArray(x) ? x : (x ? [x] : []));
-    const suoiCarica = elenco(c.carica_entita);
-    const suoiScarica = elenco(c.scarica_entita);
+    const suoiCarica = comeElenco(c.carica_entita);
+    const suoiScarica = comeElenco(c.scarica_entita);
     if (suoiCarica.length || suoiScarica.length) {
       carica = suoiCarica.some(attiva);
       scarica = !carica && suoiScarica.some(attiva);
@@ -11481,8 +11495,10 @@ const ConDisegni = (Base) => class extends Base {
     }
     const dominio = c.entity.split(".")[0];
     if (dominio === "weather") {
-      const t = st.attributes.temperature;
-      if (t !== undefined && t !== null) {
+      // `Math.round("unavailable")` fa NaN, e sulla casella si leggeva
+      // "NaN °C": il controllo c'era ma guardava solo undefined e null
+      const t = numeroVero(st.attributes.temperature);
+      if (Number.isFinite(t)) {
         const u = st.attributes.temperature_unit || "°C";
         return Math.round(t) + " " + u;
       }
@@ -11490,12 +11506,12 @@ const ConDisegni = (Base) => class extends Base {
     }
     if (dominio === "light") {
       if (st.state !== "on") return T("Spento");
-      const b = st.attributes.brightness;
-      return b ? Math.round(b / 2.55) + "%" : T("Acceso");
+      const b = numeroVero(st.attributes.brightness);
+      return Number.isFinite(b) && b ? Math.round(b / 2.55) + "%" : T("Acceso");
     }
     if (dominio === "climate") {
-      const t = st.attributes.current_temperature;
-      return t !== undefined ? Math.round(t * 10) / 10 + "°" : st.state;
+      const t = numeroVero(st.attributes.current_temperature);
+      return Number.isFinite(t) ? Math.round(t * 10) / 10 + "°" : st.state;
     }
     if (dominio === "cover") {
       const dove = this._posizioneMostrata(st);
@@ -11931,7 +11947,7 @@ const ConFinestra = (Base) => class extends Base {
     // quattro, che non e' quello che uno chiede quando cambia l'altezza di
     // UNA casella. Cosi' invece ognuna tiene la sua.
     g.style.alignItems = "flex-start";
-    (cfg.cards || []).forEach((c, k) => {
+    comeElenco(cfg.cards).forEach((c, k) => {
       const cc = c || {};
       let el = null;
       try {
@@ -12637,10 +12653,13 @@ const ConGrafici = (Base) => class extends Base {
     const st = (eid && this._hass) ? this._hass.states[eid] : null;
     if (!st) { this._meteo.hidden = true; return; }
     this._meteo.hidden = false;
-    const t = st.attributes.temperature;
+    // `Math.round("unavailable")` fa NaN, e nell'angolino del meteo si leggeva
+    // "NaN \u00B0C" ogni volta che l'integrazione singhiozzava: il controllo c'era
+    // ma guardava solo undefined e null, non "e' un numero?"
+    const t = numeroVero(st.attributes.temperature);
     const u = st.attributes.temperature_unit || "\u00B0C";
-    const gradi = (t === undefined || t === null)
-      ? "" : Math.round(t) + "<small>" + u + "</small>";
+    const gradi = Number.isFinite(t)
+      ? Math.round(t) + "<small>" + u + "</small>" : "";
     if (this._gradi.dataset.gradi !== gradi) {
       this._gradi.dataset.gradi = gradi;
       this._gradi.innerHTML = gradi;
@@ -12939,7 +12958,7 @@ const ConGrafici = (Base) => class extends Base {
 
   _disegnaChips() {
     const gia = this._viaUsata;
-    const lista = (this._config.info_entita || [])
+    const lista = comeElenco(this._config.info_entita)
       .filter((eid) => eid !== gia)
       .slice(0, 6);
     if (!this._hass || !lista.length) {
@@ -22714,10 +22733,10 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const R = {
       consumo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-e-today-kwh">\u2014</b></div>`,
       consumo_mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3f8fea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo mese</small></span><b class="dm-e-month-kwh">—</b></div>`,
-      energia_tasse: `${this._config.bill_today || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f28c3c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Energia + tasse</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}`,
-      risparmio: `${this._config.bill_today || this._config.risparmio_oggi || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#43b86a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio pannelli</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}`,
+      energia_tasse: `${this._config.bill_today || comeElenco(this._config.periods).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f28c3c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Energia + tasse</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}`,
+      risparmio: `${this._config.bill_today || this._config.risparmio_oggi || comeElenco(this._config.periods).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#43b86a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio pannelli</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}`,
       pv_tasse: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore dm-forte" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Paghi</small></span><b class="dm-e-today-cost">\u2014</b></div>`,
-      energia: `${this._config.bill_today || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}`,
+      energia: `${this._config.bill_today || comeElenco(this._config.periods).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}`,
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>`,
       bolletta: `${this._config.bolletta_energia || this._config.bolletta_costo ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e07b39"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Bolletta</small></span><b class="dm-e-bolletta">\u2014</b></div>` : ""}`,
       consumo_vero: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo totale</small></span><b class="dm-e-consumo-vero">—</b></div>`,
@@ -22798,7 +22817,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // il resto compare solo nel popup Circuiti - stesso split usato per
     // Volume1/Volume2/USB sulla card NAS.
     const metersEl = this._root.querySelector(".dm-ap-meters");
-    (this._config.circuits || []).forEach((c, i) => {
+    comeElenco(this._config.circuits).forEach((c, i) => {
       const div = document.createElement("div");
       div.className = "dm-ap-meter dm-c-meter-clickable";
       div.dataset.circuitIndex = i;
@@ -22852,7 +22871,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // i tre contatori del Generale sono quelli della scheda: cosi' sotto al
     // grafico si leggono gli stessi numeri del riquadro, non un conto a parte
     const delPeriodo = (nome) => {
-      const p = (cfg.periods || []).find((x) =>
+      const p = comeElenco(cfg.periods).find((x) =>
         String(x.label || "").trim().toLowerCase() === nome);
       return p ? p.energy : null;
     };
@@ -22870,7 +22889,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         settimana: conFv(delPeriodo("settimana"), "fv_casa_settimana"),
         mese: conFv(delPeriodo("mese"), "fv_casa_mese"),
       } }];
-    (cfg.circuits || []).forEach((c, i) => {
+    comeElenco(cfg.circuits).forEach((c, i) => {
       if (!c || !c.entity) return;
       fuori.push({ nome: c.label || c.entity, entity: c.entity,
         colore: tinte[i % tinte.length], unita: "W" });
@@ -23020,7 +23039,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const primo = Array.isArray(v) ? v[0] : v;
       return (primo && c_e[primo]) ? primo : riserva;
     };
-    const rete = (((cfg.periods || []).find((p) =>
+    const rete = ((comeElenco(cfg.periods).find((p) =>
       String(p.label || "").trim().toLowerCase() === "oggi") || {}).energy) || null;
     const fv = sorgente(cfg.fv_casa_entita, cfg.fv_casa_oggi || null);
     const quali = [rete, fv].filter(Boolean);
@@ -23099,14 +23118,14 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const i = QUANTO_DURA.indexOf(String(p.label || "").trim().toLowerCase());
       return i < 0 ? QUANTO_DURA.length : i;
     };
-    const periodsHtml = (cfg.periods || [])
+    const periodsHtml = comeElenco(cfg.periods)
       .map((p, i) => [p, i])
       .sort((a, b) => quanto(a[0]) - quanto(b[0]) || a[1] - b[1])
       .map(([p]) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2),
         this._daQuando(p.energy)))
       .join("");
 
-    const prevHtml = (cfg.periods_prev || [])
+    const prevHtml = comeElenco(cfg.periods_prev)
       .map((p) => {
         // se il sensore del costo non tiene il periodo precedente, lo ricavo
         const costo = val(p.cost, 2, p.cost_attr);
@@ -23198,7 +23217,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         return { c: { label: l.label, entity: l.entity, max: m }, ordine, live: l.live };
       });
     }
-    const lista = (cfg.circuits || []).map((c, ordine) => {
+    const lista = comeElenco(cfg.circuits).map((c, ordine) => {
       const v = numeroVero(hass.states[c.entity]?.state);
       return { c, ordine, live: Number.isFinite(v) ? Math.max(0, v) : 0 };
     });
@@ -23246,7 +23265,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   _openConsumiOriginale() {
     const hass = this._hass;
     const cfg = this._config;
-    const circuits = (cfg.circuits || [])
+    const circuits = comeElenco(cfg.circuits)
       .map((c) => ({ ...c, live: numeroVero(hass.states[c.entity]?.state) || 0 }))
       .sort((a, b) => b.live - a.live);
 
@@ -23303,7 +23322,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // contatore cancellato, uno non creato) le posizioni slittano e la
     // casella mostrerebbe la settimana chiamandola "oggi".
     const periodo = (nome, posto) => {
-      const l = cfg.periods || [];
+      const l = comeElenco(cfg.periods);
       return l.find((p) => String(p.label || "").trim().toLowerCase() === nome) || l[posto];
     };
     const pOggi = periodo("oggi", 1);
@@ -23578,7 +23597,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   // i quattro sensori dei conti stanno dentro `periods`: li tiro fuori per
   // nome, cosi' l'ordine nell'elenco non conta
   _periodo(nome) {
-    return (this._config.periods || []).find(
+    return comeElenco(this._config.periods).find(
       (x) => String(x.label || "").trim().toLowerCase() === nome) || {};
   }
 
@@ -23609,8 +23628,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     if (oggiE || oggiC) prima.push({ label: "Ieri", energy: oggiE, energy_attr: "last_period", cost: oggiC, cost_attr: "last_period" });
     if (meseE || meseC) prima.push({ label: "Mese scorso", energy: meseE, energy_attr: "last_period", cost: meseC, cost_attr: "last_period" });
     // gli altri periodi che l'utente si e' scritto a mano restano dove sono
-    const suoi = (c.periods || []).filter((x) => !["oggi", "mese"].includes(String(x.label || "").trim().toLowerCase()));
-    const suoiPrima = (c.periods_prev || []).filter((x) => !["ieri", "mese scorso"].includes(String(x.label || "").trim().toLowerCase()));
+    const suoi = comeElenco(c.periods).filter((x) => !["oggi", "mese"].includes(String(x.label || "").trim().toLowerCase()));
+    const suoiPrima = comeElenco(c.periods_prev).filter((x) => !["ieri", "mese scorso"].includes(String(x.label || "").trim().toLowerCase()));
     if (periodi.length) c.periods = periodi.concat(suoi); else delete c.periods;
     if (prima.length) c.periods_prev = prima.concat(suoiPrima); else delete c.periods_prev;
     ["oggi_energia", "oggi_costo", "mese_energia", "mese_costo"].forEach((k) => delete c[k]);
@@ -24052,7 +24071,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     // mese. Diceva "4 agganciati" sopra a tre caselle, e sembrava che una
     // fosse sparita. Adesso il riassunto dice tutte e due le cose, cosi'
     // ognuna si puo' contare con gli occhi.
-    const quanti = (this._config.periods || []).filter((x) => x && x.energy).length;
+    const quanti = comeElenco(this._config.periods).filter((x) => x && x.energy).length;
     const sorgenti = [this._kWhScelto(), this._config.fv_casa_entita]
       .filter((x) => (Array.isArray(x) ? x.length : !!x)).length;
     const pezzi = [];
@@ -24070,7 +24089,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         const i = RITMO.indexOf(String(x.label || ""));
         return i < 0 ? RITMO.length : i;
       };
-      const fatti = (this._config.periods || [])
+      const fatti = comeElenco(this._config.periods)
         .filter((x) => x && x.energy)
         .slice()
         .sort((a, b) => posto(a) - posto(b))
@@ -24097,8 +24116,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         : contate + " " + T("su") + " " + prese.length);
     }
     const barre = this._config.barre_vive
-      ? T("le piu' accese") : ((this._config.circuits || []).length + " "
-        + T((this._config.circuits || []).length === 1 ? "barra" : "barre"));
+      ? T("le piu' accese") : (comeElenco(this._config.circuits).length + " "
+        + T(comeElenco(this._config.circuits).length === 1 ? "barra" : "barre"));
     metti(".ce-sez-barre", barre);
   }
 
@@ -25376,7 +25395,7 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     });
 
     const warnEl = this._root.querySelector(".dm-ap-warn");
-    const activeWarnings = (cfg.warn_entities || [])
+    const activeWarnings = comeElenco(cfg.warn_entities)
       .filter((w) => hass.states[w.entity]?.state === w.on_state)
       .map((w) => w.label);
     // il guasto lo dice la scheda, invece di far finta di niente. Con
@@ -25558,7 +25577,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
   _datiForm() {
     const c = this._config;
     return { ...c,
-      barre_entita: (c.barre || []).map((x) => x && x.entity).filter(Boolean),
+      barre_entita: comeElenco(c.barre).map((x) => x && x.entity).filter(Boolean),
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
       finestra_scritta: this._versoRgb(c.finestra_scritta), stato: (c.live && c.live.state_entity) || "",
       avanzamento: (c.live && c.live.progress_entity) || "",
@@ -25568,7 +25587,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       vivo_programma: (c.ciclo_live && c.ciclo_live.program_entity) || "",
       vivo_fase: (c.ciclo_live && c.ciclo_live.phase_entity) || "",
       // le prese di una ciabatta: nel form sono un semplice elenco di entita'
-      interruttori_lista: (c.interruttori || []).map((x) => x && x.entity).filter(Boolean) };
+      interruttori_lista: comeElenco(c.interruttori).map((x) => x && x.entity).filter(Boolean) };
   }
 
   _cambiatoForm(v) {
@@ -25583,7 +25602,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     });
     if ("interruttori_lista" in v) {
       const prima = {};
-      (this._config.interruttori || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x.label; });
+      comeElenco(this._config.interruttori).forEach((x) => { if (x && x.entity) prima[x.entity] = x.label; });
       const lista = (v.interruttori_lista || []).map((e) => ({ entity: e, label: prima[e] || "" }));
       v = { ...v };
       delete v.interruttori_lista;
@@ -25613,7 +25632,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     // le barre in piu': tengo nome e fondo scala di quelle che c'erano gia'
     if ("barre_entita" in v) {
       const prima = {};
-      (this._config.barre || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x; });
+      comeElenco(this._config.barre).forEach((x) => { if (x && x.entity) prima[x.entity] = x; });
       const elenco = (v.barre_entita || []).map((eid) => prima[eid]
         || { label: this._nomeDi(eid), entity: eid, max: 1000 });
       if (elenco.length) c.barre = elenco; else delete c.barre;

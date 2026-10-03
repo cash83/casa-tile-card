@@ -2,7 +2,7 @@
 // Che disegno fare, e quanto grande: batteria, gradi, foto, timbro.
 
 import { T } from './lingua.js';
-import { PARENTI, PAROLE, riempiRiquadro } from './aiuti.js';
+import { PARENTI, PAROLE, comeElenco, numeroVero, riempiRiquadro } from './aiuti.js';
 import { METEO } from './colori.js';
 import { ICONA_METEO, ICONE, aspiraFuori, disegnoAspira, disegnoBatteria, disegnoMdi, disegnoTapparella, disegnoTermometro, iconaAutomatica, tagliaTapparella } from './icone.js';
 import { valoreScritto } from './segni.js';
@@ -87,9 +87,8 @@ export const ConDisegni = (Base) => class extends Base {
       if (["off", "unavailable", "unknown", "idle", "standby"].includes(t)) return false;
       return t === "on" || t.indexOf("charg") >= 0 || t.indexOf("carica") >= 0;
     };
-    const elenco = (x) => (Array.isArray(x) ? x : (x ? [x] : []));
-    const suoiCarica = elenco(c.carica_entita);
-    const suoiScarica = elenco(c.scarica_entita);
+    const suoiCarica = comeElenco(c.carica_entita);
+    const suoiScarica = comeElenco(c.scarica_entita);
     if (suoiCarica.length || suoiScarica.length) {
       carica = suoiCarica.some(attiva);
       scarica = !carica && suoiScarica.some(attiva);
@@ -189,8 +188,10 @@ export const ConDisegni = (Base) => class extends Base {
     }
     const dominio = c.entity.split(".")[0];
     if (dominio === "weather") {
-      const t = st.attributes.temperature;
-      if (t !== undefined && t !== null) {
+      // `Math.round("unavailable")` fa NaN, e sulla casella si leggeva
+      // "NaN °C": il controllo c'era ma guardava solo undefined e null
+      const t = numeroVero(st.attributes.temperature);
+      if (Number.isFinite(t)) {
         const u = st.attributes.temperature_unit || "°C";
         return Math.round(t) + " " + u;
       }
@@ -198,12 +199,12 @@ export const ConDisegni = (Base) => class extends Base {
     }
     if (dominio === "light") {
       if (st.state !== "on") return T("Spento");
-      const b = st.attributes.brightness;
-      return b ? Math.round(b / 2.55) + "%" : T("Acceso");
+      const b = numeroVero(st.attributes.brightness);
+      return Number.isFinite(b) && b ? Math.round(b / 2.55) + "%" : T("Acceso");
     }
     if (dominio === "climate") {
-      const t = st.attributes.current_temperature;
-      return t !== undefined ? Math.round(t * 10) / 10 + "°" : st.state;
+      const t = numeroVero(st.attributes.current_temperature);
+      return Number.isFinite(t) ? Math.round(t * 10) / 10 + "°" : st.state;
     }
     if (dominio === "cover") {
       const dove = this._posizioneMostrata(st);

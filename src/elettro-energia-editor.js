@@ -7,7 +7,7 @@
 import { RIGHE_OGGI, righeMie } from './elettro-energia.js';
 import { VERSIONE } from './versione.js';
 import { ConEditor } from './elettro-condivisi.js';
-import { numero, tastiDi, NOMI_DISEGNI as DISEGNI } from './elettro-comune.js';
+import { numero, tastiDi, NOMI_DISEGNI as DISEGNI, comeElenco } from './elettro-comune.js';
 import { T, TH, traduciSchema } from './lingua.js';
 import { STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
@@ -122,7 +122,7 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
   // i quattro sensori dei conti stanno dentro `periods`: li tiro fuori per
   // nome, cosi' l'ordine nell'elenco non conta
   _periodo(nome) {
-    return (this._config.periods || []).find(
+    return comeElenco(this._config.periods).find(
       (x) => String(x.label || "").trim().toLowerCase() === nome) || {};
   }
 
@@ -153,8 +153,8 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     if (oggiE || oggiC) prima.push({ label: "Ieri", energy: oggiE, energy_attr: "last_period", cost: oggiC, cost_attr: "last_period" });
     if (meseE || meseC) prima.push({ label: "Mese scorso", energy: meseE, energy_attr: "last_period", cost: meseC, cost_attr: "last_period" });
     // gli altri periodi che l'utente si e' scritto a mano restano dove sono
-    const suoi = (c.periods || []).filter((x) => !["oggi", "mese"].includes(String(x.label || "").trim().toLowerCase()));
-    const suoiPrima = (c.periods_prev || []).filter((x) => !["ieri", "mese scorso"].includes(String(x.label || "").trim().toLowerCase()));
+    const suoi = comeElenco(c.periods).filter((x) => !["oggi", "mese"].includes(String(x.label || "").trim().toLowerCase()));
+    const suoiPrima = comeElenco(c.periods_prev).filter((x) => !["ieri", "mese scorso"].includes(String(x.label || "").trim().toLowerCase()));
     if (periodi.length) c.periods = periodi.concat(suoi); else delete c.periods;
     if (prima.length) c.periods_prev = prima.concat(suoiPrima); else delete c.periods_prev;
     ["oggi_energia", "oggi_costo", "mese_energia", "mese_costo"].forEach((k) => delete c[k]);
@@ -596,7 +596,7 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     // mese. Diceva "4 agganciati" sopra a tre caselle, e sembrava che una
     // fosse sparita. Adesso il riassunto dice tutte e due le cose, cosi'
     // ognuna si puo' contare con gli occhi.
-    const quanti = (this._config.periods || []).filter((x) => x && x.energy).length;
+    const quanti = comeElenco(this._config.periods).filter((x) => x && x.energy).length;
     const sorgenti = [this._kWhScelto(), this._config.fv_casa_entita]
       .filter((x) => (Array.isArray(x) ? x.length : !!x)).length;
     const pezzi = [];
@@ -614,7 +614,7 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         const i = RITMO.indexOf(String(x.label || ""));
         return i < 0 ? RITMO.length : i;
       };
-      const fatti = (this._config.periods || [])
+      const fatti = comeElenco(this._config.periods)
         .filter((x) => x && x.energy)
         .slice()
         .sort((a, b) => posto(a) - posto(b))
@@ -641,8 +641,8 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         : contate + " " + T("su") + " " + prese.length);
     }
     const barre = this._config.barre_vive
-      ? T("le piu' accese") : ((this._config.circuits || []).length + " "
-        + T((this._config.circuits || []).length === 1 ? "barra" : "barre"));
+      ? T("le piu' accese") : (comeElenco(this._config.circuits).length + " "
+        + T(comeElenco(this._config.circuits).length === 1 ? "barra" : "barre"));
     metti(".ce-sez-barre", barre);
   }
 

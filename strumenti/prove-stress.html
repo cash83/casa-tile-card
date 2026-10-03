@@ -83,6 +83,8 @@ function faiHass(valore, attributi) {
   metti("binary_sensor.s_acceso");
   metti("switch.s_presa");
   metti("light.s_luce");
+  metti("weather.s_meteo", { temperature: valore, temperature_unit: "\u00b0C",
+    forecast: [{ datetime: valore, temperature: valore, condition: valore }] });
   return {
     states: st, language: "it", locale: { language: "it" },
     callWS: async (m) => {
@@ -136,9 +138,33 @@ const CONF_APP = {
   tasti: [{ entity: "switch.s_presa", icona: "presa", nome: "" }],
 };
 
+// Le voci che usano davvero le 103 casa-tile di casa, contate una per una:
+// icona e colore (tutte), azione, acceso_sempre, le schede nel pop-up, il
+// cursore, i posti (i pezzi liberi), il grafico, il meteo.
 const CONF_TILE = {
   type: "custom:casa-tile", entity: "light.s_luce", name: "Luce",
-  disposizione: "classico", metriche: [{ entity: "sensor.s_watt" }],
+  icona: "lampadina", colore: "#ffc046", azione: "accendi",
+  acceso_sempre: true, mostra_cursore: true, mostra_icona: true,
+  grafico: "sensor.s_watt", grafico_ore: 12, grafico_stile: "area",
+  nascondi_valore: false, sottotitolo_entita: "sensor.s_watt",
+  info_entita: "sensor.s_kwh", colore_valore: "#38bdf8", trasparenza: 20,
+  effetto: "respiro", grande: true, casa_misura: "sensor.s_watt",
+  meteo_entita: "weather.s_meteo", sfondo_meteo: true,
+  acceso_se: "sensor.s_watt", intensita: 60,
+  posti_largo: 220, posti_alto: 140,
+  posti: [
+    { che: "nome", x: 8, y: 6, misura: 14 },
+    { che: "valore", x: 8, y: 30, misura: 20 },
+    { che: "icona", x: 150, y: 20, misura: 40 },
+    { che: "metrica", entity: "sensor.s_watt", x: 8, y: 70, misura: 12 },
+    { che: "metrica", entity: "sensor.s_oggi", x: 8, y: 95, misura: 12 },
+  ],
+  finestra_titolo: "Prova",
+  finestra_cards: [
+    { type: "custom:casa-tile", entity: "switch.s_presa", name: "Presa" },
+    { type: "custom:casa-energia", name: "Energia", power_entity: "sensor.s_watt" },
+  ],
+  finestra_apertura: "sboccia", finestra_apertura_durata: 300,
 };
 
 // Gli stati con cui le riempio. Il nome e' quello che si legge nel resoconto.
@@ -299,9 +325,13 @@ for (const [tag, conf, nome] of [
   const mia = JSON.parse(JSON.stringify(conf));
   const copia = JSON.stringify(mia);
   const el = document.createElement(tag);
-  el.setConfig(mia);
-  banco.appendChild(el);
-  el.hass = faiHass("12.5", {});
+  // niente setConfig nudo: se scoppia qui si ferma TUTTA la pagina e il
+  // resoconto non arriva mai (successo, e per mezz'ora ho creduto fosse lenta)
+  try {
+    el.setConfig(mia);
+    banco.appendChild(el);
+    el.hass = faiHass("12.5", {});
+  } catch (e) { scappati.push(nome + " (non si tocca): " + e.message); }
   await aspetta(220);
   try { if (el._openStats) el._openStats(); } catch (e) { /* gia' contato */ }
   await aspetta(160);

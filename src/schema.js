@@ -1,6 +1,8 @@
 // -*- coding: utf-8 -*-
 // Le impostazioni: sezioni, nomi in italiano, chi le vede.
 
+import { comeElenco } from './aiuti.js';
+
 export const SEZIONI = [
   {
     chiave: "base", titolo: "Base", segno: "⚙", aperta: true,
@@ -311,8 +313,8 @@ export const DIPENDE = {
     ? String(c.entity || "").split(".")[0] === "weather" : !!c.sfondo_meteo),
   meteo_entita: (c) => (c.sfondo_meteo === undefined
     ? String(c.entity || "").split(".")[0] === "weather" : !!c.sfondo_meteo),
-  info_nomi_auto: (c) => (c.info_entita || []).length > 0,
-  segui_attivo: (c) => (c.lettori || []).length > 0 || c.multiroom !== false,
+  info_nomi_auto: (c) => comeElenco(c.info_entita).length > 0,
+  segui_attivo: (c) => comeElenco(c.lettori).length > 0 || c.multiroom !== false,
   // la soglia serve a QUALSIASI casella con un numero (casa-tile.js,
   // _accesoNormale): il vecchio confronto con "sopra"/"sotto" non poteva
   // essere vero e la teneva nascosta a chi non usa acceso_entita

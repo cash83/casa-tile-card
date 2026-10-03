@@ -5,7 +5,7 @@
 // normale "Apri un pop-up mio" con dentro la scheda gia' compilata, cosi'
 // poi si ritocca a clic come tutte le altre schede del pop-up.
 
-import { DEFAULT_STATE_MAP } from './elettro-comune.js';
+import { DEFAULT_STATE_MAP, comeElenco } from './elettro-comune.js';
 
 // Quello che NON e' un consumo di casa: produzione, batterie, inverter...
 // Vale per il "Top consumo" automatico quando la scheda non dice altro.
@@ -42,10 +42,10 @@ export function preseDiCasa(hass) {
 // poi chi e' tolto a mano, poi le parole.
 export function contaNelTop(cfg, id) {
   const c = cfg || {};
-  if ((c.top_include || []).includes(id)) return true;
-  if ((c.top_exclude_entita || []).includes(id)) return false;
+  if (comeElenco(c.top_include).includes(id)) return true;
+  if (comeElenco(c.top_exclude_entita).includes(id)) return false;
   if (id === c.power_entity) return false;
-  const parole = (c.top_exclude || ESCLUSI_DI_SERIE).concat(c.top_exclude_piu || [])
+  const parole = (c.top_exclude || ESCLUSI_DI_SERIE).concat(comeElenco(c.top_exclude_piu))
     .map((x) => String(x).toLowerCase());
   return !parole.some((x) => id.toLowerCase().includes(x));
 }
@@ -315,7 +315,7 @@ export function preparaEnergia(hass, cfg) {
 // il resto (grafici messi a mano) resta dov'e'.
 export function inFinestra(hass, cfg) {
   const scheda = cfg.azione === "energia" ? preparaEnergia(hass, cfg) : preparaElettrodomestico(hass, cfg);
-  const altre = (cfg.finestra_cards || []).filter((c) => !c || c.type !== scheda.type);
+  const altre = comeElenco(cfg.finestra_cards).filter((c) => !c || c.type !== scheda.type);
   const c2 = { ...cfg, azione: "finestra", finestra_cards: [scheda, ...altre] };
   if (!c2.finestra_titolo && cfg.name) c2.finestra_titolo = cfg.name;
   return c2;

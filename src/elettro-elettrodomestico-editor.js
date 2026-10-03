@@ -6,7 +6,7 @@
 import { RIGHE_CICLO } from './elettro-elettrodomestico.js';
 import { VERSIONE } from './versione.js';
 import { ConEditor } from './elettro-condivisi.js';
-import { esc, tastiDi, NOMI_DISEGNI as DISEGNI } from './elettro-comune.js';
+import { esc, tastiDi, NOMI_DISEGNI as DISEGNI, comeElenco } from './elettro-comune.js';
 import { T, TH, traduciSchema } from './lingua.js';
 import { STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
 import { preparaElettrodomestico, trovaPerDisegno } from './elettro-prepara.js';
@@ -168,7 +168,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
   _datiForm() {
     const c = this._config;
     return { ...c,
-      barre_entita: (c.barre || []).map((x) => x && x.entity).filter(Boolean),
+      barre_entita: comeElenco(c.barre).map((x) => x && x.entity).filter(Boolean),
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
       finestra_scritta: this._versoRgb(c.finestra_scritta), stato: (c.live && c.live.state_entity) || "",
       avanzamento: (c.live && c.live.progress_entity) || "",
@@ -178,7 +178,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       vivo_programma: (c.ciclo_live && c.ciclo_live.program_entity) || "",
       vivo_fase: (c.ciclo_live && c.ciclo_live.phase_entity) || "",
       // le prese di una ciabatta: nel form sono un semplice elenco di entita'
-      interruttori_lista: (c.interruttori || []).map((x) => x && x.entity).filter(Boolean) };
+      interruttori_lista: comeElenco(c.interruttori).map((x) => x && x.entity).filter(Boolean) };
   }
 
   _cambiatoForm(v) {
@@ -193,7 +193,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     });
     if ("interruttori_lista" in v) {
       const prima = {};
-      (this._config.interruttori || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x.label; });
+      comeElenco(this._config.interruttori).forEach((x) => { if (x && x.entity) prima[x.entity] = x.label; });
       const lista = (v.interruttori_lista || []).map((e) => ({ entity: e, label: prima[e] || "" }));
       v = { ...v };
       delete v.interruttori_lista;
@@ -223,7 +223,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     // le barre in piu': tengo nome e fondo scala di quelle che c'erano gia'
     if ("barre_entita" in v) {
       const prima = {};
-      (this._config.barre || []).forEach((x) => { if (x && x.entity) prima[x.entity] = x; });
+      comeElenco(this._config.barre).forEach((x) => { if (x && x.entity) prima[x.entity] = x; });
       const elenco = (v.barre_entita || []).map((eid) => prima[eid]
         || { label: this._nomeDi(eid), entity: eid, max: 1000 });
       if (elenco.length) c.barre = elenco; else delete c.barre;

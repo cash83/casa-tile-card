@@ -2,6 +2,7 @@
 // Il riquadro delle impostazioni.
 
 import { ConSchede, svecchiaMisure } from './editor-schede.js';
+import { comeElenco } from './aiuti.js';
 import { ConColori } from './editor-colori.js';
 import { inFinestra } from './elettro-prepara.js';
 import { ConIcone } from './editor-icone.js';
@@ -349,7 +350,7 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
         .map((k) => (DIPENDE[k](this._config) ? "1" : "0")).join("");
       const forma = (this._config.entity || "") + "|" + (this._config.azione || "")
         + "|" + (this._config.disposizione || "")
-        + "|" + ((this._config.acceso_entita || []).length ? "1" : "0")
+        + "|" + (comeElenco(this._config.acceso_entita).length ? "1" : "0")
         + "|" + dip;
       if (this._formaOra !== forma) {
         this._formaOra = forma;

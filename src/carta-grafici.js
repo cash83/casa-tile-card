@@ -2,7 +2,7 @@
 // Cielo, meteo, grafico, misure, barra e tapparella in viaggio.
 
 import { T, laLocale } from './lingua.js';
-import { PANNELLI_APERTI, PAROLE, RICERCHE, VELOCITA_TAPPARELLE, fotoDi, quantoLontano } from './aiuti.js';
+import { PANNELLI_APERTI, PAROLE, RICERCHE, VELOCITA_TAPPARELLE, fotoDi, quantoLontano, comeElenco, numeroVero } from './aiuti.js';
 import { METEO, coloreTemperatura, daRgb } from './colori.js';
 import { tagliaTapparella } from './icone.js';
 import { metti, valoreScritto } from './segni.js';
@@ -460,10 +460,13 @@ export const ConGrafici = (Base) => class extends Base {
     const st = (eid && this._hass) ? this._hass.states[eid] : null;
     if (!st) { this._meteo.hidden = true; return; }
     this._meteo.hidden = false;
-    const t = st.attributes.temperature;
+    // `Math.round("unavailable")` fa NaN, e nell'angolino del meteo si leggeva
+    // "NaN \u00B0C" ogni volta che l'integrazione singhiozzava: il controllo c'era
+    // ma guardava solo undefined e null, non "e' un numero?"
+    const t = numeroVero(st.attributes.temperature);
     const u = st.attributes.temperature_unit || "\u00B0C";
-    const gradi = (t === undefined || t === null)
-      ? "" : Math.round(t) + "<small>" + u + "</small>";
+    const gradi = Number.isFinite(t)
+      ? Math.round(t) + "<small>" + u + "</small>" : "";
     if (this._gradi.dataset.gradi !== gradi) {
       this._gradi.dataset.gradi = gradi;
       this._gradi.innerHTML = gradi;
@@ -762,7 +765,7 @@ export const ConGrafici = (Base) => class extends Base {
 
   _disegnaChips() {
     const gia = this._viaUsata;
-    const lista = (this._config.info_entita || [])
+    const lista = comeElenco(this._config.info_entita)
       .filter((eid) => eid !== gia)
       .slice(0, 6);
     if (!this._hass || !lista.length) {

@@ -20,7 +20,7 @@ import {
   DEFAULT_STATE_MAP,
   STYLE,
   esc,
-  vestiFinestra, numeroVero } from './elettro-comune.js';
+  vestiFinestra, numeroVero, comeElenco } from './elettro-comune.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
 import { ConFinestrelle, guardaSeAnteprima } from './elettro-condivisi.js';
 import { ConGrafico, coloreScala } from './elettro-grafico.js';
@@ -994,7 +994,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     });
 
     const warnEl = this._root.querySelector(".dm-ap-warn");
-    const activeWarnings = (cfg.warn_entities || [])
+    const activeWarnings = comeElenco(cfg.warn_entities)
       .filter((w) => hass.states[w.entity]?.state === w.on_state)
       .map((w) => w.label);
     // il guasto lo dice la scheda, invece di far finta di niente. Con

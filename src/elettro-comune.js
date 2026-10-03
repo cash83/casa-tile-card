@@ -1,4 +1,7 @@
 import { laLocale } from './lingua.js';
+import { comeElenco, numeroVero } from './aiuti.js';
+// gli stessi aiuti delle altre schede, cosi' ce n'e' una copia sola
+export { comeElenco, numeroVero };
 import { DISEGNI_PIU } from './elettro-disegni-piu.js';
 // Pezzi comuni delle schede energia/elettrodomestico: disegni, icone, stile.
 // Nata dalle schede di Simonz82 (github.com/Simonz82/smart-home-cards),
@@ -1025,8 +1028,8 @@ export function tastiDi(cfg) {
     if (!entity || fuori.some((x) => x.entity === entity)) return;
     fuori.push({ entity, icona: icona || "", nome: nome || "" });
   };
-  (c.tasti || []).forEach((t) => metti(t && t.entity, t && t.icona, t && t.nome));
-  (c.interruttori || []).forEach((t) => metti(t && t.entity, t && t.icona, t && t.label));
+  comeElenco(c.tasti).forEach((t) => metti(t && t.entity, t && t.icona, t && t.nome));
+  comeElenco(c.interruttori).forEach((t) => metti(t && t.entity, t && t.icona, t && t.label));
   metti(c.interruttore, "", "");
   metti(c.interruttore_usb, "usb", "");
   return fuori;
@@ -1059,23 +1062,6 @@ export function meseLungo(d) {
 export function unitaBella(u) {
   const t = String(u || "").trim();
   return SIMBOLI[t.toUpperCase()] || t;
-}
-
-// Il numero che c'e' DAVVERO dentro a uno stato.
-//
-// `Number("")` fa 0. `Number(null)` fa 0. `Number("  ")` fa 0. E `isFinite(0)`
-// e' vero, quindi il controllo passa e la scheda scrive "0,00 kWh" dove la
-// verita' era "non lo so". Un contatore appena creato, un template che non ha
-// ancora reso niente, un'entita' sparita: tutti casi veri, tutti bugie.
-//
-// Qui invece torna NaN tutto quello che non e' un numero scritto, e chi legge
-// se ne accorge con il solito `Number.isFinite`.
-export function numeroVero(v) {
-  if (v === null || v === undefined || typeof v === "boolean") return NaN;
-  const t = String(v).trim();
-  if (t === "" || t === "unknown" || t === "unavailable" || t === "none") return NaN;
-  const n = Number(t);
-  return Number.isFinite(n) ? n : NaN;
 }
 
 export function numero(v, decimali) {

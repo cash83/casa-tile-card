@@ -2,7 +2,7 @@
 // La finestra che si apre al tocco, e le schede che ci stanno dentro.
 
 import { T, TH } from './lingua.js';
-import { riempiRiquadro } from './aiuti.js';
+import { riempiRiquadro, comeElenco } from './aiuti.js';
 import { conAlfa, daRgb, scurisci } from './colori.js';
 import { ICONE, aspiraFuori, disegnoAspira, disegnoBatteria, disegnoMdi, indirizzoFoto } from './icone.js';
 
@@ -297,7 +297,7 @@ export const ConFinestra = (Base) => class extends Base {
     // quattro, che non e' quello che uno chiede quando cambia l'altezza di
     // UNA casella. Cosi' invece ognuna tiene la sua.
     g.style.alignItems = "flex-start";
-    (cfg.cards || []).forEach((c, k) => {
+    comeElenco(cfg.cards).forEach((c, k) => {
       const cc = c || {};
       let el = null;
       try {

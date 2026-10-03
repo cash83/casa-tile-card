@@ -15,7 +15,7 @@ import {
   STYLE,
   esc,
   meterSeverityColor,
-  vestiFinestra, numeroVero } from './elettro-comune.js';
+  vestiFinestra, numeroVero, comeElenco } from './elettro-comune.js';
 const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
@@ -69,10 +69,10 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const R = {
       consumo: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3fb4ea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo</small></span><b class="dm-e-today-kwh">\u2014</b></div>`,
       consumo_mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#3f8fea"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo mese</small></span><b class="dm-e-month-kwh">—</b></div>`,
-      energia_tasse: `${this._config.bill_today || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f28c3c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Energia + tasse</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}`,
-      risparmio: `${this._config.bill_today || this._config.risparmio_oggi || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#43b86a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio pannelli</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}`,
+      energia_tasse: `${this._config.bill_today || comeElenco(this._config.periods).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#f28c3c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Energia + tasse</small></span><b class="dm-e-senzafv">\u2014</b></div>` : ""}`,
+      risparmio: `${this._config.bill_today || this._config.risparmio_oggi || comeElenco(this._config.periods).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#43b86a"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_SOLE}</span><small>Risparmio pannelli</small></span><b class="dm-e-fv">\u2014</b></div>` : ""}`,
       pv_tasse: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore dm-forte" style="--c:#e2ad1c"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Paghi</small></span><b class="dm-e-today-cost">\u2014</b></div>`,
-      energia: `${this._config.bill_today || (this._config.periods || []).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}`,
+      energia: `${this._config.bill_today || comeElenco(this._config.periods).length ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Energia attuale</small></span><b class="dm-e-solo">\u2014</b></div>` : ""}`,
       mese: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#a283f2"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Mese (+ tasse)</small></span><b class="dm-e-month-cost">\u2014</b></div>`,
       bolletta: `${this._config.bolletta_energia || this._config.bolletta_costo ? `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#e07b39"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_EURO}</span><small>Bolletta</small></span><b class="dm-e-bolletta">\u2014</b></div>` : ""}`,
       consumo_vero: `<div class="dm-ap-cycle-row dm-ap-cycle-row-b dm-colore" style="--c:#2fbfb0"><span class="dm-ap-cycle-label"><span class="dm-ap-cycle-ic">${ICON_BOLT}</span><small>Consumo totale</small></span><b class="dm-e-consumo-vero">—</b></div>`,
@@ -153,7 +153,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // il resto compare solo nel popup Circuiti - stesso split usato per
     // Volume1/Volume2/USB sulla card NAS.
     const metersEl = this._root.querySelector(".dm-ap-meters");
-    (this._config.circuits || []).forEach((c, i) => {
+    comeElenco(this._config.circuits).forEach((c, i) => {
       const div = document.createElement("div");
       div.className = "dm-ap-meter dm-c-meter-clickable";
       div.dataset.circuitIndex = i;
@@ -207,7 +207,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // i tre contatori del Generale sono quelli della scheda: cosi' sotto al
     // grafico si leggono gli stessi numeri del riquadro, non un conto a parte
     const delPeriodo = (nome) => {
-      const p = (cfg.periods || []).find((x) =>
+      const p = comeElenco(cfg.periods).find((x) =>
         String(x.label || "").trim().toLowerCase() === nome);
       return p ? p.energy : null;
     };
@@ -225,7 +225,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         settimana: conFv(delPeriodo("settimana"), "fv_casa_settimana"),
         mese: conFv(delPeriodo("mese"), "fv_casa_mese"),
       } }];
-    (cfg.circuits || []).forEach((c, i) => {
+    comeElenco(cfg.circuits).forEach((c, i) => {
       if (!c || !c.entity) return;
       fuori.push({ nome: c.label || c.entity, entity: c.entity,
         colore: tinte[i % tinte.length], unita: "W" });
@@ -375,7 +375,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const primo = Array.isArray(v) ? v[0] : v;
       return (primo && c_e[primo]) ? primo : riserva;
     };
-    const rete = (((cfg.periods || []).find((p) =>
+    const rete = ((comeElenco(cfg.periods).find((p) =>
       String(p.label || "").trim().toLowerCase() === "oggi") || {}).energy) || null;
     const fv = sorgente(cfg.fv_casa_entita, cfg.fv_casa_oggi || null);
     const quali = [rete, fv].filter(Boolean);
@@ -454,14 +454,14 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const i = QUANTO_DURA.indexOf(String(p.label || "").trim().toLowerCase());
       return i < 0 ? QUANTO_DURA.length : i;
     };
-    const periodsHtml = (cfg.periods || [])
+    const periodsHtml = comeElenco(cfg.periods)
       .map((p, i) => [p, i])
       .sort((a, b) => quanto(a[0]) - quanto(b[0]) || a[1] - b[1])
       .map(([p]) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2),
         this._daQuando(p.energy)))
       .join("");
 
-    const prevHtml = (cfg.periods_prev || [])
+    const prevHtml = comeElenco(cfg.periods_prev)
       .map((p) => {
         // se il sensore del costo non tiene il periodo precedente, lo ricavo
         const costo = val(p.cost, 2, p.cost_attr);
@@ -553,7 +553,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         return { c: { label: l.label, entity: l.entity, max: m }, ordine, live: l.live };
       });
     }
-    const lista = (cfg.circuits || []).map((c, ordine) => {
+    const lista = comeElenco(cfg.circuits).map((c, ordine) => {
       const v = numeroVero(hass.states[c.entity]?.state);
       return { c, ordine, live: Number.isFinite(v) ? Math.max(0, v) : 0 };
     });
@@ -601,7 +601,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   _openConsumiOriginale() {
     const hass = this._hass;
     const cfg = this._config;
-    const circuits = (cfg.circuits || [])
+    const circuits = comeElenco(cfg.circuits)
       .map((c) => ({ ...c, live: numeroVero(hass.states[c.entity]?.state) || 0 }))
       .sort((a, b) => b.live - a.live);
 
@@ -658,7 +658,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // contatore cancellato, uno non creato) le posizioni slittano e la
     // casella mostrerebbe la settimana chiamandola "oggi".
     const periodo = (nome, posto) => {
-      const l = cfg.periods || [];
+      const l = comeElenco(cfg.periods);
       return l.find((p) => String(p.label || "").trim().toLowerCase() === nome) || l[posto];
     };
     const pOggi = periodo("oggi", 1);
