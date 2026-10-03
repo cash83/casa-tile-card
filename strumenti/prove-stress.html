@@ -256,6 +256,84 @@ for (const [come, conf] of STORTE) {
 }
 
 // ----------------------------------------------------------------------
+// GLI EDITOR. E' li' che l'utente passa il tempo, ed e' li' che un errore
+// si vede subito: il pannello resta bianco e la scheda non si configura piu'.
+dice("gli editor, con gli stessi stati ostili");
+for (const [tag, conf, nome] of [
+  ["casa-energia-editor", CONF_ENERGIA, "energia"],
+  ["casa-elettrodomestico-editor", CONF_APP, "elettrodomestico"],
+  ["casa-tile-editor", CONF_TILE, "tuttofare"],
+]) {
+  for (const [come, valore] of [["non risponde", "unavailable"], ["vuoto", ""],
+                                ["testo", "in funzione"], ["numero", "12.5"]]) {
+    const prima = scappati.length;
+    const ed = document.createElement(tag);
+    let ok = true;
+    try {
+      ed.hass = faiHass(valore, {});
+      ed.setConfig(JSON.parse(JSON.stringify(conf)));
+      banco.appendChild(ed);
+      await aspetta(260);
+      // e una seconda setConfig: Home Assistant la rifa' a ogni modifica
+      ed.setConfig(JSON.parse(JSON.stringify(conf)));
+      await aspetta(200);
+    } catch (e) { ok = false; scappati.push(nome + " editor(" + come + "): " + e.message); }
+    const roba = ed.querySelectorAll("*").length + (ed.shadowRoot
+      ? ed.shadowRoot.querySelectorAll("*").length : 0);
+    prova(nome + " \u2014 " + come + ": si apre e non scoppia",
+      ok && scappati.length === prima && roba > 20);
+    ed.remove();
+  }
+}
+
+// ----------------------------------------------------------------------
+// La configurazione che arriva da Home Assistant NON si tocca: e' la stessa
+// che sta nella plancia, e Lovelace la riusa. Una scheda che se la modifica
+// dentro sporca il file della plancia senza che nessuno l'abbia chiesto.
+dice("la configurazione che arriva non si tocca");
+for (const [tag, conf, nome] of [
+  ["casa-energia", CONF_ENERGIA, "casa-energia"],
+  ["casa-elettrodomestico", CONF_APP, "casa-elettrodomestico"],
+  ["casa-tile", CONF_TILE, "casa-tile"],
+]) {
+  const mia = JSON.parse(JSON.stringify(conf));
+  const copia = JSON.stringify(mia);
+  const el = document.createElement(tag);
+  el.setConfig(mia);
+  banco.appendChild(el);
+  el.hass = faiHass("12.5", {});
+  await aspetta(220);
+  try { if (el._openStats) el._openStats(); } catch (e) { /* gia' contato */ }
+  await aspetta(160);
+  prova(nome + " \u2014 non modifica quella che gli hai dato",
+    JSON.stringify(mia) === copia);
+  el.remove();
+}
+
+// ----------------------------------------------------------------------
+// Il giro completo: la scheda dice come dovrebbe nascere (`getStubConfig`),
+// e quella configurazione deve essere buona per la scheda stessa.
+dice("il giro: getStubConfig -> setConfig");
+for (const tag of ["casa-energia", "casa-elettrodomestico", "casa-tile"]) {
+  const prima = scappati.length;
+  const cls = customElements.get(tag);
+  let ok = !!(cls && typeof cls.getStubConfig === "function");
+  if (ok) {
+    try {
+      const stub = await cls.getStubConfig(faiHass("12.5", {}), [], []);
+      const el = document.createElement(tag);
+      el.setConfig({ type: "custom:" + tag, ...stub });
+      banco.appendChild(el);
+      el.hass = faiHass("12.5", {});
+      await aspetta(200);
+      el.remove();
+    } catch (e) { ok = false; scappati.push(tag + " stub: " + e.message); }
+  }
+  prova(tag + " \u2014 nasce con una configurazione che regge",
+    ok && scappati.length === prima);
+}
+
+// ----------------------------------------------------------------------
 dice("quando la scheda sparisce dalla pagina");
 {
   const prima = scappati.length;

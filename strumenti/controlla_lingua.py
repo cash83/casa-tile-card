@@ -6,6 +6,15 @@ scritta anche solo con un apostrofo diverso non traduce niente e nessuno se
 ne accorge - la frase resta in italiano e sembra che manchi la traduzione.
 Quindi lo verifico a macchina invece che a occhio.
 """
+import sys
+
+# La finestra dei comandi di Windows parla cp1252 e su un carattere strano
+# (il tondino dell'accensione, le frecce) il controllo MORIVA a meta', con
+# un UnicodeEncodeError, nascondendo tutto il resto del resoconto.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 import io
 import json
 import os
