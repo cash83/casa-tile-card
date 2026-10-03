@@ -670,6 +670,46 @@
     prova('la scheda di casa non chiede', casaE.chiamate.length, 1);
   }
 
+  // ======================================================================
+  dice('da quando conta ogni periodo (la settimana puo battere il mese)');
+  if (app) {
+    // il caso vero del 03/10/2026: la settimana era partita lunedì 28
+    // SETTEMBRE e valeva piu' del mese, partito il 1º ottobre. Non era un
+    // errore, era che i due contatori non coprono lo stesso tempo.
+    const quando = (reset) => {
+      const finto = { ...hass, states: { ...hass.states,
+        'sensor.quando': { state: '1', attributes: { unit_of_measurement: 'kWh',
+          last_reset: new Date(reset).toISOString() } } } };
+      const prima = app._hass;
+      app._hass = finto;
+      const r = app._daQuando('sensor.quando');
+      app._hass = prima;
+      return r;
+    };
+    const O = new Date();
+    const alle = (g, h) => new Date(O.getFullYear(), O.getMonth(), O.getDate() + g, h || 0);
+
+    prova('a mezzanotte di oggi: da stanotte', quando(alle(0, 0)), 'da stanotte');
+    prova('un ora fa: dice l ora', /^dalle \d{1,2}[:.]\d{2}/.test(quando(alle(0, 1))) || O.getHours() < 2, true);
+    // un giorno dentro a QUESTO mese: il nome del mese non si scrive.
+    // (il primo del mese, che c'e' sempre; se oggi e' il primo si salta)
+    if (O.getDate() > 1) {
+      const dentro = new Date(O.getFullYear(), O.getMonth(), 1);
+      const tre = quando(dentro);
+      prova('stesso mese: solo giorno e numero', new RegExp('^da \\w+ 1$').test(tre), true);
+      prova('e il giorno e minuscolo', tre === tre.toLowerCase(), true);
+    }
+    // il mese si scrive SOLO quando non e' questo
+    const altroMese = new Date(O.getFullYear(), O.getMonth() - 1, 15);
+    prova('mese diverso: lo scrive', quando(altroMese).split(' ').length, 4);
+    prova('e lo scrive minuscolo', /[a-z]$/.test(quando(altroMese).slice(-3)), true);
+    // senza last_reset non inventa niente
+    prova('senza azzeramento non dice niente', app._daQuando('sensor.prova_kwh'), '');
+    prova('entita che non c e: niente', app._daQuando('sensor.non_esiste'), '');
+    // un azzeramento nel futuro e' roba sballata: meglio tacere
+    prova('azzeramento nel futuro: niente', quando(alle(2, 0)), '');
+  }
+
   document.getElementById('esito').innerHTML = righe.join('\n')
     + '\n\n' + '='.repeat(60) + '\n'
     + (cadute === 0 ? '<span class="ok">Tutte a posto: ' + fatte + ' prove.</span>'

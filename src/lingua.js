@@ -969,6 +969,8 @@ export const EN = {
   "Spunta quelli da buttare. Lo storico che hanno raccolto si perde; la presa e i sensori del dispositivo non si toccano. Ci sono anche le <b>memorie dell'ultimo ciclo</b> e l'<b>automazione</b> che le riempie: se butti quelle, il riquadro dell'ultimo ciclo resta vuoto.": "Tick the ones to throw away. The history they collected is lost; the socket and the device's own sensors are never touched. There are also the <b>last-cycle memories</b> and the <b>automation</b> that fills them: throw those away and the last-cycle box stays empty.",
   "Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.": "This is where the kWh go, and this card counts none. Power over time is in the button next door, Trend.",
   "Sta lavorando: premi ancora": "It is running: press again",
+  "da": "since",
+  "da stanotte": "since midnight",
   "Chiedi prima di spegnere mentre lavora": "Ask before switching off while it works",
   "Due premute invece di una, ma solo per SPEGNERE e solo mentre l'apparecchio e' in funzione. Serve alla lavatrice, che un dito storto fermerebbe a meta' lavaggio. Per una luce o un PC lascialo spento.": "Two presses instead of one, but only to TURN OFF and only while the appliance is running. The washing machine needs it: one stray finger would stop it mid-cycle. For a light or a PC leave it off.",
   "Andamento": "Trend",

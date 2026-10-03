@@ -250,8 +250,8 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return html.replace('class="dm-ap-row"', `class="dm-ap-row dm-colore${forte ? " dm-forte" : ""}" style="--c:${colore}"`);
   }
 
-  _statRow2(label, aVal, bVal) {
-    return this._row(label, `<span class="dm-ap-row-val">${esc(aVal)}&nbsp;&nbsp;\u00b7&nbsp;&nbsp;${esc(bVal)}</span>`);
+  _statRow2(label, aVal, bVal, nota) {
+    return this._row(label, `<span class="dm-ap-row-val">${esc(aVal)}&nbsp;&nbsp;\u00b7&nbsp;&nbsp;${esc(bVal)}</span>`, nota);
   }
 
   _val(hass, entityId, digits, attr) {
@@ -458,7 +458,8 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const periodsHtml = (cfg.periods || [])
       .map((p, i) => [p, i])
       .sort((a, b) => quanto(a[0]) - quanto(b[0]) || a[1] - b[1])
-      .map(([p]) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2)))
+      .map(([p]) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2),
+        this._daQuando(p.energy)))
       .join("");
 
     const prevHtml = (cfg.periods_prev || [])

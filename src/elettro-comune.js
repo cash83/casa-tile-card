@@ -878,7 +878,9 @@ const STYLE = `
 .dm-ap-vuoto{padding:10px 2px;font-size:12.5px;color:var(--dm-dim)}
 .dm-ap-sec{display:flex;flex-direction:column;gap:6px}
 .dm-ap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:13px;background:var(--dm-soft)}
-.dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text)}
+.dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text);display:flex;flex-direction:column;gap:1px}
+/* da quando conta quel contatore, sotto al nome del periodo */
+.dm-ap-row-nota{font-size:10.5px;font-weight:600;letter-spacing:.2px;color:var(--dm-dim);opacity:.85}
 .dm-ap-row-val{font-size:14.5px;font-weight:500;color:var(--dm-dim)}
 /* CON UNA FOTO DIETRO. Il colore delle scritte si fermava alla finestra: le
    righe restavano del colore di sempre e sopra a una foto non si leggevano.
@@ -899,7 +901,7 @@ const STYLE = `
 .dm-ap-week-list{display:flex;flex-direction:column;gap:7px}
 .dm-ap-week-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--dm-border)}
 .dm-ap-week-row:last-child{border-bottom:0}
-.dm-ap-week-day{flex:0 0 60px;font-size:13px;font-weight:850;color:var(--dm-text)}
+.dm-ap-week-day{flex:0 0 60px;font-size:13px;font-weight:850;color:var(--dm-text);display:flex;flex-direction:column;gap:1px}
 .dm-ap-week-stats{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;min-width:0}
 .dm-ap-week-stats.cols3{grid-template-columns:repeat(3,1fr)}
 .dm-ap-week-stat{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}

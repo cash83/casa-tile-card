@@ -734,6 +734,24 @@ export async function creaCicli(hass, opzioni, dillo) {
                   data: { datetime: "{{ (now() - timedelta(seconds=" + ATTESA_SEC + ")).strftime('%Y-%m-%d %H:%M:%S') }}" },
                 },
               ],
+              // Niente ciclo, ma la PARTENZA era stata segnata lo stesso: e
+              // finche' resta avanti alla fine la scheda crede che la macchina
+              // stia lavorando, e il "ciclo in corso" cresce all'infinito
+              // (23 ore sulla lavastoviglie, per un'accensione di 34 secondi).
+              // Quindi la partenza si rimette sulla fine di quello vero.
+              else: [
+                {
+                  // prima mi assicuro che la fine sia una data leggibile: se
+                  // non si e' mai chiuso un ciclo qui c'e' "unknown", e la
+                  // scheda conta aperto qualunque cosa dica la partenza
+                  action: "input_datetime.set_datetime", target: { entity_id: eFine },
+                  data: { datetime: "{% set f = states('" + eFine + "') %}{% if f not in ['unknown','unavailable',''] %}{{ f }}{% else %}{{ (now() - timedelta(seconds=" + ATTESA_SEC + ")).strftime('%Y-%m-%d %H:%M:%S') }}{% endif %}" },
+                },
+                {
+                  action: "input_datetime.set_datetime", target: { entity_id: eVia },
+                  data: { datetime: "{% set f = states('" + eFine + "') %}{% if f not in ['unknown','unavailable',''] %}{{ f }}{% else %}{{ (now() - timedelta(seconds=" + ATTESA_SEC + ")).strftime('%Y-%m-%d %H:%M:%S') }}{% endif %}" },
+                },
+              ],
             },
             {
               // azzero adesso, non alla partenza: cosi' le intermittenze non

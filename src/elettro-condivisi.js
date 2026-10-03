@@ -13,9 +13,9 @@
 // casella (ConMusica(ConPezzi(...))). Quello che le due schede fanno davvero
 // in modo diverso (le loro finestre, i loro conti) resta nei loro file.
 
-import { esc, numero, tastiDi, ICON_CLOSE, HERO_BUILDERS, CHIP_SVGS } from './elettro-comune.js';
+import { esc, numero, tastiDi, ICON_CLOSE, HERO_BUILDERS, CHIP_SVGS, giornoBreve, meseBreve } from './elettro-comune.js';
 import { ICONE, disegnoMdi } from './icone.js';
-import { scegliLingua, T, TH } from './lingua.js';
+import { scegliLingua, T, TH, laLocale } from './lingua.js';
 import { aiutantiVeri, cancellaQuesti, scollegaEntita, ID_TOTALE } from './elettro-crea.js';
 import { quali_cancellare } from './elettro-righe-editor.js';
 import { rigaFoto, sceltaDisegno } from './editor-foto.js';
@@ -150,8 +150,41 @@ export const ConFinestrelle = (Base) => class extends Base {
   }
 
   // una riga "nome ..... valore" dentro a una finestrella
-  _row(label, valueHtml) {
-    return `<div class="dm-ap-row"><span class="dm-ap-row-label">${esc(label)}</span>${valueHtml}</div>`;
+  _row(label, valueHtml, nota) {
+    const sotto = nota ? `<small class="dm-ap-row-nota">${esc(nota)}</small>` : "";
+    return `<div class="dm-ap-row"><span class="dm-ap-row-label">${esc(label)}${sotto}</span>${valueHtml}</div>`;
+  }
+
+  // Da quando conta un contatore. Lo dice il suo `last_reset`, e serve a
+  // capire a colpo d'occhio una cosa che sembra uno sbaglio e non lo e':
+  // a inizio mese la SETTIMANA puo' essere piu' grande del MESE, perche' e'
+  // partita il lunedi' prima, dentro al mese passato. Scritto sotto al nome
+  // - "da lun 28 set" contro "da gio 1" - si vede subito perche'.
+  // Il mese si scrive solo quando non e' questo: se no e' rumore.
+  _daQuando(entityId) {
+    const st = entityId ? ((this._hass || {}).states || {})[entityId] : null;
+    const grezzo = st && st.attributes ? st.attributes.last_reset : null;
+    if (!grezzo) return "";
+    const da = new Date(grezzo);
+    if (isNaN(da.getTime())) return "";
+    const ora = new Date();
+    if (da > ora) return "";
+    const stessoGiorno = da.toDateString() === ora.toDateString();
+    if (stessoGiorno) {
+      // il contatore dell'ora: l'ora e' l'unica cosa che lo distingue
+      if (da.getHours() || da.getMinutes()) {
+        let q;
+        try {
+          q = da.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" });
+        } catch (e) { q = da.getHours() + ":00"; }
+        return T("dalle") + " " + q;
+      }
+      return T("da stanotte");
+    }
+    // in mezzo a una frase il mese va minuscolo: "da lun 28 set", non "Set"
+    const mese = da.getMonth() !== ora.getMonth()
+      ? " " + meseBreve(da).toLowerCase() : "";
+    return T("da") + " " + giornoBreve(da).toLowerCase() + " " + da.getDate() + mese;
   }
 
   // la finestrella sopra alla scheda: una sola, si riempie e si riapre

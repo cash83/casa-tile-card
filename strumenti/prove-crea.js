@@ -13,7 +13,7 @@
 //
 // Si lancia con: node strumenti/prove-crea.js
 
-import { scriviTariffa, VOCI_TARIFFA, ID_TOTALE, prezziDelKWh, prezzoDellaCasa }
+import { scriviTariffa, VOCI_TARIFFA, ID_TOTALE, prezziDelKWh, prezzoDellaCasa, creaCicli }
   from '../src/elettro-crea.js';
 
 let fatte = 0;
@@ -181,6 +181,63 @@ titolo('prezzoDellaCasa sceglie la SOLA energia, non il totale');
   const inEuroKWh = prezziDelKWh(hass);
   prova('il totale e\' il primo dell\'elenco', inEuroKWh[0], ID_TOTALE);
   prova('quanti prezzi in €/kWh', inEuroKWh.length, 4);
+}
+
+// ===========================================================================
+titolo('il ciclo fantasma: una briciola non deve lasciare il ciclo aperto');
+{
+  // L'automazione dei cicli la scrive `creaCicli` con una POST. Qui me la
+  // faccio dare e la guardo: quello che conta e' il ramo "finisce".
+  let scritta = null;
+  let nati = 0;
+  const hass = {
+    states: {
+      'sensor.prova_kwh': { state: '12', attributes: { unit_of_measurement: 'kWh',
+        device_class: 'energy', state_class: 'total_increasing' } },
+      'sensor.prova_watt': { state: '0', attributes: { unit_of_measurement: 'W',
+        device_class: 'power' } },
+    },
+    async callWS(msg) {
+      // le liste che `creaCicli` interroga: qui la casa e' vuota, cosi'
+      // crea tutto da zero
+      if (msg.type === 'config_entries/get') return [];
+      if (msg.type && String(msg.type).endsWith('/list')) return [];
+      return [];
+    },
+    async callApi(metodo, strada, corpo) {
+      if (String(strada).includes('automation/config')) { scritta = corpo; return {}; }
+      // il flusso che crea un helper: Home Assistant apre un flow, chiede i
+      // campi, poi crea. Qui dico subito di si'.
+      if (String(strada) === 'config/config_entries/flow') {
+        return { type: 'form', flow_id: 'f1', data_schema: [] };
+      }
+      if (String(strada).startsWith('config/config_entries/flow/')) {
+        nati += 1;
+        return { type: 'create_entry', result: { entry_id: 'e' + nati } };
+      }
+      if (String(strada).includes('entity_registry')) return [];
+      return {};
+    },
+    async callService() {},
+  };
+  await creaCicli(hass, { nome: 'Prova', potenza: 'sensor.prova_watt',
+    energia: 'sensor.prova_kwh', attesa: 100 }, () => {});
+
+  const rami = scritta && scritta.actions && scritta.actions[0] && scritta.actions[0].choose;
+  const fine = (rami || []).find((r) => JSON.stringify(r.conditions).includes('finisce'));
+  const quando = fine && fine.sequence && fine.sequence[0];
+  prova('il ramo "finisce" c\'e\'', !!quando, true);
+  prova('sotto la briciola non scrive il ciclo', !!(quando && quando.if), true);
+  prova('ma CANCELLA la partenza', !!(quando && quando.else), true);
+  const annulla = JSON.stringify((quando && quando.else) || []);
+  prova('rimettendola sulla fine', annulla.includes('_ciclo_iniziato')
+    && annulla.includes('_ultimo_ciclo_fine'), true);
+  // e la fine, se non c'e' mai stata, diventa una data vera: se no la
+  // scheda conta il ciclo aperto comunque (`!fine || via > fine`)
+  prova('e mettendo a posto una fine mai scritta', annulla.includes('unknown'), true);
+  // il contatore si azzera sempre, briciola o no
+  prova('il contatore si azzera lo stesso',
+    JSON.stringify(fine.sequence).includes('utility_meter.calibrate'), true);
 }
 
 // ===========================================================================

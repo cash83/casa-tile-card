@@ -471,8 +471,12 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     if (time !== "\u2014") celle.push(["Tempo", esc(time)]);
     if (Number.isFinite(kwhNum)) celle.push(["Consumo", kwhTxt]);
     celle.push(["Costo", costTxt]);
+    // da quando conta: solo sui periodi in corso (su «ieri» il
+    // last_reset e' quello di oggi, direbbe una bugia)
+    const daQuando = pEnt.energy_attr ? "" : this._daQuando(pEnt.energy);
     return `<div class="dm-ap-week-row">
-      <div class="dm-ap-week-day">${esc(label)}</div>
+      <div class="dm-ap-week-day">${esc(label)}${daQuando
+        ? `<small class="dm-ap-row-nota">${esc(daQuando)}</small>` : ""}</div>
       <div class="dm-ap-week-stats${celle.length <= 3 ? " cols3" : ""}">
         ${celle.map(([n, val]) => `<div class="dm-ap-week-stat"><small>${n}</small><b>${val}</b></div>`).join("")}
       </div>

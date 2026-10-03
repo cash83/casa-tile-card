@@ -969,6 +969,8 @@ const EN = {
   "Spunta quelli da buttare. Lo storico che hanno raccolto si perde; la presa e i sensori del dispositivo non si toccano. Ci sono anche le <b>memorie dell'ultimo ciclo</b> e l'<b>automazione</b> che le riempie: se butti quelle, il riquadro dell'ultimo ciclo resta vuoto.": "Tick the ones to throw away. The history they collected is lost; the socket and the device's own sensors are never touched. There are also the <b>last-cycle memories</b> and the <b>automation</b> that fills them: throw those away and the last-cycle box stays empty.",
   "Qui ci vanno i kWh, e questa scheda non ne conta. La potenza nel tempo sta nel tondino accanto, Andamento.": "This is where the kWh go, and this card counts none. Power over time is in the button next door, Trend.",
   "Sta lavorando: premi ancora": "It is running: press again",
+  "da": "since",
+  "da stanotte": "since midnight",
   "Chiedi prima di spegnere mentre lavora": "Ask before switching off while it works",
   "Due premute invece di una, ma solo per SPEGNERE e solo mentre l'apparecchio e' in funzione. Serve alla lavatrice, che un dito storto fermerebbe a meta' lavaggio. Per una luce o un PC lascialo spento.": "Two presses instead of one, but only to TURN OFF and only while the appliance is running. The washing machine needs it: one stray finger would stop it mid-cycle. For a light or a PC leave it off.",
   "Andamento": "Trend",
@@ -4991,7 +4993,9 @@ const STYLE = `
 .dm-ap-vuoto{padding:10px 2px;font-size:12.5px;color:var(--dm-dim)}
 .dm-ap-sec{display:flex;flex-direction:column;gap:6px}
 .dm-ap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-radius:13px;background:var(--dm-soft)}
-.dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text)}
+.dm-ap-row-label{font-size:14.5px;font-weight:750;color:var(--dm-text);display:flex;flex-direction:column;gap:1px}
+/* da quando conta quel contatore, sotto al nome del periodo */
+.dm-ap-row-nota{font-size:10.5px;font-weight:600;letter-spacing:.2px;color:var(--dm-dim);opacity:.85}
 .dm-ap-row-val{font-size:14.5px;font-weight:500;color:var(--dm-dim)}
 /* CON UNA FOTO DIETRO. Il colore delle scritte si fermava alla finestra: le
    righe restavano del colore di sempre e sopra a una foto non si leggevano.
@@ -5012,7 +5016,7 @@ const STYLE = `
 .dm-ap-week-list{display:flex;flex-direction:column;gap:7px}
 .dm-ap-week-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--dm-border)}
 .dm-ap-week-row:last-child{border-bottom:0}
-.dm-ap-week-day{flex:0 0 60px;font-size:13px;font-weight:850;color:var(--dm-text)}
+.dm-ap-week-day{flex:0 0 60px;font-size:13px;font-weight:850;color:var(--dm-text);display:flex;flex-direction:column;gap:1px}
 .dm-ap-week-stats{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;min-width:0}
 .dm-ap-week-stats.cols3{grid-template-columns:repeat(3,1fr)}
 .dm-ap-week-stat{display:flex;flex-direction:column;align-items:center;gap:0;min-width:0}
@@ -10228,7 +10232,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.18";
+const VERSIONE = "2.96.20";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -20855,6 +20859,24 @@ async function creaCicli(hass, opzioni, dillo) {
                   data: { datetime: "{{ (now() - timedelta(seconds=" + ATTESA_SEC + ")).strftime('%Y-%m-%d %H:%M:%S') }}" },
                 },
               ],
+              // Niente ciclo, ma la PARTENZA era stata segnata lo stesso: e
+              // finche' resta avanti alla fine la scheda crede che la macchina
+              // stia lavorando, e il "ciclo in corso" cresce all'infinito
+              // (23 ore sulla lavastoviglie, per un'accensione di 34 secondi).
+              // Quindi la partenza si rimette sulla fine di quello vero.
+              else: [
+                {
+                  // prima mi assicuro che la fine sia una data leggibile: se
+                  // non si e' mai chiuso un ciclo qui c'e' "unknown", e la
+                  // scheda conta aperto qualunque cosa dica la partenza
+                  action: "input_datetime.set_datetime", target: { entity_id: eFine },
+                  data: { datetime: "{% set f = states('" + eFine + "') %}{% if f not in ['unknown','unavailable',''] %}{{ f }}{% else %}{{ (now() - timedelta(seconds=" + ATTESA_SEC + ")).strftime('%Y-%m-%d %H:%M:%S') }}{% endif %}" },
+                },
+                {
+                  action: "input_datetime.set_datetime", target: { entity_id: eVia },
+                  data: { datetime: "{% set f = states('" + eFine + "') %}{% if f not in ['unknown','unavailable',''] %}{{ f }}{% else %}{{ (now() - timedelta(seconds=" + ATTESA_SEC + ")).strftime('%Y-%m-%d %H:%M:%S') }}{% endif %}" },
+                },
+              ],
             },
             {
               // azzero adesso, non alla partenza: cosi' le intermittenze non
@@ -21742,8 +21764,41 @@ const ConFinestrelle = (Base) => class extends Base {
   }
 
   // una riga "nome ..... valore" dentro a una finestrella
-  _row(label, valueHtml) {
-    return `<div class="dm-ap-row"><span class="dm-ap-row-label">${esc(label)}</span>${valueHtml}</div>`;
+  _row(label, valueHtml, nota) {
+    const sotto = nota ? `<small class="dm-ap-row-nota">${esc(nota)}</small>` : "";
+    return `<div class="dm-ap-row"><span class="dm-ap-row-label">${esc(label)}${sotto}</span>${valueHtml}</div>`;
+  }
+
+  // Da quando conta un contatore. Lo dice il suo `last_reset`, e serve a
+  // capire a colpo d'occhio una cosa che sembra uno sbaglio e non lo e':
+  // a inizio mese la SETTIMANA puo' essere piu' grande del MESE, perche' e'
+  // partita il lunedi' prima, dentro al mese passato. Scritto sotto al nome
+  // - "da lun 28 set" contro "da gio 1" - si vede subito perche'.
+  // Il mese si scrive solo quando non e' questo: se no e' rumore.
+  _daQuando(entityId) {
+    const st = entityId ? ((this._hass || {}).states || {})[entityId] : null;
+    const grezzo = st && st.attributes ? st.attributes.last_reset : null;
+    if (!grezzo) return "";
+    const da = new Date(grezzo);
+    if (isNaN(da.getTime())) return "";
+    const ora = new Date();
+    if (da > ora) return "";
+    const stessoGiorno = da.toDateString() === ora.toDateString();
+    if (stessoGiorno) {
+      // il contatore dell'ora: l'ora e' l'unica cosa che lo distingue
+      if (da.getHours() || da.getMinutes()) {
+        let q;
+        try {
+          q = da.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" });
+        } catch (e) { q = da.getHours() + ":00"; }
+        return T("dalle") + " " + q;
+      }
+      return T("da stanotte");
+    }
+    // in mezzo a una frase il mese va minuscolo: "da lun 28 set", non "Set"
+    const mese = da.getMonth() !== ora.getMonth()
+      ? " " + meseBreve(da).toLowerCase() : "";
+    return T("da") + " " + giornoBreve(da).toLowerCase() + " " + da.getDate() + mese;
   }
 
   // la finestrella sopra alla scheda: una sola, si riempie e si riapre
@@ -22803,8 +22858,8 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return html.replace('class="dm-ap-row"', `class="dm-ap-row dm-colore${forte ? " dm-forte" : ""}" style="--c:${colore}"`);
   }
 
-  _statRow2(label, aVal, bVal) {
-    return this._row(label, `<span class="dm-ap-row-val">${esc(aVal)}&nbsp;&nbsp;\u00b7&nbsp;&nbsp;${esc(bVal)}</span>`);
+  _statRow2(label, aVal, bVal, nota) {
+    return this._row(label, `<span class="dm-ap-row-val">${esc(aVal)}&nbsp;&nbsp;\u00b7&nbsp;&nbsp;${esc(bVal)}</span>`, nota);
   }
 
   _val(hass, entityId, digits, attr) {
@@ -23011,7 +23066,8 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const periodsHtml = (cfg.periods || [])
       .map((p, i) => [p, i])
       .sort((a, b) => quanto(a[0]) - quanto(b[0]) || a[1] - b[1])
-      .map(([p]) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2)))
+      .map(([p]) => this._statRow2(p.label, val(p.energy, 2), val(p.cost, 2),
+        this._daQuando(p.energy)))
       .join("");
 
     const prevHtml = (cfg.periods_prev || [])
@@ -24760,8 +24816,12 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     if (time !== "\u2014") celle.push(["Tempo", esc(time)]);
     if (Number.isFinite(kwhNum)) celle.push(["Consumo", kwhTxt]);
     celle.push(["Costo", costTxt]);
+    // da quando conta: solo sui periodi in corso (su «ieri» il
+    // last_reset e' quello di oggi, direbbe una bugia)
+    const daQuando = pEnt.energy_attr ? "" : this._daQuando(pEnt.energy);
     return `<div class="dm-ap-week-row">
-      <div class="dm-ap-week-day">${esc(label)}</div>
+      <div class="dm-ap-week-day">${esc(label)}${daQuando
+        ? `<small class="dm-ap-row-nota">${esc(daQuando)}</small>` : ""}</div>
       <div class="dm-ap-week-stats${celle.length <= 3 ? " cols3" : ""}">
         ${celle.map(([n, val]) => `<div class="dm-ap-week-stat"><small>${n}</small><b>${val}</b></div>`).join("")}
       </div>
