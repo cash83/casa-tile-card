@@ -1061,6 +1061,23 @@ export function unitaBella(u) {
   return SIMBOLI[t.toUpperCase()] || t;
 }
 
+// Il numero che c'e' DAVVERO dentro a uno stato.
+//
+// `Number("")` fa 0. `Number(null)` fa 0. `Number("  ")` fa 0. E `isFinite(0)`
+// e' vero, quindi il controllo passa e la scheda scrive "0,00 kWh" dove la
+// verita' era "non lo so". Un contatore appena creato, un template che non ha
+// ancora reso niente, un'entita' sparita: tutti casi veri, tutti bugie.
+//
+// Qui invece torna NaN tutto quello che non e' un numero scritto, e chi legge
+// se ne accorge con il solito `Number.isFinite`.
+export function numeroVero(v) {
+  if (v === null || v === undefined || typeof v === "boolean") return NaN;
+  const t = String(v).trim();
+  if (t === "" || t === "unknown" || t === "unavailable" || t === "none") return NaN;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : NaN;
+}
+
 export function numero(v, decimali) {
   const n = Number(v);
   if (!Number.isFinite(n)) return null;

@@ -710,6 +710,61 @@
     prova('azzeramento nel futuro: niente', quando(alle(2, 0)), '');
   }
 
+  // ======================================================================
+  dice('uno stato vuoto non vale zero');
+  {
+    // `Number("")` fa 0, e `isFinite(0)` e' vero: cosi' un contatore senza
+    // valore faceva scrivere "0,00 kWh", che non vuol dire "non lo so" -
+    // vuol dire "non hai consumato". Misurato sulla scheda vera.
+    const conStato = async (v) => {
+      const st = {};
+      const m = (id, a) => { st[id] = { entity_id: id, state: v,
+        attributes: { friendly_name: id, ...(a || {}) } }; };
+      m('sensor.v_watt', { unit_of_measurement: 'W', device_class: 'power' });
+      m('sensor.v_oggi', { unit_of_measurement: 'kWh', device_class: 'energy' });
+      m('input_number.v_prezzo', { unit_of_measurement: '\u20ac/kWh' });
+      const el = document.createElement('casa-elettrodomestico');
+      el.setConfig({ type: 'custom:casa-elettrodomestico', name: 'V',
+        power_entity: 'sensor.v_watt', max_power: 2500, threshold_run: 10,
+        energia_kwh: 'sensor.v_oggi', prezzo_entita: 'input_number.v_prezzo',
+        periodi: ['oggi'], period_entities: { today: { energy: 'sensor.v_oggi' } },
+        righe: ['oggi', 'costo_oggi'] });
+      banco.appendChild(el);
+      el.hass = { states: st, language: 'it', locale: { language: 'it' },
+        callWS: async () => ({}), callApi: async () => ({}), callService: async () => {} };
+      await new Promise((r) => setTimeout(r, 160));
+      const riga = el.shadowRoot.querySelector('.dm-ap-cycle-row');
+      const fuori = riga ? riga.innerText.replace(/\n/g, ' ') : '';
+      el.remove();
+      return fuori;
+    };
+    prova('vuoto: una lineetta, non 0,00', /\u2014/.test(await conStato('')), true);
+    prova('e nemmeno la parola kWh', /kWh/.test(await conStato('')), false);
+    prova('solo spazi: uguale', /\u2014/.test(await conStato('   ')), true);
+    prova('non risponde: lineetta', /\u2014/.test(await conStato('unavailable')), true);
+    prova('una parola la riporta', /in funzione/.test(await conStato('in funzione')), true);
+    prova('un numero vero resta un numero', /12,50 kWh/.test(await conStato('12.5')), true);
+  }
+
+  // ======================================================================
+  dice('la scheda tolta dalla pagina non lascia niente in giro');
+  {
+    // L'ascolto dell'Esc sta su `document`, non sulla scheda: se non lo si
+    // toglie resta li' con dentro un pezzo di scheda morta.
+    const el = document.createElement('casa-energia');
+    el.setConfig({ type: 'custom:casa-energia', name: 'Via',
+      power_entity: 'sensor.prova_watt' });
+    banco.appendChild(el);
+    el.hass = hass;
+    await new Promise((r) => setTimeout(r, 160));
+    el._openStats();
+    await new Promise((r) => setTimeout(r, 120));
+    prova('col pop-up aperto l ascolto c e', !!el._escDialog, true);
+    el.remove();
+    await new Promise((r) => setTimeout(r, 60));
+    prova('tolta dalla pagina, l ascolto e tolto', !el._escDialog, true);
+  }
+
   document.getElementById('esito').innerHTML = righe.join('\n')
     + '\n\n' + '='.repeat(60) + '\n'
     + (cadute === 0 ? '<span class="ok">Tutte a posto: ' + fatte + ' prove.</span>'

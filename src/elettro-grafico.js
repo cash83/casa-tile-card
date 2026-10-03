@@ -14,7 +14,7 @@
 //    dettaglio e restano le statistiche a lungo termine: li' chiedo il
 //    massimo orario, che e' la stessa idea di prima fatta da Home Assistant.
 
-import { esc, mirinoGrafico, numero } from './elettro-comune.js';
+import { esc, mirinoGrafico, numero, numeroVero } from './elettro-comune.js';
 import { laLocale, T } from './lingua.js';
 
 export const PERIODI_GRAFICO = [
@@ -87,7 +87,7 @@ export const ConGrafico = (Base) => class extends Base {
     return righe
       .map((r) => ({
         t: new Date((r.lu || r.last_updated_ts) * 1000 || r.last_updated),
-        y: Number(r.s ?? r.state),
+        y: numeroVero(r.s ?? r.state),
       }))
       .filter((p) => Number.isFinite(p.y) && !Number.isNaN(p.t.getTime()));
   }
@@ -248,7 +248,7 @@ export const ConGrafico = (Base) => class extends Base {
     const st = (this._hass || {}).states || {};
     const leggi = (e) => {
       const x = e ? st[e] : null;
-      const v = x && !["unknown", "unavailable"].includes(x.state) ? Number(x.state) : NaN;
+      const v = x && !["unknown", "unavailable"].includes(x.state) ? numeroVero(x.state) : NaN;
       return Number.isFinite(v) ? v : NaN;
     };
     // un periodo puo' avere PIU' contatori da sommare (la rete e il

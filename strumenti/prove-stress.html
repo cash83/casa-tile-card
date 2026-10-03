@@ -1,0 +1,289 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Le schede sotto stress</title>
+<!--
+  LE TRE SCHEDE SOTTO STRESS.
+
+  `prove-schede.html` prova che le schede facciano la cosa giusta quando i
+  dati sono buoni. Questa fa il contrario: le riempie di dati ORRIBILI e
+  guarda se si rompono o se scrivono castronerie.
+
+  Gli stati ostili sono quelli veri di una casa: un sensore che non risponde
+  (`unavailable`), uno appena nato (`unknown`), una presa che manda testo
+  dove dovrebbe esserci un numero, un contatore azzerato, una data al
+  contrario, numeri enormi o negativi.
+
+  Cerca due cose:
+   1. ERRORI SCAPPATI - qualunque eccezione, anche dentro a una promessa
+   2. CASTRONERIE A VIDEO - "NaN", "undefined", "Infinity", "[object Object]"
+      scritti dentro alla scheda: vuol dire che un conto e' andato storto e
+      nessuno se n'e' accorto
+
+  Come si lancia:
+      npm run build
+      python -m http.server 8781
+  e poi  http://127.0.0.1:8781/strumenti/prove-stress.html
+-->
+<style>
+  body{font-family:Roboto,system-ui,sans-serif;margin:0;padding:16px;background:#0e1116;color:#e6edf3}
+  pre{white-space:pre-wrap;font-size:12.5px;line-height:1.55;margin:0}
+  .ok{color:#4ec98a}.ko{color:#ff6b6b;font-weight:700}.tit{color:#7ab7ff}
+  #banco{position:absolute;left:-9999px;top:0;width:460px}
+</style>
+<h3 style="margin:0 0 10px;font-size:15px">Le tre schede sotto stress</h3>
+<pre id="esito">in corso…</pre>
+<div id="banco"></div>
+
+<script type="module" src="../dist/casa-tile-card.js"></script>
+<script type="module">
+const righe = [];
+let fatte = 0, cadute = 0;
+const scappati = [];
+
+// qualunque errore, da qualunque parte arrivi
+window.addEventListener("error", (e) => scappati.push("errore: " + (e.message || e)));
+window.addEventListener("unhandledrejection", (e) =>
+  scappati.push("promessa rotta: " + ((e.reason && e.reason.message) || e.reason)));
+
+function dice(t) { righe.push('\n<span class="tit">--- ' + t + "</span>"); }
+function prova(cosa, ok) {
+  fatte += 1;
+  if (ok) righe.push('  <span class="ok">ok</span>  ' + cosa);
+  else { cadute += 1; righe.push('  <span class="ko">X   ' + cosa + "</span>"); }
+}
+
+const banco = document.getElementById("banco");
+const aspetta = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// --------------------------------------------------------------- gli stati
+// Un hass finto che risponde a tutto, cosi' le schede arrivano in fondo.
+function faiHass(valore, attributi) {
+  const st = {};
+  const metti = (id, extra) => {
+    st[id] = { entity_id: id, state: valore,
+      attributes: { friendly_name: id, ...(attributi || {}), ...(extra || {}) } };
+  };
+  "watt kwh oggi settimana mese ora costo_oggi costo_mese prezzo fv".split(" ")
+    .forEach((n) => metti("sensor.s_" + n));
+  metti("sensor.s_watt", { unit_of_measurement: "W", device_class: "power" });
+  metti("sensor.s_kwh", { unit_of_measurement: "kWh", device_class: "energy" });
+  ["oggi", "settimana", "mese", "ora", "fv"].forEach((n) =>
+    metti("sensor.s_" + n, { unit_of_measurement: "kWh", device_class: "energy",
+      last_period: valore, last_reset: valore, next_reset: valore }));
+  ["costo_oggi", "costo_mese"].forEach((n) =>
+    metti("sensor.s_" + n, { unit_of_measurement: "€", last_period: valore }));
+  metti("input_number.prezzo_luce_energia", { unit_of_measurement: "€/kWh" });
+  metti("input_number.prezzo_energia", { unit_of_measurement: "€/kWh" });
+  metti("input_number.quota_fissa_energia_giorno", { unit_of_measurement: "€/giorno" });
+  metti("input_number.c_minuti", { unit_of_measurement: "min" });
+  metti("input_number.c_kwh", { unit_of_measurement: "kWh" });
+  metti("input_datetime.c_fine");
+  metti("input_datetime.c_via");
+  metti("sensor.c_contatore", { unit_of_measurement: "kWh" });
+  metti("binary_sensor.s_acceso");
+  metti("switch.s_presa");
+  metti("light.s_luce");
+  return {
+    states: st, language: "it", locale: { language: "it" },
+    callWS: async (m) => {
+      // le statistiche: rispondo con roba altrettanto sballata
+      if (m && m.type === "recorder/statistics_during_period") {
+        return { "sensor.s_kwh": [
+          { start: valore, change: valore },
+          { start: Date.now(), change: valore },
+        ] };
+      }
+      return {};
+    },
+    callApi: async () => ({}),
+    callService: async () => {},
+  };
+}
+
+const CONF_ENERGIA = {
+  type: "custom:casa-energia", name: "Casa", power_entity: "sensor.s_watt",
+  max_power: 3300, prezzo_entita: "input_number.prezzo_luce_energia",
+  periods: [
+    { label: "Ora", energy: "sensor.s_ora", cost: "sensor.s_costo_oggi" },
+    { label: "Oggi", energy: "sensor.s_oggi", cost: "sensor.s_costo_oggi" },
+    { label: "Settimana", energy: "sensor.s_settimana", cost: "sensor.s_costo_mese" },
+    { label: "Mese", energy: "sensor.s_mese", cost: "sensor.s_costo_mese" },
+  ],
+  periods_prev: [{ label: "Ieri", energy: "sensor.s_oggi", energy_attr: "last_period",
+    cost: "sensor.s_costo_oggi", cost_attr: "last_period" }],
+  fv_casa_oggi: "sensor.s_fv", fv_casa_entita: ["sensor.s_fv"],
+  bolletta_energia: "sensor.s_mese", bolletta_costo: "sensor.s_costo_mese",
+  righe: ["consumo", "energia", "mese", "bolletta", "fv_casa", "top"],
+  top_auto: true, barre_vive: true, layout: "centrato",
+  interruttore: "switch.s_presa",
+};
+
+const CONF_APP = {
+  type: "custom:casa-elettrodomestico", name: "Macchina", artwork: "washer",
+  power_entity: "sensor.s_watt", max_power: 2500,
+  threshold_run: 10, threshold_standby: 1,
+  energia_kwh: "sensor.s_kwh", prezzo_entita: "input_number.prezzo_luce_energia",
+  periodi: ["oggi", "settimana", "mese"],
+  period_entities: { today: { energy: "sensor.s_oggi", cost: "sensor.s_costo_oggi" },
+    week: { energy: "sensor.s_settimana" },
+    month: { energy: "sensor.s_mese", cost: "sensor.s_costo_mese" } },
+  ciclo: { fine: "input_datetime.c_fine", durata: "input_number.c_minuti",
+    consumo: "input_number.c_kwh", contatore: "sensor.c_contatore",
+    inizio: "input_datetime.c_via" },
+  soglia_acceso: "binary_sensor.s_acceso",
+  righe: ["fine", "durata", "consumo", "costo", "oggi", "costo_oggi", "mese", "costo_mese"],
+  energy_stat_entity: "sensor.s_kwh", chiedi_prima: true,
+  tasti: [{ entity: "switch.s_presa", icona: "presa", nome: "" }],
+};
+
+const CONF_TILE = {
+  type: "custom:casa-tile", entity: "light.s_luce", name: "Luce",
+  disposizione: "classico", metriche: [{ entity: "sensor.s_watt" }],
+};
+
+// Gli stati con cui le riempio. Il nome e' quello che si legge nel resoconto.
+const STATI = [
+  ["non risponde", "unavailable", {}],
+  ["appena nato", "unknown", {}],
+  ["vuoto", "", {}],
+  ["testo al posto del numero", "in funzione", {}],
+  ["zero", "0", {}],
+  ["negativo", "-1234.5", {}],
+  ["enorme", "99999999999", {}],
+  ["decimali infiniti", "0.333333333333333333", {}],
+  ["virgola invece del punto", "1,5", {}],
+  ["data al contrario", "2030-01-01 00:00:00", {}],
+  ["data impossibile", "0000-00-00 99:99:99", {}],
+  ["nullo scritto", "null", {}],
+  ["booleano", "true", {}],
+];
+
+// Le parole che non devono MAI finire a video: sono il segno che un conto e'
+// andato storto e nessuno se n'e' accorto. `null` NON e' nell'elenco: uno
+// stato il cui testo e' proprio "null" la scheda lo riporta, e fa bene.
+const BRUTTE = /\bNaN\b|\bundefined\b|\bInfinity\b|\[object Object\]/;
+
+function scrittoDentro(el) {
+  // tutto il testo che si vede davvero, scendendo nelle ombre
+  let fuori = "";
+  const gira = (radice) => {
+    (radice.querySelectorAll ? radice.querySelectorAll("*") : []).forEach((n) => {
+      if (n.shadowRoot) gira(n.shadowRoot);
+      [...n.childNodes].forEach((c) => {
+        if (c.nodeType === 3 && c.textContent.trim()) fuori += " " + c.textContent.trim();
+      });
+    });
+  };
+  gira(el.shadowRoot || el);
+  return fuori;
+}
+
+async function torchia(tag, conf, nome) {
+  dice(nome + ": tredici stati ostili");
+  for (const [come, valore, extra] of STATI) {
+    const prima = scappati.length;
+    const el = document.createElement(tag);
+    let montata = true;
+    try { el.setConfig(JSON.parse(JSON.stringify(conf))); } catch (e) {
+      montata = false; scappati.push(nome + " setConfig(" + come + "): " + e.message);
+    }
+    banco.appendChild(el);
+    try { el.hass = faiHass(valore, extra); } catch (e) {
+      montata = false; scappati.push(nome + " hass(" + come + "): " + e.message);
+    }
+    await aspetta(200);
+    // e con la finestra aperta, che e' dove si fanno i conti piu' delicati
+    try {
+      if (el._openStats) el._openStats();
+      if (el._openWeek) el._openWeek();
+    } catch (e) { scappati.push(nome + " pop-up(" + come + "): " + e.message); }
+    await aspetta(220);
+    const testo = scrittoDentro(el);
+    const brutte = testo.match(BRUTTE);
+    prova(come + " — non scoppia", montata && scappati.length === prima);
+    prova(come + " — niente castronerie a video", !brutte,
+      brutte ? ("ha scritto «" + brutte[0] + "»") : "");
+    if (brutte) {
+      const dove = testo.split(/\s+/).findIndex((p) => BRUTTE.test(p));
+      righe.push("       intorno: …"
+        + testo.split(/\s+/).slice(Math.max(0, dove - 6), dove + 4).join(" ") + "…");
+    }
+    el.remove();
+  }
+}
+
+// ======================================================================
+await aspetta(300);
+await torchia("casa-energia", CONF_ENERGIA, "casa-energia");
+await torchia("casa-elettrodomestico", CONF_APP, "casa-elettrodomestico");
+await torchia("casa-tile", CONF_TILE, "casa-tile");
+
+// ----------------------------------------------------------------------
+dice("le configurazioni storte");
+const STORTE = [
+  ["senza niente", {}],
+  ["solo il tipo", { type: "custom:casa-energia" }],
+  ["entita che non esistono", { type: "custom:casa-energia", power_entity: "sensor.boh",
+    periods: [{ label: "Oggi", energy: "sensor.boh2", cost: "sensor.boh3" }] }],
+  ["periodi vuoti", { type: "custom:casa-energia", power_entity: "sensor.s_watt", periods: [] }],
+  ["periodo senza nome", { type: "custom:casa-energia", power_entity: "sensor.s_watt",
+    periods: [{ energy: "sensor.s_oggi" }] }],
+  ["righe inventate", { type: "custom:casa-elettrodomestico", power_entity: "sensor.s_watt",
+    righe: ["questa_non_esiste", "nemmeno_questa"] }],
+  ["max_power a zero", { type: "custom:casa-elettrodomestico", power_entity: "sensor.s_watt",
+    max_power: 0 }],
+  ["soglie al contrario", { type: "custom:casa-elettrodomestico", power_entity: "sensor.s_watt",
+    threshold_run: 1, threshold_standby: 900 }],
+];
+for (const [come, conf] of STORTE) {
+  const prima = scappati.length;
+  const tag = String(conf.type || "custom:casa-energia").replace("custom:", "");
+  const el = document.createElement(tag);
+  let ok = true;
+  try {
+    el.setConfig(conf);
+    banco.appendChild(el);
+    el.hass = faiHass("12.5", {});
+    await aspetta(160);
+  } catch (e) {
+    // setConfig PUO' rifiutare una configurazione: e' il suo mestiere.
+    // Quello che non deve fare e' rompersi dopo, a scheda montata.
+    ok = /[Ss]erve|manca|richiede|scegli/.test(e.message || "");
+    if (!ok) scappati.push(come + ": " + e.message);
+  }
+  prova(come + " — o la rifiuta per bene, o regge", ok && scappati.length === prima);
+  el.remove();
+}
+
+// ----------------------------------------------------------------------
+dice("quando la scheda sparisce dalla pagina");
+{
+  const prima = scappati.length;
+  const el = document.createElement("casa-energia");
+  el.setConfig(CONF_ENERGIA);
+  banco.appendChild(el);
+  el.hass = faiHass("12.5", {});
+  await aspetta(200);
+  el._openStats();
+  await aspetta(200);
+  el.remove();                       // via con la finestra ancora aperta
+  await aspetta(100);
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+  await aspetta(100);
+  prova("tolta col pop-up aperto non lascia errori", scappati.length === prima);
+}
+
+// ======================================================================
+righe.push("");
+righe.push("=".repeat(60));
+if (scappati.length) {
+  righe.push('<span class="ko">ERRORI SCAPPATI: ' + scappati.length + "</span>");
+  [...new Set(scappati)].slice(0, 25).forEach((s) => righe.push("   " + s));
+}
+righe.push(cadute === 0
+  ? '<span class="ok">Tutte a posto: ' + fatte + " prove.</span>"
+  : '<span class="ko">' + cadute + " cadute su " + fatte + ".</span>");
+document.getElementById("esito").innerHTML = righe.join("\n");
+window.__esito = { fatte, cadute, scappati: [...new Set(scappati)],
+  righe: righe.map((r) => r.replace(/<[^>]+>/g, "")) };
+</script>

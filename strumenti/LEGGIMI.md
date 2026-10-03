@@ -120,3 +120,31 @@ Le voci del dizionario NON si controllano con questi: per quelle c'e'
 `controlla_scritte.py`, che guarda il verso che conta (scritte senza
 traduzione). L'elenco contrario - "chiavi che non servono piu'" - e' sempre
 pieno di falsi allarmi, perche' mezze scritte si compongono a pezzi.
+
+## Le schede sotto stress
+
+```
+npm run build
+python -m http.server 8781
+```
+e poi `http://127.0.0.1:8781/strumenti/prove-stress.html`.
+
+`prove-schede.html` prova che le schede facciano la cosa giusta quando i dati
+sono buoni. Questa fa il contrario: le riempie di dati **orribili** - tredici
+stati ostili per ognuna delle tre schede, piu' otto configurazioni storte - e
+guarda due cose sole:
+
+1. **errori scappati**: qualunque eccezione, anche dentro a una promessa
+   (`window.onerror` e `unhandledrejection`, non i try/catch);
+2. **castronerie a video**: `NaN`, `undefined`, `Infinity`, `[object Object]`
+   scritti dentro alla scheda. Se una di quelle parole arriva allo schermo,
+   un conto e' andato storto e nessuno se n'e' accorto.
+
+`null` NON e' nell'elenco delle castronerie: uno stato il cui testo e' proprio
+"null" la scheda lo riporta, e fa bene.
+
+**La trappola che ha pescato**: `Number("")` fa **0**, non NaN - e
+`Number.isFinite(0)` e' vero, quindi il controllo passa. Un contatore senza
+valore faceva scrivere "0,00 kWh", che non vuol dire "non lo so", vuol dire
+"non hai consumato". Per questo adesso gli stati si leggono con `numeroVero()`
+(in `elettro-comune.js`), mai con `Number()` diretto.

@@ -13,7 +13,7 @@
 // casella (ConMusica(ConPezzi(...))). Quello che le due schede fanno davvero
 // in modo diverso (le loro finestre, i loro conti) resta nei loro file.
 
-import { esc, numero, tastiDi, ICON_CLOSE, HERO_BUILDERS, CHIP_SVGS, giornoBreve, meseBreve } from './elettro-comune.js';
+import { esc, numero, tastiDi, ICON_CLOSE, HERO_BUILDERS, CHIP_SVGS, giornoBreve, meseBreve, numeroVero } from './elettro-comune.js';
 import { ICONE, disegnoMdi } from './icone.js';
 import { scegliLingua, T, TH, laLocale } from './lingua.js';
 import { aiutantiVeri, cancellaQuesti, scollegaEntita, ID_TOTALE } from './elettro-crea.js';
@@ -30,6 +30,25 @@ function svgTasto(icona) {
 }
 
 export const ConFinestrelle = (Base) => class extends Base {
+  // Quando la scheda sparisce dalla pagina - cambi vista, rifai la plancia,
+  // esci dall'anteprima - quello che ha lasciato in giro resta in giro:
+  // l'ascolto dell'Esc sta su `document`, non sulla scheda, e si porta
+  // dietro un pezzo di scheda morta. Una sola non si vede; aprire e chiudere
+  // la pagina dei consumi cento volte si'. Qui si fa pulizia.
+  disconnectedCallback() {
+    if (super.disconnectedCallback) super.disconnectedCallback();
+    if (this._escDialog) {
+      document.removeEventListener("keydown", this._escDialog);
+      this._escDialog = null;
+    }
+    clearTimeout(this._chiusuraDopo);
+    // e le domande dei tasti ("premi ancora"), che hanno il loro orologio
+    (this._root ? this._root.querySelectorAll(".dm-ap-tasto") : []).forEach((b) => {
+      clearTimeout(b._attesa);
+      b._chiesto = false;
+    });
+  }
+
   // La fila dei tasti, uguale per le due schede: si disegna una volta, si
   // accende e si spegne al clic. Si leggono per nome - i tondini muti in
   // alto erano indovinelli, e chi aveva le prese le vedeva pure due volte.
@@ -118,8 +137,8 @@ export const ConFinestrelle = (Base) => class extends Base {
   // Se non c'e', o se e' lo stesso di quello della sola energia, non c'e'
   // niente da far vedere in piu' e la riga del costo resta com'era.
   _prezzoPieno(hass) {
-    const p = Number((hass.states[ID_TOTALE] || {}).state);
-    const solo = Number((hass.states[this._config.prezzo_entita] || {}).state);
+    const p = numeroVero((hass.states[ID_TOTALE] || {}).state);
+    const solo = numeroVero((hass.states[this._config.prezzo_entita] || {}).state);
     if (!Number.isFinite(p) || p <= 0) return 0;
     if (Number.isFinite(solo) && Math.abs(p - solo) < 0.0005) return 0;
     return p;

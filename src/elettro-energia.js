@@ -15,8 +15,7 @@ import {
   STYLE,
   esc,
   meterSeverityColor,
-  vestiFinestra,
-} from './elettro-comune.js';
+  vestiFinestra, numeroVero } from './elettro-comune.js';
 const ICON_SOLE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
@@ -258,7 +257,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const st = entityId ? hass.states[entityId] : null;
     if (!st) return "\u2014";
     const raw = attr ? st.attributes?.[attr] : st.state;
-    const n = Number(raw);
+    const n = numeroVero(raw);
     const unit = unitaBella(st.attributes?.unit_of_measurement);
     // se l'attributo non c'e' ancora (contatore appena creato) meglio una
     // lineetta che la scritta "undefined"
@@ -315,7 +314,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // La tariffa scritta nel riquadro "La tua tariffa". Gli aiutanti hanno un
   // nome fisso: li crea la scheda, e i conti si fanno qui senza sensori.
   _tariffa() {
-    const n = (id) => Number((this._hass.states[id] || {}).state);
+    const n = (id) => numeroVero((this._hass.states[id] || {}).state);
     return {
       energia: n("input_number.prezzo_luce_energia"),
       totale: n("input_number.prezzo_energia"),
@@ -355,7 +354,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   _costoRicavato(p) {
     const st = p.energy ? this._hass.states[p.energy] : null;
     if (!st) return "\u2014";
-    const k = Number(p.energy_attr ? (st.attributes || {})[p.energy_attr] : st.state);
+    const k = numeroVero(p.energy_attr ? (st.attributes || {})[p.energy_attr] : st.state);
     const t = this._tariffa();
     if (!(k > 0) || !(t.totale > 0)) return "\u2014";
     return this._euro(k * t.totale + (t.quota || 0) * this._giorniDelPeriodo(p.energy));
@@ -506,7 +505,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const loads = preseDiCasa(hass)
       .filter((x) => contaNelTop(cfg, x.entity))
       .map((x) => ({ label: miei[x.entity] || x.nome, entity: x.entity, live: x.w }));
-    const tot = Number(hass.states[cfg.power_entity]?.state);
+    const tot = numeroVero(hass.states[cfg.power_entity]?.state);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
     const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;
     // Se le prese sommate superano la casa, da qualche parte c'e' un doppione:
@@ -555,7 +554,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       });
     }
     const lista = (cfg.circuits || []).map((c, ordine) => {
-      const v = Number(hass.states[c.entity]?.state);
+      const v = numeroVero(hass.states[c.entity]?.state);
       return { c, ordine, live: Number.isFinite(v) ? Math.max(0, v) : 0 };
     });
     if (cfg.barre_in_ordine !== false) lista.sort((a, b) => b.live - a.live || a.ordine - b.ordine);
@@ -603,7 +602,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const hass = this._hass;
     const cfg = this._config;
     const circuits = (cfg.circuits || [])
-      .map((c) => ({ ...c, live: Number(hass.states[c.entity]?.state) || 0 }))
+      .map((c) => ({ ...c, live: numeroVero(hass.states[c.entity]?.state) || 0 }))
       .sort((a, b) => b.live - a.live);
 
     const rows = circuits.map((c) => this._statRow(c.label, `${numero(c.live, 0)} W`)).join("");
@@ -640,12 +639,12 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
 
     const cfg = this._config;
 
-    const watt = Number(hass.states[cfg.power_entity]?.state);
+    const watt = numeroVero(hass.states[cfg.power_entity]?.state);
     const wattVal = Number.isFinite(watt) ? Math.max(0, watt) : 0;
     // La tariffa: gli aiutanti hanno un nome fisso, li creo io dal riquadro
     // "La tua tariffa". Servono a fare i conti qui, senza sensori in mezzo.
     const tariffa = (() => {
-      const n = (id) => Number((hass.states[id] || {}).state);
+      const n = (id) => numeroVero((hass.states[id] || {}).state);
       return {
         energia: n("input_number.prezzo_luce_energia"),
         totale: n("input_number.prezzo_energia"),
@@ -668,7 +667,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       { const x = this._root.querySelector(".dm-e-today-kwh"); if (x) x.textContent = this._val(hass, pOggi.energy, 2); }
       { const x = this._root.querySelector(".dm-e-today-cost");
         if (x) {
-          const k = Number((hass.states[pOggi.energy] || {}).state);
+          const k = numeroVero((hass.states[pOggi.energy] || {}).state);
           x.textContent = hass.states[pOggi.cost] ? this._val(hass, pOggi.cost, 2)
             : (Number.isFinite(k) && tariffa.totale > 0
               ? this._euro(k * tariffa.totale + (tariffa.quota || 0)) : "\u2014");
@@ -677,7 +676,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     if (pMese) {
       { const x = this._root.querySelector(".dm-e-month-cost");
         if (x) {
-          const k = Number((hass.states[pMese.energy] || {}).state);
+          const k = numeroVero((hass.states[pMese.energy] || {}).state);
           x.textContent = hass.states[pMese.cost] ? this._val(hass, pMese.cost, 2)
             : (Number.isFinite(k) && tariffa.totale > 0
               ? this._euro(k * tariffa.totale + (tariffa.quota || 0) * new Date().getDate()) : "\u2014");
@@ -694,7 +693,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
           ? this._euro(hass.states[cfg.bolletta_costo].state) : "";
         if (!euro && cfg.bolletta_energia && tariffa.totale > 0) {
           const st = hass.states[cfg.bolletta_energia];
-          const k = Number(st?.state);
+          const k = numeroVero(st?.state);
           const da = st?.attributes?.last_reset ? new Date(st.attributes.last_reset) : null;
           const gg = da ? Math.max(1, Math.floor((Date.now() - da.getTime()) / 86400000) + 1) : 1;
           if (Number.isFinite(k)) euro = this._euro(k * tariffa.totale + (tariffa.quota || 0) * gg);
@@ -712,7 +711,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       if (!x) return;
       const st = hass.states[v.mia.entita];
       if (!st || ["unknown", "unavailable"].includes(st.state)) { x.textContent = "\u2014"; return; }
-      const n = Number(st.state);
+      const n = numeroVero(st.state);
       // "come sta": i decimali che ha davvero (al massimo due), se no una
       // percentuale diventava "74,00 %" e i gradi "21,40 gradi"
       const dec = Math.min(2, (String(st.state).split(".")[1] || "").length);
@@ -728,7 +727,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       if (!x) return;
       const n = (e) => {
         const st = e ? hass.states[e] : null;
-        const v = st ? Number(st.state) : NaN;
+        const v = st ? numeroVero(st.state) : NaN;
         return Number.isFinite(v) ? numero(v, 2) : null;
       };
       const quali = [["oggi", n(cfg[chi + "_oggi"])], ["settimana", n(cfg[chi + "_settimana"])],
@@ -747,7 +746,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const kwh = (e) => {
         const st = e ? hass.states[e] : null;
         const v = st && !["unknown", "unavailable"].includes(st.state)
-          ? Number(st.state) : NaN;
+          ? numeroVero(st.state) : NaN;
         return Number.isFinite(v) ? v : null;
       };
       const rete = kwh(((cfg.periods || [])[0] || {}).energy);
@@ -775,16 +774,16 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         : this._euro(oggiFv);
       fvEl.title = T("risparmio di oggi / del mese");
     }
-    const kwhOggi = pOggi ? Number((hass.states[pOggi.energy] || {}).state) : NaN;
+    const kwhOggi = pOggi ? numeroVero((hass.states[pOggi.energy] || {}).state) : NaN;
     const senzaEl = this._root.querySelector(".dm-e-senzafv");
     if (senzaEl) {
       const b = hass.states[cfg.bill_today];
       if (b) {
         const a = b.attributes || {};
-        senzaEl.textContent = this._euro(Number(b.state) + Number(a.risparmio_fotovoltaico || 0));
+        senzaEl.textContent = this._euro(numeroVero(b.state) + numeroVero(a.risparmio_fotovoltaico || 0));
       } else if (Number.isFinite(kwhOggi) && tariffa.totale > 0) {
         // quello che pagheresti oggi se i pannelli non ci fossero
-        const risp = Number((hass.states[cfg.risparmio_oggi] || {}).state) || 0;
+        const risp = numeroVero((hass.states[cfg.risparmio_oggi] || {}).state) || 0;
         senzaEl.textContent = this._euro(kwhOggi * tariffa.totale + (tariffa.quota || 0) + risp);
       } else senzaEl.textContent = "\u2014";
     }

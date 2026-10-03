@@ -20,8 +20,7 @@ import {
   DEFAULT_STATE_MAP,
   STYLE,
   esc,
-  vestiFinestra,
-} from './elettro-comune.js';
+  vestiFinestra, numeroVero } from './elettro-comune.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
 import { ConFinestrelle, guardaSeAnteprima } from './elettro-condivisi.js';
 import { ConGrafico, coloreScala } from './elettro-grafico.js';
@@ -233,8 +232,8 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const c = this._config.ciclo;
     if (!c) return null;
     // niente ciclo ancora registrato: meglio un trattino che un falso 00:00
-    const kWh = Number((hass.states[c.consumo] || {}).state);
-    const min = Number((hass.states[c.durata] || {}).state);
+    const kWh = numeroVero((hass.states[c.consumo] || {}).state);
+    const min = numeroVero((hass.states[c.durata] || {}).state);
     if (!(kWh > 0) && !(min > 0)) return null;
     const leggi = (eid) => {
       const st = eid ? hass.states[eid] : null;
@@ -254,19 +253,19 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + " " + ora;
     }
     if (key === "duration") {
-      const m = Number(leggi(c.durata));
+      const m = numeroVero(leggi(c.durata));
       if (!Number.isFinite(m) || m <= 0) return null;
       const h = Math.floor(m / 60);
       return h ? h + "h " + String(Math.round(m % 60)).padStart(2, "0") + "m" : Math.round(m) + " min";
     }
     if (key === "energy") {
-      const k = Number(leggi(c.consumo));
+      const k = numeroVero(leggi(c.consumo));
       return Number.isFinite(k) && k > 0 ? numero(k, 2) + " kWh" : null;
     }
     if (key === "cost" || key === "cost_pieno") {
-      const k = Number(leggi(c.consumo));
+      const k = numeroVero(leggi(c.consumo));
       const p = key === "cost_pieno" ? this._prezzoPieno(hass)
-        : Number((hass.states[this._config.prezzo_entita] || {}).state);
+        : numeroVero((hass.states[this._config.prezzo_entita] || {}).state);
       if (!Number.isFinite(k) || !Number.isFinite(p) || p <= 0) return null;
       return k * p;
     }
@@ -278,7 +277,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
   // tutte e due alla stessa faccia.
   _tempoLeggibile(st) {
     if (!st) return "\u2014";
-    const n = Number(st.state);
+    const n = numeroVero(st.state);
     if (!Number.isFinite(n)) return st.state || "\u2014";
     const unita = String(st.attributes.unit_of_measurement || "h").toLowerCase();
     const minuti = Math.round(unita.startsWith("min") ? n : n * 60);
@@ -318,10 +317,10 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const out = {};
     const st = hass.states[c.contatore];
     if (st && !["unknown", "unavailable"].includes(st.state)) {
-      const k = Number(st.state);
+      const k = numeroVero(st.state);
       if (Number.isFinite(k)) {
         out.energy = `${numero(k, 2)} kWh`;
-        const p = Number(hass.states[this._config.prezzo_entita]?.state);
+        const p = numeroVero(hass.states[this._config.prezzo_entita]?.state);
         if (Number.isFinite(p) && p > 0) out.cost = k * p;
         const pieno = this._prezzoPieno(hass);
         if (pieno > 0) out.cost_pieno = k * pieno;
@@ -358,11 +357,11 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     };
     const out = {};
     const en = buono(c.energy_entity);
-    if (en && Number.isFinite(Number(en.state))) {
+    if (en && Number.isFinite(numeroVero(en.state))) {
       const unita = String(en.attributes.unit_of_measurement || "kWh").toLowerCase();
-      const kwh = unita === "wh" ? Number(en.state) / 1000 : Number(en.state);
+      const kwh = unita === "wh" ? numeroVero(en.state) / 1000 : numeroVero(en.state);
       out.energy = `${numero(kwh, 2)} kWh`;
-      const prezzo = Number(hass.states[this._config.prezzo_entita]?.state);
+      const prezzo = numeroVero(hass.states[this._config.prezzo_entita]?.state);
       // se il prezzo non c'e' o e' zero, il costo non e' "0,00 EUR": non c'e'.
       // L'altro ramo (i pezzi nostri) questo controllo lo faceva gia'.
       if (Number.isFinite(prezzo) && prezzo > 0) out.cost = kwh * prezzo;
@@ -372,7 +371,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const tr = buono(c.elapsed_entity);
     if (tr) out.duration = this._tempoLeggibile(tr);
     const res = buono(c.remaining_entity);
-    const mancano = res ? Number(res.state) : NaN;
+    const mancano = res ? numeroVero(res.state) : NaN;
     if (Number.isFinite(mancano) && mancano >= 0) {
       out.end = new Date(Date.now() + mancano * 60000)
         .toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" });
@@ -450,7 +449,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       if (!st) return undefined;
       return attributo ? (st.attributes || {})[attributo] : st.state;
     };
-    const kwhNum = pEnt.energy ? Number(daEntita(pEnt.energy, pEnt.energy_attr)) : NaN;
+    const kwhNum = pEnt.energy ? numeroVero(daEntita(pEnt.energy, pEnt.energy_attr)) : NaN;
     const kwhTxt = Number.isFinite(kwhNum) ? `${numero(kwhNum, 2)} kWh` : "\u2014";
     let cost = pEnt.cost ? daEntita(pEnt.cost, pEnt.cost_attr) : null;
     // senza un sensore del costo il conto lo faccio qui: kWh per il prezzo.
@@ -458,7 +457,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const manca = cost === null || cost === undefined || cost === ""
       || !Number.isFinite(Number(cost));
     if (manca && Number.isFinite(kwhNum)) {
-      const p = Number(hass.states[cfg.prezzo_entita]?.state);
+      const p = numeroVero(hass.states[cfg.prezzo_entita]?.state);
       if (Number.isFinite(p) && p > 0) cost = kwhNum * p;
     }
     const costTxt = Number.isFinite(Number(cost)) ? `${numero(cost, 2)} \u20ac` : "\u2014";
@@ -526,7 +525,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       } else if (row.boolean) {
         val = raw === (row.on_state ?? "on") ? row.on_label || "Attivo" : row.off_label || "OK";
       } else if (row.format === "percent") {
-        const n = Number(raw);
+        const n = numeroVero(raw);
         val = Number.isFinite(n) ? `${Math.round(n * 100)}%` : "n/d";
       } else if (row.format === "time") {
         const d = new Date(raw);
@@ -548,7 +547,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
         const unita = cfg.power_unit || unitaBella(st.attributes.unit_of_measurement) || "W";
         liveHtml += this._row(cfg.power_label || "Potenza attuale",
           `<span class="dm-ap-row-val">${esc(st.state)} ${esc(unita)}</span>`);
-        const n = Number(st.state);
+        const n = numeroVero(st.state);
         const soglia = Number(cfg.threshold_run);
         if (Number.isFinite(n) && Number.isFinite(soglia)) {
           liveHtml += this._row("Sta lavorando",
@@ -646,7 +645,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
         box.innerHTML = `<div class="dm-ap-row-val">Ancora niente: lo storico comincia adesso.</div>`;
         return;
       }
-      const p = Number(this._hass.states[this._config.prezzo_entita]?.state);
+      const p = numeroVero(this._hass.states[this._config.prezzo_entita]?.state);
       const chiave = (d) => d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
       const trovati = {};
       punti.forEach((x) => { trovati[chiave(x.t)] = (trovati[chiave(x.t)] || 0) + x.value; });
@@ -713,7 +712,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
           const quanti = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
           const perGiorno = {};
           rows.forEach((r) => { perGiorno[r.t.getDate()] = (perGiorno[r.t.getDate()] || 0) + r.value; });
-          const prezzo = Number(this._hass.states[cfg.prezzo_entita]?.state);
+          const prezzo = numeroVero(this._hass.states[cfg.prezzo_entita]?.state);
           const inEuro = (v) => (Number.isFinite(prezzo) && prezzo > 0
             ? " · " + numero(v * prezzo, 2) + " €" : "");
           const bars = [];
@@ -743,7 +742,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
           // dodici mesi sempre, cosi' l'anno si legge come un calendario
           const perMese = {};
           rows.forEach((r) => { perMese[r.t.getMonth()] = (perMese[r.t.getMonth()] || 0) + r.value; });
-          const prezzoA = Number(this._hass.states[cfg.prezzo_entita]?.state);
+          const prezzoA = numeroVero(this._hass.states[cfg.prezzo_entita]?.state);
           const inEuroA = (v) => (Number.isFinite(prezzoA) && prezzoA > 0
             ? " · " + numero(v * prezzoA, 2) + " €" : "");
           const bars = [];
@@ -794,7 +793,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const cfg = this._config;
 
     const powerState = hass.states[cfg.power_entity];
-    const watts = powerState ? Number(powerState.state) : null;
+    const watts = powerState ? numeroVero(powerState.state) : null;
     const powerUnavailable = !powerState || ["unavailable", "unknown"].includes(powerState.state);
 
     // c'e', risponde, ma non e' un numero: una scritta tipo "1:20". Da qui in
@@ -864,7 +863,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const progressBar = this._root.querySelector(".dm-ap-progress-bar");
     if (progressEntity && progressBar) {
       const pState = hass.states[progressEntity];
-      const pVal = pState && !["unavailable", "unknown"].includes(pState.state) ? Number(pState.state) : NaN;
+      const pVal = pState && !["unavailable", "unknown"].includes(pState.state) ? numeroVero(pState.state) : NaN;
       let valText = Number.isFinite(pVal) ? `${Math.round(pVal)}%` : "\u2014";
       const remainingEntity = cfg.live?.remaining_entity;
       const remState = remainingEntity ? hass.states[remainingEntity] : null;
@@ -921,8 +920,12 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const numeroDi = (eid, unita, dec) => {
       const st = eid ? hass.states[eid] : null;
       if (!st || ["unavailable", "unknown"].includes(st.state)) return "\u2014";
-      const n = Number(st.state);
-      return Number.isFinite(n) ? `${numero(n, dec)}${unita}` : st.state;
+      const n = numeroVero(st.state);
+      // non e' un numero: faccio vedere la parola che c'e' davvero
+      // ("in funzione", "finito"), ma se non c'e' nemmeno quella il
+      // posto non resta vuoto - una lineetta dice "non lo so"
+      if (Number.isFinite(n)) return `${numero(n, dec)}${unita}`;
+      return String(st.state).trim() || "—";
     };
     // i quattro sensori: quelli scelti a mano, oppure quelli creati dal tasto
     // "Crea statistiche e costi", che li scrive dentro period_entities
@@ -930,21 +933,21 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     // Il costo non ha bisogno di un sensore suo: e' i kWh per il prezzo, e il
     // prezzo lo tiene la scheda principale. Se un sensore del costo c'e' lo uso
     // (magari l'hai fatto tu), se no il conto lo faccio qui e non creo niente.
-    const prezzo = Number((hass.states[cfg.prezzo_entita] || {}).state);
+    const prezzo = numeroVero((hass.states[cfg.prezzo_entita] || {}).state);
     // il secondo prezzo: quello pieno della bolletta, energia piu' rete,
     // accise e IVA. Lo usano le righe "In bolletta", che fanno vedere quanto
     // ti costa davvero; le altre fanno vedere la sola energia.
     const prezzoPieno = this._prezzoPieno(hass);
     const costoDa = (eidCosto, eidKwh) => {
       const st = eidKwh ? hass.states[eidKwh] : null;
-      const k = st && !["unavailable", "unknown"].includes(st.state) ? Number(st.state) : NaN;
+      const k = st && !["unavailable", "unknown"].includes(st.state) ? numeroVero(st.state) : NaN;
       // se un sensore del costo ce l'hai gia' (magari l'hai fatto tu) quello
       // vince sulla moltiplicazione; il secondo numero glielo metto lo stesso.
       // Ma se quel sensore e' rotto (unavailable) NON deve lasciare il trattino:
       // i kWh ci sono, il prezzo pure, e il conto lo so fare.
       const stCosto = eidCosto ? hass.states[eidCosto] : null;
       const suo = stCosto && !["unavailable", "unknown"].includes(stCosto.state)
-        ? Number(stCosto.state) : NaN;
+        ? numeroVero(stCosto.state) : NaN;
       const uno = Number.isFinite(suo) ? suo
         : (Number.isFinite(k) && prezzo > 0 ? k * prezzo : NaN);
       const due = Number.isFinite(k) && prezzoPieno > 0 ? k * prezzoPieno : NaN;
@@ -984,7 +987,7 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       const nomeEl = this._root.querySelector(`.dm-ap-extra-name[data-b="${i}"]`);
       if (nomeEl && nomeEl.textContent !== b.label) nomeEl.textContent = b.label;
       const st2 = hass.states[b.entity];
-      const w2 = st2 && !["unavailable", "unknown"].includes(st2.state) ? Number(st2.state) : NaN;
+      const w2 = st2 && !["unavailable", "unknown"].includes(st2.state) ? numeroVero(st2.state) : NaN;
       const val2 = Number.isFinite(w2) ? Math.max(0, w2) : 0;
       scritta.textContent = val2 >= 1000 ? `${numero(val2 / 1000, 1)} kW` : `${numero(val2, 0)} W`;
       barra.style.width = `${Math.min(100, Math.round((val2 / b.max) * 100))}%`;
