@@ -10264,7 +10264,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.22";
+const VERSIONE = "2.96.23";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -20555,26 +20555,33 @@ async function creaSensoriBase(hass, opzioni, dillo) {
   // contatore si e' azzerato, cosi' la formula vale per oggi, per il mese e
   // per il bimestre senza cambiare niente. Sull'ora la quota non c'entra.
   const QUOTA = "input_number.quota_fissa_energia_giorno";
-  const DA_AZZERAMENTO = "((now() - as_datetime(state_attr('%E%', 'last_reset'))).days + 1"
-    + " if state_attr('%E%', 'last_reset') else 1)";
+  // I giorni si contano dal CALENDARIO, non da `last_reset` del contatore.
+  //
+  // `last_reset` dice quando il contatore e' stato azzerato, che non e' quando
+  // e' cominciato il periodo: un contatore nato - o anche solo RINOMINATO - a
+  // meta' periodo porta una data che col calendario non c'entra niente.
+  // Misurato in casa il 04/10/2026: il contatore del bimestre, rinominato il
+  // 20 settembre, giurava "14 giorni" mentre il bimestre ne aveva 34. I kWh
+  // erano giusti, la quota no: 69,37 euro invece di 80,21.
+  //
+  // I cicli di Home Assistant stanno tutti sul calendario - il giorno a
+  // mezzanotte, la settimana di lunedi', il mese il primo, il bimestre il
+  // primo dei mesi dispari - quindi i giorni si prendono da li'.
+  const PRIMO_DEL_BIMESTRE = "now().replace(month=(now().month if now().month % 2 == 1"
+    + " else now().month - 1), day=1, hour=0, minute=0, second=0, microsecond=0)";
   const GIORNI = {
     oggi: "1",
+    // lunedi' vale 1, domenica 7: weekday() torna 0 per lunedi'
+    settimana: "(now().weekday() + 1)",
     mese: "now().day",
-    // La settimana ha la quota come tutti gli altri: prima non ce l'aveva, e
-    // di lunedi' "Oggi" e "Settimana" dicevano gli stessi kWh a due prezzi
-    // diversi. Conto dall'azzeramento come per il bimestre, cosi' va bene
-    // anche per un contatore nato a meta' settimana.
-    settimana: DA_AZZERAMENTO,
-    // il bimestre non ha una data di inizio che io possa sapere: conto da
-    // quando il contatore si e' azzerato, e dopo il primo rollover e' esatto
-    bimestre: DA_AZZERAMENTO,
+    bimestre: "((now() - " + PRIMO_DEL_BIMESTRE + ").days + 1)",
   };
   const perPrezzo = (entita, chiave) => {
     const base = "states('" + entita + "') | float(0) * states('" + prezzo + "') | float(0)";
     const quanti = GIORNI[chiave];
     if (!quanti || !hass.states[QUOTA]) return "{{ (" + base + ") | round(2) }}";
-    const giorni = quanti.split("%E%").join(entita);
-    return "{{ (" + base + " + states('" + QUOTA + "') | float(0) * " + giorni + ") | round(2) }}";
+    // (i giorni non guardano piu' l'entita': stanno sul calendario)
+    return "{{ (" + base + " + states('" + QUOTA + "') | float(0) * " + quanti + ") | round(2) }}";
   };
   voci = await vociDiConfigurazione(hass);
   for (const [etichetta, chiave] of PERIODI.map((p) => [p[0], p[1]])) {

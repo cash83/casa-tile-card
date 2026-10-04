@@ -13,7 +13,8 @@
 //
 // Si lancia con: node strumenti/prove-crea.js
 
-import { scriviTariffa, VOCI_TARIFFA, ID_TOTALE, prezziDelKWh, prezzoDellaCasa, creaCicli }
+import { scriviTariffa, VOCI_TARIFFA, ID_TOTALE, prezziDelKWh, prezzoDellaCasa, creaCicli,
+  creaSensoriBase }
   from '../src/elettro-crea.js';
 
 let fatte = 0;
@@ -238,6 +239,76 @@ titolo('il ciclo fantasma: una briciola non deve lasciare il ciclo aperto');
   // il contatore si azzera sempre, briciola o no
   prova('il contatore si azzera lo stesso',
     JSON.stringify(fine.sequence).includes('utility_meter.calibrate'), true);
+}
+
+// ===========================================================================
+titolo('la quota fissa conta i giorni dal calendario, non dal contatore');
+{
+  // `last_reset` dice quando il contatore e' stato AZZERATO, non quando e'
+  // cominciato il periodo. Un contatore nato - o rinominato - a meta' periodo
+  // porta una data che col calendario non c'entra: il bimestre di casa diceva
+  // 14 giorni invece di 34, e la bolletta 69,37 invece di 80,21 euro.
+  //
+  // Per vedere le formule del costo bisogna che i contatori NASCANO davvero:
+  // il finto Home Assistant qui sotto li registra come fa quello vero, se no
+  // `creaSensoriBase` non arriva nemmeno a scrivere i costi.
+  const scritti = [];
+  const voci = [];
+  const reg = [];
+  const states = {
+    'sensor.q_kwh': { state: '100', attributes: { unit_of_measurement: 'kWh',
+      device_class: 'energy', state_class: 'total_increasing',
+      friendly_name: 'Casa' } },
+    'input_number.prezzo_energia': { state: '0.242', attributes: {} },
+    'input_number.quota_fissa_energia_giorno': { state: '0.542', attributes: {} },
+  };
+  let n = 0;
+  const hass = {
+    states,
+    async callWS(msg) {
+      if (msg.type === 'config_entries/get') return voci;
+      if (msg.type === 'config/entity_registry/list') return reg;
+      return [];
+    },
+    async callApi(metodo, strada, corpo) {
+      if (String(strada) === 'config/config_entries/flow') {
+        return { type: 'form', flow_id: 'f', data_schema: [
+          { name: 'name' }, { name: 'state' }, { name: 'unit_of_measurement' },
+          { name: 'device_class' }, { name: 'state_class' },
+          { name: 'source' }, { name: 'cycle' },
+        ] };
+      }
+      if (String(strada).startsWith('config/config_entries/flow/')) {
+        n += 1;
+        const id = 'e' + n;
+        const eid = 'sensor.finto_' + n;
+        voci.push({ entry_id: id, domain: cheTipo(corpo), title: corpo.name });
+        reg.push({ config_entry_id: id, entity_id: eid });
+        states[eid] = { state: '10', attributes: { unit_of_measurement: 'kWh' } };
+        if (corpo.state) scritti.push(corpo.state);
+        return { type: 'create_entry', result: { entry_id: id } };
+      }
+      return {};
+    },
+    async callService() {},
+  };
+  // che tipo di aiutante e': lo dice la forma di quello che gli si manda
+  function cheTipo(c) { return c && c.cycle ? 'utility_meter' : 'template'; }
+
+  await creaSensoriBase(hass, { sorgente: 'sensor.q_kwh',
+    prezzo_entita: 'input_number.prezzo_energia',
+    periodi: ['ora', 'oggi', 'settimana', 'mese', 'bimestre'] }, () => {});
+
+  const tutte = scritti.join('\n');
+  prova('i costi sono stati scritti', scritti.length > 3, true);
+  prova('nessuna formula guarda piu last_reset', tutte.includes('last_reset'), false);
+  prova('la settimana parte da lunedi', tutte.includes('now().weekday() + 1'), true);
+  prova('il mese dal primo', tutte.includes('now().day'), true);
+  prova('il bimestre dal primo dei mesi dispari',
+    tutte.includes('now().month % 2 == 1'), true);
+  // sull'ora la quota non c'entra: si paga a giorno, non a ora
+  const ora = scritti.find((x) => x.includes('quota_fissa') === false);
+  prova('qualche formula senza quota c e (l ora)', !!ora, true);
 }
 
 // ===========================================================================
