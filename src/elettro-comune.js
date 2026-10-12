@@ -670,19 +670,38 @@ const STYLE = `
 @keyframes dmh-spin{to{transform:rotate(360deg)}}
 @keyframes dmh-glow{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes dmh-flicker{0%,100%{opacity:.85}30%{opacity:.5}55%{opacity:1}80%{opacity:.6}}
+/* IL MOVIMENTO SEGUE I WATT.
+   La variabile --dmh-forza (NIENTE apici inversi qui dentro: chiuderebbero il
+   template literal e il foglio di stile diventa codice) va da 0 a 1 e la
+   scrive la scheda a ogni aggiornamento, dai
+   Watt veri sul massimo dell'apparecchio. Qui sotto chi si muove se la
+   prende: la lavatrice all'ammollo e la centrifuga non si muovono piu'
+   uguale. A riposo vale 0, e tutto rallenta invece di fermarsi di colpo. */
+.dm-ap-card{--dmh-forza:0}
+/* Il cestello non gira: va AVANTI E INDIETRO, come quello vero. Piu' forza,
+   piu' ampio e piu' svelto - fino alla centrifuga. */
+@keyframes dmh-tamburo{
+  0%,100%{transform:rotate(calc(-9deg - 7deg * var(--dmh-forza)))}
+  50%{transform:rotate(calc(10deg + 8deg * var(--dmh-forza)))}}
 .dmh-spin-drum,.dmh-spin-spray,.dmh-spin-spit{transform-box:view-box;transform-origin:120px 130px}
-.dm-ap-card.is-run .dmh-spin-drum{animation:dmh-spin 2.6s linear infinite}
-.dm-ap-card.is-run .dmh-spin-spray{animation:dmh-spin 1.3s linear infinite}
-.dm-ap-card.is-run .dmh-spin-spit{animation:dmh-spin 3.4s linear infinite}
+.dm-ap-card.is-run .dmh-spin-drum{
+  animation:dmh-tamburo calc(4.4s - 3.1s * var(--dmh-forza)) ease-in-out infinite}
+.dm-ap-card.is-run .dmh-spin-spray{
+  animation:dmh-spin calc(2.4s - 1.6s * var(--dmh-forza)) linear infinite}
+.dm-ap-card.is-run .dmh-spin-spit{
+  animation:dmh-spin calc(4.8s - 2s * var(--dmh-forza)) linear infinite}
 @keyframes dmh-drip{0%{opacity:0;transform:translateY(0)}12%{opacity:.95}80%{opacity:.95}100%{opacity:0;transform:translateY(38px)}}
 @keyframes dmh-onda{0%,100%{transform:translateX(-4px)}50%{transform:translateX(4px)}}
 .dmh-spin-fan{transform-box:view-box;transform-origin:120px 100px}
 .dmh-goccia{opacity:0}
-.dm-ap-card.is-run .dmh-spin-fan{animation:dmh-spin 1.6s linear infinite}
+.dm-ap-card.is-run .dmh-spin-fan{
+  animation:dmh-spin calc(2.6s - 1.8s * var(--dmh-forza)) linear infinite}
 .dmh-spin-pala{transform-box:view-box;transform-origin:120px 98px}
-.dm-ap-card.is-run .dmh-spin-pala{animation:dmh-spin 1.1s linear infinite}
+.dm-ap-card.is-run .dmh-spin-pala{
+  animation:dmh-spin calc(2s - 1.5s * var(--dmh-forza)) linear infinite}
 .dm-ap-card.is-run .dmh-aria{animation:dmh-glow 2.2s ease-in-out infinite}
-.dm-ap-card.is-run .dmh-goccia{animation:dmh-drip 1.9s linear infinite}
+.dm-ap-card.is-run .dmh-goccia{
+  animation:dmh-drip calc(2.6s - 1.2s * var(--dmh-forza)) linear infinite}
 .dm-ap-card.is-run .dmh-logo-ha{animation:dmh-glow 2.6s ease-in-out infinite;transform-box:view-box}
 /* Le onde della cassa che annuncia: ferme e quasi trasparenti a riposo,
    escono a ondate mentre parla. Il ritardo diverso fra le tre fa sembrare
@@ -700,7 +719,9 @@ const STYLE = `
 .dm-ap-card.is-run .dmh-goccia2{animation-delay:.6s}
 .dm-ap-card.is-run .dmh-goccia3{animation-delay:1.2s}
 .dm-ap-card.is-run .dmh-onda{animation:dmh-onda 3.4s ease-in-out infinite}
-.dm-ap-card.is-run .dmh-glow{animation:dmh-glow 1.7s ease-in-out infinite}
+/* il bagliore del caldo: piu' tira, piu' e' acceso e piu' svelto pulsa */
+.dm-ap-card.is-run .dmh-glow{
+  animation:dmh-glow calc(2.6s - 1.2s * var(--dmh-forza)) ease-in-out infinite}
 .dm-ap-card.is-run .dmh-flicker{animation:dmh-flicker 1.5s ease-in-out infinite}
 /* Il mirino del grafico: la riga verticale che segue il dito o il mouse, col
    cartellino del valore. Vive in mirinoGrafico(), che sta piu' sotto in questo
@@ -718,12 +739,14 @@ const STYLE = `
 .dm-ap-card.is-run .dmh-gira-piano{animation-duration:4.2s}
 @keyframes dmh-vapore{0%{opacity:0;transform:translateY(6px) scale(.9)}30%{opacity:.85}100%{opacity:0;transform:translateY(-18px) scale(1.2)}}
 .dmh-vapore{opacity:0;transform-box:view-box}
-.dm-ap-card.is-run .dmh-vapore{animation:dmh-vapore 2.4s ease-out infinite}
+.dm-ap-card.is-run .dmh-vapore{
+  animation:dmh-vapore calc(3.4s - 1.6s * var(--dmh-forza)) ease-out infinite}
 .dm-ap-card.is-run .dmh-vapore2{animation-delay:.8s}
 .dm-ap-card.is-run .dmh-vapore3{animation-delay:1.6s}
 @keyframes dmh-bolla{0%{opacity:0;transform:translateY(0)}15%{opacity:.9}100%{opacity:0;transform:translateY(-44px)}}
 .dmh-bolla{opacity:0;transform-box:view-box}
-.dm-ap-card.is-run .dmh-bolla{animation:dmh-bolla 2.8s linear infinite}
+.dm-ap-card.is-run .dmh-bolla{
+  animation:dmh-bolla calc(3.8s - 1.8s * var(--dmh-forza)) linear infinite}
 .dm-ap-card.is-run .dmh-bolla2{animation-delay:.9s}
 .dm-ap-card.is-run .dmh-bolla3{animation-delay:1.8s}
 .dm-ap-cycle-side{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;padding:11px 10px;border-radius:16px;background:var(--dm-soft)}

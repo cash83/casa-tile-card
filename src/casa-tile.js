@@ -1435,15 +1435,21 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     // davvero: se la stanza e' gia' calda l'apparecchio e' fermo, e la
     // casella deve stare grigia anche se il modo e' "riscaldamento"
     if (eid.split(".")[0] === "climate") {
-      const modi = st.attributes.hvac_modes || [];
       const cosaFa = st.attributes.hvac_action;
-      // certi termostati non hanno il modo "spento" (il termo del bagno ha
-      // solo "riscaldamento"): li' l'unica cosa che cambia e' se sta
-      // scaldando o no, altrimenti la casella resterebbe accesa per sempre
-      if (modi.length && !modi.includes("off") && cosaFa) {
-        return !["idle", "off"].includes(String(cosaFa).toLowerCase());
+      if (String(st.state).toLowerCase() === "off") return false;
+      // se il termostato dice cosa sta facendo vale quello, per tutti: in
+      // "riscaldamento" a stanza gia' calda la valvola e' chiusa e la
+      // casella deve stare grigia (prima valeva solo per chi non ha il
+      // modo "spento", come il termo del bagno, e le Sonoff restavano accese)
+      if (cosaFa) return !["idle", "off"].includes(String(cosaFa).toLowerCase());
+      // chi non lo dice (la Tuya del bagno piccolo): in riscaldamento si
+      // fa la stima, acceso solo se la stanza e' sotto l'obiettivo
+      const ora = parseFloat(st.attributes.current_temperature);
+      const vuole = parseFloat(st.attributes.temperature);
+      if (String(st.state).toLowerCase() === "heat" && !isNaN(ora) && !isNaN(vuole)) {
+        return ora < vuole;
       }
-      return String(st.state).toLowerCase() !== "off";
+      return true;
     }
 
     // la musica in pausa e' comunque accesa: il brano c'e' ancora, quindi

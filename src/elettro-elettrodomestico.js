@@ -825,6 +825,14 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     this._staLavorando = mode === "running";
 
     const card = this._root.querySelector(".dm-ap-card");
+    // Quanto sta tirando, da 0 a 1: e' la stessa cosa che riempie la barra
+    // della potenza, e la passo al disegno. Da li' il cestello, le bolle, il
+    // vapore e il bagliore prendono la loro velocita': l'ammollo a 180 W e la
+    // centrifuga a 500 W non si muovono piu' uguale.
+    const massimo = numeroVero(cfg.max_power);
+    const forza = Number.isFinite(watts) && Number.isFinite(massimo) && massimo > 0
+      ? Math.min(1, Math.max(0, watts / massimo)) : 0;
+    card.style.setProperty("--dmh-forza", forza.toFixed(3));
     card.classList.remove("is-run", "is-standby", "is-off", "is-unavailable", "has-alarm");
     card.classList.add(`is-${mode === "running" ? "run" : mode}`);
 
