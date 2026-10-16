@@ -10287,7 +10287,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.25";
+const VERSIONE = "2.96.26";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -14879,6 +14879,7 @@ const ConPezzi = (Base) => class extends Base {
     // lui li ha sistemati, rimpicciolisco tutto della stessa proporzione -
     // come farebbe un foglio stampato in scala.
     let zoom = 1;
+    let larghezzaCasella = 0;
     if (liberi) {
       // LA MISURA VERA, NON QUELLA A VISTA. Il pop-up "sboccia" nasce a un
       // quinto della sua grandezza e cresce: la casella dentro si misurava
@@ -14896,6 +14897,7 @@ const ConPezzi = (Base) => class extends Base {
         mio = { width: r0.width, height: r0.height };
       }
       const q = mio.width;
+      larghezzaCasella = q;
       // la larghezza di riferimento: quella salvata quando li ha sistemati,
       // o - per le caselle sistemate prima che me la segnassi - la piu'
       // larga che le ho mai visto addosso, che se la impara da sola
@@ -14918,6 +14920,7 @@ const ConPezzi = (Base) => class extends Base {
     }
     zoom = Math.round(zoom * 100) / 100;
     this._zoomPosti = zoom;
+    this._largoCasella = larghezzaCasella;
     // Anche la MISURA dei tasti entra nella firma: la prima volta il foglio
     // di stile puo' non aver ancora dato al play la sua forma piu' grande,
     // e senza questo il ripasso si fermava sul "gia' fatto" lasciandolo
@@ -14975,7 +14978,7 @@ const ConPezzi = (Base) => class extends Base {
           this._posaPezzo(el, qui, chi === "icona" || chi === "sfondo",
             larghi[chi]);
           if ((chi === "nome" || chi === "valore") && !this.hasAttribute("trascinabile")) {
-            this._staNelSuo(el, qui);
+            this._staNelSuo(el, qui, chi, posti);
           }
         } else {
           el.style.left = "";
@@ -15192,22 +15195,55 @@ const ConPezzi = (Base) => class extends Base {
     el.style.maxWidth = "calc(" + Math.max(15, Math.round(spazio)) + "% - 6px)";
   }
 
-  // LA SCRITTA STA NEL SUO SPAZIO. Quando l'ha composta era larga "w" (per
-  // cento della casella dove l'ha composta). Se poi la scritta si allunga -
-  // si accende "da quanto tempo", "Acceso" diventa "Acceso da 55 min" - non
-  // deve sbordare addosso alla foto e finirci sotto: rimpicciolisce quanto
-  // basta per stare nello spazio che aveva. Mai sotto la meta'.
-  _staNelSuo(el, dove) {
-    const L0 = Number(this._config.posti_largo);
-    if (!isFinite(dove.w) || dove.w <= 0 || !(L0 > 40)) return;
+  // LA SCRITTA NON VA ADDOSSO AL DISEGNO. Se una scritta si allunga - si
+  // accende "da quanto tempo", "Acceso" diventa "Acceso da 55 min" - non
+  // deve finire sotto alla foto o all'icona che ha accanto: rimpicciolisce
+  // quanto basta per fermarsi prima. Mai sotto la meta'.
+  //
+  // PRIMA guardavo la larghezza che la scritta aveva quando l'ha composta
+  // (il suo "w"), e questo era sbagliato: in cinque caselle copiate dalla
+  // stessa - i tasti 0W, 95W, 110W... - quel numero e' preso da UNA sola
+  // scritta, la piu' corta. Le altre risultavano tutte "cresciute" e
+  // venivano rimpicciolite anche con mezza casella vuota accanto.
+  // Adesso conta solo l'ostacolo vero: quanto spazio c'e' da dove e'
+  // attaccata fino al pezzo che incontra - o fino al bordo della casella.
+  _staNelSuo(el, dove, chi, posti) {
     const n = el.offsetWidth;
-    if (!n) return;
-    const posto = dove.w / 100 * L0;
-    // un filo di margine: una lettera in piu' non deve far saltare niente
-    if (n <= posto * 1.08) return;
+    if (!n || !isFinite(dove.x)) return;
     const s = isFinite(dove.s) && dove.s > 0 ? dove.s : 1;
     const z = this._zoomPosti > 0 ? this._zoomPosti : 1;
-    const f = Math.max(0.5, posto / n);
+    const largo = this._largoCasella > 20 ? this._largoCasella
+      : (Number(this._config.posti_largo) > 40 ? Number(this._config.posti_largo) : 0);
+    if (!largo) return;
+    const mia = isFinite(dove.w) ? dove.w : 0;
+    // da che parte cresce: e' attaccata a destra o a sinistra?
+    const aDestra = isFinite(dove.dx) && (dove.x + mia / 2) > 50;
+    const cima = dove.y;
+    const fondo = dove.y + (isFinite(dove.h) ? dove.h : 0);
+    let spazio = aDestra ? (100 - dove.dx) : (100 - dove.x);   // fino al bordo
+    Object.keys(posti || {}).forEach((altro) => {
+      if (altro === chi) return;
+      const p = posti[altro];
+      if (!p || !isFinite(p.x) || !isFinite(p.y)) return;
+      // solo chi gli sta DI FIANCO: se sta sopra o sotto non da' fastidio
+      const suoFondo = p.y + (isFinite(p.h) ? p.h : 0);
+      if (suoFondo <= cima + 1 || p.y >= fondo - 1) return;
+      const sp = isFinite(p.s) && p.s > 0 ? p.s : 1;
+      const suaLarga = (isFinite(p.w) ? p.w : 0) * sp;
+      if (aDestra) {
+        // cresce verso sinistra: mi fermo al bordo destro di quello li'
+        const suoDestro = p.x + suaLarga;
+        const mioDestro = 100 - dove.dx;
+        if (suoDestro <= mioDestro) spazio = Math.min(spazio, mioDestro - suoDestro);
+      } else {
+        // cresce verso destra: mi fermo al suo bordo sinistro
+        if (p.x >= dove.x) spazio = Math.min(spazio, p.x - dove.x);
+      }
+    });
+    const spazioPunti = spazio / 100 * largo - 4;      // un filo di margine
+    const disegnata = n * s * z;
+    if (spazioPunti <= 0 || disegnata <= spazioPunti) return;
+    const f = Math.max(0.5, spazioPunti / disegnata);
     const k = Math.round(s * z * f * 1000) / 1000;
     el.style.transform = "scale(" + k + ")";
     if (!el.style.transformOrigin) {
