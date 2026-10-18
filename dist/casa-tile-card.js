@@ -10287,7 +10287,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.26";
+const VERSIONE = "2.96.27";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -18684,6 +18684,14 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     if (c.azione === "servizio") { this._chiamaServizio(); return; }
     if (c.azione === "toggle") {
       const dominio = c.entity.split(".")[0];
+      // UN PULSANTE NON SI ACCENDE E SI SPEGNE: SI PREME. Non avendolo in
+      // elenco la casella arrivava in fondo e apriva la finestra dei
+      // dettagli - quella con dentro il tasto "PREMI" - invece di premere
+      // lei. Stessa cosa per i pulsanti finti (input_button).
+      if (dominio === "button" || dominio === "input_button") {
+        this._hass.callService(dominio, "press", { entity_id: c.entity });
+        return;
+      }
       const servizio = ["light", "switch", "fan", "input_boolean", "automation", "humidifier", "siren"].includes(dominio)
         ? "homeassistant" : null;
       if (servizio) { this._hass.callService("homeassistant", "toggle", { entity_id: c.entity }); return; }
