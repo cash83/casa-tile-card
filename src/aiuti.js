@@ -52,6 +52,24 @@ export const PAROLE = {
   on: "Acceso", off: "Spento", none: "-", wired: "Via cavo", disconnected: "Scollegato",
 };
 
+// Come si legge uno stato: la parola che usa Home Assistant stesso, nella
+// lingua di chi guarda. `formatEntityState` sa dei device_class, degli
+// elenchi (enum) con le loro traduzioni e dell'unita' di misura, quindi un
+// sensore che dice `idle` si legge "In attesa" e non resta una sigla.
+// Senza di lui (Home Assistant vecchio) torna quello di prima: lo stato
+// com'e', con la sua unita'.
+export function statoTradotto(hass, st) {
+  if (!st) return "";
+  if (hass && typeof hass.formatEntityState === "function") {
+    try {
+      const detto = hass.formatEntityState(st);
+      if (detto !== undefined && detto !== null && detto !== "") return String(detto);
+    } catch (e) { /* entita' strana: sotto c'e' la rete di sicurezza */ }
+  }
+  const u = st.attributes ? st.attributes.unit_of_measurement : "";
+  return String(st.state) + (u ? " " + u : "");
+}
+
 // da quanto tempo dura questo stato, detto come lo direbbe uno
 export function daQuanto(quando) {
   const t = Date.parse(quando);

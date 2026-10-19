@@ -1176,6 +1176,24 @@ const PAROLE = {
   on: "Acceso", off: "Spento", none: "-", wired: "Via cavo", disconnected: "Scollegato",
 };
 
+// Come si legge uno stato: la parola che usa Home Assistant stesso, nella
+// lingua di chi guarda. `formatEntityState` sa dei device_class, degli
+// elenchi (enum) con le loro traduzioni e dell'unita' di misura, quindi un
+// sensore che dice `idle` si legge "In attesa" e non resta una sigla.
+// Senza di lui (Home Assistant vecchio) torna quello di prima: lo stato
+// com'e', con la sua unita'.
+function statoTradotto(hass, st) {
+  if (!st) return "";
+  if (hass && typeof hass.formatEntityState === "function") {
+    try {
+      const detto = hass.formatEntityState(st);
+      if (detto !== undefined && detto !== null && detto !== "") return String(detto);
+    } catch (e) { /* entita' strana: sotto c'e' la rete di sicurezza */ }
+  }
+  const u = st.attributes ? st.attributes.unit_of_measurement : "";
+  return String(st.state) + (u ? " " + u : "");
+}
+
 // da quanto tempo dura questo stato, detto come lo direbbe uno
 function daQuanto(quando) {
   const t = Date.parse(quando);
@@ -7434,8 +7452,7 @@ const ConIcone = (Base) => class extends Base {
         .replace(/_/g, " ");
       const val = document.createElement("span");
       val.className = "val";
-      const u = st.attributes.unit_of_measurement;
-      val.textContent = String(st.state).slice(0, 18) + (u ? " " + u : "");
+      val.textContent = statoTradotto(this._hass, st).slice(0, 18);
       riga.append(spunta, nome, val);
       elenco.appendChild(riga);
     });
@@ -10287,7 +10304,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.27";
+const VERSIONE = "2.96.28";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -11525,7 +11542,7 @@ const ConDisegni = (Base) => class extends Base {
         const u = st.attributes.temperature_unit || "°C";
         return Math.round(t) + " " + u;
       }
-      return T((METEO[st.state] || [null, st.state])[1]);
+      return T((METEO[st.state] || [null, statoTradotto(this._hass, st)])[1]);
     }
     if (dominio === "light") {
       if (st.state !== "on") return T("Spento");
@@ -11534,7 +11551,7 @@ const ConDisegni = (Base) => class extends Base {
     }
     if (dominio === "climate") {
       const t = numeroVero(st.attributes.current_temperature);
-      return Number.isFinite(t) ? Math.round(t * 10) / 10 + "°" : st.state;
+      return Number.isFinite(t) ? Math.round(t * 10) / 10 + "°" : statoTradotto(this._hass, st);
     }
     if (dominio === "cover") {
       const dove = this._posizioneMostrata(st);
@@ -11542,7 +11559,10 @@ const ConDisegni = (Base) => class extends Base {
     }
     const scritto = valoreScritto(st);
     if (scritto !== null) return scritto;
-    return T(PAROLE[String(st.state).toLowerCase()]) || st.state;
+    // Le parole di casa valgono per gli stati di sempre (acceso, spento,
+    // chiusa...); per tutti gli altri chiedo a Home Assistant, che li sa
+    // tradurre, invece di stampare la sigla.
+    return T(PAROLE[String(st.state).toLowerCase()]) || statoTradotto(this._hass, st);
   }
 
   // quale disegno ci vuole, con la sua chiave (per non rifarlo inutilmente)
@@ -12996,7 +13016,7 @@ const ConGrafici = (Base) => class extends Base {
       const scritto = valoreScritto(st);
       const testo = scritto !== null
         ? scritto
-        : (T(PAROLE[String(st.state).toLowerCase()]) || st.state);
+        : (T(PAROLE[String(st.state).toLowerCase()]) || statoTradotto(this._hass, st));
       pezzi.push({
         eid: eid, st: st, testo: String(testo).slice(0, 26),
         etichetta: this._nomeMisura(st, eid),
@@ -19634,9 +19654,11 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
       const alt = this._hass.states[this._viaUsata];
       if (alt) {
         const grezzo = alt.state;
-        const u = alt.attributes.unit_of_measurement;
+        // La parola la dice Home Assistant: un sensore che vale `idle` si
+        // legge "In attesa", e a chi ha la casa in inglese "Idle". Prima
+        // qui finiva lo stato grezzo, cioe' la sigla.
         sotto = (grezzo === "unknown" || grezzo === "unavailable")
-          ? "" : grezzo + (u ? " " + u : "");
+          ? "" : statoTradotto(this._hass, alt);
         if (c.sottotitolo) sotto = c.sottotitolo + " " + sotto;
       }
     }
@@ -25012,7 +25034,8 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
         const d = new Date(raw);
         val = Number.isFinite(d.getTime()) ? d.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) : raw;
       } else {
-        val = row.unit ? `${raw}${row.unit}` : raw;
+        val = row.unit ? `${raw}${row.unit}`
+          : (row.attribute ? raw : statoTradotto(hass, st));
       }
       liveHtml += this._row(row.label, `<span class="dm-ap-row-val">${esc(val)}</span>`);
     });

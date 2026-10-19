@@ -2,7 +2,7 @@
 // Che disegno fare, e quanto grande: batteria, gradi, foto, timbro.
 
 import { T } from './lingua.js';
-import { PARENTI, PAROLE, comeElenco, numeroVero, riempiRiquadro } from './aiuti.js';
+import { PARENTI, PAROLE, comeElenco, numeroVero, riempiRiquadro, statoTradotto } from './aiuti.js';
 import { METEO } from './colori.js';
 import { ICONA_METEO, ICONE, aspiraFuori, disegnoAspira, disegnoBatteria, disegnoMdi, disegnoTapparella, disegnoTermometro, iconaAutomatica, tagliaTapparella } from './icone.js';
 import { valoreScritto } from './segni.js';
@@ -195,7 +195,7 @@ export const ConDisegni = (Base) => class extends Base {
         const u = st.attributes.temperature_unit || "°C";
         return Math.round(t) + " " + u;
       }
-      return T((METEO[st.state] || [null, st.state])[1]);
+      return T((METEO[st.state] || [null, statoTradotto(this._hass, st)])[1]);
     }
     if (dominio === "light") {
       if (st.state !== "on") return T("Spento");
@@ -204,7 +204,7 @@ export const ConDisegni = (Base) => class extends Base {
     }
     if (dominio === "climate") {
       const t = numeroVero(st.attributes.current_temperature);
-      return Number.isFinite(t) ? Math.round(t * 10) / 10 + "°" : st.state;
+      return Number.isFinite(t) ? Math.round(t * 10) / 10 + "°" : statoTradotto(this._hass, st);
     }
     if (dominio === "cover") {
       const dove = this._posizioneMostrata(st);
@@ -212,7 +212,10 @@ export const ConDisegni = (Base) => class extends Base {
     }
     const scritto = valoreScritto(st);
     if (scritto !== null) return scritto;
-    return T(PAROLE[String(st.state).toLowerCase()]) || st.state;
+    // Le parole di casa valgono per gli stati di sempre (acceso, spento,
+    // chiusa...); per tutti gli altri chiedo a Home Assistant, che li sa
+    // tradurre, invece di stampare la sigla.
+    return T(PAROLE[String(st.state).toLowerCase()]) || statoTradotto(this._hass, st);
   }
 
   // quale disegno ci vuole, con la sua chiave (per non rifarlo inutilmente)

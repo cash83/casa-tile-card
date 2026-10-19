@@ -21,6 +21,7 @@ import {
   STYLE,
   esc,
   vestiFinestra, numeroVero, comeElenco } from './elettro-comune.js';
+import { statoTradotto } from './aiuti.js';
 import { righeInOrdine } from './elettro-righe-editor.js';
 import { ConFinestrelle, guardaSeAnteprima } from './elettro-condivisi.js';
 import { ConGrafico, coloreScala } from './elettro-grafico.js';
@@ -531,7 +532,8 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
         const d = new Date(raw);
         val = Number.isFinite(d.getTime()) ? d.toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" }) : raw;
       } else {
-        val = row.unit ? `${raw}${row.unit}` : raw;
+        val = row.unit ? `${raw}${row.unit}`
+          : (row.attribute ? raw : statoTradotto(hass, st));
       }
       liveHtml += this._row(row.label, `<span class="dm-ap-row-val">${esc(val)}</span>`);
     });

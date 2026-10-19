@@ -8,7 +8,7 @@ import { ConFinestra } from './carta-finestra.js';
 import { ConGrafici } from './carta-grafici.js';
 import { ConMusica } from './carta-musica.js';
 import { ConPezzi } from './carta-pezzi.js';
-import { ONDA_D, PANNELLI_APERTI, SPENTI, daQuanto, fotoDi, soloDalPallino } from './aiuti.js';
+import { ONDA_D, PANNELLI_APERTI, SPENTI, daQuanto, fotoDi, soloDalPallino, statoTradotto } from './aiuti.js';
 import { CIELI, COLORI, METEO, chiarezza, coloreDaGradi, coloreLampada, coloreTemperatura, conAlfa, daRgb, scurisci } from './colori.js';
 import { indirizzoFoto, tagliaTapparella } from './icone.js';
 import { metti, nomeArtista, segno } from './segni.js';
@@ -1704,9 +1704,11 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       const alt = this._hass.states[this._viaUsata];
       if (alt) {
         const grezzo = alt.state;
-        const u = alt.attributes.unit_of_measurement;
+        // La parola la dice Home Assistant: un sensore che vale `idle` si
+        // legge "In attesa", e a chi ha la casa in inglese "Idle". Prima
+        // qui finiva lo stato grezzo, cioe' la sigla.
         sotto = (grezzo === "unknown" || grezzo === "unavailable")
-          ? "" : grezzo + (u ? " " + u : "");
+          ? "" : statoTradotto(this._hass, alt);
         if (c.sottotitolo) sotto = c.sottotitolo + " " + sotto;
       }
     }

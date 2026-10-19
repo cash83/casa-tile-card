@@ -3,7 +3,7 @@
 
 // `elenco` qui si chiama `comeElenco`: nel file ci sono gia' due
 // variabili locali con quel nome, e coprirebbero l'aiuto.
-import { riempiRiquadro, comeElenco } from './aiuti.js';
+import { riempiRiquadro, comeElenco, statoTradotto } from './aiuti.js';
 import { COLORI, coloreLampada, daRgb } from './colori.js';
 import { ICONE, MDI_PAROLE, NOMI_ICONE, NOMI_MDI, SINONIMI, disegnoMdi, iconaAutomatica } from './icone.js';
 import { T, TH } from './lingua.js';
@@ -434,8 +434,7 @@ export const ConIcone = (Base) => class extends Base {
         .replace(/_/g, " ");
       const val = document.createElement("span");
       val.className = "val";
-      const u = st.attributes.unit_of_measurement;
-      val.textContent = String(st.state).slice(0, 18) + (u ? " " + u : "");
+      val.textContent = statoTradotto(this._hass, st).slice(0, 18);
       riga.append(spunta, nome, val);
       elenco.appendChild(riga);
     });
