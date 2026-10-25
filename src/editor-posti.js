@@ -91,7 +91,9 @@ export const ConPosti = (Base) => class extends Base {
       vero.textContent = T("Grandezza vera");
       vero.addEventListener("click", () => {
         box._grande = !box._grande;
-        vero.textContent = box._grande ? "Rimpicciolisci per starci" : "Grandezza vera";
+        // tradotte entrambe: il tasto nasceva con T() e poi si riscriveva
+        // in italiano crudo, quindi in inglese tornava italiano al primo clic
+        vero.textContent = box._grande ? T("Rimpicciolisci per starci") : T("Grandezza vera");
         this._formaPista();
         if (box._carta && box._carta._aggiornaManiglia) box._carta._aggiornaManiglia();
       });
@@ -141,9 +143,14 @@ export const ConPosti = (Base) => class extends Base {
     riga.append(eti, largo, per, alto, punti);
 
     const manda = () => {
-      const w = Math.max(40, Math.min(2400, Math.round(Number(largo.value) || 0)));
-      const h = Math.max(40, Math.min(2400, Math.round(Number(alto.value) || 0)));
-      if (!w || !h) return;
+      // il campo vuoto va controllato PRIMA di schiacciare fra 40 e 2400:
+      // Math.max(40, 0) fa 40, quindi `if (!w || !h)` non scattava mai e
+      // svuotando una delle due caselline la casella diventava 40 punti.
+      const wv = Number(largo.value);
+      const hv = Number(alto.value);
+      if (!Number.isFinite(wv) || !Number.isFinite(hv) || wv <= 0 || hv <= 0) return;
+      const w = Math.max(40, Math.min(2400, Math.round(wv)));
+      const h = Math.max(40, Math.min(2400, Math.round(hv)));
       const w0 = box._largoVero || w;
       const h0 = box._altoVero || h;
       if (w === Math.round(w0) && h === Math.round(h0)) return;
@@ -1440,7 +1447,8 @@ export const ConPosti = (Base) => class extends Base {
     const c = this._schedaA(p) || {};
     const eti = document.createElement("span");
     eti.className = "chi-nome";
-    eti.textContent = "Stai sistemando: " + (c.name || c.entity || "una scheda del pop-up");
+    eti.textContent = T("Stai sistemando:") + " "
+      + (c.name || c.entity || T("una scheda del pop-up"));
     const torna = document.createElement("button");
     torna.type = "button";
     torna.className = "tastoPiatto";

@@ -236,9 +236,16 @@ export const ConGrafici = (Base) => class extends Base {
       // la scarico prima: se non arriva, tengo quella di adesso
       const prova = new Image();
       prova.onload = () => {
+        // una richiesta vecchia che arriva DOPO una piu' nuova riportava lo
+        // scatto indietro nel tempo, e l'immagine sfarfallava avanti e
+        // indietro: tengo solo quello piu' recente.
+        if (adesso <= (this._scattoDiretta || 0)) return;
         this._scattoDiretta = adesso;
         if (this.isConnected) this._render();
       };
+      // una telecamera che non risponde lasciava accumulare un Image a ogni
+      // giro senza dire niente
+      prova.onerror = () => { prova.onload = null; };
       prova.src = prossima;
     }, ogni);
   }
@@ -505,6 +512,10 @@ export const ConGrafici = (Base) => class extends Base {
     // la storia si chiede una volta ogni cinque minuti, non a ogni disegno
     if (this._chiaveStoria !== chiave || !this._quandoStoria
         || adesso - this._quandoStoria > 300000) {
+      // cambiando entita' (o cassa seguita) la storia di prima non vale piu':
+      // se no si vedeva la linea dell'entita' PRECEDENTE, coi suoi minimo e
+      // massimo nel suggerimento, finche' non arrivava la risposta nuova.
+      if (this._chiaveStoria !== chiave) this._storia = null;
       this._chiaveStoria = chiave;
       this._quandoStoria = adesso;
       const da = new Date(adesso - ore * 3600000).toISOString();
@@ -622,11 +633,24 @@ export const ConGrafici = (Base) => class extends Base {
     if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", false);
     // ne bastano un centinaio: se sono di piu' li assottiglio
     const max = 120;
-    const scelti = punti.length <= max ? punti
-      : punti.filter((x, i) => i % Math.ceil(punti.length / max) === 0);
+    let scelti = punti;
+    if (punti.length > max) {
+      const passoG = Math.ceil(punti.length / max);
+      scelti = punti.filter((x, i) => i % passoG === 0);
+      // il filtro per indice non teneva per forza l'ULTIMO punto, cioe' il
+      // valore di adesso: compariva solo se il suo indice era un multiplo.
+      const ultimo = punti[punti.length - 1];
+      if (scelti[scelti.length - 1] !== ultimo) scelti = scelti.concat([ultimo]);
+    }
     const valori = scelti.map((x) => x.v);
     const basso = Math.min.apply(null, valori);
     const alto = Math.max.apply(null, valori);
+    // la scala del disegno si fa sui punti disegnati, ma il "da X a Y" scritto
+    // nel suggerimento va sui punti VERI: assottigliando, un picco da 3 kW
+    // poteva sparire e la scritta diceva 1,2 kW.
+    const tuttiV = punti.map((x) => x.v);
+    const bassoVero = Math.min.apply(null, tuttiV);
+    const altoVero = Math.max.apply(null, tuttiV);
     const campo = alto - basso || 1;
     const passo = 100 / (scelti.length - 1);
     const coord = scelti.map((x, i) =>
@@ -667,7 +691,7 @@ export const ConGrafici = (Base) => class extends Base {
     }
     box.title = "Ultime " + (Number(this._config.grafico_ore) > 0
       ? Number(this._config.grafico_ore) : 24) + " ore: da "
-      + (Math.round(basso * 10) / 10) + " a " + (Math.round(alto * 10) / 10);
+      + (Math.round(bassoVero * 10) / 10) + " a " + (Math.round(altoVero * 10) / 10);
   }
 
   // CHI MUOVE IL MIRINO. Col mouse basta passare sopra la casella. Col dito
@@ -688,7 +712,6 @@ export const ConGrafici = (Base) => class extends Base {
     const zona = this._toccoGrafico;
     if (!zona) return;
     zona.addEventListener("pointerdown", (e) => {
-      clearTimeout(this._mirinoVia);
       this._muoviMirino(e);
       if (!this._mirino || this._mirino.hidden) return;
       this._ditoMirino = e.pointerId;
@@ -707,7 +730,6 @@ export const ConGrafici = (Base) => class extends Base {
       // l'azione della casella (accendere, aprire il pop-up...)
       if (this._mirinoMosso) this._premutoLungo = true;
       // appena alzi il dito sparisce (scelta sua: aspettare dava fastidio)
-      clearTimeout(this._mirinoVia);
       this._nascondiMirino();
     };
     ["pointerup", "pointercancel"].forEach((ev) => zona.addEventListener(ev, lascia));

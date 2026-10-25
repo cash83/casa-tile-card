@@ -18,18 +18,15 @@ export const ConAnteprima = (Base) => class extends Base {
                     "hui-panel-view", "hui-sidebar-view", "hui-view-container"];
     let n = this.parentNode;
     let giri = 0;
-    const strada = [];
     while (n && giri < 60) {
       if (n.nodeType === 11 && n.host) { n = n.host; continue; }
       const l = (n.localName || "").toLowerCase();
-      if (l) strada.push(l);
       if (l.indexOf("dialog") >= 0 || l === "hui-card-preview"
-          || l === "hui-card-picker") { this._strada = strada; return true; }
-      if (PAGINA.includes(l)) { this._strada = strada; return false; }
+          || l === "hui-card-picker") return true;
+      if (PAGINA.includes(l)) return false;
       n = n.parentNode;
       giri += 1;
     }
-    this._strada = strada;
     return false;
   }
 

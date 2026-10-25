@@ -121,8 +121,11 @@ export const ConFinestra = (Base) => class extends Base {
           const busta = document.createElement("div");
           busta.className = "vestito";
           busta.dataset.n = String(i);
-          this._vestiScheda(busta, i);
+          // PRIMA dentro, POI si veste: _riempiBusta esce subito se la busta e'
+          // ancora vuota, e la scheda non si prendeva flex/minHeight al primo
+          // disegno (nasceva piccola in cima col vuoto sotto).
           busta.appendChild(el);
+          this._vestiScheda(busta, i);
           dentro.appendChild(busta);
           this._anteprimaSchede.push(el);
           // il quadratino per tirare: alla scheda intera e, se e' una
@@ -393,8 +396,11 @@ export const ConFinestra = (Base) => class extends Base {
           const busta = document.createElement("div");
           busta.className = "vestito";
           busta.dataset.n = String(i);
-          this._vestiScheda(busta, i);
+          // PRIMA dentro, POI si veste: _riempiBusta esce subito se la busta e'
+          // ancora vuota, e la scheda non si prendeva flex/minHeight al primo
+          // disegno (nasceva piccola in cima col vuoto sotto).
           busta.appendChild(el);
+          this._vestiScheda(busta, i);
           this._fCorpo.appendChild(busta);
           this._schede.push(el);
         } catch (err) {

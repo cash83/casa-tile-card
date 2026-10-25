@@ -538,6 +538,14 @@ const CHIP_SVGS = {
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="14" width="44" height="68" rx="12" fill="#0f2942"/><circle cx="36" cy="38" r="13" fill="#f8fafc"/><circle cx="36" cy="38" r="5" fill="#0f2942"/><circle cx="36" cy="64" r="8" fill="#f8fafc"/><g fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"><path d="M66 44a14 14 0 0 0 0-18"/><path d="M78 52a28 28 0 0 0 0-34"/></g></svg>',
   cucina:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><path d="M20 34 27 20h30l7 14z" fill="#f8fafc"/><rect x="22" y="34" width="40" height="4" rx="2" fill="#ffd27a"/><rect x="68" y="18" width="12" height="60" rx="4" fill="#f8fafc"/><path d="M68 46h12" stroke="#0f2942" stroke-width="2.4"/><rect x="18" y="52" width="44" height="6" rx="3" fill="#f8fafc"/><ellipse cx="30" cy="51" rx="8" ry="3" fill="#f97316"/><ellipse cx="50" cy="51" rx="7" ry="2.6" fill="#38bdf8"/><rect x="18" y="60" width="44" height="20" rx="4" fill="#f8fafc"/><path d="M40 60v20" stroke="#0f2942" stroke-width="2.2"/></svg>',
+  // il piano a induzione visto da sopra, come il disegno grande: il vetro
+  // nero, le quattro zone e quella davanti a sinistra accesa
+  piano_cottura:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="8" y="18" width="80" height="60" rx="11" fill="#f8fafc"/><rect x="13" y="23" width="70" height="50" rx="8" fill="#0f2942"/><g fill="none" stroke="#8be2ff" stroke-width="3" opacity=".5"><circle cx="33" cy="38" r="10"/><circle cx="64" cy="38" r="8"/><circle cx="64" cy="57" r="10"/></g><circle cx="33" cy="57" r="11" fill="#f97316" opacity=".9"/><circle cx="33" cy="57" r="5.5" fill="none" stroke="#fed7aa" stroke-width="2.4"/></svg>',
+  // la friggitrice come il disegno grande: il display in cima, la finestra
+  // scura con l'aria calda che gira e il cassetto col manico sotto
+  friggitrice:
+    '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="22" y="8" width="52" height="80" rx="12" fill="#0f2942"/><rect x="28" y="15" width="40" height="16" rx="5" fill="#f8fafc"/><rect x="35" y="20" width="26" height="6" rx="3" fill="#38bdf8"/><rect x="28" y="38" width="40" height="26" rx="6" fill="#12243c"/><g fill="none" stroke="#f97316" stroke-width="3.4" stroke-linecap="round" opacity=".9"><path d="M33 47c5-4 10-4 15 0s10 4 15 0"/><path d="M33 56c5-4 10-4 15 0s10 4 15 0"/></g><rect x="26" y="68" width="44" height="16" rx="5" fill="#f8fafc"/><rect x="39" y="74" width="18" height="5" rx="2.5" fill="#0f2942"/></svg>',
   dishwasher:
     '<svg viewBox="0 0 96 96" width="27" height="27"><rect x="14" y="10" width="68" height="76" rx="9" fill="#0f2942"/><rect x="20" y="16" width="56" height="14" rx="5" fill="#f8fafc"/><circle cx="28" cy="23" r="3" fill="#0ea5e9"/><rect x="20" y="36" width="56" height="41" rx="6" fill="#f8fafc"/><path fill="none" stroke="#0f2942" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M27 49h42M30 64h36M33 49v15M44 49v15M55 49v15M66 49v15"/><path fill="#8be2ff" d="M23 67c9-6 16 5 25-2 8-6 14 4 25-1v10H23Z"/></svg>',
   dryer:
@@ -955,6 +963,10 @@ const STYLE = `
 // dito si tiene premuto e si trascina (touch-action: none), e alzandolo va via.
 export function mirinoGrafico(box, punti, scrivi) {
   if (!box || !punti || punti.length < 2) return;
+  // Il grafico si ridisegna dentro al MEDESIMO nodo: i cinque ascolti di prima
+  // restavano appesi. Sei cambi di periodo facevano trenta handler, e cinque
+  // di loro scrivevano su un cartellino staccato dal documento.
+  if (box.__mirinoVia) box.__mirinoVia();
   box.classList.add("dm-ap-mirino-box");
   const mirino = document.createElement("div");
   mirino.className = "dm-ap-mirino";
@@ -979,16 +991,23 @@ export function mirinoGrafico(box, punti, scrivi) {
   };
   const via = () => mirino.classList.remove("si");
 
-  box.addEventListener("pointerdown", (ev) => {
+  const giu = (ev) => {
     try { box.setPointerCapture(ev.pointerId); } catch (e) { /* pazienza */ }
     muovi(ev);
-  });
-  box.addEventListener("pointermove", (ev) => {
+  };
+  const scorri = (ev) => {
     if (ev.pointerType === "mouse" || ev.buttons || ev.pressure > 0) muovi(ev);
-  });
-  box.addEventListener("pointerup", via);
-  box.addEventListener("pointercancel", via);
-  box.addEventListener("pointerleave", via);
+  };
+  const ascolti = [["pointerdown", giu], ["pointermove", scorri], ["pointerup", via],
+    ["pointercancel", via], ["pointerleave", via]];
+  ascolti.forEach(([ev, fn]) => box.addEventListener(ev, fn));
+  // come si tolgono: chi ridisegna il grafico nello stesso nodo chiama questa
+  // prima di rimetterne altri cinque (lo fa mirinoGrafico/mirinoBarre in cima)
+  box.__mirinoVia = () => {
+    ascolti.forEach(([ev, fn]) => box.removeEventListener(ev, fn));
+    box.__mirinoVia = null;
+    if (mirino.parentNode) mirino.parentNode.removeChild(mirino);
+  };
 }
 
 // IL MIRINO DEGLI ISTOGRAMMI. Come quello della linea, ma le barre non sono
@@ -997,6 +1016,7 @@ export function mirinoGrafico(box, punti, scrivi) {
 // della barra. `scrivi(barra, i)` decide cosa c'e' scritto.
 export function mirinoBarre(box, barre, scrivi) {
   if (!box || !barre || !barre.length) return;
+  if (box.__mirinoVia) box.__mirinoVia();
   box.classList.add("dm-ap-mirino-box");
   const mirino = document.createElement("div");
   mirino.className = "dm-ap-mirino dm-ap-mirino-barre";
@@ -1022,16 +1042,23 @@ export function mirinoBarre(box, barre, scrivi) {
   };
   const via = () => mirino.classList.remove("si");
 
-  box.addEventListener("pointerdown", (ev) => {
+  const giu = (ev) => {
     try { box.setPointerCapture(ev.pointerId); } catch (e) { /* pazienza */ }
     muovi(ev);
-  });
-  box.addEventListener("pointermove", (ev) => {
+  };
+  const scorri = (ev) => {
     if (ev.pointerType === "mouse" || ev.buttons || ev.pressure > 0) muovi(ev);
-  });
-  box.addEventListener("pointerup", via);
-  box.addEventListener("pointercancel", via);
-  box.addEventListener("pointerleave", via);
+  };
+  const ascolti = [["pointerdown", giu], ["pointermove", scorri], ["pointerup", via],
+    ["pointercancel", via], ["pointerleave", via]];
+  ascolti.forEach(([ev, fn]) => box.addEventListener(ev, fn));
+  // come si tolgono: chi ridisegna il grafico nello stesso nodo chiama questa
+  // prima di rimetterne altri cinque (lo fa mirinoGrafico/mirinoBarre in cima)
+  box.__mirinoVia = () => {
+    ascolti.forEach(([ev, fn]) => box.removeEventListener(ev, fn));
+    box.__mirinoVia = null;
+    if (mirino.parentNode) mirino.parentNode.removeChild(mirino);
+  };
 }
 
 // Un numero scritto come lo scrive Home Assistant nella lingua di chi guarda:
@@ -1167,6 +1194,9 @@ export function disegnoDiScheda(cfg, id, disegnoDiSerie, acceso) {
   const quale = HERO_BUILDERS[c.artwork] ? c.artwork : disegnoDiSerie;
   return {
     hero: HERO_BUILDERS[quale](id),
+    // I disegni sono quarantacinque e i tondini venticinque: chi non ce l'ha
+    // ripiega su quello di serie della scheda. NON si tocca senza chiederlo:
+    // cambia quello che si vede, e le caselle sono gia' sulla plancia.
     chip: CHIP_SVGS[quale] || CHIP_SVGS[disegnoDiSerie] || "",
   };
 }

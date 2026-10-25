@@ -374,8 +374,11 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         ciclo_minuti: ci.durata || "",
         ciclo_fine: ci.fine || "",
       },
-    });
-    this._dillo(T("Azzerati."));
+    }).then(() => this._dillo(T("Azzerati.")))
+      // prima scriveva "Azzerati." qualunque cosa fosse successo - script
+      // cancellato compreso - e l'errore restava una promise orfana.
+      .catch((e) => this._dillo(T("Non ci sono riuscito:") + " "
+        + (e && e.message ? e.message : String(e))));
   }
 
   _disegnaTasti() {

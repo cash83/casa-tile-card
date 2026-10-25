@@ -100,8 +100,10 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     // col pop-up aperto (o un riquadro) dentro ci sono schede di Home
     // Assistant che vogliono sapere tutto: li' ridisegno sempre
     if (this._velo && this._velo.hasAttribute("aperto")) return true;
-    if (this._panGruppo && !this._panGruppo.hidden) return true;
-    if (this._panFonti && !this._panFonti.hidden) return true;
+    // TUTTI i riquadri, non solo i due vecchi: l'elenco era riscritto a mano
+    // qui e si era fermato a gruppo e fonti, mentre quelli della musica
+    // (cerca, sfoglia, coda, menu della coda) non forzavano il ridisegno.
+    if (this._tuttiIRiquadri().some((pan) => !pan.hidden)) return true;
     if (this._antPopup && !this._antPopup.hidden) return true;
     const quali = this._entitaSeguite();
     if (quali === null) return true;   // non lo so: meglio ridisegnare
@@ -115,11 +117,15 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
   // impostazioni piu' quelle che si e' andata a cercare da sola
   _entitaSeguite() {
     const c = this._config || {};
-    const chiave = JSON.stringify([c.entity, c.info_entita, c.acceso_entita,
-      c.meteo_entita, c.lettori, c.distanza_entita, c.sottotitolo_entita,
-      c.carica_entita, c.scarica_entita, c.finestra_entita]);
-    if (this._chiaveSeguite !== chiave) {
-      this._chiaveSeguite = chiave;
+    // NIENTE JSON.stringify qui dentro. Questo giro sta PRIMA della
+    // strozzatura a dieci disegni al secondo, quindi girava per ogni cambio
+    // di stato della casa e per OGNI casella della plancia: serializzare
+    // dieci campi costava molto piu' di quello che risparmiava. La
+    // configurazione non viene mai cambiata sul posto - setConfig e il cambio
+    // di cassa ne fanno sempre una nuova - quindi basta guardare se e'
+    // ancora proprio lo stesso oggetto.
+    if (this._cfgSeguite !== c) {
+      this._cfgSeguite = c;
       const dentro = [];
       const metti = (x) => {
         if (!x) return;
@@ -539,7 +545,11 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
         if (dominio === "cover") {
           if (servizio === "open_cover") this._viaggia(100);
           else if (servizio === "close_cover") this._viaggia(0);
-          else this._fermaViaggio(true);
+          // il tasto "Ferma" NON insegna la velocita': quella che misurerebbe
+          // e' la corsa CHIESTA (0 -> 100), non quella fatta. Tre secondi di
+          // "apri" e poi "ferma" facevano imparare 0,03 secondi per punto al
+          // posto di 0,25: animazione otto volte piu' veloce del vero.
+          else this._fermaViaggio(false);
         }
         this._hass.callService(dominio, servizio, { entity_id: this._config.entity });
       });
@@ -810,7 +820,6 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       dove = st.state;
     }
     if (!dove) {
-      this._fTitolo && (this._fTitolo.textContent = "");
       window.alert("Questa entita non dice dove si trova: non ha ne le coordinate "
         + "ne un indirizzo. Scegli un'entita con la posizione, oppure indica "
         + "l'entita dell'indirizzo nel campo del sottotitolo.");
@@ -891,6 +900,18 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       try { document.body.style.overflow = this._scorrimentoPrima || ""; } catch (e) { /* pazienza */ }
     }
     if (this._fuori) { document.removeEventListener("pointerdown", this._fuori, true); this._fuori = null; }
+    // gli altri orologi sparsi per la casella: nessuno di questi fa danni
+    // visibili, ma lavorano su una casella che non c'e' piu'
+    clearTimeout(this._freno);
+    clearTimeout(this._frenoColore);
+    clearTimeout(this._tieniTimer);
+    clearTimeout(this._guardiaMuto);
+    clearTimeout(this._chiusuraDopo);
+    clearTimeout(this._scordaTiro);
+    this._freno = 0; this._frenoColore = 0; this._tieniTimer = 0;
+    this._guardiaMuto = 0; this._chiusuraDopo = 0; this._scordaTiro = 0;
+    (this._segni || []).forEach((t) => clearTimeout(t));
+    this._segni = [];
     this._fermaOrologio();
     this._fermaDiretta();
     this._fermaOrologioTappa();
@@ -1051,7 +1072,6 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     const tetto = cresceDaSola ? suo : h * 0.44;
     const quota = Math.min(tetto, libero > 0 ? libero : tetto);
     const ico = Math.max(18, Math.min(160, Math.round(quota / 4) * 4));
-    this._icoDetta = ico;
     this.style.setProperty("--alt-icona", ico + "px");
   }
 
@@ -1062,7 +1082,6 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     try { this._tornaDovEravamo(); } catch (e) { /* pazienza */ }
     // cambiato posto: le risposte che mi ero segnato non valgono piu'
     this._postoSalvato = null;
-    this._inSportello = undefined;
     if (this.hasAttribute("pienoschermo")) {
       this.removeAttribute("pienoschermo");
       try { document.body.style.overflow = this._scorrimentoPrima || ""; }

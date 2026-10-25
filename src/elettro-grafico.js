@@ -114,7 +114,13 @@ export const ConGrafico = (Base) => class extends Base {
     const punti = giorni <= GIORNI_STORIA
       ? await this._storiaFra(entityId, inizio, fine)
       : await this._statisticheFra(entityId, inizio, fine);
-    return aPezzetti(punti, inizio, fine, PUNTI);
+    // i pezzetti servono a DISEGNARE: tengono il massimo di ognuno, se no i
+    // picchi sparirebbero. Minimo e media vanno fatti sulle letture vere -
+    // su un frigo che fa 150 W a sprazzi la media dei massimi diceva
+    // "Minimo 150 . Media 150 . Massimo 150".
+    const pezzi = aPezzetti(punti, inizio, fine, PUNTI);
+    pezzi.grezzi = punti;
+    return pezzi;
   }
 
   // ------------------------------------------------------------ il disegno
@@ -441,13 +447,13 @@ export const ConGrafico = (Base) => class extends Base {
         // niente kWh per questa curva (non e' energia, o non c'e' il sensore):
         // ripiego su minimo/media/massimo, che e' alto uguale
         if (!k || ![k.oggi, k.settimana, k.mese].some(Number.isFinite)) {
-          sotto.innerHTML = this._minMedMax(prima.punti, prima.unita, prima);
+          sotto.innerHTML = this._minMedMax(prima.punti.grezzi || prima.punti, prima.unita, prima);
           return;
         }
         sotto.innerHTML = this._trePeriodi(k, prima);
       }).catch(() => {
         if (this._giroGrafico === mio) {
-          sotto.innerHTML = this._minMedMax(prima.punti, prima.unita, prima);
+          sotto.innerHTML = this._minMedMax(prima.punti.grezzi || prima.punti, prima.unita, prima);
         }
       });
     }

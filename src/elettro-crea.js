@@ -302,7 +302,10 @@ async function prezzoDelKWh(hass, opzioni, dillo, conto) {
     conto.riusati++;
     return opzioni.prezzo_entita;
   }
-  const gia = prezziDelKWh(hass)[0];
+  // la SOLA energia, non il totale di bolletta: prezziDelKWh mette per primo
+  // `prezzo_energia` (tutto compreso) perche' serve alla scheda della casa, e
+  // prenderlo qui faceva pagare le tasse due volte sugli elettrodomestici.
+  const gia = prezzoDellaCasa(hass) || prezziDelKWh(hass)[0];
   if (gia) {
     dillo("Prezzo: uso quello che c'era gia' (" + gia + ").");
     conto.riusati++;

@@ -12,7 +12,7 @@ import { T, TH, traduciSchema } from './lingua.js';
 import { STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
 import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez } from './elettro-righe-editor.js';
-import { creaFonte, creaRisparmio, ID_TOTALE, prezzoDellaCasa, idDellaVoce, VOCI_TARIFFA, scriviTariffa, INGREDIENTE, creaSensoriBase, prezziDelKWh } from './elettro-crea.js';
+import { creaFonte, creaRisparmio, ID_TOTALE, prezzoDellaCasa, idDellaVoce, VOCI_TARIFFA, scriviTariffa, creaSensoriBase } from './elettro-crea.js';
 
 // quello che si legge sotto al campo. L'etichetta dice come si chiama
 // l'impostazione; qui sotto c'e' a cosa serve - che e' la domanda vera.
@@ -208,6 +208,8 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       } }
     { const o = this.querySelector(".ce-barre-ordine");
       if (o) o.checked = this._config.barre_in_ordine !== false; }
+    { const fs = this.querySelector(".ce-barre-max");
+      if (fs && document.activeElement !== fs) fs.value = this._config.max_power || ""; }
     this._disegnaCircuiti();
   }
 
@@ -267,32 +269,10 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     });
   }
 
-  // la tendina con i sensori dei kWh (energia) che ci sono in casa
-  // il prezzo in €/kWh che c'e' gia' in casa: e' lui che comanda
-  // la tendina dei prezzi in \u20ac/kWh che hai in casa (il totale per primo:
-  // la casa paga tutto compreso, gli elettrodomestici di solito no)
-  _disegnaPrezzo() {
-    const sel = this.querySelector(".ce-prezzo-ent");
-    const campo = this.querySelector(".ce-prezzo");
-    if (!sel || !campo) return;
-    const elenco = prezziDelKWh(this._hass);
-    const scelto = sel.value;
-    sel.hidden = !elenco.length;
-    campo.hidden = !!elenco.length;
-    sel.innerHTML = "";
-    elenco.filter((id) => !INGREDIENTE.test(id)).forEach((id) => {
-      const st = this._hass.states[id];
-      const o = document.createElement("option");
-      o.value = id;
-      const tutto = Number(st.state) >= 0.20;
-      o.textContent = (st.attributes.friendly_name || id) + " \u2014 " + st.state + " \u20ac/kWh"
-        + (tutto ? "  (tutto compreso \u2014 questo)" : "  (sola energia)");
-      sel.appendChild(o);
-    });
-    const mio = this._config.prezzo_entita;
-    if (scelto && elenco.includes(scelto)) sel.value = scelto;
-    else if (mio && elenco.includes(mio)) sel.value = mio;
-  }
+  // Qui c'era `_disegnaPrezzo()`: cercava .ce-prezzo-ent e .ce-prezzo, che in
+  // QUESTO editor non esistono (stanno in quello dell'elettrodomestico),
+  // quindi usciva alla seconda riga. La casa il prezzo lo prende dagli
+  // aiutanti della tariffa, che hanno un nome fisso.
 
   // DIVERSA DI PROPOSITO da quella dell'elettrodomestico: per la casa voglio
   // solo contatori in kWh e che siano un totale (total / total_increasing)
@@ -672,7 +652,6 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     try {
       await scriviTariffa(this._hass, { energia: n("energia"), rete: n("rete"), accise: n("accise"), iva: n("iva"), quota: n("quota") }, dillo);
       dillo("Fatto: adesso tutte le schede leggono questi prezzi.");
-      this._disegnaPrezzo();
     } catch (e) {
       esito.classList.add("male");
       dillo("Non ce l'ho fatta: " + (e && e.message ? e.message : e));
@@ -927,6 +906,13 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
         ordine.addEventListener("change", () =>
           this._scriviScelta("barre_in_ordine", ordine.checked ? "" : false));
       }
+      // il campo "Fondo scala di serie" c'era, con tanto di aiuto sotto, e non
+      // era attaccato a niente: ci scrivevi dentro e non succedeva nulla
+      const fondo = this.querySelector(".ce-barre-max");
+      if (fondo) {
+        fondo.addEventListener("change", () =>
+          this._scriviScelta("max_power", Number(fondo.value) || ""));
+      }
       this.querySelector(".ce-cancella").addEventListener("click", () => this._cancellaSensori());
       this.querySelectorAll(".ce-t-energia, .ce-t-rete, .ce-t-accise, .ce-t-iva, .ce-t-quota").forEach((x) =>
         x.addEventListener("input", () => this._totaleTariffa()));
@@ -937,7 +923,6 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._disegnaTasti();
     this._disegnaPrese();
     this._disegnaFvCasa();
-    this._disegnaPrezzo();
     this._disegnaTariffa();
     this._form.data = this._datiForm();
     if (this._formTutto) this._formTutto.data = this._datiForm();

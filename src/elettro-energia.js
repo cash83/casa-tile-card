@@ -253,6 +253,20 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return this._row(label, `<span class="dm-ap-row-val">${esc(aVal)}&nbsp;&nbsp;\u00b7&nbsp;&nbsp;${esc(bVal)}</span>`, nota);
   }
 
+  // I WATT DELLA CASA, SEMPRE IN WATT. Il selettore dell'editor prende
+  // qualunque sensore con device_class "power", e in giro ce ne sono in kW:
+  // senza questa conversione "2,5 kW" diventava "3" nel disegno, il non
+  // misurato si schiacciava a zero e partiva l'avviso del doppione per
+  // niente. Le prese la conversione la fanno gia' da sole, in preseDiCasa().
+  _wattCasa(hass) {
+    const st = this._config.power_entity ? hass.states[this._config.power_entity] : null;
+    if (!st) return NaN;
+    const n = numeroVero(st.state);
+    if (!Number.isFinite(n)) return NaN;
+    const u = String((st.attributes || {}).unit_of_measurement || "").trim().toLowerCase();
+    return u === "kw" ? n * 1000 : n;
+  }
+
   _val(hass, entityId, digits, attr) {
     const st = entityId ? hass.states[entityId] : null;
     if (!st) return "\u2014";
@@ -261,7 +275,11 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const unit = unitaBella(st.attributes?.unit_of_measurement);
     // se l'attributo non c'e' ancora (contatore appena creato) meglio una
     // lineetta che la scritta "undefined"
-    if (raw === undefined || raw === null || raw === "") return "\u2014";
+    // "unknown" e "unavailable" non sono numeri: scriverli con l'unita'
+    // appiccicata ("unknown kWh") e' peggio di una lineetta. Succede a ogni
+    // riavvio di Home Assistant, su tutti i contatori insieme.
+    if (raw === undefined || raw === null || raw === ""
+        || raw === "unknown" || raw === "unavailable" || raw === "none") return "\u2014";
     const num = Number.isFinite(n) && digits != null ? (numero(n, digits) ?? n.toFixed(digits)) : raw;
     return `${num}${unit ? " " + unit : ""}`;
   }
@@ -332,9 +350,18 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const a_ = new Date(a.next_reset);
     if (isNaN(da) || isNaN(a_)) return 0;
     const giorni = (a_ - da) / 86400000;
-    if (giorni >= 27) {
+    // Un mese non dura sempre uguale: lo conto all'indietro dal giorno in cui
+    // il contatore si e' azzerato. Ma solo se e' un MESE: su un bimestre
+    // (una sessantina di giorni) il giro all'indietro di un mese solo dava
+    // mezza quota fissa.
+    if (giorni >= 27 && giorni <= 40) {
       const prima = new Date(da);
       prima.setMonth(prima.getMonth() - 1);
+      return Math.round((da - prima) / 86400000);
+    }
+    if (giorni > 40 && giorni <= 70) {
+      const prima = new Date(da);
+      prima.setMonth(prima.getMonth() - 2);
       return Math.round((da - prima) / 86400000);
     }
     return Math.round(giorni);
@@ -505,7 +532,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const loads = preseDiCasa(hass)
       .filter((x) => contaNelTop(cfg, x.entity))
       .map((x) => ({ label: miei[x.entity] || x.nome, entity: x.entity, live: x.w }));
-    const tot = numeroVero(hass.states[cfg.power_entity]?.state);
+    const tot = this._wattCasa(hass);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
     const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;
     // Se le prese sommate superano la casa, da qualche parte c'e' un doppione:
@@ -588,8 +615,8 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const avviso = doppione
       ? `<div class="dm-ap-reset-note">Le prese sommate fanno ${Math.round(misurato)} W ma la casa
          ne misura ${Math.round(tot)}: qualcuna è contata due volte, di solito un sensore che
-         è già la somma di altri. Si toglie dall'editor, in
-         «Parole che fanno escludere un sensore».</div>`
+         è già la somma di altri. Si toglie dall'editor, togliendole la spunta
+         in «Top consumo».</div>`
       : "";
     this._openDialog("Consumi", `
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">In evidenza</div>${this._statRow("Top consumo", this._topText(hass))}${Number.isFinite(tot) ? this._statRow("Totale casa", `${tot.toFixed(0)} W`) : ""}</div>
@@ -630,7 +657,10 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       if (!this._giroDopo) {
         this._giroDopo = setTimeout(() => {
           this._giroDopo = 0;
-          if (this.isConnected || this._root) this.hass = this._hass;
+          // `|| this._root` annullava il controllo: _root c'e' sempre dopo
+          // setConfig, quindi una scheda tolta dalla pagina rifaceva tutto
+          // il giro scrivendo in uno shadow DOM morto.
+          if (this.isConnected) this.hass = this._hass;
         }, 150);
       }
       return;
@@ -639,7 +669,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
 
     const cfg = this._config;
 
-    const watt = numeroVero(hass.states[cfg.power_entity]?.state);
+    const watt = this._wattCasa(hass);
     const wattVal = Number.isFinite(watt) ? Math.max(0, watt) : 0;
     // La tariffa: gli aiutanti hanno un nome fisso, li creo io dal riquadro
     // "La tua tariffa". Servono a fare i conti qui, senza sensori in mezzo.
@@ -694,8 +724,17 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
         if (!euro && cfg.bolletta_energia && tariffa.totale > 0) {
           const st = hass.states[cfg.bolletta_energia];
           const k = numeroVero(st?.state);
-          const da = st?.attributes?.last_reset ? new Date(st.attributes.last_reset) : null;
-          const gg = da ? Math.max(1, Math.floor((Date.now() - da.getTime()) / 86400000) + 1) : 1;
+          // I GIORNI DAL CALENDARIO, NON DA last_reset. Il contatore del
+          // bimestre, se lo rinomini, riazzera last_reset e giura di avere
+          // due settimane quando il bimestre ne ha cinque: i kWh restano
+          // giusti, la quota fissa no (misurato in casa: 35 giorni invece di
+          // 55, cioe' 10,84 EUR in meno). E' lo stesso errore che i template
+          // che creo io hanno gia' pagato una volta. Il bimestre comincia il
+          // primo del mese dispari, come li scrivo in creaSensoriBase.
+          const oggi = new Date();
+          const inizio = new Date(oggi.getFullYear(), oggi.getMonth() - (oggi.getMonth() % 2), 1);
+          const gg = Math.max(1, Math.round((new Date(oggi.getFullYear(), oggi.getMonth(),
+            oggi.getDate()) - inizio) / 86400000) + 1);
           if (Number.isFinite(k)) euro = this._euro(k * tariffa.totale + (tariffa.quota || 0) * gg);
         }
         x.textContent = [kwh, euro].filter(Boolean).join(" \u00b7 ") || "\u2014";
@@ -749,7 +788,10 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
           ? numeroVero(st.state) : NaN;
         return Number.isFinite(v) ? v : null;
       };
-      const rete = kwh(((cfg.periods || [])[0] || {}).energy);
+      // il periodo si cerca per NOME, come fa tutto il resto del file: il
+      // tasto "Crea contatori" scrive l'elenco in ordine Ora, Oggi, ... e
+      // periods[0] era l'ULTIMA ORA sommata al sole di tutta la giornata.
+      const rete = kwh((periodo("oggi", 1) || {}).energy);
       const dalFv = kwh(cfg.fv_casa_oggi);
       veroEl.textContent = (rete !== null && dalFv !== null)
         ? numero(rete + dalFv, 2) + " kWh" : "—";
@@ -761,7 +803,9 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     if (fvEl) {
       // due numeri in una riga stretta: un simbolo solo e la barra a dividerli
       // (prima era "- 0,37 EUR . 9,58 EUR mese" e non ci stava mai)
-      const n = (v) => numero(Number(v) || 0, 2);
+      // Number("unavailable") || 0 faceva zero, e "- 0,00" si legge come
+      // "oggi i pannelli non hanno risparmiato niente": non lo so, non lo dico.
+      const n = (v) => { const x = numeroVero(v); return Number.isFinite(x) ? numero(x, 2) : "\u2014"; };
       // prima i contatori del risparmio, se la scheda ce li ha; se no gli
       // attributi del conto della bolletta, come si faceva prima
       const daContatore = cfg.risparmio_oggi || cfg.risparmio_mese;
@@ -806,7 +850,10 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const nome = el.querySelector(".dm-e-c-name");
       if (nome && nome.textContent !== c.label) nome.textContent = c.label;
       el.querySelector(".dm-e-c-val").textContent = `${numero(live, 0)} W`;
-      const pct = c.max ? Math.min(100, (live / c.max) * 100) : 0;
+      // senza un fondo scala suo la barra restava a zero con i watt scritti
+      // accanto: ripiego su quello di serie della scheda, come fa la gemella
+      const fondo = numeroVero(c.max) || numeroVero(cfg.max_power) || 1000;
+      const pct = Math.min(100, (live / fondo) * 100);
       const bar = el.querySelector(".dm-e-c-bar");
       bar.style.width = `${pct}%`;
       bar.style.background = meterSeverityColor(pct);

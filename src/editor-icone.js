@@ -76,22 +76,9 @@ export const ConIcone = (Base) => class extends Base {
         + "e' quello dell'alone, del bordo e di tutti gli effetti.</p>"
         + "<div class='coloriPicker'></div>");
       const fila = tin.querySelector(".coloriPicker");
-      // niente piu' pallini fissi: bastano la ruota e "come la lampada"
-      [].forEach((nome) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "sceltaColore";
-        b.dataset.nome = nome;
-        b.title = nome;
-        b.style.background = COLORI[nome];
-        b.addEventListener("click", () => {
-          this._config = { ...this._config, colore: nome };
-          delete this._config.colore_rgb;
-          this._emetti();
-          this._costruisciScelte();
-        });
-        fila.appendChild(b);
-      });
+      // niente piu' pallini fissi dei colori con nome: bastano la ruota e
+      // "come la lampada". Qui c'era il ciclo che li faceva, su un elenco
+      // vuoto: quindici righe che non girava nessuno.
       const lampada = document.createElement("button");
       lampada.type = "button";
       lampada.className = "sceltaColore coloreLampada";

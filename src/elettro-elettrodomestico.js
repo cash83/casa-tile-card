@@ -461,7 +461,10 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       const p = numeroVero(hass.states[cfg.prezzo_entita]?.state);
       if (Number.isFinite(p) && p > 0) cost = kwhNum * p;
     }
-    const costTxt = Number.isFinite(Number(cost)) ? `${numero(cost, 2)} \u20ac` : "\u2014";
+    // Number(null) fa 0 e numero(null, 2) scrive "0,00": un costo che NON
+    // C'E' finiva scritto "0,00 EUR" accanto a un consumo vuoto.
+    const costNum = numeroVero(cost);
+    const costTxt = Number.isFinite(costNum) ? `${numero(costNum, 2)} \u20ac` : "\u2014";
     const NOMI = { today: "Oggi", yesterday: "Ieri", week: "Settimana", month: "Mese",
       month_prev: "Mese scorso", year: "Anno", year_prev: "Anno scorso" };
     const label = NOMI[periodKey] || periodKey;
@@ -785,7 +788,10 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       if (!this._giroDopo) {
         this._giroDopo = setTimeout(() => {
           this._giroDopo = 0;
-          if (this.isConnected || this._root) this.hass = this._hass;
+          // `|| this._root` annullava il controllo: _root c'e' sempre dopo
+          // setConfig, quindi una scheda tolta dalla pagina rifaceva tutto
+          // il giro scrivendo in uno shadow DOM morto.
+          if (this.isConnected) this.hass = this._hass;
         }, 150);
       }
       return;
@@ -1004,9 +1010,12 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     });
 
     const warnEl = this._root.querySelector(".dm-ap-warn");
+    // un'entita' sparita dava `undefined === undefined`, cioe' VERO: scheda
+    // rossa per sempre con l'avviso vuoto. Serve l'entita' vera e uno stato.
     const activeWarnings = comeElenco(cfg.warn_entities)
-      .filter((w) => hass.states[w.entity]?.state === w.on_state)
-      .map((w) => w.label);
+      .filter((w) => w && w.entity && hass.states[w.entity]
+        && hass.states[w.entity].state === (w.on_state || "on"))
+      .map((w) => w.label || w.entity);
     // il guasto lo dice la scheda, invece di far finta di niente. Con
     // un'entita' di stato non serve: da quella lo stato si sa lo stesso.
     if (powerIlleggibile && !liveStateEntity) {

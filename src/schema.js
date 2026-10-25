@@ -5,7 +5,7 @@ import { comeElenco } from './aiuti.js';
 
 export const SEZIONI = [
   {
-    chiave: "base", titolo: "Base", segno: "⚙", aperta: true,
+    chiave: "base", titolo: "Base", segno: "⚙",
     gruppi: [
       { schema: [
         { name: "entity", selector: { entity: {} } },
@@ -315,10 +315,9 @@ export const DIPENDE = {
     ? String(c.entity || "").split(".")[0] === "weather" : !!c.sfondo_meteo),
   info_nomi_auto: (c) => comeElenco(c.info_entita).length > 0,
   segui_attivo: (c) => comeElenco(c.lettori).length > 0 || c.multiroom !== false,
-  // la soglia serve a QUALSIASI casella con un numero (casa-tile.js,
-  // _accesoNormale): il vecchio confronto con "sopra"/"sotto" non poteva
-  // essere vero e la teneva nascosta a chi non usa acceso_entita
-  soglia: () => true,
+  // la soglia NON sta qui di proposito: serve a qualsiasi casella con un
+  // numero (casa-tile.js, _accesoNormale), quindi si vede sempre. Prima
+  // c'era `soglia: () => true`, che e' lo stesso che non esserci.
 };
 
 export const SOLO_AZIONE = {

@@ -51,11 +51,6 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
       if (this._config.coda === undefined) this._config.coda = true;
       if (this._config.yt_cuore === undefined) this._config.yt_cuore = true;
     }
-    // Gli interruttori della SUA card partono tutti accesi (la card fa
-    // cosi': quello che non e' scritto e' acceso). Ma un interruttore senza
-    // valore Home Assistant lo disegna SPENTO, e allora si vedevano tutti
-    // grigi mentre nell'anteprima la roba c'era. Glieli scrivo, cosi' lo
-    // sportello dice la verita' su quello che sta guardando.
     this._planciaCercata = null;
     this._planciaSalvata = null;
     this._render();
@@ -363,7 +358,7 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
         const firma = this._firmaValori(f.schema);
         if (f._valori === firma) return;
         f._valori = firma;
-        f.data = this._config;
+        f.data = this._datiModulo();
       });
       this._costruisciColori();
       this._costruisciPosti();
@@ -471,6 +466,22 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
 
 
 
+  // I VALORI PER I MODULI. Gli interruttori della card partono tutti ACCESI
+  // (la card fa cosi': quello che non e' scritto e' acceso), ma un
+  // interruttore senza valore ha-form lo disegna SPENTO: si vedevano tutti
+  // grigi mentre nell'anteprima la roba c'era. Qui glieli riempio.
+  // `acceso_sempre` NON ci sta: su una casella CON entita' metterlo a vero
+  // non e' il valore di serie, la tiene accesa sempre per davvero.
+  _datiModulo() {
+    const c = this._config || {};
+    const pieni = { ...c };
+    ["usa_foto", "icona_entita", "gira_copertina", "comandi_rapidi",
+      "segui_attivo", "mostra_distanza", "mostra_icona"].forEach((k) => {
+      if (pieni[k] === undefined) pieni[k] = true;
+    });
+    return pieni;
+  }
+
   // La finestra delle impostazioni si chiude: mi riprendo tutto quello che
   // avevo lasciato in giro, se no si accumula apertura dopo apertura.
   disconnectedCallback() {
@@ -480,6 +491,9 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
     this._propagaDopo = 0;
     const box = this._postiBox;
     if (box && box._guarda) { box._guarda.disconnect(); box._guarda = null; }
+    // c'e' un secondo osservatore, quello del quadratino della grandezza:
+    // restava attaccato alla pista per tutta la vita della finestra
+    if (box && box._occhioGrandezza) { box._occhioGrandezza.disconnect(); box._occhioGrandezza = null; }
     clearTimeout(this._ricontrolla);
     clearTimeout(this._ricontrolla2);
     clearTimeout(this._rimedio);
@@ -585,9 +599,9 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
         let quanti = this._quantiCampi(nuovo);
         // il modulo puo' essere vuoto ma il gruppo avere i suoi colori
         const suoiColori = this._coloriDi(g.gruppo);
-        const conColori = !!(suoiColori.length
-          && (!g.gruppo.soloAzione
-              || g.gruppo.soloAzione === (this._config.azione || "toggle")));
+        // `soloAzione` non esiste in nessun gruppo di SEZIONI: era un controllo
+        // che non poteva mai essere falso.
+        const conColori = !!suoiColori.length;
         g.form.hidden = quanti === 0;
         if (conColori) quanti += suoiColori.length;
         campi += quanti;

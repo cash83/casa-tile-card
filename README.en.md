@@ -4,7 +4,7 @@ Three cards for Home Assistant, all **click-only** (no YAML): an animated tile f
 any entity, plus two large cards for the **home's electricity** and for
 **appliances**.
 
-![version](https://img.shields.io/badge/version-2.92.0-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![version](https://img.shields.io/badge/version-2.96.29-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 [🇮🇹 Italiano](README.md) · 🇬🇧 English
 

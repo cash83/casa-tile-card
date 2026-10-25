@@ -935,16 +935,28 @@ export const ConMusica = (Base) => class extends Base {
     let lista = this._lettori();
     if (!lista.length) {
       const stati = this._hass ? this._hass.states : {};
-      const reg = (this._hass && this._hass.entities) || {};
-      // SOLO LE CASSE DELLA SUA INTEGRAZIONE. Prima guardava qualsiasi
-      // media_player della casa: bastava che partisse la musica su un
-      // lettore di un'altra integrazione e la casella ci saltava sopra,
-      // facendo vedere una cosa che non era la sua. E unire casse di
-      // integrazioni diverse non si puo' fare comunque.
-      const sua = (reg[padrone] || {}).platform;
-      lista = Object.keys(stati).filter((e) => e.indexOf("media_player.") === 0
-        && Array.isArray(stati[e].attributes.group_members)
-        && (!sua || (reg[e] || {}).platform === sua)).slice(0, 14);
+      // LA RICERCA SI FA UNA VOLTA PER TABELLA DEGLI STATI. Scorre TUTTE le
+      // entita' della casa, e _entitaAttiva() la chiama da sette punti
+      // diversi, due volte per disegno: su una casella musicale senza
+      // l'elenco delle casse (che si ridisegna dieci volte al secondo)
+      // erano decine di migliaia di giri al secondo per niente.
+      if (this._casseViste && this._casseStati === stati && this._cassePadrone === padrone) {
+        lista = this._casseViste;
+      } else {
+        const reg = (this._hass && this._hass.entities) || {};
+        // SOLO LE CASSE DELLA SUA INTEGRAZIONE. Prima guardava qualsiasi
+        // media_player della casa: bastava che partisse la musica su un
+        // lettore di un'altra integrazione e la casella ci saltava sopra,
+        // facendo vedere una cosa che non era la sua. E unire casse di
+        // integrazioni diverse non si puo' fare comunque.
+        const sua = (reg[padrone] || {}).platform;
+        lista = Object.keys(stati).filter((e) => e.indexOf("media_player.") === 0
+          && Array.isArray(stati[e].attributes.group_members)
+          && (!sua || (reg[e] || {}).platform === sua)).slice(0, 14);
+        this._casseStati = stati;
+        this._cassePadrone = padrone;
+        this._casseViste = lista;
+      }
     }
     lista = lista.filter((e) => e !== padrone);
     lista.unshift(padrone);

@@ -42,6 +42,10 @@ export const ConFinestrelle = (Base) => class extends Base {
       this._escDialog = null;
     }
     clearTimeout(this._chiusuraDopo);
+    // il raggruppamento dei cambi di stato: senza questo, fino a 150 ms dopo
+    // aver cambiato vista la scheda rifaceva un giro intero da morta
+    clearTimeout(this._giroDopo);
+    this._giroDopo = 0;
     // e le domande dei tasti ("premi ancora"), che hanno il loro orologio
     (this._root ? this._root.querySelectorAll(".dm-ap-tasto") : []).forEach((b) => {
       clearTimeout(b._attesa);
@@ -91,7 +95,7 @@ export const ConFinestrelle = (Base) => class extends Base {
       return true;
     }
     if (!this._config.chiedi_prima) return true;
-    const st = ((this._hass || {}).states[entity] || {}).state;
+    const st = (((this._hass || {}).states || {})[entity] || {}).state;
     const acceso = !!st && !["off", "unavailable", "unknown"].includes(st);
     if (!this._staLavorando || !acceso) return true;
     const eti = b.querySelector(".dm-ap-tasto-nome");
