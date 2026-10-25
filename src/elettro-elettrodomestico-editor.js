@@ -650,6 +650,9 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           potenza, energia: kwhVero, nome: this._config.name,
           soglia: Number((this.querySelector(".ce-soglia") || {}).value),
           attesa: Number(this._config.ciclo_attesa_sec) || 100,
+          // quello che la scheda ha GIA': se glielo do, rinominandola non si
+          // rifa' tutto col nome nuovo lasciando indietro lo storico
+          ciclo: this._config.ciclo, soglia_acceso: this._config.soglia_acceso,
         }, (t) => this._dillo(t));
         this._config = { ...this._config, ...piu };
       }

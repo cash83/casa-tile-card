@@ -4,7 +4,7 @@ Tre schede per Home Assistant, tutte **a clic** (niente YAML): una casella anima
 per qualsiasi entità, e due schede grandi per la **luce di casa** e per gli
 **elettrodomestici**.
 
-![versione](https://img.shields.io/badge/versione-2.96.29-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
+![versione](https://img.shields.io/badge/versione-2.96.30-blue) ![hacs](https://img.shields.io/badge/HACS-custom-orange)
 
 🇮🇹 Italiano · [🇬🇧 English](README.en.md)
 

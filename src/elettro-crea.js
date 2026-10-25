@@ -582,20 +582,30 @@ async function avvisoUnita(hass, entita, dillo) {
 // soglia che dice quando lavora, un contatore che parte da zero a ogni ciclo,
 // tre memorie e un'automazione che al termine ci scrive dentro.
 
+// L'INDIRIZZO LO DICE HOME ASSISTANT, non lo indovino io. Lui lo ricava dal
+// nome, ma se quello slug e' gia' occupato ci appende _2: indovinandolo
+// scrivevo in configurazione l'aiutante di QUALCUN ALTRO, e quello appena
+// creato restava orfano. La risposta della creazione porta l'id vero; se un
+// Home Assistant vecchio non lo desse, si ripiega sullo slug come prima.
+function daCreato(dominio, fatto, nome) {
+  const id = fatto && (fatto.id || fatto.object_id);
+  return dominio + "." + (id ? String(id) : slug(nome));
+}
+
 async function creaNumero(hass, nome, unita, passo, massimo) {
-  await hass.callWS({
+  const fatto = await hass.callWS({
     type: "input_number/create", name: nome, min: 0, max: massimo, step: passo,
     mode: "box", unit_of_measurement: unita, icon: "mdi:counter",
   });
-  return "input_number." + slug(nome);
+  return daCreato("input_number", fatto, nome);
 }
 
 async function creaDataOra(hass, nome) {
-  await hass.callWS({
+  const fatto = await hass.callWS({
     type: "input_datetime/create", name: nome, has_date: true, has_time: true,
     icon: "mdi:flag-checkered",
   });
-  return "input_datetime." + slug(nome);
+  return daCreato("input_datetime", fatto, nome);
 }
 
 async function creaAutomazione(hass, conf) {
@@ -630,9 +640,16 @@ export async function creaCicli(hass, opzioni, dillo) {
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
   const esiste = (eid) => !!hass.states[eid];
 
+  // QUELLO CHE LA SCHEDA HA GIA' viene prima di tutto. Rinominando la scheda
+  // cambiano i nomi che darei ai pezzi nuovi, e senza questo il rinomino si
+  // lasciava dietro la soglia, il contatore e le quattro memorie di prima -
+  // con dentro tutto lo storico - per rifarli vuoti col nome nuovo.
+  const miei = opzioni.ciclo || {};
+  const giaMio = (eid) => (eid && esiste(eid) ? eid : null);
+
   // 1. quando sta lavorando
   const nomeSoglia = base + " in funzione";
-  let acceso = gia("threshold", nomeSoglia);
+  let acceso = giaMio(opzioni.soglia_acceso) || gia("threshold", nomeSoglia);
   if (!acceso) {
     parla("Creo la soglia «" + nomeSoglia + "»...");
     await creaSoglia(hass, nomeSoglia, potenza, Number(soglia) || 10);
@@ -642,7 +659,7 @@ export async function creaCicli(hass, opzioni, dillo) {
 
   // 2. il contatore del ciclo: nessun ciclo suo, lo azzero io alla partenza
   const nomeContatore = base + " ciclo kWh";
-  let contatore = gia("utility_meter", nomeContatore);
+  let contatore = giaMio(miei.contatore) || gia("utility_meter", nomeContatore);
   if (!contatore) {
     parla("Creo il contatore del ciclo...");
     await flusso(hass, "utility_meter", {
@@ -659,14 +676,37 @@ export async function creaCicli(hass, opzioni, dillo) {
   const nMin = base + " ultimo ciclo minuti";
   const nFine = base + " ultimo ciclo fine";
   const nVia = base + " ciclo iniziato";
-  const eKwh = "input_number." + slug(nKwh);
-  const eMin = "input_number." + slug(nMin);
-  const eFine = "input_datetime." + slug(nFine);
-  const eVia = "input_datetime." + slug(nVia);
-  if (!esiste(eKwh)) { parla("Creo la memoria dei kWh..."); await creaNumero(hass, nKwh, "kWh", 0.001, 1000); }
-  if (!esiste(eMin)) { parla("Creo la memoria dei minuti..."); await creaNumero(hass, nMin, "min", 1, 10000); }
-  if (!esiste(eFine)) { parla("Creo la memoria della fine..."); await creaDataOra(hass, nFine); }
-  if (!esiste(eVia)) { parla("Creo la memoria della partenza..."); await creaDataOra(hass, nVia); }
+  // La memoria all'indirizzo che mi aspetto e' MIA solo se si chiama come la
+  // chiamerei io. Se no e' di qualcun altro - due schede chiamate "Forno", un
+  // aiutante fatto a mano - e scriverci dentro vorrebbe dire rovinargli lo
+  // storico. Nel dubbio (nome non ancora caricato) la considero mia: fare un
+  // doppione e' peggio.
+  const mia = (eid, nome) => {
+    const st = hass.states[eid];
+    if (!st) return false;
+    const suo = String((st.attributes || {}).friendly_name || "").trim().toLowerCase();
+    return !suo || suo === nome.trim().toLowerCase();
+  };
+  const memoriaDi = (dominio, nome, vecchia, crea) => {
+    // quella che la scheda sta gia' usando vince su qualunque nome
+    if (giaMio(vecchia)) return vecchia;
+    const atteso = dominio + "." + slug(nome);
+    if (mia(atteso, nome)) return atteso;
+    if (esiste(atteso)) parla("\u00ab" + slug(nome) + "\u00bb e' gia' di un'altra cosa: ne faccio una mia.");
+    return crea();
+  };
+  const eKwh = await memoriaDi("input_number", nKwh, miei.consumo, () => {
+    parla("Creo la memoria dei kWh..."); return creaNumero(hass, nKwh, "kWh", 0.001, 1000);
+  });
+  const eMin = await memoriaDi("input_number", nMin, miei.durata, () => {
+    parla("Creo la memoria dei minuti..."); return creaNumero(hass, nMin, "min", 1, 10000);
+  });
+  const eFine = await memoriaDi("input_datetime", nFine, miei.fine, () => {
+    parla("Creo la memoria della fine..."); return creaDataOra(hass, nFine);
+  });
+  const eVia = await memoriaDi("input_datetime", nVia, miei.inizio, () => {
+    parla("Creo la memoria della partenza..."); return creaDataOra(hass, nVia);
+  });
 
   // 4. l'automazione che al termine del ciclo scrive le tre memorie.
   // "La partenza non e' credibile": mai scritta (mezzanotte) o piu' vecchia
@@ -777,7 +817,19 @@ export async function creaCicli(hass, opzioni, dillo) {
   // Se c'era gia' NON la lascio com'e': la riscrivo. E' roba fatta da me, e
   // se non la rifaccio cambiare i minuti di attesa non servirebbe a niente.
   // Riscriverla sullo stesso id vuol dire che l'entita' resta quella.
-  const suo = automazioni.find((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto);
+  let suo = automazioni.find((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto);
+  // RINOMINANDO LA SCHEDA cambia anche questo nome, e senza quello che segue
+  // nasceva una SECONDA automazione: la prima restava accesa e continuava a
+  // scrivere nelle vecchie memorie, e \u00abCancella gli aiutanti\u00bb non la
+  // trovava piu'. La ritrovo dall'indirizzo, che il rinomino non cambia.
+  if (!suo) {
+    const prima = radiceDellaScheda({ ciclo: opzioni.ciclo || {}, soglia_acceso: opzioni.soglia_acceso });
+    const eidPrima = prima ? "automation." + prima + "_segna_il_ciclo" : "";
+    if (eidPrima && hass.states[eidPrima]) {
+      suo = eidPrima;
+      parla("L'automazione del ciclo c'era gia' col nome di prima: la rinomino invece di rifarla.");
+    }
+  }
   if (!suo) {
     parla("Creo l'automazione del ciclo...");
     await creaAutomazione(hass, corpoAuto);
@@ -1050,6 +1102,9 @@ export async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
     }
   }
   await risolvi();
+  // i costi che trovo gia' fatti e mi limito a riconoscere: me li segno, cosi'
+  // la cancellazione degli aiutanti sa che non sono roba mia
+  const adottati = [];
   // I costi: un sensore per il costo non lo creo piu'. La scheda sa i kWh e sa
   // il prezzo, il conto se lo fa da sola: un aiutante in meno per ogni periodo.
   // Se pero' un sensore del costo esiste gia' (l'avevi fatto tu, o c'era prima)
@@ -1061,7 +1116,12 @@ export async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
       const gia = Object.values(hass.states).find((x) => x.entity_id.startsWith("sensor.")
         && (x.attributes.friendly_name || "").toLowerCase()
           === ("Costo " + base.toLowerCase() + " " + chiave).toLowerCase());
-      if (gia) periodi[periodo].cost = gia.entity_id;
+      if (gia) {
+        periodi[periodo].cost = gia.entity_id;
+        // me lo tengo e la scheda lo usa, ma me lo SEGNO: non l'ho creato io,
+        // quindi la cancellazione degli aiutanti non deve proporlo
+        adottati.push(gia.entity_id);
+      }
       continue;
     }
     const nome = "Costo " + base.toLowerCase() + " " + chiave;
@@ -1095,6 +1155,7 @@ export async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   }
   await avvisoUnita(hass, Object.values(periodi).map((x) => x.energy), dillo);
   const patch = { period_entities: periodi, stats: { ...(opzioni.stats || {}) } };
+  if (adottati.length) patch.costi_adottati = adottati;
   if (Object.keys(memoria).length) patch.helper_memoria = null;
   // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"
   if (kwh) patch.energy_stat_entity = kwh;
@@ -1144,24 +1205,38 @@ export function aiutantiDellaScheda(hass, cfg) {
   metti(c.contatore);
   metti(c.consumo); metti(c.durata); metti(c.fine); metti(c.inizio);
   metti(cfg.soglia_acceso);
-  // e la soglia "<nome> in funzione", se la scheda non se la ricorda: per NOME
-  // ESATTO, se no "forno" si prende anche la soglia di "forno microonde"
-  const base = radiceDellaScheda(cfg);
-  if (base) metti("binary_sensor." + base + "_in_funzione");
+  // Qui c'era anche la soglia INDOVINATA per nome,
+  // "binary_sensor.<radice>_in_funzione", per le schede che non se la
+  // ricordano. Tolta: bastava che un TUO aiutante si chiamasse cosi' per
+  // vederselo proporre, gia' spuntato, nella cancellazione. Quella che la
+  // scheda si e' fatta creare sta in `soglia_acceso`, qui sopra.
+  //
+  // E i costi che non ho creato io - solo riconosciuti, perche' c'erano gia' -
+  // non si toccano: sono tuoi.
+  const nonMiei = Array.isArray(cfg.costi_adottati) ? cfg.costi_adottati
+    : (cfg.costi_adottati ? [cfg.costi_adottati] : []);
+  nonMiei.forEach((x) => dentro.delete(x));
   return [...dentro];
 }
 
 // Il nome-radice della scheda: serve per ritrovare la soglia e l'automazione
 // del ciclo quando nella configurazione non sono scritte.
 function radiceDellaScheda(cfg) {
-  if (cfg.name) return slug(cfg.name);
   const c = cfg.ciclo || {};
   const da = (eid, coda) => {
-    const o = String(eid || "").split(".")[1] || "";
+    // Home Assistant appende _2 quando lo slug e' occupato: quella coda non
+    // fa parte della radice.
+    const o = (String(eid || "").split(".")[1] || "").replace(/_\d+$/, "");
     return o.endsWith(coda) ? o.slice(0, -coda.length) : "";
   };
-  return da(c.consumo, "_ultimo_ciclo_kwh") || da(c.durata, "_ultimo_ciclo_minuti")
-    || da(c.inizio, "_ciclo_iniziato") || da(c.contatore, "_ciclo_kwh") || "";
+  // PRIMA GLI INDIRIZZI, POI il nome. Gli indirizzi non cambiano quando
+  // rinomini la scheda; il nome si', e allora la soglia e l'automazione del
+  // ciclo - che si chiamano ancora com'erano - non si ritrovavano piu', e ne
+  // nasceva un secondo giro.
+  const dagliIndirizzi = da(c.consumo, "_ultimo_ciclo_kwh") || da(c.durata, "_ultimo_ciclo_minuti")
+    || da(c.inizio, "_ciclo_iniziato") || da(c.contatore, "_ciclo_kwh")
+    || da(cfg.soglia_acceso, "_in_funzione");
+  return dagliIndirizzi || (cfg.name ? slug(cfg.name) : "");
 }
 
 // Gli aiutanti VERI fra quelli nominati dalla scheda. Tre razze:
