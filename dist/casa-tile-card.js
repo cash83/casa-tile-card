@@ -10331,7 +10331,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.32";
+const VERSIONE = "2.96.36";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -12835,6 +12835,23 @@ const ConGrafici = (Base) => class extends Base {
     return fuori;
   }
 
+  // IL FONDO SCALA NON E' UNA MISURA. Un modem, quando il segnale non ce
+  // l'ha, non tace: scrive il minimo previsto dalla norma - -140 dBm per
+  // RSRP e RSSI, -30 dB o meno per RSRQ e SINR. Una sola lettura cosi'
+  // allunga la scala del grafico di settanta dB e schiaccia tutto il resto
+  // in una riga, con le risalite che diventano muri dritti. Le butto via
+  // SOLO sui sensori di potenza del segnale, dove quel numero vuol dire
+  // "non misurato" e nient'altro.
+  _misuraFinta(v) {
+    const st = this._hass ? this._hass.states[this._config.entity] : null;
+    if (!st || st.attributes.device_class !== "signal_strength") return false;
+    const unita = String(st.attributes.unit_of_measurement || "");
+    if (v <= -32768) return true;
+    if (unita === "dBm") return v <= -140;
+    if (unita === "dB") return v <= -30;
+    return false;
+  }
+
   async _chiediStoria(chi, da, a) {
     // la casellina del riquadro non chiede lo storico: e' li' solo per
     // farsi spostare i pezzi, non le serve il grafico vero
@@ -12847,7 +12864,7 @@ const ConGrafici = (Base) => class extends Base {
         : (g.last_updated || g.last_changed || null);
       if (typeof t === "string") t = Date.parse(t);
       return { v: v, t: Number(t) || 0 };
-    }).filter((x) => !isNaN(x.v));
+    }).filter((x) => !isNaN(x.v) && !this._misuraFinta(x.v));
 
     try {
       const risposta = await this._hass.callWS({
@@ -12899,8 +12916,9 @@ const ConGrafici = (Base) => class extends Base {
     const box = this._andamento;
     if (!box) return;
     const storia = this._storia || [];
-    const adesso = (st && !isNaN(parseFloat(st.state)))
+    let adesso = (st && !isNaN(parseFloat(st.state)))
       ? { v: parseFloat(st.state), t: Date.now() } : null;
+    if (adesso && this._misuraFinta(adesso.v)) adesso = null;
     // niente copia dell'array: con lo storico lungo era il conto piu' caro
     // di tutto il disegno
     const punti = adesso ? storia.concat([adesso]) : storia;
@@ -12932,14 +12950,23 @@ const ConGrafici = (Base) => class extends Base {
     const bassoVero = Math.min.apply(null, tuttiV);
     const altoVero = Math.max.apply(null, tuttiV);
     const campo = alto - basso || 1;
+    // DI LATO SI VA COL TEMPO, NON COL NUMERO D'ORDINE. Le letture non
+    // arrivano a ritmo regolare: un sensore puo' mandarne tre in due minuti
+    // mentre balla e poi star fermo tre ore. Mettendole a passo uguale, quei
+    // due minuti si prendevano la stessa larghezza delle tre ore: un
+    // sobbalzo diventava un blocco con le pareti dritte e mezza notte
+    // tranquilla si schiacciava in due punti.
     const passo = 100 / (scelti.length - 1);
+    const primo = scelti[0].t || 0;
+    const durata = (scelti[scelti.length - 1].t || 0) - primo;
+    const aTempo = primo > 0 && durata > 0;
     const coord = scelti.map((x, i) =>
-      [i * passo, 28 - ((x.v - basso) / campo) * 26]);
+      [aTempo ? ((x.t - primo) / durata) * 100 : i * passo,
+        28 - ((x.v - basso) / campo) * 26]);
     // me li tengo da parte: servono al mirino
     this._disegnati = scelti;
     this._coord = coord;
-    const riga = coord.map((xy, i) =>
-      (i ? "L" : "M") + xy[0].toFixed(2) + " " + xy[1].toFixed(2)).join(" ");
+    const riga = this._filoMorbido(this._ammorbidisci(coord));
     box.querySelector(".riga").setAttribute("d", riga);
     const pieno = box.querySelector(".pieno");
     pieno.setAttribute("d", riga + " L100 30 L0 30 Z");
@@ -12972,6 +12999,74 @@ const ConGrafici = (Base) => class extends Base {
     box.title = "Ultime " + (Number(this._config.grafico_ore) > 0
       ? Number(this._config.grafico_ore) : 24) + " ore: da "
       + (Math.round(bassoVero * 10) / 10) + " a " + (Math.round(altoVero * 10) / 10);
+  }
+
+  // PRIMA DI DISEGNARE, SPIANO. Un tratto fermo per ore con un salto secco
+  // davanti e dietro, riempito sotto, e' un mattone - e i mattoni non li
+  // vuole nessuno su una strisciolina alta trenta punti. Allora rifaccio la
+  // linea a passo regolare (settanta caselle sulle ventiquattro ore,
+  // mediando quello che cade in ognuna) e ci passo sopra una media mobile:
+  // il salto diventa una salita, le punte di un minuto si ammorbidiscono.
+  // I punti VERI restano quelli di prima per il mirino e per il "da X a Y":
+  // questo lo faccio solo per il disegno.
+  _ammorbidisci(coord) {
+    if (coord.length < 4) return coord;
+    const caselle = Math.max(20, Math.min(70, coord.length));
+    const passo = 100 / caselle;
+    const somma = new Array(caselle).fill(0);
+    const quanti = new Array(caselle).fill(0);
+    coord.forEach((xy) => {
+      const i = Math.max(0, Math.min(caselle - 1, Math.floor(xy[0] / passo)));
+      somma[i] += xy[1];
+      quanti[i] += 1;
+    });
+    // le caselle vuote (nessuna lettura in quel pezzo di tempo) prendono il
+    // valore di prima: la linea non deve bucarsi
+    const y = [];
+    let ultimo = coord[0][1];
+    for (let i = 0; i < caselle; i += 1) {
+      if (quanti[i]) ultimo = somma[i] / quanti[i];
+      y.push(ultimo);
+    }
+    // media mobile a tre, pesata 1-2-1
+    const spianato = y.map((v, i) => {
+      const a0 = y[i - 1] === undefined ? v : y[i - 1];
+      const a2v = y[i + 1] === undefined ? v : y[i + 1];
+      return (a0 + v * 2 + a2v) / 4;
+    });
+    const fuori = spianato.map((v, i) => [(i + 0.5) * passo, v]);
+    // la linea deve toccare i due bordi, se no il pieno sotto resta mozzo
+    fuori[0] = [0, spianato[0]];
+    fuori[fuori.length - 1] = [100, spianato[spianato.length - 1]];
+    return fuori;
+  }
+
+  // LA LINEA MORBIDA. A spigoli vivi un tratto fermo per ore con un salto
+  // secco davanti e dietro diventa un mattone: pareti dritte e cima piatta.
+  // Passando una curva per i punti (Catmull-Rom portata a Bezier) il salto
+  // resta - e' un dato vero - ma si legge come una salita, non come un
+  // blocco. La curva puo' sbordare sopra e sotto i punti: la tengo dentro
+  // alla striscia, se no una punta esce dal riquadro.
+  _filoMorbido(coord) {
+    const q = (n) => Math.max(1, Math.min(29, n)).toFixed(2);
+    if (coord.length < 3) {
+      return coord.map((xy, i) =>
+        (i ? "L" : "M") + xy[0].toFixed(2) + " " + q(xy[1])).join(" ");
+    }
+    const k = 0.22;   // quanto e' morbida: poca, se no inventa gobbe
+    let d = "M" + coord[0][0].toFixed(2) + " " + q(coord[0][1]);
+    for (let i = 0; i < coord.length - 1; i += 1) {
+      const p0 = coord[i - 1] || coord[i];
+      const p1 = coord[i];
+      const p2 = coord[i + 1];
+      const p3 = coord[i + 2] || p2;
+      d += " C" + (p1[0] + (p2[0] - p0[0]) * k).toFixed(2)
+        + " " + q(p1[1] + (p2[1] - p0[1]) * k)
+        + " " + (p2[0] - (p3[0] - p1[0]) * k).toFixed(2)
+        + " " + q(p2[1] - (p3[1] - p1[1]) * k)
+        + " " + p2[0].toFixed(2) + " " + q(p2[1]);
+    }
+    return d;
   }
 
   // CHI MUOVE IL MIRINO. Col mouse basta passare sopra la casella. Col dito
