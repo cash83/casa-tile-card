@@ -1895,9 +1895,11 @@ svg .caricafulmine { animation-play-state: running; }
 .velo[aperto] { display: flex; }
 .finestra {
   /* con piu' colonne serve piu' spazio: la finestra si allarga da sola */
-  width: min(var(--fin-max, 560px), 100%); max-height: 84vh; overflow: auto;
-  /* arrivato in fondo, il dito continuava a scorrere la pagina dietro */
-  overscroll-behavior: contain;
+  width: min(var(--fin-max, 560px), 100%); max-height: 84vh;
+  /* SCORRE SOLO IL CONTENUTO, non tutta la finestra: se no la testata - con
+     il titolo e la X - se ne andava su insieme alle schede, e per chiudere
+     bisognava prima tornare in cima. */
+  display: flex; flex-direction: column; overflow: hidden;
   background: var(--fin-bg, var(--casa-popup-bg, #0f1620));
   background-size: cover; background-position: center;
   border: 1px solid var(--casa-border, #1e2b3d);
@@ -1933,7 +1935,8 @@ svg .caricafulmine { animation-play-state: running; }
 @media (prefers-reduced-motion: reduce) {
   .finestra, .velo[aperto] { animation: none !important; }
 }
-.f-testa { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.f-testa { display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+  flex: 0 0 auto; }
 .f-icona { width: 38px; height: 38px; flex: 0 0 38px; }
 .f-titolo { font-size: 18px; font-weight: 700; letter-spacing: -.01em;
   color: var(--primary-text-color, #eaf1fb); }
@@ -1952,7 +1955,18 @@ svg .caricafulmine { animation-play-state: running; }
    ognuna e' larga la percentuale che le si e' data - anche il 37% - e
    quando non ci sta piu' si va a capo. Lo stacco fra le schede lo tolgo
    dalla larghezza (vedi _stiliMisura), se no due da meta' non ci stanno. */
-.f-corpo { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; }
+.f-corpo { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px;
+  /* la parte che scorre. min-height: 0 serve o il flex non lo lascia
+     rimpicciolire sotto alla misura del contenuto, e non scorre niente.
+     overscroll-behavior stava sulla finestra: arrivato in fondo, il dito
+     continuava a scorrere la pagina dietro. */
+  flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain;
+  /* la barra si vede ma non serve: dentro al pop-up si scorre con la
+     rotella, col dito e con le frecce, e la barra grigia su una finestra
+     scura si notava piu' di quello che c'e' dentro. Sparisce il DISEGNO,
+     non lo scorrimento. */
+  scrollbar-width: none; }
+.f-corpo::-webkit-scrollbar { width: 0; height: 0; }
 .f-corpo > * { display: block; min-width: 0; flex: 0 0 100%; max-width: 100%; }
 /* Sul telefono la finestra e' larga quanto lo schermo: due schede
    affiancate non ci starebbero, quindi ognuna si prende tutta la riga. */
