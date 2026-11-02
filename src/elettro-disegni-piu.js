@@ -22,7 +22,11 @@ const piede = (id, cx = 120, cy = 214, rx = 56, ry = 9) =>
 
 // La targa dei Watt: il rettangolino nero col numero azzurro e la W.
 // `s` la rimpicciolisce quando deve stare in un posto stretto.
-const targa = (cx, cy, s = 1) => {
+// Esportata perche' sette disegni di elettro-comune.js (lavastoviglie,
+// asciugatrice, lavatrice, forno, tv, deumidificatore, caldaia) erano nati
+// senza <text class="dm-e-watt">: la scheda scriveva i Watt e non si vedeva
+// niente. Ora la prendono da qui, cosi' la targa resta una sola.
+export const targa = (cx, cy, s = 1) => {
   const w = 68 * s;
   const h = 26 * s;
   return `<rect x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" rx="${8 * s}" fill="#061020" stroke="#38bdf8" stroke-opacity=".4" stroke-width="1.1"/>

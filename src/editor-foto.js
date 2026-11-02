@@ -13,6 +13,26 @@
 
 import { T } from './lingua.js';
 
+// CHI HA IL FUOCO DAVVERO.
+//
+// `document.activeElement`, chiamato da dentro uno shadow root, torna
+// l'host piu' esterno (`hui-card-element-editor`) e MAI il campo di dentro:
+// il confronto `document.activeElement !== campo` era quindi sempre vero e
+// la guardia che non doveva riscrivere il campo mentre l'utente digita non
+// scattava mai. Qui parto dalla radice del campo e scendo di ombra in ombra
+// finche' trovo l'elemento vero, come fa `elettro-condivisi.js` quando
+// risale con `getRootNode().host`.
+export function elementoAFuoco(el) {
+  const radice = el && el.getRootNode ? el.getRootNode() : null;
+  let a = (radice && radice.activeElement)
+    || (typeof document === "undefined" ? null : document.activeElement);
+  // se quello a fuoco e' a sua volta un host, dentro c'e' il campo vero
+  while (a && a.shadowRoot && a.shadowRoot.activeElement) {
+    a = a.shadowRoot.activeElement;
+  }
+  return a;
+}
+
 export const STILE_FOTO = `
 .dm-foto{margin:10px 0 2px}
 .dm-foto-riga{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -119,7 +139,10 @@ export function rigaFoto({ dammiHass, valore, tasto, scrivi }) {
     scegli.textContent = c
       ? T("Scegli un'altra foto")
       : (tasto || T("Usa un'immagine mia (telefono o PC)"));
-    if (document.activeElement !== indirizzo) indirizzo.value = c;
+    // mentre ci scrive dentro non gliela cambio sotto le mani: il fuoco va
+    // cercato nell'ombra, se no la guardia non scatta mai (vedi
+    // `elementoAFuoco`)
+    if (elementoAFuoco(indirizzo) !== indirizzo) indirizzo.value = c;
     if (!nota.classList.contains("errore")) nota.textContent = "";
   };
   aggiorna(valore);

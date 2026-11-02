@@ -28,6 +28,15 @@ export const ConMusica = (Base) => class extends Base {
     const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
     if (!card) return;
     const posto = card.clientHeight;
+    // LA CASELLA HA CAMBIATO MISURA: IL CONTAGIRI RIPARTE DA ZERO.
+    // Senza questo, una volta superati i dieci giri senza convergere il
+    // contatore restava alto per sempre: da li' in poi ogni
+    // ridimensionamento otteneva UN solo scatto di correzione invece della
+    // rincorsa completa, e il lettore restava della misura sbagliata.
+    if (this._postoPrima !== posto) {
+      this._postoPrima = posto;
+      this._giriLettore = 0;
+    }
     // Dove comincia il primo pezzo e dove finisce l'ultimo. I pezzi
     // staccati dal flusso - la copertina di sfondo, il cielo, il velo -
     // non contano: stanno dietro e non chiedono posto.
@@ -129,7 +138,19 @@ export const ConMusica = (Base) => class extends Base {
     const apri = vuole === undefined ? pan.hidden : !!vuole;
     pan.hidden = !apri;
     if (this._menuCoda) this._menuCoda.hidden = true;
-    if (!apri) { this._render(); return; }
+    if (!apri) {
+      // ANCHE IN CHIUSURA SI FA IL GIRO COMPLETO, come nelle gemelle
+      // _apriCoda e _apriCerca che le chiamano fuori dal "if (apri)".
+      // Uscendo subito da qui restavano fuori due cose: l'ascolto del
+      // "tocco fuori" rimaneva attaccato al documento a riquadro chiuso
+      // (e da li' ogni tocco veniva scartato: niente piu' pop-up ne'
+      // dettagli), e PANNELLI_APERTI restava su "sfoglia", cosi' il
+      // riquadro si riapriva da solo al render successivo.
+      this._ricordaPannello();
+      this._guardaFuori();
+      this._render();
+      return;
+    }
     this._disegnaPastiglie();
     if (this._pastiglie) {
       Array.from(this._pastiglie.children).forEach((b) =>
@@ -146,7 +167,7 @@ export const ConMusica = (Base) => class extends Base {
   _sfogliaIndietro() {
     const prima = (this._pila || []).pop();
     if (!prima) { this._apriSfoglia(false); return; }
-    this._scriviSfoglia(prima.voci, prima.titolo, true);
+    this._scriviSfoglia(prima.voci, prima.titolo);
   }
 
   _caricaSfoglia(chiave, titolo) {
@@ -206,18 +227,23 @@ export const ConMusica = (Base) => class extends Base {
     });
   }
 
-  _scriviSfoglia(voci, titolo, indietro) {
+  _scriviSfoglia(voci, titolo) {
     const pan = this._panSfoglia;
     const elenco = pan.querySelector(".s-elenco");
     pan.querySelector(".s-titolo").textContent = T(titolo);
     pan.querySelector(".s-indietro").hidden = !(this._pila || []).length;
     elenco.innerHTML = "";
+    // _ULTIMEVOCI E' SEMPRE LA CARTELLA CHE SI STA VEDENDO, anche quando ci
+    // si arriva col tasto "<" e anche se dentro non c'e' niente. Prima la
+    // scrivevo solo andando avanti: dopo un "indietro" restava la cartella
+    // da cui si era usciti, finiva nella pila al giro dopo e il "<"
+    // successivo riportava la' invece che al livello di sopra.
+    this._ultimeVoci = { voci: voci || [], titolo };
     if (!voci || !voci.length) {
       elenco.innerHTML = TH('<div class="s-nota">Qui non c-e niente.</div>'
         .replace("c-e", "c" + String.fromCharCode(39) + "e"));
       return;
     }
-    if (!indietro) this._ultimeVoci = { voci, titolo };
     const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
     voci.forEach((v) => {
       const riga = document.createElement("div");
@@ -580,7 +606,20 @@ export const ConMusica = (Base) => class extends Base {
     if (!box || !this._hass || !this._hass.callWS) return;
     const ora = Date.now();
     if (quale !== undefined) {
-      if (box._perChi === quale || ora - (box._quando || 0) < 2000) return;
+      if (box._perChi === quale) return;
+      // IL FRENO RIMANDA, NON BUTTA VIA. La domanda respinta andava persa e
+      // nessuno riprovava (box._perChi restava sulla traccia di prima),
+      // cosi' la coda rimaneva vecchia fino al render successivo. Adesso la
+      // riprovo appena i due secondi sono scaduti.
+      const resta = 2000 - (ora - (box._quando || 0));
+      if (resta > 0) {
+        clearTimeout(box._piuTardi);
+        box._piuTardi = setTimeout(() => {
+          box._piuTardi = 0;
+          if (this.isConnected) this._chiediCoda(eid, quale);
+        }, resta + 20);
+        return;
+      }
       box._perChi = quale;
     }
     box._quando = ora;
@@ -690,6 +729,15 @@ export const ConMusica = (Base) => class extends Base {
     if (adesso < 0 && st && st.attributes.media_title) {
       adesso = elenco.findIndex((v) => v.titolo === st.attributes.media_title);
     }
+    // LO SCORRIMENTO SE L'HA MESSO LUI NON SI TOCCA. La lista si riscrive
+    // tutta (innerHTML = "") e il browser azzera lo scorrimento, quindi me
+    // lo segno PRIMA: se non e' dove l'avevo lasciato io, l'ha spostato
+    // l'utente a mano e glielo rimetto dov'era invece di riportarlo sul
+    // brano in corso. Se no, scorrendo i brani in fondo, al cambio di
+    // traccia (o 0,4-1,4 s dopo Su/Giu/Rimuovi) tornava sempre all'inizio.
+    const eraSu = lista.scrollTop;
+    const aMano = lista._mioScorri !== undefined
+      && Math.abs(eraSu - lista._mioScorri) > 4;
     lista.innerHTML = "";
     elenco.forEach((v, n) => {
       const riga = document.createElement("div");
@@ -744,9 +792,21 @@ export const ConMusica = (Base) => class extends Base {
     });
     // la riga che suona la porto sotto gli occhi, senza scossoni
     const q = lista.querySelector(".coda-riga[adesso]");
-    if (q && q.offsetParent) {
-      lista.scrollTop = Math.max(0, q.offsetTop - 6);
+    if (aMano) {
+      lista.scrollTop = eraSu;
+    } else if (q && q.offsetParent) {
+      // LA POSIZIONE SI CONTA RISPETTO ALLA LISTA, non all'offsetParent.
+      // ".coda-lista" non e' posizionata, quindi l'offsetParent della riga
+      // e' ".pannello" (absolute, con padding 8px 10px) e "offsetTop"
+      // portava dentro quel padding piu' l'altezza di ".p-testa": una riga
+      // intera di troppo, e il brano in corso finiva sempre appena SOPRA il
+      // bordo visibile. Con la differenza fra i due rettangoli il conto e'
+      // esatto e non dipende da come sta lo stile.
+      const rl = lista.getBoundingClientRect();
+      const rq = q.getBoundingClientRect();
+      lista.scrollTop = Math.max(0, lista.scrollTop + (rq.top - rl.top) - 6);
     }
+    lista._mioScorri = lista.scrollTop;
   }
 
   // I VOLUMI DELLE CASSE UNITE. Torna niente se non c'e' gruppo, o se le
@@ -1203,8 +1263,16 @@ export const ConMusica = (Base) => class extends Base {
       via.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!this._hass) return;
+        // LA CODA LA TIENE IL CAPOGRUPPO, come per il tastino "porta qui la
+        // coda" qui sopra. Mandando il comando alla cassa configurata, se
+        // quella e' un'agganciata (coda vuota) il tasto si vedeva - anche le
+        // agganciate annunciano supported_features & 8192 - e non faceva
+        // niente. _entitaAttiva() di solito rimedia, ma la sua correzione
+        // vale solo con _scelto impostato: a pagina appena caricata e gruppo
+        // in pausa cade sulla cassa della configurazione.
+        const suo = this._hass.states[this._config.entity];
         this._hass.callService("media_player", "clear_playlist",
-          { entity_id: this._config.entity });
+          { entity_id: this._capoGruppo(suo) || this._config.entity });
         this._chiudiPannelli();
       });
       box.appendChild(via);
@@ -1422,6 +1490,11 @@ export const ConMusica = (Base) => class extends Base {
   _chiaveMemoria() { return "casa-tile:cassa:" + this._lettori().join("|"); }
 
   _ricordaScelto(eid) {
+    // SENZA ELENCO DI LETTORI NON SI SCRIVE NIENTE. La chiave sarebbe
+    // "casa-tile:cassa:" per TUTTE le caselle della casa, e chi la legge la
+    // guarda solo quando i lettori sono piu' di uno: scriverci dentro
+    // sporcava una chiave condivisa senza servire a niente.
+    if (!this._lettori().length) return;
     try { localStorage.setItem(this._chiaveMemoria(), eid); } catch (e) { /* niente */ }
   }
 

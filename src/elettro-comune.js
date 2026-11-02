@@ -2,7 +2,7 @@ import { laLocale } from './lingua.js';
 import { comeElenco, numeroVero } from './aiuti.js';
 // gli stessi aiuti delle altre schede, cosi' ce n'e' una copia sola
 export { comeElenco, numeroVero };
-import { DISEGNI_PIU } from './elettro-disegni-piu.js';
+import { DISEGNI_PIU, targa } from './elettro-disegni-piu.js';
 // Pezzi comuni delle schede energia/elettrodomestico: disegni, icone, stile.
 // Nata dalle schede di Simonz82 (github.com/Simonz82/smart-home-cards),
 // che le lascia libere: portata qui dentro il 18/09/2026 per non dipendere
@@ -21,6 +21,9 @@ const HERO_BUILDERS = {
     <rect x="100" y="41" width="40" height="11" rx="4.23" fill="#0b1526"/>
     <rect x="105" y="45" width="30" height="3" rx="1.5" fill="#155e75"/>
     <circle cx="66" cy="46" r="2.6" fill="#22c55e"/>
+    <!-- la targa dei Watt non c'era: la scheda scrive dentro .dm-e-watt e il
+         numero non compariva. Nella parte libera del cruscotto, a destra -->
+    ${targa(163, 46, 0.66)}
     <rect x="56" y="62" width="128" height="128" rx="9" fill="#0c1930"/>
     <rect x="60" y="66" width="120" height="120" rx="7" fill="url(#dmh-cool-${id})" opacity=".9"/>
     <rect x="60" y="66" width="120" height="120" rx="7" fill="#082033" opacity=".45"/>
@@ -72,6 +75,9 @@ const HERO_BUILDERS = {
       <ellipse cx="142" cy="150" rx="10" ry="7" transform="rotate(-10 142 150)"/>
     </g>
     <path d="M84 132a36 36 0 0 1 66-21" stroke="#ffd9a8" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".55"/>
+    <!-- la targa dei Watt non c'era: fuori dal gruppo che gira, in fondo
+         al cestello dove non copre i panni -->
+    ${targa(120, 170, 0.85)}
     <rect x="46" y="196" width="148" height="16" rx="7" fill="#9fadbc"/>
     <rect x="100" y="199" width="40" height="7" rx="3.5" fill="#78899b"/>
   </svg>`,
@@ -98,6 +104,9 @@ const HERO_BUILDERS = {
         <circle cx="104" cy="110" r="4.5"/><circle cx="122" cy="102" r="3.4"/><circle cx="140" cy="112" r="5.2"/>
       </g>
     </g>
+    <!-- la targa dei Watt non c'era: fuori dal gruppo che gira, in fondo
+         al cestello sotto l'acqua -->
+    ${targa(120, 170, 0.85)}
     <rect x="46" y="196" width="148" height="16" rx="7" fill="#9fadbc"/>
     <rect x="100" y="199" width="40" height="7" rx="3.5" fill="#78899b"/>
   </svg>`,
@@ -116,6 +125,8 @@ const HERO_BUILDERS = {
     <rect x="56" y="62" width="128" height="128" rx="9" fill="#0c1930"/>
     <rect x="60" y="66" width="120" height="120" rx="7" fill="url(#dmh-hot-${id})" opacity=".9" class="dmh-glow"/>
     <rect x="60" y="66" width="120" height="120" rx="7" fill="#3a0d0d" opacity=".4"/>
+    <!-- la targa dei Watt non c'era: in cima al forno, sopra le resistenze -->
+    ${targa(120, 77, 0.88)}
     <g stroke="#fecaca" stroke-width="2.6" opacity=".85">
       <path d="M68 100h104M68 154h104" fill="none"/>
     </g>
@@ -151,6 +162,9 @@ const HERO_BUILDERS = {
       <rect x="124" y="55" width="34" height="94" fill="#34d399"/>
       <rect x="166" y="55" width="34" height="94" fill="#60a5fa"/>
     </g>
+    <!-- la targa dei Watt non c'era: in basso sullo schermo, sotto il
+         grafico e sopra le bande che lampeggiano -->
+    ${targa(120, 133, 0.85)}
     <rect x="112" y="158" width="16" height="20" fill="#1f2937"/>
     <rect x="76" y="178" width="88" height="10" rx="5" fill="#1f2937"/>
     <circle cx="196" cy="52" r="3" fill="#22c55e"/>
@@ -492,6 +506,9 @@ const HERO_BUILDERS = {
     </g>
     <rect x="74" y="150" width="92" height="48" rx="8" fill="none" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.4"/>
     <rect x="104" y="156" width="32" height="5" rx="2.5" fill="#94a3b8" opacity=".8"/>
+    <!-- la targa dei Watt non c'era: nella striscia libera della tanica,
+         fra il manico e il pelo dell'acqua -->
+    ${targa(120, 169, 0.62)}
     <rect x="66" y="206" width="12" height="12" rx="4" fill="#9fadbc"/>
     <rect x="162" y="206" width="12" height="12" rx="4" fill="#9fadbc"/>
   </g>
@@ -511,6 +528,9 @@ const HERO_BUILDERS = {
     <circle cx="120" cy="104" r="38" fill="#0b1526"/>
     <path d="M120 104 L120 76" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" transform="rotate(35 120 104)"/>
     <circle cx="120" cy="104" r="3" fill="#38bdf8"/>
+    <!-- la targa dei Watt non c'era: dentro al manometro, sotto l'ago e
+         tutta nel tondo scuro -->
+    ${targa(120, 122, 0.72)}
     <g font-size="7" fill="#94a3b8" font-family="sans-serif" text-anchor="middle">
       <text x="120" y="74">bar</text>
     </g>
@@ -673,8 +693,12 @@ const STYLE = `
 /* spenta o non raggiungibile: sbiadisce il DISEGNO, non il riquadro.
    Prima il filtro stava sul riquadro e si portava via anche l'alone,
    cosi' la scheda spenta era un rettangolo grigio e piatto. */
-.dm-ap-card.is-off .dm-ap-hero>svg,.dm-ap-card.is-unavailable .dm-ap-hero>svg{filter:grayscale(.55) opacity(.62)}
-.dm-ap-card.is-standby .dm-ap-hero>svg{filter:saturate(.85)}
+/* ...e vale anche per le FOTO tue: prima la regola prendeva solo >svg, cosi'
+   chi mette una foto al posto del disegno vedeva il riquadro identico fra
+   spenta, standby e in funzione - nessun segnale di stato. */
+.dm-ap-card.is-off .dm-ap-hero>svg,.dm-ap-card.is-unavailable .dm-ap-hero>svg,
+.dm-ap-card.is-off .dm-ap-hero>img,.dm-ap-card.is-unavailable .dm-ap-hero>img{filter:grayscale(.55) opacity(.62)}
+.dm-ap-card.is-standby .dm-ap-hero>svg,.dm-ap-card.is-standby .dm-ap-hero>img{filter:saturate(.85)}
 @keyframes dmh-spin{to{transform:rotate(360deg)}}
 @keyframes dmh-glow{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes dmh-flicker{0%,100%{opacity:.85}30%{opacity:.5}55%{opacity:1}80%{opacity:.6}}
@@ -962,11 +986,14 @@ const STYLE = `
 // dopo l'asse (30 su 300) e arrivano in fondo. Col mouse basta passarci sopra, col
 // dito si tiene premuto e si trascina (touch-action: none), e alzandolo va via.
 export function mirinoGrafico(box, punti, scrivi) {
-  if (!box || !punti || punti.length < 2) return;
+  if (!box) return;
   // Il grafico si ridisegna dentro al MEDESIMO nodo: i cinque ascolti di prima
   // restavano appesi. Sei cambi di periodo facevano trenta handler, e cinque
   // di loro scrivevano su un cartellino staccato dal documento.
+  // Si staccano PRIMA del controllo d'ingresso: con meno di due punti si
+  // usciva subito e quelli del giro precedente restavano attaccati.
   if (box.__mirinoVia) box.__mirinoVia();
+  if (!punti || punti.length < 2) return;
   box.classList.add("dm-ap-mirino-box");
   const mirino = document.createElement("div");
   mirino.className = "dm-ap-mirino";
@@ -1015,8 +1042,10 @@ export function mirinoGrafico(box, punti, scrivi) {
 // troncamento e non con un arrotondamento, e il cartellino va sopra al centro
 // della barra. `scrivi(barra, i)` decide cosa c'e' scritto.
 export function mirinoBarre(box, barre, scrivi) {
-  if (!box || !barre || !barre.length) return;
+  if (!box) return;
+  // come sopra: prima si staccano i vecchi, poi si guarda se c'e' da fare
   if (box.__mirinoVia) box.__mirinoVia();
+  if (!barre || !barre.length) return;
   box.classList.add("dm-ap-mirino-box");
   const mirino = document.createElement("div");
   mirino.className = "dm-ap-mirino dm-ap-mirino-barre";
@@ -1184,11 +1213,25 @@ export const NOMI_DISEGNI = [
   ["energy", "Contatore della luce"],
 ];
 
-export function disegnoDiScheda(cfg, id, disegnoDiSerie, acceso) {
+// QUALE FOTO VA NEL RIQUADRO: quella "di quando lavora" solo mentre lavora,
+// se e' stata caricata; se no quella fissa; se non ce n'e' nessuna, "".
+// Sta qui fuori da disegnoDiScheda() perche' quella costruisce l'HTML una
+// volta sola dentro setConfig: la regola serve anche al giro di
+// aggiornamento dello stato, che e' l'unico che sa se sta lavorando.
+// Torna l'indirizzo grezzo: chi lo infila in un attributo HTML lo deve
+// ancora passare dall'escape (vedi qui sotto).
+export function fotoDiScheda(cfg, acceso) {
   const c = cfg || {};
   const mia = (acceso && c.disegno_immagine_accesa) || c.disegno_immagine;
+  return mia ? String(mia) : "";
+}
+
+export function disegnoDiScheda(cfg, id, disegnoDiSerie, acceso) {
+  const c = cfg || {};
+  // la regola della foto sta in fotoDiScheda(), una copia sola
+  const mia = fotoDiScheda(c, acceso);
   if (mia) {
-    const src = String(mia).replace(/"/g, "%22");
+    const src = mia.replace(/"/g, "%22");
     return { hero: `<img src="${src}" alt="">`, chip: `<img src="${src}" alt="">` };
   }
   const quale = HERO_BUILDERS[c.artwork] ? c.artwork : disegnoDiSerie;
@@ -1199,6 +1242,55 @@ export function disegnoDiScheda(cfg, id, disegnoDiSerie, acceso) {
     // cambia quello che si vede, e le caselle sono gia' sulla plancia.
     chip: CHIP_SVGS[quale] || CHIP_SVGS[disegnoDiSerie] || "",
   };
+}
+
+// LA TINTA E' DAVVERO UN COLORE? Dall'editor arriva sempre un esadecimale,
+// ma scritta a mano nello YAML puo' arrivare qualunque cosa ("rosso", un
+// esadecimale di 5 cifre, var(--roba-che-non-esiste)). Se finisce dentro
+// --dm-finestra la variabile resta un valore LECITO per una proprieta'
+// personalizzata e diventa invalida solo DOVE si usa: cosi' il ripiego di
+// var(--dm-finestra,var(--dm-card)) non scatta mai (la variabile c'e') e il
+// pop-up si apre senza sfondo, con titolo e righe appoggiati sulla plancia.
+// Allora si controlla prima, e se non e' un colore non si definisce affatto.
+function eColore(v, host) {
+  if (v === null || v === undefined || v === "") return false;
+  const s = String(v).trim();
+  if (!s) return false;
+  try {
+    if (!window.CSS || !CSS.supports("color", s)) return false;
+  } catch (e) { return false; }
+  // CSS.supports() dice si' anche a var(--roba-che-non-esiste), che a video
+  // non da' nessun colore: quella si scopre solo provandola. Due sonde con
+  // due colori ereditati diversi: se la tinta esce davvero le due prove
+  // danno lo stesso valore, se non si risolve ognuna ricade sull'ereditato
+  // e sono diverse. Le sonde vanno nel documento e NON dentro all'host: i
+  // figli di luce di un custom element senza slot non entrano nell'albero
+  // di rendering e non hanno uno stile calcolato da leggere. Costa che una
+  // var(--dm-...) nostra (che vive nel foglio dentro allo shadow) qui
+  // risulta non risolta e la buttiamo - ma e' proprio il ripiego del foglio,
+  // quindi si vede la stessa identica cosa.
+  if (!/var\s*\(/.test(s)) return true;
+  try {
+    const dove = document.body || document.documentElement || host;
+    if (!dove) return false;
+    const prova = (fondo, colore) => {
+      const fuori = document.createElement("span");
+      fuori.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden;color:" + fondo;
+      const dentro = document.createElement("span");
+      dentro.style.color = colore;
+      fuori.appendChild(dentro);
+      dove.appendChild(fuori);
+      const esce = getComputedStyle(dentro).color;
+      fuori.remove();
+      return esce;
+    };
+    // prima si controlla che la prova sappia riconoscere una var() rotta:
+    // se nemmeno quella si vede, meglio non buttare via niente
+    if (prova("rgb(1, 2, 3)", "var(--dm-prova-che-non-esiste)")
+        === prova("rgb(4, 5, 6)", "var(--dm-prova-che-non-esiste)")) return true;
+    const a = prova("rgb(1, 2, 3)", s);
+    return !!a && a === prova("rgb(4, 5, 6)", s);
+  } catch (e) { return false; }
 }
 
 export function vestiFinestra(host, cfg) {
@@ -1218,24 +1310,31 @@ export function vestiFinestra(host, cfg) {
   // senza una tinta scelta si parte da quella di serie della scheda, se no
   // il cursore della trasparenza non faceva niente e non si capiva perche'
   const t = quanta(c.finestra_trasparenza, 0);
-  const tinta = c.finestra_sfondo || "var(--dm-card)";
-  if (c.finestra_sfondo || t > 0) {
+  // la tinta scelta vale solo se e' un colore: se no la si butta e si resta
+  // su quella di serie, cosi' il ripiego del foglio di stile funziona
+  const scelta = eColore(c.finestra_sfondo, host) ? String(c.finestra_sfondo).trim() : "";
+  const tinta = scelta || "var(--dm-card)";
+  if (scelta || t > 0) {
     metti("--dm-finestra", t > 0
       ? `color-mix(in srgb, ${tinta} ${100 - t}%, transparent)`
       : tinta);
   } else metti("--dm-finestra", null);
-  metti("--dm-finestra-testo", c.finestra_scritta || null);
+  // stessa storia per il colore delle scritte: una tinta non valida qui
+  // lasciava titolo e numeri senza colore invece di tornare a quello di serie
+  const scritta = eColore(c.finestra_scritta, host) ? String(c.finestra_scritta).trim() : "";
+  metti("--dm-finestra-testo", scritta || null);
   // il colore "fioco" dei numeri: lo stesso, un po' piu' spento. Se no con
   // una scritta chiara su una foto scura i valori restavano grigi e illeggibili
-  metti("--dm-finestra-fioco", c.finestra_scritta
-    ? `color-mix(in srgb, ${c.finestra_scritta} 78%, transparent)` : null);
+  metti("--dm-finestra-fioco", scritta
+    ? `color-mix(in srgb, ${scritta} 78%, transparent)` : null);
   // i riquadri delle scritte dentro al pop-up: quanto coprono la foto.
   // 100 = pieni, 0 = si vede la foto attraverso. Il colore e' quello della
   // finestra, se l'hai scelto.
   const r = c.finestra_righe;
   if (r !== undefined && r !== null && r !== "") {
     const q = quanta(r, 100);
-    const fondo = c.finestra_sfondo || "var(--dm-card)";
+    // la stessa tinta GIA' controllata: una non valida qui svuotava i riquadri
+    const fondo = scelta || "var(--dm-card)";
     metti("--dm-righe", q >= 100 ? fondo
       : `color-mix(in srgb, ${fondo} ${q}%, transparent)`);
   } else metti("--dm-righe", null);

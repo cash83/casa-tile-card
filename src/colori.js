@@ -130,7 +130,13 @@ export function scurisci(colore, quanto) {
 export function conAlfa(colore, a) {
   const pieno = esadecimale(colore);
   if (!pieno) return colore;
-  const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
+  // Un'alfa che non e' un numero (undefined, "", o un NaN uscito da un
+  // conto andato male) dava "#ffc046NaN": Math.round(NaN * 255).toString(16)
+  // e' la stringa "NaN". Il colore usciva invalido e la casella perdeva
+  // bordo e alone. Se non e' un numero finito la tengo opaca.
+  const n = Number(a);
+  const q = Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
+  const alfa = Math.round(q * 255).toString(16).padStart(2, "0");
   return "#" + pieno + alfa;
 }
 

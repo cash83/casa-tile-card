@@ -408,16 +408,24 @@ export const ConPezzi = (Base) => class extends Base {
     // da che parte cresce: e' attaccata a destra o a sinistra?
     const aDestra = isFinite(dove.dx) && (dove.x + mia / 2) > 50;
     const cima = dove.y;
-    const fondo = dove.y + (isFinite(dove.h) ? dove.h : 0);
+    // IL FONDO VERO VUOLE L'INGRANDIMENTO. Nei `posti` la "h" e' salvata
+    // SENZA ingrandimento e _posaPezzo applica scale(s) ancorato a "top
+    // left": il pezzo arriva quindi a y + h*s, non a y + h. Con le altezze
+    // grezze un'icona ingrandita di fianco risultava "sopra o sotto" invece
+    // che accanto, non veniva contata come ostacolo e la scritta le finiva
+    // addosso. La larghezza, due righe sotto, era gia' corretta.
+    const fondo = dove.y + (isFinite(dove.h) ? dove.h : 0) * s;
     let spazio = aDestra ? (100 - dove.dx) : (100 - dove.x);   // fino al bordo
     Object.keys(posti || {}).forEach((altro) => {
       if (altro === chi) return;
       const p = posti[altro];
       if (!p || !isFinite(p.x) || !isFinite(p.y)) return;
-      // solo chi gli sta DI FIANCO: se sta sopra o sotto non da' fastidio
-      const suoFondo = p.y + (isFinite(p.h) ? p.h : 0);
-      if (suoFondo <= cima + 1 || p.y >= fondo - 1) return;
       const sp = isFinite(p.s) && p.s > 0 ? p.s : 1;
+      // solo chi gli sta DI FIANCO: se sta sopra o sotto non da' fastidio.
+      // Anche qui l'altezza va moltiplicata per il SUO ingrandimento, per
+      // lo stesso motivo del "fondo" qui sopra.
+      const suoFondo = p.y + (isFinite(p.h) ? p.h : 0) * sp;
+      if (suoFondo <= cima + 1 || p.y >= fondo - 1) return;
       const suaLarga = (isFinite(p.w) ? p.w : 0) * sp;
       if (aDestra) {
         // cresce verso sinistra: mi fermo al bordo destro di quello li'

@@ -47,6 +47,38 @@ export function confermaDoppia(tasto, domanda) {
   return false;
 }
 
+// Chi ha il fuoco DENTRO l'ombra. Gli editor vivono nello shadow root di
+// `hui-card-element-editor`: da li' `document.activeElement` torna l'host piu'
+// esterno e MAI l'input, quindi ogni guardia scritta con quello era sempre
+// vera e il campo si riscriveva mentre ci si scriveva dentro.
+export function haIlFuoco(el) {
+  if (!el) return false;
+  const radice = el.getRootNode ? el.getRootNode() : document;
+  return (radice.activeElement || document.activeElement) === el;
+}
+
+// Un numero dentro al min/max scritto nell'HTML. Un <input type=number> fa
+// partire `change` anche col valore fuori intervallo: scrivendo 99 in "Quante
+// barre" (max 10) restava 99, e con 1 nel fondo scala le barre erano piene.
+// Campo vuoto (o non numerico) = `diSerie`, cosi' chi chiama decide se vuol
+// dire "il valore di serie" o "non scrivere niente".
+export function dentroIlimiti(el, diSerie) {
+  if (!el) return diSerie;
+  const n = Number(el.value);
+  if (String(el.value).trim() === "" || !Number.isFinite(n)) return diSerie;
+  const min = String(el.min) !== "" ? Number(el.min) : -Infinity;
+  const max = String(el.max) !== "" ? Number(el.max) : Infinity;
+  const v = Math.min(max, Math.max(min, n));
+  // si vede subito che l'ho limitato, invece di scrivere di nascosto un
+  // numero diverso da quello che si legge nella casella
+  if (v !== n) el.value = String(v);
+  return v;
+}
+
+// Lo stesso id due volte in `righe` vuol dire la stessa riga vista doppia,
+// e togliendone una si spengono entrambe.
+export const senzaDoppioni = (a) => a.filter((x, i) => a.indexOf(x) === i);
+
 export function titoloSez(v, testo) {
   v = v || [];
   return icoSez(v[0]) + '<span class="ce-sez-testo">' + testo
@@ -150,14 +182,49 @@ export function ordineRighe(config, elenco) {
   const tutte = elenco.map((r) => r.id);
   // un elenco scritto comanda anche quando e' VUOTO: vuol dire "nessuna riga",
   // e il riquadro sparisce. Senza elenco, invece, si vedono tutte.
+  // i doppioni si tolgono SEMPRE qui: se uno e' finito in `righe` (succedeva
+  // trascinando mentre l'elenco si rifaceva) la riga si vedeva due volte
   const scelte = Array.isArray(config.righe)
-    ? config.righe.filter((id) => tutte.includes(id)) : tutte;
+    ? senzaDoppioni(config.righe.filter((id) => tutte.includes(id))) : tutte;
   return { scelte, spente: tutte.filter((id) => !scelte.includes(id)) };
 }
 
-// Disegna l'elenco in `box`. `scrivi(config)` riceve la configurazione nuova.
+// Disegna l'elenco in `box`. `scrivi(config, come)` riceve la configurazione
+// nuova; `come.ridisegna === false` dice a chi chiama che NON serve rifare
+// l'elenco (vedi il cambio di nome qui sotto).
 export function disegnaRighe(box, elenco, config, scrivi) {
   const { scelte, spente } = ordineRighe(config, elenco);
+  // Quello che gli ascoltatori di ogni riga devono leggere ADESSO, non le
+  // variabili del giro in cui sono nati: due modifiche di fila (rinomina e
+  // poi spunta) e la seconda riscriveva sopra la prima la configurazione
+  // vecchia, perche' fra le due nessuno aveva rifatto l'elenco.
+  box._stato = { config, scelte, elenco };
+  // la firma di quello che sto per disegnare: righe, ordine, e i nomi di
+  // serie (una riga tua rinominata cambia l'etichetta, e quella va rifatta)
+  const firma = JSON.stringify([scelte, spente,
+    elenco.map((r) => [r.id, r.nome, r.etichetta])]);
+  if (box._firma === firma && box.childElementCount) {
+    // Le righe sono le stesse, nello stesso ordine: non le rifaccio, rimetto
+    // solo i valori nelle caselle che ci sono gia'. Rifare l'elenco in mezzo
+    // a un clic distruggeva l'elemento sotto al puntatore - su una casella di
+    // testo `change` parte durante il mousedown, PRIMA del mouseup - e il
+    // clic andava ripetuto; e se si stava trascinando, la riga finiva doppia.
+    box.querySelectorAll(".ce-riga[data-id]").forEach((r) => {
+      const id = r.dataset.id;
+      const voce = elenco.find((x) => x.id === id) || {};
+      const n = r.querySelector(".nome");
+      const atteso = (config.nomi_righe || {})[id] || "";
+      if (n && n.value !== atteso && !haIlFuoco(n)) n.value = atteso;
+      const t = r.querySelector(".tinta");
+      const colore = (config.colori_righe || {})[id] || voce.colore || "#888888";
+      if (t && t.value !== colore && !haIlFuoco(t)) t.value = colore;
+    });
+    return;
+  }
+  box._firma = firma;
+  // se si stava trascinando una riga, il trascinamento finisce qui: la riga
+  // che aveva in mano sta per essere buttata via
+  if (box._trascino) box._trascino();
   box.innerHTML = "";
   [...scelte, ...spente].forEach((id) => {
     const accesa = scelte.includes(id);
@@ -177,21 +244,26 @@ export function disegnaRighe(box, elenco, config, scrivi) {
     nome.title = T("Nome sulla scheda (vuoto =") + " " + T(voce.etichetta) + ")";
     nome.value = (config.nomi_righe || {})[id] || "";
     nome.addEventListener("change", () => {
-      const nomi = { ...(config.nomi_righe || {}) };
+      const ora = box._stato.config;
+      const nomi = { ...(ora.nomi_righe || {}) };
       const t = nome.value.trim();
       if (t) nomi[id] = t; else delete nomi[id];
-      const c = { ...config, nomi_righe: nomi };
+      const c = { ...ora, nomi_righe: nomi };
       if (!Object.keys(nomi).length) delete c.nomi_righe;
-      scrivi(c);
+      // `ridisegna: false`: un cambio di nome non cambia ne' le righe ne'
+      // l'ordine, e rifare l'elenco adesso - in mezzo al mousedown che ha
+      // tolto il fuoco alla casella - manderebbe perso il clic in corso
+      scrivi(c, { ridisegna: false });
     });
 
     // il colore della riga: senza scelta resta quello di serie
     const tinta = riga.querySelector(".tinta");
     tinta.value = (config.colori_righe || {})[id] || voce.colore || "#888888";
     const scriviColore = (valore) => {
-      const colori = { ...(config.colori_righe || {}) };
+      const ora = box._stato.config;
+      const colori = { ...(ora.colori_righe || {}) };
       if (valore) colori[id] = valore; else delete colori[id];
-      const c2 = { ...config, colori_righe: colori };
+      const c2 = { ...ora, colori_righe: colori };
       if (!Object.keys(colori).length) delete c2.colori_righe;
       scrivi(c2);
     };
@@ -199,9 +271,9 @@ export function disegnaRighe(box, elenco, config, scrivi) {
     riga.querySelector(".pulisci").addEventListener("click", () => scriviColore(null));
 
     riga.querySelector("input[type=checkbox]").addEventListener("change", (e) => {
-      const n = scelte.filter((x) => x !== id);
+      const n = box._stato.scelte.filter((x) => x !== id);
       if (e.target.checked) n.push(id);
-      scrivi({ ...config, righe: n });
+      scrivi({ ...box._stato.config, righe: senzaDoppioni(n) });
     });
 
     // SI SPOSTA TRASCINANDO LA MANIGLIA (pointer events, ascoltati su tutta
@@ -215,7 +287,22 @@ export function disegnaRighe(box, elenco, config, scrivi) {
       e.preventDefault();
       try { maniglia.setPointerCapture(e.pointerId); } catch (err) { /* pazienza */ }
       riga.classList.add("trascino");
+      // `muovi` e `lascia` stanno su `window` e lavorano sulla riga presa
+      // alla pressione: se intanto arriva un `setConfig` l'elenco si rifa',
+      // questa riga resta staccata e reinserirla la metterebbe accanto alla
+      // sua copia nuova - al rilascio l'id finirebbe in `righe` DUE volte.
+      // Percio' il trascinamento si interrompe appena la riga non e' piu' al
+      // suo posto, e `stacca` e' anche la maniglia che `disegnaRighe` tira
+      // quando sta per buttare via l'elenco.
+      const stacca = () => {
+        window.removeEventListener("pointermove", muovi);
+        window.removeEventListener("pointerup", lascia);
+        window.removeEventListener("pointercancel", lascia);
+        riga.classList.remove("trascino");
+        if (box._trascino === stacca) box._trascino = null;
+      };
       const muovi = (ev) => {
+        if (riga.parentNode !== box) { stacca(); return; }
         const altre = [...box.querySelectorAll(".ce-riga.accesa")].filter((r) => r !== riga);
         const prima = altre.find((r) => {
           const q = r.getBoundingClientRect();
@@ -225,13 +312,17 @@ export function disegnaRighe(box, elenco, config, scrivi) {
         else box.insertBefore(riga, box.querySelector(".ce-riga.spenta") || null);
       };
       const lascia = () => {
-        window.removeEventListener("pointermove", muovi);
-        window.removeEventListener("pointerup", lascia);
-        window.removeEventListener("pointercancel", lascia);
-        riga.classList.remove("trascino");
-        const nuovo = [...box.querySelectorAll(".ce-riga.accesa")].map((r) => r.dataset.id);
-        if (nuovo.join() !== scelte.join()) scrivi({ ...config, righe: nuovo });
+        const alsuoposto = riga.parentNode === box;
+        stacca();
+        // riga fantasma: scriverne l'ordine vorrebbe dire scrivere l'id di
+        // una riga che nell'elenco vero c'e' gia'
+        if (!alsuoposto) return;
+        const nuovo = senzaDoppioni(
+          [...box.querySelectorAll(".ce-riga.accesa")].map((r) => r.dataset.id));
+        const prima = box._stato.scelte;
+        if (nuovo.join() !== prima.join()) scrivi({ ...box._stato.config, righe: nuovo });
       };
+      box._trascino = stacca;
       window.addEventListener("pointermove", muovi);
       window.addEventListener("pointerup", lascia);
       window.addEventListener("pointercancel", lascia);

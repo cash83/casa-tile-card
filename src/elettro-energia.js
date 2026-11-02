@@ -8,6 +8,7 @@ import {
   numero,
   unitaBella,
   disegnoDiScheda,
+  fotoDiScheda,
   ICON_CHART,
   ICON_BOLT,
   ICON_EURO,
@@ -267,6 +268,19 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return u === "kw" ? n * 1000 : n;
   }
 
+  // LA SECONDA FOTO, quella che si vede solo mentre lavora. L'HTML del
+  // riquadro lo costruisce setConfig una volta sola, quindi qui non rifaccio
+  // niente: cambio solo l'indirizzo dell'img, e solo se e' diverso da quello
+  // che c'e' gia'. Senza questo la foto "accesa" promessa dall'editor non si
+  // vedeva mai, perche' setConfig non sa se l'apparecchio sta lavorando.
+  _aggiornaFoto(acceso) {
+    const src = fotoDiScheda(this._config, acceso);
+    if (!src) return;
+    this._root.querySelectorAll(".dm-ap-hero img").forEach((img) => {
+      if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+    });
+  }
+
   _val(hass, entityId, digits, attr) {
     const st = entityId ? hass.states[entityId] : null;
     if (!st) return "\u2014";
@@ -306,9 +320,18 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const oggi = a(cfg.bill_today);
     const mese = a(cfg.bill_month);
     const tot = (id) => this._euro(id ? hass.states[id]?.state : null);
+    // ANCHE I kWh VOGLIONO IL TRATTINO. `oggi[k] ?? 0` scriveva "0,00 kWh"
+    // quando l'attributo non c'e' per niente: si leggeva "kWh presi dalla
+    // rete: 0,00" con la riga Totale qui sotto a "—". Zero e "non lo so" non
+    // sono la stessa cosa, come gia' fa _euro().
+    const kWh = (v) => {
+      const n = Number(v);
+      return v === null || v === undefined || v === "" || !Number.isFinite(n)
+        ? "—" : `${numero(n, 2)} kWh`;
+    };
     const riga = (label, k, euro = true, colore = null, forte = false) => this._statRow2c(colore, forte, label,
-      euro ? this._euro(oggi[k]) : `${numero(oggi[k] ?? 0, 2)} kWh`,
-      euro ? this._euro(mese[k]) : `${numero(mese[k] ?? 0, 2)} kWh`);
+      euro ? this._euro(oggi[k]) : kWh(oggi[k]),
+      euro ? this._euro(mese[k]) : kWh(mese[k]));
     return `
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Il conto, voce per voce &nbsp;(oggi &middot; mese)</div>
         ${riga("kWh presi dalla rete", "kwh", false, "#3fb4ea")}
@@ -525,22 +548,84 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // --- Top consumo automatico (aggiunta cash83) -----------------------
   // Tutti i sensori con device_class "power" in W/kW, tranne il totale casa e
   // quelli che contengono una delle parole di top_exclude (produzione, batterie...).
-  _autoLoads(hass) {
+  // L'ELENCO delle prese, tenuto da parte. preseDiCasa() passa su TUTTE le
+  // entita' della casa e poi le ordina: `set hass` scatta a ogni cambio di
+  // stato di qualunque cosa, e _topText + _barre facevano due scansioni
+  // complete ogni volta. L'elenco pero' cambia di rado (un'entita' nuova, la
+  // configurazione cambiata): me lo ricordo e rileggo solo i watt, che invece
+  // cambiano sempre. Lo rifaccio quando cambia il numero di entita', quando
+  // cambia la configurazione, e comunque ogni mezzo minuto - se no una presa
+  // tornata leggibile dopo un riavvio (preseDiCasa scarta chi non e' un
+  // numero) sarebbe rimasta fuori per sempre.
+  _elencoPrese(hass) {
+    const quante = Object.keys(hass.states || {}).length;
+    const adesso = Date.now();
+    if (this._prese && this._preseQuante === quante && this._preseCfg === this._config
+        && adesso - this._preseQuando < 30000) return this._prese;
     const cfg = this._config;
     // il nome scritto nella scheda vince su quello dell'entita'
     const miei = cfg.nomi_prese || {};
-    const loads = preseDiCasa(hass)
+    this._prese = preseDiCasa(hass)
       .filter((x) => contaNelTop(cfg, x.entity))
-      .map((x) => ({ label: miei[x.entity] || x.nome, entity: x.entity, live: x.w }));
+      .map((x) => ({ label: miei[x.entity] || x.nome, entity: x.entity }));
+    this._preseQuante = quante;
+    this._preseCfg = this._config;
+    this._preseQuando = adesso;
+    return this._prese;
+  }
+
+  // I watt che il fotovoltaico sta mandando in casa adesso, dal sensore
+  // scelto nell'editor ("Fotovoltaico in casa"). Puo' essere uno o piu' di
+  // uno: li sommo. Se non si sa niente torna NaN.
+  _wattFotovoltaico(hass) {
+    const sorgenti = comeElenco(this._config.fv_casa_entita).filter(Boolean);
+    if (!sorgenti.length) return NaN;
+    let somma = NaN;
+    sorgenti.forEach((eid) => {
+      const st = hass.states[eid];
+      if (!st) return;
+      let n = numeroVero(st.state);
+      if (!Number.isFinite(n)) return;
+      const u = String((st.attributes || {}).unit_of_measurement || "").trim().toLowerCase();
+      if (u === "kw") n *= 1000;
+      somma = (Number.isFinite(somma) ? somma : 0) + Math.max(0, n);
+    });
+    return somma;
+  }
+
+  _autoLoads(hass) {
+    const cfg = this._config;
+    // i watt di adesso, dall'elenco che mi sono tenuto; l'ordine lo rifaccio
+    // qui, perche' chi consuma di piu' cambia di continuo
+    const loads = this._elencoPrese(hass).map((x) => {
+      const st = hass.states[x.entity];
+      let w = st ? numeroVero(st.state) : NaN;
+      const u = String(((st || {}).attributes || {}).unit_of_measurement || "").trim().toLowerCase();
+      if (u === "kw") w *= 1000;
+      return { label: x.label, entity: x.entity, live: Number.isFinite(w) ? Math.max(0, w) : 0 };
+    }).sort((a, b) => b.live - a.live);
     const tot = this._wattCasa(hass);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
-    const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;
+    // RETE PIU' SOLE. power_entity misura solo quello che entra DALLA RETE
+    // (sta scritto in _curveDellaCasa), mentre le prese misurano il consumo
+    // vero, che il sole lo paga lui. Con il fotovoltaico che produce il
+    // confronto "prese contro casa" era truccato: il non misurato si
+    // schiacciava a zero e partiva l'avviso del doppione ogni ora di sole,
+    // invitando a smontare una configurazione sana.
+    const fv = this._wattFotovoltaico(hass);
+    const casa = Number.isFinite(tot) ? tot + (Number.isFinite(fv) ? fv : 0) : NaN;
+    const non = Number.isFinite(casa) ? Math.max(0, casa - misurato) : null;
     // Se le prese sommate superano la casa, da qualche parte c'e' un doppione:
     // quasi sempre un sensore che e' il TOTALE di altri gia' contati. Non posso
     // saperlo da solo (nessuno me lo dice), ma posso dirlo invece di far finta
-    // che il non misurato sia zero.
-    const doppione = Number.isFinite(tot) && misurato > tot + Math.max(20, tot * 0.05);
-    return { loads, non, tot, doppione, misurato };
+    // che il non misurato sia zero. Lo dico solo se la differenza NON si
+    // spiega col fotovoltaico: se c'e' un impianto ma non so quanto sta
+    // dando in questo momento, sto zitto.
+    const fvIgnoto = !Number.isFinite(fv)
+      && !!(cfg.fv_casa_entita || cfg.fv_casa_oggi || cfg.fv_casa_settimana || cfg.fv_casa_mese);
+    const doppione = Number.isFinite(casa) && !fvIgnoto
+      && misurato > casa + Math.max(20, casa * 0.05);
+    return { loads, non, tot, casa, doppione, misurato };
   }
 
 
@@ -566,11 +651,13 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     }
   }
 
-  _barre(hass) {
+  // `auto` arriva da fuori: `set hass` fa il conto una volta sola e lo passa
+  // qui e a _topText, invece di farne fare una scansione per uno.
+  _barre(hass, auto) {
     const cfg = this._config;
     if (cfg.barre_vive) {
       const quante = Number(cfg.barre_quante) || 6;
-      const { loads } = this._autoLoads(hass);
+      const { loads } = auto || this._autoLoads(hass);
       const scala = (w) => Math.min(3500, Math.max(500, Math.ceil((w || 0) * 1.3 / 500) * 500));
       // il fondo scala me lo ricordo: se no la barra si riscala mentre guardi
       this._scale = this._scale || {};
@@ -588,10 +675,10 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return lista;
   }
 
-  _topText(hass) {
+  _topText(hass, auto) {
     const cfg = this._config;
     if (!cfg.top_auto) return "—";
-    const { loads, non } = this._autoLoads(hass);
+    const { loads, non } = auto || this._autoLoads(hass);
     const min = cfg.top_min_w ?? 5;
     let best = loads[0] && loads[0].live >= min ? loads[0] : null;
     if (non !== null && non >= min && (!best || non > best.live)) {
@@ -604,7 +691,8 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const cfg = this._config;
     if (!cfg.top_auto) return this._openConsumiOriginale();
     const hass = this._hass;
-    const { loads, non, tot, doppione, misurato } = this._autoLoads(hass);
+    const auto = this._autoLoads(hass);
+    const { loads, non, tot, casa, doppione, misurato } = auto;
     const righe = loads.slice();
     if (non !== null) righe.push({ label: cfg.unmeasured_label || "Non misurato", live: non, non: true });
     righe.sort((x, y) => y.live - x.live);
@@ -612,14 +700,16 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // se le prese sommate superano la casa c'e' un doppione (di solito un
     // sensore che e' gia' la somma di altri): dirlo, invece di mostrare un
     // "Non misurato" schiacciato a zero che sembra giusto e non lo e'
+    // nel messaggio ci va il consumo VERO (rete + sole), che e' quello con cui
+    // ho fatto il confronto: scriverci la sola rete non tornava con i conti
     const avviso = doppione
       ? `<div class="dm-ap-reset-note">Le prese sommate fanno ${Math.round(misurato)} W ma la casa
-         ne misura ${Math.round(tot)}: qualcuna è contata due volte, di solito un sensore che
+         ne misura ${Math.round(casa)}: qualcuna è contata due volte, di solito un sensore che
          è già la somma di altri. Si toglie dall'editor, togliendole la spunta
          in «Top consumo».</div>`
       : "";
     this._openDialog("Consumi", `
-      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">In evidenza</div>${this._statRow("Top consumo", this._topText(hass))}${Number.isFinite(tot) ? this._statRow("Totale casa", `${tot.toFixed(0)} W`) : ""}</div>
+      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">In evidenza</div>${this._statRow("Top consumo", this._topText(hass, auto))}${Number.isFinite(tot) ? this._statRow("Totale casa", `${tot.toFixed(0)} W`) : ""}</div>
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Tutte le prese e i sensori (live)</div>${rows}${avviso}</div>
     `);
   }
@@ -683,6 +773,19 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     })();
     const wattText = this._root.querySelector(".dm-e-watt");
     if (wattText) wattText.textContent = numero(wattVal, 0);
+    // la seconda foto, quella "mentre lavora": qui la casa sta consumando
+    this._aggiornaFoto(wattVal > 0);
+
+    // Il sensore del costo comanda, MA solo se dice davvero qualcosa: prima
+    // bastava che ESISTESSE, e se era unavailable/unknown _val tornava "—" e
+    // il ramo che sa fare il conto (kWh x prezzo) non veniva mai preso. La
+    // gemella lo risolve cosi' in elettro-elettrodomestico ("se quel sensore
+    // e' rotto NON deve lasciare il trattino").
+    const costoBuono = (eid) => {
+      const st = eid ? hass.states[eid] : null;
+      if (!st || ["unavailable", "unknown", "none", ""].includes(st.state)) return false;
+      return Number.isFinite(numeroVero(st.state));
+    };
 
     // I periodi si cercano per NOME: se l'elenco ne ha meno di quattro (un
     // contatore cancellato, uno non creato) le posizioni slittano e la
@@ -698,7 +801,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       { const x = this._root.querySelector(".dm-e-today-cost");
         if (x) {
           const k = numeroVero((hass.states[pOggi.energy] || {}).state);
-          x.textContent = hass.states[pOggi.cost] ? this._val(hass, pOggi.cost, 2)
+          x.textContent = costoBuono(pOggi.cost) ? this._val(hass, pOggi.cost, 2)
             : (Number.isFinite(k) && tariffa.totale > 0
               ? this._euro(k * tariffa.totale + (tariffa.quota || 0)) : "\u2014");
         } }
@@ -707,7 +810,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       { const x = this._root.querySelector(".dm-e-month-cost");
         if (x) {
           const k = numeroVero((hass.states[pMese.energy] || {}).state);
-          x.textContent = hass.states[pMese.cost] ? this._val(hass, pMese.cost, 2)
+          x.textContent = costoBuono(pMese.cost) ? this._val(hass, pMese.cost, 2)
             : (Number.isFinite(k) && tariffa.totale > 0
               ? this._euro(k * tariffa.totale + (tariffa.quota || 0) * new Date().getDate()) : "\u2014");
         } }
@@ -719,7 +822,9 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       if (x) {
         const kwh = cfg.bolletta_energia ? this._val(hass, cfg.bolletta_energia, 1) : "";
         // il contatore degli euro si chiama "EUR": lo scrivo col simbolo
-        let euro = cfg.bolletta_costo && hass.states[cfg.bolletta_costo]
+        // anche qui il sensore deve DIRE qualcosa: se e' unavailable _euro()
+        // tornava "—", che e' pieno, e il conto qui sotto non partiva piu'
+        let euro = costoBuono(cfg.bolletta_costo)
           ? this._euro(hass.states[cfg.bolletta_costo].state) : "";
         if (!euro && cfg.bolletta_energia && tariffa.totale > 0) {
           const st = hass.states[cfg.bolletta_energia];
@@ -741,7 +846,10 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       }
     }
     this._sistemaColonne();
-    { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
+    // UNA SOLA VOLTA per giro: il conto delle prese serve al Top consumo e
+    // alle barre, e prima ognuno dei due se lo rifaceva da capo
+    const auto = cfg.top_auto || cfg.barre_vive ? this._autoLoads(hass) : null;
+    { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass, auto); }
     // LE RIGHE TUE: quello che dice l'entita', scritto come hai scelto.
     // "valore" lascia fare a Home Assistant (numero e unita' sua), cosi' va
     // bene anche per i gradi, l'umidita' o una percentuale.
@@ -840,7 +948,7 @@ export class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
 
     // Le barre si riordinano da sole: chi consuma di piu' sta in cima. A parita'
     // resta l'ordine che hai messo tu nell'editor, se no ballerebbero a vuoto.
-    const barre = this._barre(hass);
+    const barre = this._barre(hass, auto);
     const metersEl = this._root.querySelector(".dm-ap-meters");
     if (metersEl && metersEl.children.length !== barre.length) this._rifaiBarre(barre.length);
     barre.forEach(({ c, live }, i) => {

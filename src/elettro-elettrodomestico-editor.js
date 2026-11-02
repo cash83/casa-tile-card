@@ -10,7 +10,7 @@ import { esc, tastiDi, NOMI_DISEGNI as DISEGNI, comeElenco } from './elettro-com
 import { T, TH, traduciSchema } from './lingua.js';
 import { STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
 import { preparaElettrodomestico, trovaPerDisegno } from './elettro-prepara.js';
-import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez, vestiSez } from './elettro-righe-editor.js';
+import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez, vestiSez, haIlFuoco, dentroIlimiti } from './elettro-righe-editor.js';
 import { creaCicli, prezzoDellaCasa, INGREDIENTE, creaSensoriElettrodomestico, prezziDelKWh } from './elettro-crea.js';
 
 // Le voci che "Compila da solo" deve lasciare stare: non le trova guardando
@@ -73,7 +73,10 @@ const SCHEMA_TUTTO = [
   { name: "power_entity", selector: { entity: { domain: "sensor" } } },
   // il resto in cassetti, che si aprono solo se servono
   { name: "g_acceso", type: "expandable", flatten: true, title: "Quando e' acceso", schema: [
-    { name: "threshold_run", selector: { number: { min: 0, max: 3000, step: 1, mode: "box", unit_of_measurement: "W" } } },
+    // min 1 come la casella `.ce-soglia` qui sotto: erano due interfacce per
+    // lo stesso numero e non dicevano la stessa cosa (qui 0-3000, la casella
+    // da 1 e senza tetto). E 0 vorrebbe dire «in funzione sempre».
+    { name: "threshold_run", selector: { number: { min: 1, max: 3000, step: 1, mode: "box", unit_of_measurement: "W" } } },
     { name: "threshold_standby", selector: { number: { min: 0, max: 500, step: 0.5, mode: "box", unit_of_measurement: "W" } } },
     { name: "ciclo_attesa_sec", selector: { number: { min: 10, max: 1800, step: 5, mode: "box", unit_of_measurement: "s" } } },
     { name: "stato", selector: { entity: {} } },
@@ -182,15 +185,14 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
   }
 
   _cambiatoForm(v) {
-    // hai cambiato il disegno? allora vado a cercare l'apparecchio che gli
-    // somiglia. Lo PROPONGO e basta: la scheda non si compila da sola.
-    if ("artwork" in v && v.artwork && v.artwork !== this._config.artwork) {
-      this._proponiDalDisegno(v.artwork);
-    }
-    // le terne del selettore tornano esadecimali
-    ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
-      if (k in v) v[k] = this._versoHex(v[k]);
-    });
+    // La proposta dal disegno NON sta piu' qui: `artwork` non e' in nessuno
+    // schema di questo editor, quindi l'ha-form lo scartava e la condizione
+    // (`v.artwork !== this._config.artwork`, con v.artwork che arrivava dallo
+    // spread della configurazione stessa) era sempre falsa. Ora parte da dove
+    // il disegno si scegli davvero, la griglia: vedi `_sceltoDisegno`.
+    // le terne del selettore tornano esadecimali (e un colore che il
+    // selettore non sapeva far vedere non si cancella: vedi _coloriDalForm)
+    this._coloriDalForm(v, ["finestra_sfondo", "finestra_scritta"]);
     if ("interruttori_lista" in v) {
       const prima = {};
       comeElenco(this._config.interruttori).forEach((x) => { if (x && x.entity) prima[x.entity] = x.label; });
@@ -231,12 +233,24 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     }
     this._config = c;
     this._emetti();
+    // I moduli tengono una copia dei dati e la rimandano indietro TUTTA alla
+    // modifica dopo: senza questo rinfresco, in quella finestra una modifica
+    // fatta altrove (un disegno scelto nella griglia, una spunta) tornava
+    // indietro da sola alla prima parola scritta in un campo qualunque.
+    this._datiAiModuli();
     // quello che si legge dalla configurazione va rifatto adesso: se no la
     // riga di una barra appena scelta compare solo riaprendo l'editor
     this._notaRighe();
     this._disegnaBarre();
     this._noteBarre();
     this._riassunti();
+  }
+
+  // Il disegno e' stato scelto nella GRIGLIA (lo chiama `_attaccaDisegno`,
+  // che sa qual era quello di prima): e' l'unico posto dove il disegno
+  // cambia davvero, perche' nel modulo `artwork` non c'e'.
+  _sceltoDisegno(disegno) {
+    this._proponiDalDisegno(disegno);
   }
 
   // cerca in casa un apparecchio che somigli al disegno scelto
@@ -311,7 +325,14 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       max.style.maxWidth = "90px";
       max.value = b.max || 1000;
       const scrivi = () => {
-        const c = { ...this._config, barre: barre.map((x, k) => k !== i ? x
+        // L'elenco si rilegge ADESSO, come fa `_disegnaCircuiti` nell'editor
+        // dell'energia: `scrivi` emette e non ridisegna, quindi le chiusure
+        // restano vecchie finche' non arriva il `setConfig` di Home Assistant.
+        // Catturando `barre` al disegno, scrivendo il nome della barra 1 e
+        // subito quello della barra 2 la seconda riscriveva sopra la prima
+        // com'era.
+        const ora = comeElenco(this._config.barre);
+        const c = { ...this._config, barre: ora.map((x, k) => k !== i ? x
           : { ...x, label: nome.value.trim() || this._nomeDi(x.entity), max: Number(max.value) || 1000 }) };
         this._config = c;
         this._emetti();
@@ -347,9 +368,10 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     return (st && st.attributes && st.attributes.friendly_name) || "";
   }
 
+  // una copia sola del rinfresco, in elettro-condivisi.js: questo e' solo il
+  // nome con cui lo chiama questo editor
   _datiAiModuli() {
-    const dati = this._datiForm();
-    (this._moduli || []).forEach((f) => { f.data = dati; });
+    this._rinfrescaModuli();
   }
 
   // i tasti: la lista con "Aggiungi" e l'icona di ognuno
@@ -373,6 +395,8 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         ciclo_kwh: ci.consumo || "",
         ciclo_minuti: ci.durata || "",
         ciclo_fine: ci.fine || "",
+        // non veniva passato, percio' il mese non si azzerava mai
+        anche_il_mese: true,
       },
     }).then(() => this._dillo(T("Azzerati.")))
       // prima scriveva "Azzerati." qualunque cosa fosse successo - script
@@ -440,10 +464,13 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
 
   _disegnaRighe() {
     if (!this._righe) return;
-    disegnaRighe(this._righe, this._righeDaOffrire(), this._config, (c) => {
+    disegnaRighe(this._righe, this._righeDaOffrire(), this._config, (c, come) => {
       this._config = c;
       this._emetti();
-      this._disegnaRighe();
+      // un cambio di NOME non rifa' l'elenco: `change` su una casella di
+      // testo parte durante il mousedown che le toglie il fuoco, cioe' prima
+      // del mouseup, e rifacendolo adesso il clic in corso andrebbe perso
+      if (!come || come.ridisegna !== false) this._disegnaRighe();
     });
     this._notaRighe();
     this._disegnaBarre();
@@ -542,6 +569,17 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     const unEl = this.querySelector(".ce-soglia-un");
     if (eti) eti.textContent = "Sopra questi " + un + " sta lavorando";
     if (unEl) unEl.textContent = un;
+    // La casella era tarata sui Watt anche quando la sorgente e' in kW: il
+    // `min="1"` voleva dire 1 kW, cioe' 1000 W, e 0,01 non si poteva
+    // nemmeno scrivere. Limiti e passo seguono l'unita'.
+    const inKw = un.toLowerCase() === "kw";
+    const campoSoglia = this.querySelector(".ce-soglia");
+    if (campoSoglia) {
+      campoSoglia.min = inKw ? "0.01" : "1";
+      campoSoglia.max = inKw ? "30" : "3000";
+      campoSoglia.step = inKw ? "0.01" : "1";
+      if (this._config.threshold_run === undefined) campoSoglia.value = inKw ? "0.01" : "10";
+    }
     // rimetto le spunte come le avevi lasciate
     const scelti = this._config.periodi;
     if (Array.isArray(scelti)) {
@@ -560,9 +598,26 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         : "Questo dispositivo <b>non conta i kWh</b>, dice solo i Watt: me li calcolo io, minuto per minuto. E' un aiutante in piu', ma e' l'unico modo.";
     }
     const soglia = this.querySelector(".ce-soglia");
-    if (soglia && !soglia.dataset.tocco && this._config.threshold_run) {
+    // La guardia di prima era morta due volte: `dataset.tocco` su questo
+    // campo non lo scriveva nessuno (lo scrive solo `_disegnaTariffa`, sui
+    // campi .ce-t-*), e `threshold_run` a 0 e' falso, quindi col valore
+    // sbagliato in configurazione il campo non si rimetteva mai a posto.
+    // Quello che serve e' sapere se il campo ha il fuoco ADESSO.
+    if (soglia && !haIlFuoco(soglia) && this._config.threshold_run !== undefined) {
       soglia.value = this._config.threshold_run;
     }
+  }
+
+  // La soglia che va negli aiutanti e nell'automazione del ciclo: dentro al
+  // min/max della casella, e con la casella vuota quella che c'e' scritta in
+  // configurazione (se no `Number("")` faceva 0, cioe' «sempre in funzione»).
+  _sogliaScelta() {
+    const campo = this.querySelector(".ce-soglia");
+    // il valore di serie segue l'unita' come i limiti qui sopra
+    const un = String((((this._hass || {}).states || {})[this._config.power_entity] || {})
+      .attributes?.unit_of_measurement || "W").toLowerCase();
+    const diSerie = Number(this._config.threshold_run) || (un === "kw" ? 0.01 : 10);
+    return dentroIlimiti(campo, diSerie);
   }
 
   // Guarda l'entita' della potenza prima di creare qualunque cosa: vera se
@@ -617,9 +672,27 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     this._esito.hidden = false;
     this._esito.classList.remove("male");
     this._esito.textContent = "";
+    // Se in casa c'e' GIA' un aiutante in €/kWh, chi crea i sensori esce al
+    // ramo "uso quello che c'era gia'" e la tariffa appena scritta qui viene
+    // buttata senza scriverla da nessuna parte. Almeno lo dico, invece di
+    // perderla in silenzio: la cura vera sta in elettro-crea.js, che non e'
+    // un file mio.
+    if (prezzoScelto === "__mia__") {
+      const gia = prezziDelKWh(this._hass).filter((id) => !INGREDIENTE.test(id));
+      if (gia.length) {
+        this._dillo("⚠ In casa c'e' gia' un prezzo in €/kWh ("
+          + this._nomeDi(gia[0]) + "): i sensori useranno quello, e la tariffa"
+          + " che hai scritto qui NON viene salvata. Per cambiare il prezzo"
+          + " cambialo in quell'aiutante, o nella scheda Energia Casa.");
+      }
+    }
     try {
       const patch = await creaSensoriElettrodomestico(this._hass, {
         memoria: this._config.helper_memoria || {},
+        // il libretto di chi e' chi: senza questo la creazione riconosce i
+        // propri aiutanti dal titolo, e due schede con lo stesso nome se li
+        // prendono a vicenda
+        aiutanti_miei: this._config.aiutanti_miei,
         reset_script: this._config.reset_script,
         // i contatori che la scheda gia' usa: quelli si riusano, non si rifanno
         gia: {
@@ -629,7 +702,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         },
         nome: this._config.name || this._nomeDispositivo(kwh || potenza),
         potenza, energia: kwh || null,
-        soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+        soglia: this._sogliaScelta(),
         prezzo_entita: (() => {
           const v = (this.querySelector(".ce-prezzo-ent") || {}).value;
           return v === "__mia__" ? "" : (v || this._config.prezzo_entita);
@@ -648,7 +721,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           || ((patch.period_entities || {}).today || {}).energy);
         const piu = await creaCicli(this._hass, {
           potenza, energia: kwhVero, nome: this._config.name,
-          soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+          soglia: this._sogliaScelta(),
           attesa: Number(this._config.ciclo_attesa_sec) || 100,
           // quello che la scheda ha GIA': se glielo do, rinominandola non si
           // rifa' tutto col nome nuovo lasciando indietro lo storico
@@ -681,7 +754,7 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           <div class="ce-aiuto">${T("A un apparecchio o a una presa servono <b>due aiutanti</b>: i kWh di oggi e i kWh del mese. Il <b>costo non ha un sensore</b>: sono i kWh per il prezzo, e il conto lo fa la scheda mentre lo guardi. Il prezzo si scrive una volta sola nella scheda <i>Energia Casa</i>: qui vale la <b>sola energia</b>, se no le tasse le paghi due volte.")}</div>
           <div class="ce-riga"><span class="ent">${T("Sensore dei kWh")}</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
           <div class="ce-aiuto ce-nota-kwh"></div>
-          <div class="ce-riga"><span class="ent ce-soglia-eti">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> <span class="ce-soglia-un">W</span></div>
+          <div class="ce-riga"><span class="ent ce-soglia-eti">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" max="3000" value="10"> <span class="ce-soglia-un">W</span></div>
           <div class="ce-riga"><span class="ent">${T("Prezzo dei sensori che creo")}</span><select class="ce-prezzo-ent"></select></div>
           <div class="ce-riga ce-voci" hidden><span class="ent">Quanto paghi l'energia, &euro;/kWh</span><input type="number" class="ce-v-energia max" step="0.0001" min="0" placeholder="0.1657"></div>
           <div class="ce-riga ce-voci" hidden><span class="ent">${T("Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia\u0027 la scheda grande della casa.")}</span></div>
@@ -807,15 +880,55 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       }
       const spuntaCicli = this.querySelector(".ce-cicli");
       if (spuntaCicli) {
-        spuntaCicli.checked = !!this._config.ciclo;
         spuntaCicli.addEventListener("change", () => {
-          if (!spuntaCicli.checked) this._scriviScelta("ciclo", "");
+          // mi ricordo la TUA scelta: lo stato della spunta si ricalcola a
+          // ogni disegno, e senza questo appena spuntata (per CREARE i cicli,
+          // che in configurazione non ci sono ancora) il primo `setConfig` la
+          // spegneva di nuovo
+          this._vuoleCicli = spuntaCicli.checked;
+          if (spuntaCicli.checked) {
+            // rimetto quello che avevo tenuto da parte: prima il ramo
+            // `checked` non c'era affatto, e rimettere la spunta lasciava la
+            // configurazione vuota con la spunta accesa
+            if (!this._config.ciclo && this._cicloDaParte) {
+              this._scriviScelta("ciclo", this._cicloDaParte);
+              this._cicloDaParte = null;
+              this._dillo(T("Rimessi i riferimenti agli aiutanti del ciclo."));
+            }
+            return;
+          }
+          if (!this._config.ciclo) return;
+          // Togliere la spunta buttava via i riferimenti ai sei aiutanti del
+          // ciclo, senza chiedere niente - l'unica azione distruttiva di
+          // questo editor che non passava da una conferma. Adesso non si
+          // butta: si tiene da parte e torna rimettendo la spunta.
+          this._cicloDaParte = this._config.ciclo;
+          this._scriviScelta("ciclo", "");
+          this._dillo(T("I riferimenti agli aiutanti del ciclo li ho tenuti da parte: rimetti la spunta prima di chiudere e tornano come erano. Gli aiutanti non li ho toccati."));
         });
       }
-      this.querySelector(".ce-prezzo-ent").addEventListener("change", (e) =>
-        this._scriviScelta("prezzo_entita", e.target.value));
+      this.querySelector(".ce-prezzo-ent").addEventListener("change", (e) => {
+        // «__mia__» e' una voce della tendina, non un'entita': scritta in
+        // configurazione la scheda cercava hass.states["__mia__"], sempre
+        // vuoto, e sulla riga del costo compariva comunque il secondo numero.
+        // Che fosse sbagliata lo diceva gia' `_creaSensori`, che la traduceva
+        // in "" prima di passarla.
+        const v = e.target.value;
+        this._scriviScelta("prezzo_entita", v === "__mia__" ? "" : v);
+      });
       this.querySelector(".ce-soglia").addEventListener("change", (e) => {
-        this._scriviScelta("threshold_run", Number(e.target.value));
+        // Campo vuoto = non scrivo niente. `Number("")` fa 0, che e' finito,
+        // quindi `_scriviScelta` lo conservava: `threshold_run: 0` vuol dire
+        // «in funzione sempre, anche a zero watt» - ed e' lo stesso numero
+        // che finisce nell'automazione del ciclo.
+        if (String(e.target.value).trim() === "") {
+          // il campo resta bianco: lo rimetto a quello che c'e' scritto
+          if (this._config.threshold_run !== undefined) e.target.value = this._config.threshold_run;
+          return;
+        }
+        // e dentro al min/max dell'HTML: un <input type=number> fa partire
+        // `change` anche col valore fuori intervallo
+        this._scriviScelta("threshold_run", dentroIlimiti(e.target, undefined));
         this._datiAiModuli();
       });
       this.querySelector(".ce-prepara").addEventListener("click", () => {
@@ -847,6 +960,15 @@ export class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       });
     }
     if (this._hass) (this._moduli || []).forEach((f) => { f.hass = this._hass; });
+    // Lo stato della spunta dei cicli si ricalcola a OGNI disegno: stava
+    // dentro al `if (!this._costruito)` e dopo aver tolto `ciclo` restava
+    // accesa con la configurazione vuota. Se l'hai toccata tu comanda la tua
+    // scelta (serve per crearli: in configurazione non ci sono ancora).
+    const cicli = this.querySelector(".ce-cicli");
+    if (cicli) {
+      cicli.checked = this._vuoleCicli !== undefined
+        ? this._vuoleCicli : !!this._config.ciclo;
+    }
     const azzera = this.querySelector(".ce-azzera");
     if (azzera) azzera.hidden = !this._config.reset_script;
     this._disegnaKwh();

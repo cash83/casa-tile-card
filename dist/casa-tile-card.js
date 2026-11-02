@@ -2446,8 +2446,18 @@ const ConSchede = (Base) => class extends Base {
       ? this._configDiPartenza(String(card.type || "")).then((base) => {
           if (Object.keys(base).length <= 1) return card;
           const unita = { ...base, ...card };
-          // la salvo dopo, quando il pannello e' gia' in piedi
-          setTimeout(() => aggiorna(unita), 500);
+          // la salvo dopo, quando il pannello e' gia' in piedi - ma PRIMA
+          // controllo che al posto suo ci sia ancora lei: in mezzo secondo
+          // si fa in tempo a cancellarla (✕) o a riordinare una scheda che
+          // sta prima, e `aggiorna` scrive sempre al posto fotografato alla
+          // nascita della riga (`l[i] = nuova`), quindi la configurazione di
+          // partenza finiva addosso a un'altra scheda. Stesso controllo del
+          // ramo gemello in `_scegli`.
+          setTimeout(() => {
+            const qui = (this._schede() || [])[indice];
+            if (!qui || String(qui.type || "") !== String(card.type || "")) return;
+            aggiorna(unita);
+          }, 500);
           return unita;
         })
       : Promise.resolve(card);
@@ -2460,10 +2470,13 @@ const ConSchede = (Base) => class extends Base {
         ed.lovelace = this._lov();
         dentro.appendChild(ed);
         ed.value = card;
-        // me lo segno: quando cambio la misura di una casella dentro alla
-        // griglia devo dirglielo, se no lui tiene in mano la griglia
-        // VECCHIA e alla prima occasione la rimanda indietro cancellando
-        // quello che ho appena scritto (era il rimbalzo)
+        // me lo segno per chi avesse bisogno di parlargli. Il rimbalzo -
+        // lui tiene in mano la copia VECCHIA e alla prima occasione la
+        // rimanda indietro cancellando quello che ho scritto da fuori - non
+        // si cura piu' da qui: lo cura la FUSIONE dentro ad `aggiorna` (vedi
+        // `_costruisciBlocco`), che e' l'unica strada buona anche per i
+        // pannelli nativi delle schede, a cui non si puo' ridare la
+        // configurazione mentre lui ci sta scrivendo dentro.
         box._edHA = ed;
         ed.addEventListener("config-changed", (e) => {
           e.stopPropagation();
@@ -2484,7 +2497,7 @@ const ConSchede = (Base) => class extends Base {
         clearTimeout(this._scordaCodice);
         this._scordaCodice = setTimeout(() => { this._apriCodicePer = null; }, 2500);
       }
-      box.appendChild(this._codiceScheda(card, aggiorna, subito));
+      box.appendChild(this._codiceScheda(card, aggiorna, subito, indice));
     }).catch(() => {
       // SE L'EDITOR DELLA SCHEDA NON SI CARICA (una card di HACS che non
       // risponde, una configurazione a meta', un errore suo) il Layout deve
@@ -2494,13 +2507,13 @@ const ConSchede = (Base) => class extends Base {
       attesa.textContent = T("Le impostazioni di questa scheda non si sono "
         + "caricate. Il codice lo trovi qui sotto.");
       if (!box.querySelector(".codice-scheda")) {
-        box.appendChild(this._codiceScheda(card, aggiorna, false));
+        box.appendChild(this._codiceScheda(card, aggiorna, false, indice));
       }
     });
   }
 
   // il codice della scheda, in YAML come in Home Assistant
-  _codiceScheda(card, aggiorna, subito) {
+  _codiceScheda(card, aggiorna, subito, indice) {
     const box = document.createElement("div");
     box.className = "codice-scheda";
     const apri = document.createElement("button");
@@ -2512,13 +2525,25 @@ const ConSchede = (Base) => class extends Base {
     const esito = document.createElement("div");
     esito.className = "esito";
     let leggi = null;
+    let rinfresca = null;
+
+    // LA CONFIGURAZIONE DI ADESSO, non quella fotografata alla nascita della
+    // riga: in mezzo lui puo' aver cambiato mezza scheda dal pannello, o
+    // tirato il suo angolo nell'anteprima. Partendo dalla fotografia,
+    // "Applica il codice" riportava indietro tutto. Fa come il riquadro
+    // gemello della pista (`_codicePosti`), che a ogni riapertura richiama
+    // `roba()`.
+    const roba = () => {
+      const c = (this._schede() || [])[indice];
+      return (c && typeof c === "object") ? c : card;
+    };
 
     const conEditorHa = () => {
       const ed = document.createElement("ha-yaml-editor");
       ed.hass = this._hass;
       dentro.appendChild(ed);
-      ed.defaultValue = card;
-      let ultimo = card;
+      let ultimo = roba();
+      ed.defaultValue = ultimo;
       let buono = true;
       ed.addEventListener("value-changed", (e) => {
         e.stopPropagation();
@@ -2527,15 +2552,27 @@ const ConSchede = (Base) => class extends Base {
         esito.textContent = buono ? "" : "YAML non valido";
       });
       leggi = () => (buono ? ultimo : null);
+      rinfresca = () => {
+        const base = roba();
+        ultimo = base;
+        buono = true;
+        // `defaultValue` lo guarda solo alla prima comparsa: dopo, il
+        // contenuto si cambia con `setValue`
+        try {
+          if (typeof ed.setValue === "function") ed.setValue(base);
+          else ed.defaultValue = base;
+        } catch (e) { /* pazienza: resta quello di prima */ }
+      };
     };
 
     const conCasella = () => {
       const area = document.createElement("textarea");
       area.rows = 12;
       area.spellcheck = false;
-      area.value = aYaml(card, 0);
+      area.value = aYaml(roba(), 0);
       dentro.appendChild(area);
       leggi = () => daYaml(area.value);
+      rinfresca = () => { area.value = aYaml(roba(), 0); };
     };
 
     const applica = document.createElement("button");
@@ -2549,7 +2586,9 @@ const ConSchede = (Base) => class extends Base {
         if (!nuova || typeof nuova !== "object") throw new Error("codice vuoto o non valido");
         if (!nuova.type) throw new Error('manca la riga "type:"');
         esito.textContent = "";
-        aggiorna(nuova);
+        // qui il codice E' la verita' intera: se ha cancellato una riga la
+        // voleva cancellare, quindi niente fusione (vedi `aggiorna`)
+        aggiorna(nuova, true);
       } catch (e) {
         esito.textContent = "Codice non valido: " + e.message;
       }
@@ -2561,6 +2600,11 @@ const ConSchede = (Base) => class extends Base {
         costruito = true;
         const c_e = await this._attendiTag("ha-yaml-editor", 1200);
         if (c_e) conEditorHa(); else conCasella();
+      } else if (dentro.hidden && rinfresca) {
+        // riaprendolo, il codice deve essere quello di ADESSO: se no
+        // "Applica il codice" rimandava indietro la scheda di quando la
+        // riga e' nata
+        rinfresca();
       }
       const chiuso = dentro.hidden;
       dentro.hidden = !chiuso;
@@ -2906,10 +2950,29 @@ const ConSchede = (Base) => class extends Base {
       if (this._apertaIdx === i) {
         const box = document.createElement("div");
         box.className = "editor-scheda";
-        const aggiorna = (nuova) => {
+        // `intera` = quello che arriva e' tutta la verita' (il riquadro del
+        // codice YAML). Senza, e' un pannello che tiene in mano una COPIA
+        // VECCHIA della scheda: gliela diamo una volta sola alla nascita
+        // della riga (`_editorNativo`) e nessuno glie la ripassa, ma quando
+        // emette emette tutta la sua copia. Cosi' la misura tirata nel suo
+        // angolo nell'anteprima (`_scriviMisura`) e i pezzi spostati nella
+        // pista (`_scriviPosti`) - roba che il pannello non sa nemmeno che
+        // esista - sparivano al primo campo che si cambiava. Allora non
+        // sostituisco: FONDO. Una chiave che non c'era nemmeno nella copia
+        // che gli ho dato lui non puo' averla tolta, quindi se adesso manca
+        // vale quella di adesso; le chiavi che conosceva restano sue,
+        // cancellazioni comprese.
+        const aggiorna = (nuova, intera) => {
           const l = this._schede().slice();
-          l[i] = nuova;
-          const tec = String(nuova.type || "?");
+          const ora = l[i] || {};
+          const fusa = { ...nuova };
+          if (!intera) {
+            Object.keys(ora).forEach((k) => {
+              if (!(k in nuova) && !(k in card)) fusa[k] = ora[k];
+            });
+          }
+          l[i] = fusa;
+          const tec = String(fusa.type || "?");
           tipo.querySelector(".chiaro").textContent = nomeScheda(tec);
           tipo.querySelector(".piccolo").textContent = tec.replace("custom:", "");
           this._salvaSchede(l, false);
@@ -3092,7 +3155,13 @@ function scurisci(colore, quanto) {
 function conAlfa(colore, a) {
   const pieno = esadecimale(colore);
   if (!pieno) return colore;
-  const alfa = Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, "0");
+  // Un'alfa che non e' un numero (undefined, "", o un NaN uscito da un
+  // conto andato male) dava "#ffc046NaN": Math.round(NaN * 255).toString(16)
+  // e' la stringa "NaN". Il colore usciva invalido e la casella perdeva
+  // bordo e alone. Se non e' un numero finito la tengo opaca.
+  const n = Number(a);
+  const q = Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
+  const alfa = Math.round(q * 255).toString(16).padStart(2, "0");
   return "#" + pieno + alfa;
 }
 
@@ -3621,6 +3690,10 @@ const piede = (id, cx = 120, cy = 214, rx = 56, ry = 9) =>
 
 // La targa dei Watt: il rettangolino nero col numero azzurro e la W.
 // `s` la rimpicciolisce quando deve stare in un posto stretto.
+// Esportata perche' sette disegni di elettro-comune.js (lavastoviglie,
+// asciugatrice, lavatrice, forno, tv, deumidificatore, caldaia) erano nati
+// senza <text class="dm-e-watt">: la scheda scriveva i Watt e non si vedeva
+// niente. Ora la prendono da qui, cosi' la targa resta una sola.
 const targa = (cx, cy, s = 1) => {
   const w = 68 * s;
   const h = 26 * s;
@@ -4185,6 +4258,9 @@ const HERO_BUILDERS = {
     <rect x="100" y="41" width="40" height="11" rx="4.23" fill="#0b1526"/>
     <rect x="105" y="45" width="30" height="3" rx="1.5" fill="#155e75"/>
     <circle cx="66" cy="46" r="2.6" fill="#22c55e"/>
+    <!-- la targa dei Watt non c'era: la scheda scrive dentro .dm-e-watt e il
+         numero non compariva. Nella parte libera del cruscotto, a destra -->
+    ${targa(163, 46, 0.66)}
     <rect x="56" y="62" width="128" height="128" rx="9" fill="#0c1930"/>
     <rect x="60" y="66" width="120" height="120" rx="7" fill="url(#dmh-cool-${id})" opacity=".9"/>
     <rect x="60" y="66" width="120" height="120" rx="7" fill="#082033" opacity=".45"/>
@@ -4236,6 +4312,9 @@ const HERO_BUILDERS = {
       <ellipse cx="142" cy="150" rx="10" ry="7" transform="rotate(-10 142 150)"/>
     </g>
     <path d="M84 132a36 36 0 0 1 66-21" stroke="#ffd9a8" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".55"/>
+    <!-- la targa dei Watt non c'era: fuori dal gruppo che gira, in fondo
+         al cestello dove non copre i panni -->
+    ${targa(120, 170, 0.85)}
     <rect x="46" y="196" width="148" height="16" rx="7" fill="#9fadbc"/>
     <rect x="100" y="199" width="40" height="7" rx="3.5" fill="#78899b"/>
   </svg>`,
@@ -4262,6 +4341,9 @@ const HERO_BUILDERS = {
         <circle cx="104" cy="110" r="4.5"/><circle cx="122" cy="102" r="3.4"/><circle cx="140" cy="112" r="5.2"/>
       </g>
     </g>
+    <!-- la targa dei Watt non c'era: fuori dal gruppo che gira, in fondo
+         al cestello sotto l'acqua -->
+    ${targa(120, 170, 0.85)}
     <rect x="46" y="196" width="148" height="16" rx="7" fill="#9fadbc"/>
     <rect x="100" y="199" width="40" height="7" rx="3.5" fill="#78899b"/>
   </svg>`,
@@ -4280,6 +4362,8 @@ const HERO_BUILDERS = {
     <rect x="56" y="62" width="128" height="128" rx="9" fill="#0c1930"/>
     <rect x="60" y="66" width="120" height="120" rx="7" fill="url(#dmh-hot-${id})" opacity=".9" class="dmh-glow"/>
     <rect x="60" y="66" width="120" height="120" rx="7" fill="#3a0d0d" opacity=".4"/>
+    <!-- la targa dei Watt non c'era: in cima al forno, sopra le resistenze -->
+    ${targa(120, 77, 0.88)}
     <g stroke="#fecaca" stroke-width="2.6" opacity=".85">
       <path d="M68 100h104M68 154h104" fill="none"/>
     </g>
@@ -4315,6 +4399,9 @@ const HERO_BUILDERS = {
       <rect x="124" y="55" width="34" height="94" fill="#34d399"/>
       <rect x="166" y="55" width="34" height="94" fill="#60a5fa"/>
     </g>
+    <!-- la targa dei Watt non c'era: in basso sullo schermo, sotto il
+         grafico e sopra le bande che lampeggiano -->
+    ${targa(120, 133, 0.85)}
     <rect x="112" y="158" width="16" height="20" fill="#1f2937"/>
     <rect x="76" y="178" width="88" height="10" rx="5" fill="#1f2937"/>
     <circle cx="196" cy="52" r="3" fill="#22c55e"/>
@@ -4656,6 +4743,9 @@ const HERO_BUILDERS = {
     </g>
     <rect x="74" y="150" width="92" height="48" rx="8" fill="none" stroke="#8fa0b3" stroke-opacity=".6" stroke-width="1.4"/>
     <rect x="104" y="156" width="32" height="5" rx="2.5" fill="#94a3b8" opacity=".8"/>
+    <!-- la targa dei Watt non c'era: nella striscia libera della tanica,
+         fra il manico e il pelo dell'acqua -->
+    ${targa(120, 169, 0.62)}
     <rect x="66" y="206" width="12" height="12" rx="4" fill="#9fadbc"/>
     <rect x="162" y="206" width="12" height="12" rx="4" fill="#9fadbc"/>
   </g>
@@ -4675,6 +4765,9 @@ const HERO_BUILDERS = {
     <circle cx="120" cy="104" r="38" fill="#0b1526"/>
     <path d="M120 104 L120 76" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" transform="rotate(35 120 104)"/>
     <circle cx="120" cy="104" r="3" fill="#38bdf8"/>
+    <!-- la targa dei Watt non c'era: dentro al manometro, sotto l'ago e
+         tutta nel tondo scuro -->
+    ${targa(120, 122, 0.72)}
     <g font-size="7" fill="#94a3b8" font-family="sans-serif" text-anchor="middle">
       <text x="120" y="74">bar</text>
     </g>
@@ -4837,8 +4930,12 @@ const STYLE = `
 /* spenta o non raggiungibile: sbiadisce il DISEGNO, non il riquadro.
    Prima il filtro stava sul riquadro e si portava via anche l'alone,
    cosi' la scheda spenta era un rettangolo grigio e piatto. */
-.dm-ap-card.is-off .dm-ap-hero>svg,.dm-ap-card.is-unavailable .dm-ap-hero>svg{filter:grayscale(.55) opacity(.62)}
-.dm-ap-card.is-standby .dm-ap-hero>svg{filter:saturate(.85)}
+/* ...e vale anche per le FOTO tue: prima la regola prendeva solo >svg, cosi'
+   chi mette una foto al posto del disegno vedeva il riquadro identico fra
+   spenta, standby e in funzione - nessun segnale di stato. */
+.dm-ap-card.is-off .dm-ap-hero>svg,.dm-ap-card.is-unavailable .dm-ap-hero>svg,
+.dm-ap-card.is-off .dm-ap-hero>img,.dm-ap-card.is-unavailable .dm-ap-hero>img{filter:grayscale(.55) opacity(.62)}
+.dm-ap-card.is-standby .dm-ap-hero>svg,.dm-ap-card.is-standby .dm-ap-hero>img{filter:saturate(.85)}
 @keyframes dmh-spin{to{transform:rotate(360deg)}}
 @keyframes dmh-glow{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes dmh-flicker{0%,100%{opacity:.85}30%{opacity:.5}55%{opacity:1}80%{opacity:.6}}
@@ -5126,11 +5223,14 @@ const STYLE = `
 // dopo l'asse (30 su 300) e arrivano in fondo. Col mouse basta passarci sopra, col
 // dito si tiene premuto e si trascina (touch-action: none), e alzandolo va via.
 function mirinoGrafico(box, punti, scrivi) {
-  if (!box || !punti || punti.length < 2) return;
+  if (!box) return;
   // Il grafico si ridisegna dentro al MEDESIMO nodo: i cinque ascolti di prima
   // restavano appesi. Sei cambi di periodo facevano trenta handler, e cinque
   // di loro scrivevano su un cartellino staccato dal documento.
+  // Si staccano PRIMA del controllo d'ingresso: con meno di due punti si
+  // usciva subito e quelli del giro precedente restavano attaccati.
   if (box.__mirinoVia) box.__mirinoVia();
+  if (!punti || punti.length < 2) return;
   box.classList.add("dm-ap-mirino-box");
   const mirino = document.createElement("div");
   mirino.className = "dm-ap-mirino";
@@ -5179,8 +5279,10 @@ function mirinoGrafico(box, punti, scrivi) {
 // troncamento e non con un arrotondamento, e il cartellino va sopra al centro
 // della barra. `scrivi(barra, i)` decide cosa c'e' scritto.
 function mirinoBarre(box, barre, scrivi) {
-  if (!box || !barre || !barre.length) return;
+  if (!box) return;
+  // come sopra: prima si staccano i vecchi, poi si guarda se c'e' da fare
   if (box.__mirinoVia) box.__mirinoVia();
+  if (!barre || !barre.length) return;
   box.classList.add("dm-ap-mirino-box");
   const mirino = document.createElement("div");
   mirino.className = "dm-ap-mirino dm-ap-mirino-barre";
@@ -5348,11 +5450,25 @@ const NOMI_DISEGNI = [
   ["energy", "Contatore della luce"],
 ];
 
-function disegnoDiScheda(cfg, id, disegnoDiSerie, acceso) {
+// QUALE FOTO VA NEL RIQUADRO: quella "di quando lavora" solo mentre lavora,
+// se e' stata caricata; se no quella fissa; se non ce n'e' nessuna, "".
+// Sta qui fuori da disegnoDiScheda() perche' quella costruisce l'HTML una
+// volta sola dentro setConfig: la regola serve anche al giro di
+// aggiornamento dello stato, che e' l'unico che sa se sta lavorando.
+// Torna l'indirizzo grezzo: chi lo infila in un attributo HTML lo deve
+// ancora passare dall'escape (vedi qui sotto).
+function fotoDiScheda(cfg, acceso) {
   const c = cfg || {};
   const mia = (acceso && c.disegno_immagine_accesa) || c.disegno_immagine;
+  return mia ? String(mia) : "";
+}
+
+function disegnoDiScheda(cfg, id, disegnoDiSerie, acceso) {
+  const c = cfg || {};
+  // la regola della foto sta in fotoDiScheda(), una copia sola
+  const mia = fotoDiScheda(c, acceso);
   if (mia) {
-    const src = String(mia).replace(/"/g, "%22");
+    const src = mia.replace(/"/g, "%22");
     return { hero: `<img src="${src}" alt="">`, chip: `<img src="${src}" alt="">` };
   }
   const quale = HERO_BUILDERS[c.artwork] ? c.artwork : disegnoDiSerie;
@@ -5363,6 +5479,55 @@ function disegnoDiScheda(cfg, id, disegnoDiSerie, acceso) {
     // cambia quello che si vede, e le caselle sono gia' sulla plancia.
     chip: CHIP_SVGS[quale] || CHIP_SVGS[disegnoDiSerie] || "",
   };
+}
+
+// LA TINTA E' DAVVERO UN COLORE? Dall'editor arriva sempre un esadecimale,
+// ma scritta a mano nello YAML puo' arrivare qualunque cosa ("rosso", un
+// esadecimale di 5 cifre, var(--roba-che-non-esiste)). Se finisce dentro
+// --dm-finestra la variabile resta un valore LECITO per una proprieta'
+// personalizzata e diventa invalida solo DOVE si usa: cosi' il ripiego di
+// var(--dm-finestra,var(--dm-card)) non scatta mai (la variabile c'e') e il
+// pop-up si apre senza sfondo, con titolo e righe appoggiati sulla plancia.
+// Allora si controlla prima, e se non e' un colore non si definisce affatto.
+function eColore(v, host) {
+  if (v === null || v === undefined || v === "") return false;
+  const s = String(v).trim();
+  if (!s) return false;
+  try {
+    if (!window.CSS || !CSS.supports("color", s)) return false;
+  } catch (e) { return false; }
+  // CSS.supports() dice si' anche a var(--roba-che-non-esiste), che a video
+  // non da' nessun colore: quella si scopre solo provandola. Due sonde con
+  // due colori ereditati diversi: se la tinta esce davvero le due prove
+  // danno lo stesso valore, se non si risolve ognuna ricade sull'ereditato
+  // e sono diverse. Le sonde vanno nel documento e NON dentro all'host: i
+  // figli di luce di un custom element senza slot non entrano nell'albero
+  // di rendering e non hanno uno stile calcolato da leggere. Costa che una
+  // var(--dm-...) nostra (che vive nel foglio dentro allo shadow) qui
+  // risulta non risolta e la buttiamo - ma e' proprio il ripiego del foglio,
+  // quindi si vede la stessa identica cosa.
+  if (!/var\s*\(/.test(s)) return true;
+  try {
+    const dove = document.body || document.documentElement || host;
+    if (!dove) return false;
+    const prova = (fondo, colore) => {
+      const fuori = document.createElement("span");
+      fuori.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden;color:" + fondo;
+      const dentro = document.createElement("span");
+      dentro.style.color = colore;
+      fuori.appendChild(dentro);
+      dove.appendChild(fuori);
+      const esce = getComputedStyle(dentro).color;
+      fuori.remove();
+      return esce;
+    };
+    // prima si controlla che la prova sappia riconoscere una var() rotta:
+    // se nemmeno quella si vede, meglio non buttare via niente
+    if (prova("rgb(1, 2, 3)", "var(--dm-prova-che-non-esiste)")
+        === prova("rgb(4, 5, 6)", "var(--dm-prova-che-non-esiste)")) return true;
+    const a = prova("rgb(1, 2, 3)", s);
+    return !!a && a === prova("rgb(4, 5, 6)", s);
+  } catch (e) { return false; }
 }
 
 function vestiFinestra(host, cfg) {
@@ -5382,24 +5547,31 @@ function vestiFinestra(host, cfg) {
   // senza una tinta scelta si parte da quella di serie della scheda, se no
   // il cursore della trasparenza non faceva niente e non si capiva perche'
   const t = quanta(c.finestra_trasparenza, 0);
-  const tinta = c.finestra_sfondo || "var(--dm-card)";
-  if (c.finestra_sfondo || t > 0) {
+  // la tinta scelta vale solo se e' un colore: se no la si butta e si resta
+  // su quella di serie, cosi' il ripiego del foglio di stile funziona
+  const scelta = eColore(c.finestra_sfondo, host) ? String(c.finestra_sfondo).trim() : "";
+  const tinta = scelta || "var(--dm-card)";
+  if (scelta || t > 0) {
     metti("--dm-finestra", t > 0
       ? `color-mix(in srgb, ${tinta} ${100 - t}%, transparent)`
       : tinta);
   } else metti("--dm-finestra", null);
-  metti("--dm-finestra-testo", c.finestra_scritta || null);
+  // stessa storia per il colore delle scritte: una tinta non valida qui
+  // lasciava titolo e numeri senza colore invece di tornare a quello di serie
+  const scritta = eColore(c.finestra_scritta, host) ? String(c.finestra_scritta).trim() : "";
+  metti("--dm-finestra-testo", scritta || null);
   // il colore "fioco" dei numeri: lo stesso, un po' piu' spento. Se no con
   // una scritta chiara su una foto scura i valori restavano grigi e illeggibili
-  metti("--dm-finestra-fioco", c.finestra_scritta
-    ? `color-mix(in srgb, ${c.finestra_scritta} 78%, transparent)` : null);
+  metti("--dm-finestra-fioco", scritta
+    ? `color-mix(in srgb, ${scritta} 78%, transparent)` : null);
   // i riquadri delle scritte dentro al pop-up: quanto coprono la foto.
   // 100 = pieni, 0 = si vede la foto attraverso. Il colore e' quello della
   // finestra, se l'hai scelto.
   const r = c.finestra_righe;
   if (r !== undefined && r !== null && r !== "") {
     const q = quanta(r, 100);
-    const fondo = c.finestra_sfondo || "var(--dm-card)";
+    // la stessa tinta GIA' controllata: una non valida qui svuotava i riquadri
+    const fondo = scelta || "var(--dm-card)";
     metti("--dm-righe", q >= 100 ? fondo
       : `color-mix(in srgb, ${fondo} ${q}%, transparent)`);
   } else metti("--dm-righe", null);
@@ -6140,22 +6312,58 @@ const ICONE = {
 <path d="M12 40a10 10 0 0 1 0 8"/><path d="M52 40a10 10 0 0 0 0 8"/></g></g>`,
 };
 
+// LA RESA "NON LO SO", uguale in tutti i disegni che la usano: grigio
+// spento, contorno tratteggiato e punto di domanda. Serve ogni volta che il
+// dato manca o non e' del tipo atteso, perche' prima in quei casi si
+// disegnava l'ipotesi rassicurante (batteria piena e verde, sole pieno)
+// proprio sui sensori che devono allarmare: una batteria con le cinque
+// tacche mentre il sensore diceva "scarica" e' peggio di nessun disegno.
+const TINTA_IGNOTA = "#9fb0c4";
+
+// Il punto di domanda come sagoma, non come testo: il <text> dipende dai
+// caratteri della plancia e nelle caselle piccole si perde.
+function puntoDomanda(cx, cy, scala, tinta) {
+  const c = tinta || TINTA_IGNOTA;
+  const s = Number(scala) || 1;
+  // la sagoma e' disegnata in un riquadro 10x14 con l'origine in alto a
+  // sinistra: la sposto perche' il suo centro cada su (cx, cy)
+  return '<g transform="translate(' + (cx - 5 * s).toFixed(2) + ','
+    + (cy - 7 * s).toFixed(2) + ') scale(' + s.toFixed(3) + ')">'
+    + '<path d="M1.2 3.4a3.8 3.8 0 1 1 3.8 3.8v2.2" fill="none" stroke="' + c
+    + '" stroke-width="2.2" stroke-linecap="round"/>'
+    + '<circle cx="5" cy="12.4" r="1.5" fill="' + c + '"/></g>';
+}
+
 // La batteria non e' un disegno fisso: la costruisco con la carica vera.
 function disegnoBatteria(perc, carica, scarica) {
   const n = Number(perc);
-  const p = isNaN(n) ? 100 : Math.max(0, Math.min(100, n));
+  // Un valore non numerico NON diventa piu' 100: un `binary_sensor` con
+  // device_class battery su `on` vuol dire "batteria scarica", e un sensore
+  // `unavailable` non dice niente. Prima entrambi uscivano come batteria
+  // piena e verde, cioe' il contrario di quello che sta succedendo.
+  const noto = !isNaN(n);
+  const p = noto ? Math.max(0, Math.min(100, n)) : 0;
   const tinta = p <= 20 ? "#ff4d4d" : (p <= 45 ? "#ffb020" : "#3fd98a");
   const FONDO = "#0b1119";
-  // il corpo, con il contorno chiaro e il polo a destra
+  // il contorno dice da solo come sta: grigio se il livello non si sa,
+  // rosso a zero (vuota si deve vedere anche senza una tacca accesa),
+  // chiaro nel caso normale
+  const bordo = !noto ? TINTA_IGNOTA : (p === 0 ? tinta : "#dbe7f5");
+  const tratto = noto ? "" : ' stroke-dasharray="7 5"';
+  // il corpo, con il contorno e il polo a destra
   const corpo = '<rect x="8" y="19" width="44" height="26" rx="6.5" fill="' + FONDO
-    + '" stroke="#dbe7f5" stroke-width="3"/>'
-    + '<rect x="52.5" y="26.5" width="5" height="11" rx="2.4" fill="#dbe7f5"/>';
+    + '" stroke="' + bordo + '" stroke-width="3"' + tratto + '/>'
+    + '<rect x="52.5" y="26.5" width="5" height="11" rx="2.4" fill="' + bordo + '"/>';
   // dentro: il pieno tagliato a blocchi, come le batterie vere
   const DENTRO = 12;
   const LARGO = 36;
-  const pieno = LARGO * p / 100;
   let blocchi = "";
-  if (pieno > 0.5) {
+  if (noto && p > 0) {
+    // Sotto l'1,4% `LARGO * p / 100` dava meno di mezzo pixel e non si
+    // dipingeva NIENTE: la batteria quasi morta si vedeva vuota e grigia,
+    // proprio nel momento piu' critico. Finche' il livello non e' zero una
+    // tacca rossa si vede sempre.
+    const pieno = Math.max(3.5, LARGO * p / 100);
     blocchi = '<rect x="' + DENTRO + '" y="23.5" width="' + pieno.toFixed(1)
       + '" height="17" rx="1.6" fill="' + tinta + '"/>'
       + '<rect x="' + DENTRO + '" y="23.5" width="' + pieno.toFixed(1)
@@ -6171,6 +6379,10 @@ function disegnoBatteria(perc, carica, scarica) {
       }
     }
   }
+  // livello sconosciuto: dentro ci va il punto di domanda e il fulmine
+  // resta fuori. Senza livello la cosa da dire e' che il livello non si sa,
+  // e il fulmine prenderebbe tutto lo spazio del dubbio.
+  if (!noto) return corpo + puntoDomanda(30, 32, 1.4);
   // in carica: il fulmine grande, come sulle batterie del telefono
   const fulmine = carica
     ? '<g class="an caricafulmine"><path d="M34 20l-11 15h7.5l-2.5 10 11-15h-7.5z" '
@@ -6193,8 +6405,19 @@ function disegnoBatteria(perc, carica, scarica) {
 // le barre rovesciate copiate da Windows ("\local\foto.jpg") e la barra
 // davanti che manca. Invece di non far niente in silenzio, lo raddrizzo.
 function indirizzoFoto(x) {
-  let v = String(x || "").trim().split("\\").join("/");
-  if (!v) return "";
+  const grezzo = String(x || "").trim();
+  if (!grezzo) return "";
+  // Un percorso di RETE di Windows ("\\\\192.168.50.165\\share\\foto.jpg") non
+  // e' un indirizzo web: raddrizzando le barre diventava
+  // "//192.168.50.165/share/foto.jpg", il browser lo leggeva come indirizzo
+  // protocol-relative e chiedeva la foto in HTTP a un host che non e' un
+  // server web - sfondo che non compare e nessun messaggio. Meglio niente
+  // che una richiesta a vuoto.
+  if (/^\\\\/.test(grezzo) || /^\/\//.test(grezzo)) return "";
+  // stessa storia per un percorso del disco ("C:\\foto.jpg"): al browser non
+  // si puo' chiedere
+  if (/^[a-z]:[\\/]/i.test(grezzo)) return "";
+  const v = grezzo.split("\\").join("/");
   if (/^(https?:|data:|\/)/.test(v)) return v;
   return "/" + v.replace(/^\/+/, "");
 }
@@ -6219,6 +6442,44 @@ function disegnoTermometro(gradi) {
     + '<circle cx="30" cy="46" r="6.5" fill="' + tinta + '"/>'
     + '<g stroke="#5f7189" stroke-width="1.6" stroke-linecap="round">'
     + '<path d="M40 14h5"/><path d="M40 22h5"/><path d="M40 30h5"/></g>';
+}
+
+// L'UMIDITA' ha il suo disegno: una goccia che si riempie come una
+// percentuale. Prima i sensori con device_class humidity prendevano il
+// termometro e il numero ci entrava cosi' com'era: 72 % di umidita' davano
+// `(72+10)/70 = 1`, colonna piena da cima a fondo, e `coloreTemperatura(72)`
+// rosso acceso; sotto il 30 % usciva arancione. Il numero scritto accanto
+// era giusto, urlava solo il disegno.
+const GOCCIA = "M32 8c8.4 12.4 14.6 19 14.6 27A14.6 14.6 0 0 1 17.4 35"
+  + "c0-8 6.2-14.6 14.6-27z";
+function disegnoUmidita(perc) {
+  const n = Number(perc);
+  const noto = isFinite(n);
+  const p = noto ? Math.max(0, Math.min(100, n)) : 0;
+  // l'acqua sale dal fondo della goccia (y=49.6) alla sua punta (y=20):
+  // cosi' mezza goccia piena si legge come mezza percentuale
+  const cima = 49.6 - 29.6 * p / 100;
+  const livello = noto
+    ? '<g clip-path="url(#umidtaglio)">'
+      + '<rect x="14" y="' + cima.toFixed(1) + '" width="36" height="'
+      + (50.4 - cima).toFixed(1) + '" fill="url(#umidacqua)"/>'
+      + '<rect x="14" y="' + cima.toFixed(1) + '" width="36" height="2.2" '
+      + 'fill="#dff1ff" opacity=".65"/></g>'
+    : "";
+  return '<defs><clipPath id="umidtaglio"><path d="' + GOCCIA + '"/></clipPath>'
+    + '<linearGradient id="umidacqua" x1="0" y1="1" x2="0" y2="0">'
+    + '<stop offset="0" stop-color="#2b8fe0"/>'
+    + '<stop offset="1" stop-color="#6fd0ff"/></linearGradient></defs>'
+    + '<path d="' + GOCCIA + '" fill="#101c2b" stroke="'
+    + (noto ? "#4a688c" : TINTA_IGNOTA) + '" stroke-width="2"'
+    + (noto ? "" : ' stroke-dasharray="7 5"') + "/>"
+    + livello
+    // la scaletta a destra, fuori dalla goccia (il suo bordo arriva a
+    // x=46.6): i quarti per leggere il livello a occhio
+    + '<g stroke="#7f93aa" stroke-width="1.4" stroke-linecap="round" opacity=".65">'
+    + '<path d="M49.5 20.4v29.2"/><path d="M47.5 42.2h2"/>'
+    + '<path d="M47.5 34.8h2"/><path d="M47.5 27.4h2"/></g>'
+    + (noto ? "" : puntoDomanda(32, 34, 1.3));
 }
 
 function disegnoTapparella(moto) {
@@ -6251,11 +6512,13 @@ function disegnoTapparella(moto) {
 // gira; quando e' in carica sta dentro alla base, fermo.
 // e' fuori a lavorare, o sta attaccato alla base? "docked" e' l'unico
 // stato in cui sta davvero fermo dentro; il resto (spento, sconosciuto)
-// non e' un lavoro, quindi sta fermo anche quello
+// non e' un lavoro, quindi sta fermo anche quello.
+// `error` passava come "fuori a lavorare": un robot piantato in guasto si
+// vedeva girovagare con la spazzola che ruota. Un guasto non e' un lavoro.
+const ASPIRA_FERMO = ["docked", "unavailable", "unknown", "off", "error"];
 function aspiraFuori(st) {
-  const q = st ? String(st.state) : "";
-  return !!q && q !== "docked" && q !== "unavailable"
-    && q !== "unknown" && q !== "off";
+  const q = st ? String(st.state).toLowerCase() : "";
+  return !!q && ASPIRA_FERMO.indexOf(q) < 0;
 }
 
 function disegnoAspira(fuori) {
@@ -6296,16 +6559,31 @@ function disegnoAspira(fuori) {
       + '<g transform="translate(-15.44,4.92) scale(.82)" opacity=".95">'
       + robot + '</g>';
   }
-  // fuori: scivola via dalla base una volta sola, poi va avanti e indietro
+  // Fuori: il robot sta nelle sue coordinate naturali, che sono GIA' quelle
+  // di fuori dalla base. Prima era avvolto anche in `.aspiraesce`, che la
+  // posizione "nella base" ce l'ha solo nel keyframe `from` applicato con
+  // `both`: con le animazioni in pausa ("Non si muove mai", l'anteprima
+  // delle impostazioni, la copia dell'editor dei pezzi) il robot restava
+  // seduto nella base mentre stava pulendo. Si perde la scivolata d'uscita,
+  // ma la posizione non dipende piu' dall'animazione.
   return tinta + fermo + torre
-    + '<g class="an aspiraesce"><g class="an aspiragira">'
-    + robot + "</g></g>";
+    + '<g class="an aspiragira">' + robot + "</g>";
 }
 
 // nella tendina delle icone e ovunque si peschi il disegno "a nome", faccio
 // vedere il robot fuori dalla base: e' quello che si riconosce a colpo
 // d'occhio. La casella e il pop-up poi ci mettono lo stato vero.
 ICONE.aspirapolvere = disegnoAspira(true);
+
+// la goccia dell'umidita' nel catalogo: a meta', cosi' si capisce che il
+// livello e' il dato. Nella casella ci va `disegnoUmidita(percentuale)`.
+ICONE.umidita = disegnoUmidita(55);
+
+// il disegno "non lo so": serve a chi non ha un dato (il meteo che non
+// risponde, per esempio) invece di far vedere un sole pieno
+ICONE.ignoto = '<circle cx="32" cy="32" r="21" fill="#141c28" stroke="'
+  + TINTA_IGNOTA + '" stroke-width="2.6" stroke-dasharray="7 6" opacity=".9"/>'
+  + puntoDomanda(32, 32, 2.2);
 
 // quanto della tapparella si vede giu': un numero solo, niente da ridisegnare
 function tagliaTapparella(svg, pos) {
@@ -6325,13 +6603,27 @@ function iconaAutomatica(eid, st) {
   const dc = String(attr.device_class || "").toLowerCase();
   const nome = (String(eid || "") + " " + String(attr.friendly_name || "")).toLowerCase();
   const dice = (...parole) => parole.some((x) => nome.indexOf(x) >= 0);
+  // Parole INTERE, per i pezzi corti: "car" dentro "Carla", "Carlo", "Oscar"
+  // o "carica" non e' un'auto, e "auto" dentro "automatico" nemmeno. Il
+  // trattino, il punto e la lineetta bassa degli entity_id contano come
+  // spazi, cosi' "device_tracker.auto_di_gabriele" resta un'auto.
+  const parole = nome.split(/[^a-z0-9àèéìòù]+/).filter(Boolean);
+  const diceTutta = (...ps) => ps.some((x) => parole.indexOf(x) >= 0);
 
-  if (dominio === "weather") return ICONA_METEO[st && st.state] || "sole";
+  if (dominio === "weather") {
+    // Meteo che non risponde = "non lo so", non "sereno": `unavailable`,
+    // `unknown` e l'entita' mancante cadevano tutti sul sole pieno, e si
+    // vedeva un bel sole quando il meteo semplicemente non c'era.
+    const q = String((st && st.state) || "").toLowerCase();
+    if (!q || q === "unavailable" || q === "unknown") return "ignoto";
+    return ICONA_METEO[st.state] || "ignoto";
+  }
   if (dominio === "person") return "persona";
   if (dominio === "device_tracker") {
     if (dice("corriere", "consegna", "spedizion", "amazon")) return "corriere";
     if (dice("orologio", "watch")) return "orologio_polso";
-    return dice("auto", "macchina", "seat", "car", "veicolo") ? "automobile" : "persona";
+    return diceTutta("auto", "automobile", "macchina", "seat", "car", "veicolo")
+      ? "automobile" : "persona";
   }
   if (dominio === "camera") return dice("campanell", "citofon") ? "campanello_video" : "telecamera";
   if (dominio === "vacuum") return "aspirapolvere";
@@ -6391,7 +6683,11 @@ function iconaAutomatica(eid, st) {
     if (dice("condizion", "climatizz")) return "condizionatore";
     if (dice("ventilat", "ventola", "fan")) return "ventola";
     if (dice("campanell", "citofon")) return "campanello_video";
-    if (dice("telecam", "camera", "cctv")) return "telecamera";
+    // "camera" nuda NO: in italiano e' una stanza, e `switch.presa_camera_da_letto`,
+    // `scene.camera_notte` e `input_boolean.camera_ospiti` diventavano telecamere
+    if (dice("telecam", "webcam", "videocam", "camera.", "cam_", "cctv")) {
+      return "telecamera";
+    }
     if (dice("aspirapolver", "dreame", "roomba", "robot")) return "aspirapolvere";
     if (dice("orologio", "watch", "smartwatch")) return "orologio_polso";
     if (dice("powerstation", "power station", "landbook", "ecoflow")) return "powerstation";
@@ -6412,10 +6708,26 @@ function iconaAutomatica(eid, st) {
   }
   if (dominio === "sensor" || dominio === "binary_sensor" || dominio === "number"
       || dominio === "input_number" || dominio === "select" || dominio === "counter") {
+    // IL DEVICE_CLASS PRIMA DEI NOMI. Qui nessuna regola intercettava porte,
+    // finestre e movimenti, e la ricerca per nome su "camera" (che in
+    // italiano e' una stanza) faceva finire `binary_sensor.finestra_camera`,
+    // `porta_camera`, `movimento_camera` e `sensor.luminosita_camera` tutti
+    // su telecamera. Quello che Home Assistant dichiara vale piu' del nome.
+    if (dc === "window") return "finestra";
+    if (dc === "garage_door") return "garage";
+    if (dc === "door" || dc === "opening") return "porta";
+    if (dc === "motion" || dc === "moving" || dc === "vibration") return "movimento";
+    if (dc === "occupancy" || dc === "presence") return "persona";
+    if (dc === "lock") return "serratura";
+    if (dc === "smoke" || dc === "gas" || dc === "carbon_monoxide") return "fumo";
+    // su un binary_sensor `moisture` vuol dire bagnato/perdita, non umidita'
+    if (dc === "moisture" && dominio === "binary_sensor") return "acqua";
     if (dc === "battery" || dice("batteri", "battery", "soc")) return "batteria";
     if (dc === "temperature" || dice("temperatur", "termo", "gradi")) return "termometro";
     if (dc === "humidity" || dc === "moisture" || dice("umidit")) {
-      return dice("pianta", "terreno", "soil", "plant") ? "pianta" : "termometro";
+      // l'umidita' ha la sua goccia: col termometro il 72 % si vedeva come
+      // una colonna piena e rossa
+      return dice("pianta", "terreno", "soil", "plant") ? "pianta" : "umidita";
     }
     if (dice("pianta", "soil", "plant", "basilico", "peperonc")) return "pianta";
     if (dice("anycubic", "kobra", "bambu", "prusa", "stampante 3")) return "stampante3d";
@@ -6432,7 +6744,8 @@ function iconaAutomatica(eid, st) {
     if (dice("lavastovigl", "dishwasher")) return "lavastoviglie";
     if (dice("asciugatric", "dryer", "asciuga")) return "asciugatrice";
     if (dice("lavatric", "lavasciug", "washer")) return "lavatrice";
-    if (dice("telecam", "camera")) return "telecamera";
+    // vedi sopra: "camera" nuda e' una stanza, non una telecamera
+    if (dice("telecam", "webcam", "videocam", "camera.", "cam_")) return "telecamera";
     if (dice("frigo", "forno", "microond")) return "presa";
     // il sole solo a chi il sole lo prende davvero
     if (dice("solar", "fotovolt", "pannell", "produzion", "pv ")) return "sole";
@@ -6506,6 +6819,8 @@ const SINONIMI = {
   vento: "aria raffica",
   stampante: "stampante 3d printer anycubic kobra",
   misura: "sensore valore stato quadrante generico",
+  umidita: "umidita goccia percentuale igrometro bagno vapore",
+  ignoto: "non lo so sconosciuto manca dato punto di domanda",
   porta: "ingresso uscita apertura chiusa aperta",
   finestra: "vetro apertura serramento",
   serratura: "lucchetto chiave chiusura blocco",
@@ -7042,6 +7357,69 @@ function disegnoMdi(nome, tinta) {
     + '<path d="' + d + '" fill="url(#' + id + ')"/></g>';
 }
 
+// LE ETICHETTE DELLE ICONE, in italiano.
+//
+// Nella tendina il nome sotto al disegno era `T(chiave)`, e `T()` in
+// italiano torna la chiave com'e': chi aveva la casa in inglese leggeva
+// "sun and clouds", chi ce l'aveva in italiano - il caso normale - leggeva
+// "sole_nuvole". Qui ci sono i nomi italiani di quelle che non si leggono
+// da sole; per tutte le altre la chiave E' gia' la parola giusta (luce,
+// presa, porta) e basta togliere la lineetta bassa.
+//
+// Sta in questo file e non in `lingua.js` di proposito: `lingua.js` lo
+// riscrive da zero `strumenti/fai_lingua.py`, e una tabella scritta a mano
+// la' dentro sparirebbe al primo giro dello script.
+const ETICHETTE_ICONE = {
+  sole_nuvole: "sole e nuvole",
+  campanello_video: "videocitofono",
+  porta_scorrevole: "porta scorrevole",
+  orologio_polso: "orologio da polso",
+  casa_corrente: "corrente di casa",
+  contatore_luce: "contatore della luce",
+  cassetta_posta: "cassetta della posta",
+  sensore_movimento: "sensore di movimento",
+  finestra_aperta: "finestra aperta",
+  ricarica_auto: "ricarica dell'auto",
+  macchina_caffe: "macchina del caffe'",
+  striscia_led: "striscia LED",
+  pannello_solare: "pannello solare",
+  corrente_ac: "corrente alternata",
+  corrente_dc: "corrente continua",
+  lucchetto_aperto: "lucchetto aperto",
+  lampadina_accesa: "lampadina accesa",
+  chiave_inglese: "chiave inglese",
+  nuvola_cloud: "nuvola (cloud)",
+  filtro_aria: "filtro dell'aria",
+  robot_aspirapolvere: "robot aspirapolvere",
+  pc_fisso: "PC fisso",
+  stampante3d: "stampante 3D",
+  stampante_3d: "stampante 3D (mdi)",
+  lavatrice_mdi: "lavatrice (mdi)",
+  robot_mdi: "robot (mdi)",
+  tv_mdi: "TV (mdi)",
+  wifi_mdi: "wifi (mdi)",
+  // le due aggiunte qui: la goccia dell'umidita' e il "non lo so"
+  umidita: "umidita'",
+  ignoto: "non lo so",
+};
+
+// L'inglese delle due icone nuove: la tabella `EN` di `lingua.js` la
+// genera uno script da `strumenti/da_tradurre.json`, quindi le due voci che
+// non ci sono ancora le tengo qui accanto alle italiane.
+const ETICHETTE_ICONE_EN = {
+  umidita: "humidity",
+  ignoto: "unknown",
+};
+
+// Il nome da far leggere per un'icona, nella lingua di chi guarda. La
+// chiave che finisce nella plancia non cambia: si traduce solo quello che
+// si LEGGE.
+function etichettaIcona(nome) {
+  const k = String(nome || "");
+  if (laLingua() !== "it") return ETICHETTE_ICONE_EN[k] || T(k);
+  return ETICHETTE_ICONE[k] || k.split("_").join(" ");
+}
+
 const NOMI_ICONE = Object.keys(ICONE);
 // se un disegno nostro ha lo stesso nome, quello di Home Assistant non si
 // mostra nel catalogo (verrebbe doppio): il nostro vince comunque
@@ -7054,6 +7432,246 @@ const ICONA_METEO = {
   "lightning-rainy": "temporale", snowy: "neve", "snowy-rainy": "neve", hail: "neve",
   fog: "nebbia", windy: "vento", "windy-variant": "vento", exceptional: "sole",
 };
+
+// La riga per scegliere una foto, fatta come quella della casella animata:
+// l'anteprima, il tasto che apre la galleria del telefono o le cartelle del
+// PC, il campo per scrivere l'indirizzo se la foto sta gia' sul box, e il
+// tasto per toglierla. Tutto su una riga sola.
+//
+// Le due schede dei consumi avevano solo un campo di testo nudo dove andava
+// scritto "/local/qualcosa.jpg" a mano: per riempirlo bisognava gia' sapere
+// come si carica un file su Home Assistant, che e' esattamente la cosa che il
+// tasto risparmia.
+//
+// Sta qui in mezzo, in un pezzo solo, cosi' non ci sono copie che invecchiano
+// ognuna per conto suo.
+
+
+// CHI HA IL FUOCO DAVVERO.
+//
+// `document.activeElement`, chiamato da dentro uno shadow root, torna
+// l'host piu' esterno (`hui-card-element-editor`) e MAI il campo di dentro:
+// il confronto `document.activeElement !== campo` era quindi sempre vero e
+// la guardia che non doveva riscrivere il campo mentre l'utente digita non
+// scattava mai. Qui parto dalla radice del campo e scendo di ombra in ombra
+// finche' trovo l'elemento vero, come fa `elettro-condivisi.js` quando
+// risale con `getRootNode().host`.
+function elementoAFuoco(el) {
+  const radice = el && el.getRootNode ? el.getRootNode() : null;
+  let a = (radice && radice.activeElement)
+    || (typeof document === "undefined" ? null : document.activeElement);
+  // se quello a fuoco e' a sua volta un host, dentro c'e' il campo vero
+  while (a && a.shadowRoot && a.shadowRoot.activeElement) {
+    a = a.shadowRoot.activeElement;
+  }
+  return a;
+}
+
+const STILE_FOTO = `
+.dm-foto{margin:10px 0 2px}
+.dm-foto-riga{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dm-foto-ant{width:64px;height:44px;border-radius:8px;object-fit:cover;
+  border:1px solid var(--divider-color,#444);background:#0003;cursor:pointer}
+.dm-foto-ant[hidden]{display:none}
+.dm-foto-bt{border:1px solid var(--divider-color,#555);
+  background:var(--card-background-color,#1c1c1c);
+  color:var(--primary-text-color,#e1e1e1);border-radius:9px;padding:8px 12px;
+  font-size:13px;font-weight:600;cursor:pointer}
+.dm-foto-bt:hover{border-color:var(--primary-color,#03a9f4)}
+.dm-foto-bt[hidden]{display:none}
+.dm-foto-via{opacity:.75}
+.dm-foto-ind{flex:1;min-width:160px;border-radius:9px;padding:8px 10px;
+  border:1px solid var(--divider-color,#555);
+  background:var(--card-background-color,#1c1c1c);
+  color:var(--primary-text-color,#e1e1e1);font-size:13px}
+.dm-foto-nota{flex-basis:100%;font-size:12.5px;
+  color:var(--secondary-text-color,#9b9b9b);margin-top:2px;word-break:break-all}
+.dm-foto-nota.errore{color:#ff8a80}
+`;
+
+// Carica il file dentro a Home Assistant e torna l'indirizzo da salvare.
+async function caricaFoto(hass, file) {
+  const dati = new FormData();
+  dati.append("file", file);
+  const risposta = await fetch("/api/image/upload", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + hass.auth.data.access_token },
+    body: dati,
+  });
+  if (!risposta.ok) throw new Error("HTTP " + risposta.status);
+  const info = await risposta.json();
+  return "/api/image/serve/" + info.id + "/original";
+}
+
+// La riga intera, pronta da appendere. Torna anche `aggiorna(valore)`, per
+// rinfrescarla quando la configurazione cambia da fuori.
+//   dammiHass - una funzione: l'hass arriva DOPO che la riga e' gia' fatta
+//   scrivi    - lo chiamo con il nuovo indirizzo, o con "" se togli la foto
+function rigaFoto({ dammiHass, valore, tasto, scrivi }) {
+  const box = document.createElement("div");
+  box.className = "dm-foto";
+  const riga = document.createElement("div");
+  riga.className = "dm-foto-riga";
+
+  const ant = document.createElement("img");
+  ant.className = "dm-foto-ant";
+  ant.alt = "";
+  ant.title = T("Tocca per scegliere un'altra foto");
+
+  const file = document.createElement("input");
+  file.type = "file";
+  file.accept = "image/*";
+  file.style.display = "none";
+
+  const scegli = document.createElement("button");
+  scegli.className = "dm-foto-bt";
+  scegli.type = "button";
+  scegli.textContent = tasto || T("Usa un'immagine mia (telefono o PC)");
+
+  const indirizzo = document.createElement("input");
+  indirizzo.type = "text";
+  indirizzo.className = "dm-foto-ind";
+  indirizzo.placeholder = T("oppure l'indirizzo: /local/mia.jpg");
+
+  const via = document.createElement("button");
+  via.className = "dm-foto-bt dm-foto-via";
+  via.type = "button";
+  via.textContent = T("Togli la foto");
+
+  const nota = document.createElement("div");
+  nota.className = "dm-foto-nota";
+
+  // l'input di QUESTA riga, non il primo della pagina: se no si apre la
+  // galleria di un altro campo e la foto finisce nel posto sbagliato
+  const apri = () => file.click();
+  ant.addEventListener("click", apri);
+  scegli.addEventListener("click", apri);
+
+  file.addEventListener("change", async () => {
+    const f = file.files && file.files[0];
+    if (!f) return;
+    nota.className = "dm-foto-nota";
+    nota.textContent = T("Sto caricando") + " " + f.name + "...";
+    try {
+      scrivi(await caricaFoto(dammiHass(), f));
+    } catch (e) {
+      nota.className = "dm-foto-nota errore";
+      nota.textContent = T("Non sono riuscito a caricarla") + ": " + e.message;
+    }
+  });
+  indirizzo.addEventListener("change", () => scrivi(indirizzo.value.trim()));
+  via.addEventListener("click", () => scrivi(""));
+
+  riga.append(ant, scegli, file, indirizzo, via, nota);
+  box.appendChild(riga);
+
+  const aggiorna = (v) => {
+    const c = v || "";
+    ant.hidden = !c;
+    if (c) ant.src = c;
+    via.hidden = !c;
+    scegli.textContent = c
+      ? T("Scegli un'altra foto")
+      : (tasto || T("Usa un'immagine mia (telefono o PC)"));
+    // mentre ci scrive dentro non gliela cambio sotto le mani: il fuoco va
+    // cercato nell'ombra, se no la guardia non scatta mai (vedi
+    // `elementoAFuoco`)
+    if (elementoAFuoco(indirizzo) !== indirizzo) indirizzo.value = c;
+    if (!nota.classList.contains("errore")) nota.textContent = "";
+  };
+  aggiorna(valore);
+  box.aggiorna = aggiorna;
+  return box;
+}
+
+// ---------------------------------------------------------------------------
+// LA SCELTA DEL DISEGNO: la griglia, non la tendina.
+//
+// Una tendina fa leggere venticinque nomi uno per volta per cercare una cosa
+// che si riconosce a colpo d'occhio. La griglia li fa vedere tutti insieme,
+// col filtro per scriverci dentro, e in fondo il tasto per usare una foto tua
+// al posto del disegno - piu' quella di quando la scheda lavora, che puo'
+// essere anche una gif. E' la stessa scelta della casella animata.
+
+const STILE_DISEGNI = `
+.dm-dis{margin:8px 0 2px}
+.dm-dis-cerca{width:100%;box-sizing:border-box;border-radius:9px;padding:9px 11px;
+  margin-bottom:8px;border:1px solid var(--divider-color,#555);
+  background:var(--card-background-color,#1c1c1c);
+  color:var(--primary-text-color,#e1e1e1);font-size:13px}
+.dm-dis-griglia{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));
+  gap:6px;max-height:268px;overflow:auto;padding:2px;border-radius:10px}
+.dm-dis-uno{display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 3px 5px;border-radius:10px;cursor:pointer;
+  border:1px solid transparent;background:var(--secondary-background-color,#222);
+  color:var(--primary-text-color,#e1e1e1)}
+.dm-dis-uno:hover{border-color:var(--divider-color,#666)}
+.dm-dis-uno.scelto{border-color:var(--primary-color,#03a9f4);
+  box-shadow:0 0 0 1px var(--primary-color,#03a9f4) inset}
+.dm-dis-uno svg,.dm-dis-uno img{width:34px;height:34px;display:block;object-fit:contain}
+.dm-dis-uno b{font-size:10px;font-weight:600;line-height:1.15;text-align:center;
+  max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-dis-vuoto{font-size:12.5px;color:var(--secondary-text-color,#9b9b9b);padding:8px 2px}
+`;
+
+// elenco = [[chiave, nome], ...]   disegna(chiave) -> l'HTML dell'anteprima
+function sceltaDisegno({ elenco, disegna, scelto, scrivi }) {
+  const box = document.createElement("div");
+  box.className = "dm-dis";
+
+  const cerca = document.createElement("input");
+  cerca.type = "search";
+  cerca.className = "dm-dis-cerca";
+  cerca.placeholder = T("Cerca il disegno: lavatrice, forno, presa...");
+
+  const griglia = document.createElement("div");
+  griglia.className = "dm-dis-griglia";
+  const vuoto = document.createElement("div");
+  vuoto.className = "dm-dis-vuoto";
+  vuoto.hidden = true;
+  vuoto.textContent = T("Nessun disegno con questo nome.");
+
+  let qualeScelto = scelto;
+  const tasti = elenco.map(([chiave, nome]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "dm-dis-uno";
+    b.title = nome;
+    b.dataset.chiave = chiave;
+    // il nome sta nel dizionario, il disegno e' nostro: niente da proteggere
+    b.innerHTML = disegna(chiave) + "<b></b>";
+    b.querySelector("b").textContent = T(nome);
+    b.addEventListener("click", () => {
+      qualeScelto = chiave;
+      tasti.forEach((x) => x.classList.toggle("scelto", x.dataset.chiave === chiave));
+      scrivi(chiave);
+    });
+    griglia.appendChild(b);
+    return b;
+  });
+
+  const filtra = () => {
+    const q = cerca.value.trim().toLowerCase();
+    let visti = 0;
+    tasti.forEach((b) => {
+      const ok = !q || b.title.toLowerCase().includes(q)
+        || b.dataset.chiave.includes(q);
+      b.hidden = !ok;
+      if (ok) visti += 1;
+    });
+    vuoto.hidden = visti > 0;
+  };
+  cerca.addEventListener("input", filtra);
+
+  box.append(cerca, griglia, vuoto);
+
+  box.aggiorna = (v) => {
+    qualeScelto = v;
+    tasti.forEach((x) => x.classList.toggle("scelto", x.dataset.chiave === v));
+  };
+  box.aggiorna(qualeScelto);
+  return box;
+}
 
 // -*- coding: utf-8 -*-
 // Il selettore delle icone, i nomi suggeriti e le immagini.
@@ -7110,9 +7728,11 @@ const ConIcone = (Base) => class extends Base {
           .replace(/url\(#([a-z0-9]+)\)/g, "url(#$1_p" + k + ")");
         b.innerHTML = '<svg viewBox="0 0 64 64" fill="none">' + dentro
           + '</svg><span class="nome"></span>';
-        // il nome scritto sotto e' tradotto, la chiave che finisce
-        // nella plancia (`dataset.nome`) resta quella italiana
-        b.querySelector(".nome").textContent = T(nome);
+        // il nome scritto sotto e' quello da leggere, la chiave che finisce
+        // nella plancia (`dataset.nome`) resta quella italiana. Con `T()`
+        // in italiano si leggeva la chiave grezza ("sole_nuvole"), perche'
+        // `T()` traduce solo VERSO l'inglese.
+        b.querySelector(".nome").textContent = etichettaIcona(nome);
         b.addEventListener("click", () => {
           this._config = { ...this._config, icona: nome };
           this._emetti();
@@ -7187,8 +7807,9 @@ const ConIcone = (Base) => class extends Base {
         const q = cerca.value.trim().toLowerCase();
         box.querySelectorAll(".sceltaIcona").forEach((b) => {
           const nome = b.dataset.nome || "";
+          // si cerca anche per come l'etichetta e' scritta sotto al disegno
           const parole = (SINONIMI[nome] || MDI_PAROLE[nome] || "")
-            + " " + nome + " " + T(nome);
+            + " " + nome + " " + etichettaIcona(nome) + " " + T(nome);
           b.hidden = !!q && nome !== "auto"
             && parole.toLowerCase().replace(/_/g, " ").indexOf(q) < 0;
         });
@@ -7229,8 +7850,12 @@ const ConIcone = (Base) => class extends Base {
       r.ant.hidden = !mia;
       r.via.hidden = !mia;
       if (mia && r.ant.getAttribute("src") !== mia) r.ant.src = mia;
-      // mentre ci sta scrivendo dentro non gliela cambio sotto le mani
-      if (document.activeElement !== r.campo) r.campo.value = mia || "";
+      // mentre ci sta scrivendo dentro non gliela cambio sotto le mani.
+      // `document.activeElement`, da dentro l'ombra di
+      // `hui-card-element-editor`, torna l'host piu' esterno e MAI il
+      // campo: la guardia non scattava e il campo si riscriveva a ogni
+      // ridisegno, cancellando quello che l'utente stava digitando.
+      if (elementoAFuoco(r.campo) !== r.campo) r.campo.value = mia || "";
       if (r.nota && !r.fisso) r.nota.textContent = "";
     });
     // la seconda ha senso solo se c'e' la prima: se no non si torna indietro
@@ -7749,6 +8374,29 @@ const ConIcone = (Base) => class extends Base {
 // finche' resta aperta la pagina e non dipende da nessuno.
 let APPUNTI_POSTI = null;
 
+// CHI HA IL FUOCO, DAVVERO. Le impostazioni vivono dentro all'ombra di
+// `hui-card-element-editor`: da li' `document.activeElement` (e
+// `ownerDocument.activeElement`, che e' la stessa cosa) danno sempre l'host
+// piu' esterno, MAI il campo. Quindi tutti i controlli "non riscrivere il
+// campo mentre lui ci sta scrivendo" non scattavano mai: lo YAML incollato
+// nella pista veniva sostituito di colpo e le cifre di "grande %", "da
+// sinistra" e "dall'alto" si cancellavano a ogni pixel di movimento.
+// La radice giusta e' quella del campo stesso (getRootNode, come fa
+// `guardaSeAnteprima` in elettro-condivisi.js), e il suo activeElement puo'
+// essere a sua volta l'host di un'altra ombra: scendo finche' c'e' da
+// scendere.
+function ilFuoco(el) {
+  try {
+    const radice = (el && el.getRootNode) ? el.getRootNode() : document;
+    let a = radice ? radice.activeElement : null;
+    for (let i = 0; i < 20; i += 1) {
+      if (!a || !a.shadowRoot || !a.shadowRoot.activeElement) break;
+      a = a.shadowRoot.activeElement;
+    }
+    return a || null;
+  } catch (e) { return null; }
+}
+
 const ConPosti = (Base) => class extends Base {
   // Il riquadro dove si trascinano i pezzi: dentro c'e' una casella vera,
   // in piccolo, della stessa forma dell'anteprima.
@@ -7954,10 +8602,16 @@ const ConPosti = (Base) => class extends Base {
         if (Math.abs(k - 1) < 0.005) delete v.s;
         else v.s = Math.round(k * 100) / 100;
       }
+      // la casellina SVUOTATA vuol dire "non toccare", non zero: Number("")
+      // fa 0 e isFinite(0) e' vero, quindi selezionando il contenuto di "da
+      // sinistra" per riscriverlo e cliccando altrove il `change` sul blur
+      // scriveva x: 0 e il pezzo saltava nell'angolo. E' lo stesso controllo
+      // delle due caselline della grandezza (vedi `_numeriGrandezza`).
+      const vuota = (c) => String(c.value).trim() === "";
       const x = Number(px.value);
       const y = Number(py.value);
-      if (isFinite(x)) v.x = Math.max(0, Math.min(100, Math.round(x * 10) / 10));
-      if (isFinite(y)) v.y = Math.max(0, Math.min(100, Math.round(y * 10) / 10));
+      if (!vuota(px) && isFinite(x)) v.x = Math.max(0, Math.min(100, Math.round(x * 10) / 10));
+      if (!vuota(py) && isFinite(y)) v.y = Math.max(0, Math.min(100, Math.round(y * 10) / 10));
       // "dx" e' quanto dista da DESTRA: si ricava dagli altri due - sulla
       // larghezza INGRANDITA, che e' quella che si vede - e senza rifarlo
       // il pezzo attaccato a destra tornerebbe dov'era
@@ -8678,7 +9332,9 @@ const ConPosti = (Base) => class extends Base {
       rinfresca: () => {
         if (dentro.hidden || !edHa) return;
         try {
-          if (edHa.ownerDocument.activeElement === edHa) return;
+          // il fuoco va chiesto alla radice d'ombra del campo, se no il
+          // controllo non scatta mai (vedi `ilFuoco`)
+          if (ilFuoco(edHa) === edHa) return;
           edHa.value = inRiga(roba());
         } catch (e) { /* pazienza */ }
       },
@@ -8689,6 +9345,16 @@ const ConPosti = (Base) => class extends Base {
   _aggiornaPista() {
     const box = this._postiBox;
     if (!box || !box._carta || !this._hass) return;
+    // IL DITO E' GIU': LA PISTA NON SI TOCCA. Al primo trascinamento `giu`
+    // emette (fissa i pezzi dove stanno) mentre il dito e' ancora premuto:
+    // Home Assistant rimanda la configurazione, setConfig -> _render ->
+    // _giroCompleto -> _costruisciPosti arrivano qui, e la riconfigurazione
+    // della casellina faceva tornare il pezzo di scatto dov'era - con una
+    // "misura:" sotto il dito l'elemento veniva ricreato e il pezzo non
+    // seguiva piu' fino al rilascio. Me lo segno e rifaccio il giro appena
+    // molla (vedi `_pistaTrascina`). E' la stessa protezione di
+    // powerstation-card.
+    if (box._inMano) { box._pistaDaRifare = true; return; }
     try {
       box._carta.setConfig({ ...this._cfgPista() });
       // LA CASSA CHE SEGUE LA CASELLA VERA. Il riquadro qui dentro e' una
@@ -8862,7 +9528,10 @@ const ConPosti = (Base) => class extends Base {
     // le due caselline dicono sempre dove si e' arrivati - ma non mentre
     // ci sta scrivendo dentro
     if (box._numeri) {
-      const dentro = box._numeri.largo.ownerDocument.activeElement;
+      // il fuoco dalla radice d'ombra del campo: con `ownerDocument` il
+      // controllo era sempre falso e i timer a 350/1200 ms e il
+      // ResizeObserver cancellavano i numeri che stava scrivendo
+      const dentro = ilFuoco(box._numeri.largo);
       if (dentro !== box._numeri.largo) {
         box._numeri.largo.value = String(Math.round(box._largoVero || 0));
       }
@@ -8914,16 +9583,33 @@ const ConPosti = (Base) => class extends Base {
   // righe). E' quella che deve fare da modello al riquadro, se no lui
   // compone su una forma e poi sulla plancia ne trova un'altra.
   _cartaPlancia() {
-    if (this._planciaSalvata && this._planciaSalvata.isConnected) {
-      return this._planciaSalvata;
-    }
     // Girare tutta la pagina costa: lo faccio UNA volta per ogni casella
     // che sto sistemando. Prima, quando non la trovavo (e' il caso delle
     // caselle che vivono solo dentro ai pop-up), rifacevo il giro a ogni
     // ricontrollo e la finestra delle impostazioni si trascinava.
     const chi = (this._config || {}).entity + "|" + (this._config || {}).name;
-    if (this._planciaCercata === chi) return null;
+    // il nodo salvato vale solo per la casella per cui l'ho cercato: se nel
+    // frattempo sono cambiati entita' o nome quello e' un'altra card. Prima
+    // il controllo stava DOPO, quindi lo restituiva comunque.
+    if (this._planciaCercata === chi) {
+      if (this._planciaSalvata && this._planciaSalvata.isConnected) {
+        return this._planciaSalvata;
+      }
+      if (!this._planciaSalvata) return null;
+    }
+    // E NON PIU' DI UN GIRO OGNI SECONDO E MEZZO. Scrivendo nel campo "Nome"
+    // il nome cambia a ogni tasto: cambia la chiave qui sopra, il nome
+    // digitato non combacia piu' con nessuna casella viva, e il giro si
+    // rifaceva per intero (120.000 nodi attraverso tutte le ombre) a ogni
+    // lettera - era la finestra delle impostazioni che si incollava.
+    const quando = Date.now();
+    if (quando - (this._planciaQuando || 0) < 1500) {
+      return (this._planciaSalvata && this._planciaSalvata.isConnected)
+        ? this._planciaSalvata : null;
+    }
+    this._planciaQuando = quando;
     this._planciaCercata = chi;
+    this._planciaSalvata = null;
     // una scheda che vive dentro al pop-up sulla plancia non c'e': il giro
     // di tutta la pagina sarebbe fatica buttata via
     if (this._perIlPopup()) return null;
@@ -9196,6 +9882,9 @@ const ConPosti = (Base) => class extends Base {
       this._giaSbrogliato = false;
       this._planciaCercata = null;
       this._planciaSalvata = null;
+      // cambia la casella per davvero: il giro va rifatto subito, senza
+      // aspettare il freno del secondo e mezzo
+      this._planciaQuando = 0;
       this._aggiornaPista();
     });
     box._chi.append(eti, torna);
@@ -9209,6 +9898,25 @@ const ConPosti = (Base) => class extends Base {
   }
 
   _pistaTrascina(carta) {
+    // UN SOLO ARMAMENTARIO PER CASELLINA. Dopo un distacco/riattacco (cambio
+    // di linguetta) `connectedCallback` richiama questa funzione per rimettere
+    // gli ascoltatori sulla finestra: senza buttare via i pezzi del giro
+    // prima restava un quadratino giallo orfano - che risponde al tocco e non
+    // ridimensiona niente - insieme alle due maniglie di lato, e l'ascoltatore
+    // del clic sulla carta si raddoppiava a ogni riattacco.
+    if (carta._mieiPezzi) {
+      carta._mieiPezzi.forEach((el) => {
+        try { el.remove(); } catch (e) { /* era gia' andato */ }
+      });
+      carta._mieiPezzi = null;
+    }
+    if (carta._fermaClic) {
+      carta.removeEventListener("click", carta._fermaClic, true);
+      carta._fermaClic = null;
+    }
+    // e la mano alzata di un trascinamento interrotto a meta' va abbassata,
+    // se no la pista non si rinfrescherebbe mai piu'
+    if (this._postiBox) this._postiBox._inMano = false;
     const PEZZI = [
       ["valore", ".valore"],
       ["nome", ".testi"],
@@ -9304,6 +10012,17 @@ const ConPosti = (Base) => class extends Base {
     const latoDestra = faiLato("destra");
     const latoSotto = faiLato("sotto");
     const lati = [latoDestra, latoSotto];
+    // i tre pezzi che ho messo io nel riquadro: me li segno per poterli
+    // buttare via al prossimo giro (vedi in cima)
+    carta._mieiPezzi = [maniglia, latoDestra, latoSotto];
+
+    // LA MANO ALZATA mentre sto trascinando: finche' e' alzata
+    // `_aggiornaPista` esce subito e non riconfigura la casellina sotto il
+    // dito. Si alza PRIMA di emettere e si abbassa al rilascio.
+    const alzaMano = (si) => {
+      const b = this._postiBox;
+      if (b) b._inMano = !!si;
+    };
 
     const pezziDi = (chi) => {
       const radice = carta.shadowRoot;
@@ -9416,7 +10135,11 @@ const ConPosti = (Base) => class extends Base {
       // sta scrivendo dentro
       if (numeri) {
         const dove = ((this._cfgPista() || {}).posti || {})[chi] || {};
-        const dentro = numeri.gr.ownerDocument.activeElement;
+        // il fuoco dalla radice d'ombra del campo: con `ownerDocument` il
+        // controllo era sempre falso, e siccome `giu` fa preventDefault il
+        // fuoco resta nel campo mentre `muovi` richiama qui - le cifre
+        // scritte a mano si cancellavano a ogni pixel di movimento
+        const dentro = ilFuoco(numeri.gr);
         numeri.chi.textContent = T("Pezzo: ") + chi;
         const metti = (campo, valore) => {
           if (dentro === campo) return;
@@ -9672,6 +10395,11 @@ const ConPosti = (Base) => class extends Base {
       setTimeout(aggiornaManiglia, 0);
       e.preventDefault();
       e.stopPropagation();
+      // ALZO LA MANO PRIMA DI EMETTERE: da qui sotto partono fino a due
+      // emissioni col dito ancora premuto, e la configurazione che Home
+      // Assistant rimanda arriverebbe a riconfigurare la casellina sotto il
+      // dito (vedi `_aggiornaPista`)
+      alzaMano(true);
       // la prima volta fisso tutti i pezzi dove stanno adesso, se no
       // saltano tutti appena ne muovo uno
       const mia = this._cfgPista();
@@ -9847,6 +10575,21 @@ const ConPosti = (Base) => class extends Base {
     window.addEventListener("pointermove", tiraMuovi, true);
     ["pointerup", "pointercancel"].forEach((ev) =>
       window.addEventListener(ev, tiraLascia, true));
+    // E LA MANO SI ABBASSA AL RILASCIO, qualunque cosa sia successa in mezzo
+    // (anche se `giu` e' uscito prima di prendere qualcosa). Va per ultimo,
+    // cosi' arriva dopo `lascia`. Se mentre tenevo premuto ho saltato un
+    // rinfresco della pista, lo recupero adesso.
+    const mollaMano = () => {
+      const b = this._postiBox;
+      if (!b || !b._inMano) return;
+      alzaMano(false);
+      if (b._pistaDaRifare) {
+        b._pistaDaRifare = false;
+        this._aggiornaPista();
+      }
+    };
+    ["pointerup", "pointercancel"].forEach((ev) =>
+      window.addEventListener(ev, mollaMano, true));
     // e quando lui tocca una casella dentro all'anteprima del pop-up
     const scegli = (e) => {
       const cfg = e.detail && e.detail.config;
@@ -9872,6 +10615,9 @@ const ConPosti = (Base) => class extends Base {
       this._giaSbrogliato = false;
       this._planciaCercata = null;
       this._planciaSalvata = null;
+      // ha scelto un'altra scheda: il giro va rifatto subito, senza
+      // aspettare il freno del secondo e mezzo
+      this._planciaQuando = 0;
       this._aggiornaPista();
       const box = this._postiBox;
       if (box) box.scrollIntoView({ block: "nearest" });
@@ -9889,14 +10635,20 @@ const ConPosti = (Base) => class extends Base {
       window.removeEventListener("pointermove", tiraMuovi, true);
       ["pointerup", "pointercancel"].forEach((ev) =>
         window.removeEventListener(ev, tiraLascia, true));
+      ["pointerup", "pointercancel"].forEach((ev) =>
+        window.removeEventListener(ev, mollaMano, true));
     };
     // e mentre sposto un pezzo la casella non deve fare il suo mestiere
-    carta.addEventListener("click", (e) => {
+    // (me lo segno sulla carta: al riattacco va tolto, se no se ne accumula
+    // uno per ogni cambio di linguetta)
+    const fermaClic = (e) => {
       if (!preso && !carta._appenaSpostato) return;
       e.preventDefault();
       e.stopPropagation();
       carta._appenaSpostato = false;
-    }, true);
+    };
+    carta._fermaClic = fermaClic;
+    carta.addEventListener("click", fermaClic, true);
   }
 
   // QUANDO LUI TIRA L'ANGOLO DI UNA SCHEDA nell'anteprima del pop-up.
@@ -10331,7 +11083,7 @@ ha-form[acceso] { outline: 2px solid var(--primary-color, #5ec8ff);
 // -*- coding: utf-8 -*-
 // Che versione e': la scrivo in un posto solo.
 
-const VERSIONE = "2.96.36";
+const VERSIONE = "2.97.0";
 
 // -*- coding: utf-8 -*-
 // Il riquadro delle impostazioni.
@@ -10375,8 +11127,14 @@ class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLElement))
       if (this._config.coda === undefined) this._config.coda = true;
       if (this._config.yt_cuore === undefined) this._config.yt_cuore = true;
     }
-    this._planciaCercata = null;
-    this._planciaSalvata = null;
+    // LA CARD SULLA PLANCIA NON LA CERCO PIU' DA CAPO A OGNI GIRO. Qui
+    // dentro ci passa OGNI modifica (emetto, Home Assistant mi rimanda la
+    // configurazione e richiama setConfig): azzerando la memoria,
+    // `_cartaPlancia` rifaceva la discesa ricorsiva di tutto il documento
+    // attraverso le ombre - 120.000 nodi - a ogni lettera scritta nel campo
+    // "Nome", e la finestra delle impostazioni si incollava. La memoria sa
+    // gia' invalidarsi da sola: e' legata a entita'+nome e controlla che il
+    // nodo salvato sia ancora attaccato.
     this._render();
   }
   set hass(hass) { scegliLingua(hass); this._hass = hass; this._propaga(); }
@@ -10824,6 +11582,11 @@ class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLElement))
     clearTimeout(this._scordaForm);
     clearTimeout(this._ripassoAnt);
     this._planciaSalvata = null;
+    // e dimentico anche PER CHI l'avevo cercata, se no alla riapertura
+    // `_cartaPlancia` si crederebbe a posto ("gia' cercata, non c'era") e
+    // non la cercherebbe mai piu'
+    this._planciaCercata = null;
+    this._planciaQuando = 0;
     this._veraSalvata = null;
   }
 
@@ -11148,9 +11911,14 @@ const ConAnteprima = (Base) => class extends Base {
 
   _spiaLaColonna(box) {
     if (!box || box.__casaSpia) return;
-    box.__casaSpia = true;
-    SEGNI_ANTEPRIMA.set(box, { dove: box.scrollTop, pieno: box.scrollHeight });
-    box.addEventListener("scroll", () => {
+    // La colonna vive piu' di noi: la finestra delle impostazioni rifa' le
+    // caselle a ogni modifica, lei resta. Con la guardia `__casaSpia`
+    // messa a `true` l'ascoltatore non si levava mai, e siccome chiude su
+    // `this` la colonna teneva in vita per sempre la PRIMA casella che
+    // l'aveva trovata (e nessun'altra riusciva piu' a rimettere la spia,
+    // perche' la guardia la credeva ancora buona). Adesso mi tengo da
+    // parte chi l'ha messa, cosi' si puo' levare quando mi stacco.
+    const spia = () => {
       const m = SEGNI_ANTEPRIMA.get(box) || { dove: 0, pieno: 0 };
       if (box.scrollHeight > m.pieno) m.pieno = box.scrollHeight;
       // Mentre sto rimettendo a posto non do retta a niente: gli
@@ -11170,7 +11938,37 @@ const ConAnteprima = (Base) => class extends Base {
         m.quando = Date.now();
       }
       SEGNI_ANTEPRIMA.set(box, m);
-    }, { passive: true });
+    };
+    box.__casaSpia = spia;
+    this._spiaColonna = { box: box, spia: spia };
+    // il segno di dov'era NON si azzera: quando la casella viene rifatta la
+    // spia si rimette, e ripartire da zero vorrebbe dire perdere proprio il
+    // posto che stiamo cercando di non perdere
+    if (!SEGNI_ANTEPRIMA.has(box)) {
+      SEGNI_ANTEPRIMA.set(box, { dove: box.scrollTop, pieno: box.scrollHeight });
+    }
+    box.addEventListener("scroll", spia, { passive: true });
+  }
+
+  // TUTTO QUELLO CHE HO LASCIATO SULLA COLONNA, me lo riprendo. Lo
+  // `disconnectedCallback` della casella sta in casa-tile.js e non passa
+  // dai mixin, quindi non posso scriverlo qui: pero' quello chiama
+  // `this._ascoltoVesti()`, che e' roba nostra, ed e' li' che aggancio
+  // questa pulizia (vedi `_ascoltaRivestiti`).
+  _pulisciAnteprima() {
+    const s = this._spiaColonna;
+    this._spiaColonna = null;
+    if (s && s.box) {
+      s.box.removeEventListener("scroll", s.spia);
+      if (s.box.__casaSpia === s.spia) s.box.__casaSpia = null;
+      if (s.box.__casaCarta === this) s.box.__casaCarta = null;
+    }
+    this._boxAnt = null;
+    // e i tre ascoltatori che mollano il ripasso: il loro `setTimeout` di
+    // pulizia sta in `_segni`, e `disconnectedCallback` quei timer li
+    // cancella - quindi se la casella si stacca prima dei 1400 ms non li
+    // levava nessuno
+    if (this._levaMolla) this._levaMolla();
   }
 
   // c'e' dentro anche il riquadro delle impostazioni? (guarda anche dentro
@@ -11210,8 +12008,17 @@ const ConAnteprima = (Base) => class extends Base {
     box.__casaFino = Date.now() + 1400;
     let mollato = false;
     const molla = () => { mollato = true; box.__casaFino = 0; };
+    // se un ripasso di prima e' ancora in piedi, i suoi tre ascoltatori li
+    // levo adesso: qui sotto si cancellano i suoi timer, compreso quello
+    // che doveva levarli lui
+    if (this._levaMolla) this._levaMolla();
     ["wheel", "touchmove", "keydown"].forEach((ev) =>
       box.addEventListener(ev, molla, { passive: true, once: true }));
+    this._levaMolla = () => {
+      this._levaMolla = null;
+      ["wheel", "touchmove", "keydown"].forEach((ev) =>
+        box.removeEventListener(ev, molla));
+    };
     const rimetti = () => {
       if (mollato || !box.isConnected) return;
       // Se sta modificando una scheda, e' LEI il punto fermo: la rimetto
@@ -11245,8 +12052,7 @@ const ConAnteprima = (Base) => class extends Base {
     this._segni = [60, 150, 300, 500, 800, 1200]
       .map((quando) => setTimeout(rimetti, quando));
     this._segni.push(setTimeout(() => {
-      ["wheel", "touchmove", "keydown"].forEach((ev) =>
-        box.removeEventListener(ev, molla));
+      if (this._levaMolla) this._levaMolla();
     }, 1400));
   }
 
@@ -11318,8 +12124,13 @@ const ConAnteprima = (Base) => class extends Base {
       this._vestiAnteprima();
     };
     window.addEventListener("casa-rivestiti", preso, true);
-    this._ascoltoVesti = () =>
+    this._ascoltoVesti = () => {
       window.removeEventListener("casa-rivestiti", preso, true);
+      // la casella si sta staccando (e' `disconnectedCallback` a chiamare
+      // questa): e' il momento di levare anche quello che ho appeso alla
+      // colonna dell'anteprima, che a noi non sopravvive
+      this._pulisciAnteprima();
+    };
   }
 
   _vestiAnteprima() {
@@ -11399,21 +12210,55 @@ const ConDisegni = (Base) => class extends Base {
     let perc = NaN;
     if (st) {
       const n = parseFloat(st.state);
-      const u = st.attributes.unit_of_measurement;
-      if (!isNaN(n) && (u === "%" || /batter|livello|level|soc/i.test(c.entity || ""))) {
+      const u = String(st.attributes.unit_of_measurement || "");
+      // SOLO una percentuale e' una percentuale. Prima bastava che
+      // l'entity_id contenesse "batter"/"livello"/"level"/"soc" e QUALSIASI
+      // unita' veniva presa per carica: una `sensor.batteria_tensione` da
+      // 12,8 V diventava una batteria rossa al 13%, a 48 V arancione al 48%.
+      // Col "%" e' una percentuale per definizione; senza unita' mi fido
+      // del nome; con qualunque altra unita' (V, A, Wh...) non lo e'.
+      const comePerc = u === "%"
+        || (!u && /batter|livello|level|soc/i.test(c.entity || ""));
+      if (!isNaN(n) && comePerc) {
         perc = n;
       } else if (st.attributes.battery_level !== undefined) {
         perc = parseFloat(st.attributes.battery_level);
+      } else if (String(st.attributes.device_class || "") === "battery"
+                 && String(st.entity_id || c.entity || "")
+                   .indexOf("binary_sensor.") === 0) {
+        // Un `binary_sensor` con device_class batteria non da' un numero:
+        // `on` vuol dire BATTERIA SCARICA, `off` vuol dire a posto. Senza
+        // questo restava NaN e il disegno la faceva piena e verde, cioe'
+        // l'esatto contrario di quello che diceva il sensore.
+        const t = String(st.state).toLowerCase();
+        if (t === "on") perc = 10;
+        else if (t === "off") perc = 100;
       }
     }
 
+    // "Not Charging" con lo SPAZIO (companion iOS, parecchie integrazioni
+    // Tuya, template scritti a mano) non entrava nella lista dei "no", che
+    // aveva "not_charging" col trattino basso: passava, e poi il confronto a
+    // sottostringa trovava "charging" dentro "not charging". Quindi prima
+    // normalizzo spazi e trattini bassi, poi confronto a PAROLE INTERE.
+    const normale = (valore) => String(valore === true ? "charging" : (valore || ""))
+      .toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+    // parola intera: metto gli spazi ai bordi, cosi' "charging" non si
+    // trova piu' dentro "discharging"
+    const contiene = (t, frase) => (" " + t + " ").indexOf(" " + frase + " ") >= 0;
+    const NO_CARICA = ["not charging", "not charged", "discharging", "discharged",
+                       "non in carica", "in scarica", "scarica", "none",
+                       "off", "unplugged", "unavailable", "unknown"];
+    const SI_CARICA = ["charging", "charged", "in carica", "carica", "ac", "usb",
+                       "wireless", "plugged", "on", "full"];
     const dice = (valore) => {
-      const t = String(valore === true ? "charging" : (valore || "")).toLowerCase();
+      const t = normale(valore);
       if (!t) return false;
-      if (["not_charging", "discharging", "non in carica", "scarica", "none",
-           "off", "unplugged"].some((x) => t.indexOf(x) >= 0)) return false;
-      return ["charging", "in carica", "carica", "ac", "usb", "wireless",
-              "plugged", "on", "full"].some((x) => t.indexOf(x) >= 0);
+      // i "no" PRIMA dei "si": "discharging" e "unplugged" vanno riconosciuti
+      // per quello che sono, se no finiscono fra i "si" per via di
+      // "charging" e "plugged"
+      if (NO_CARICA.some((x) => contiene(t, x))) return false;
+      return SI_CARICA.some((x) => contiene(t, x));
     };
 
     let carica = false;
@@ -11448,11 +12293,18 @@ const ConDisegni = (Base) => class extends Base {
         if (dc === "battery_charging" && alt.state === "on") carica = true;
         if (/charg|carica/i.test(eid) && dice(alt.state)) carica = true;
         // anche se il NOME non parla di carica, il suo stato puo' dirlo
-        // ("In carica", "Charging"): qui pero' solo parole esplicite
-        const t = String(alt.state).toLowerCase();
-        if (t.indexOf("scarica") < 0 && t.indexOf("non in carica") < 0
-            && (t.indexOf("in carica") >= 0 || t.indexOf("charging") >= 0
-                || t.indexOf("plugged") >= 0)) {
+        // ("In carica", "Charging"): qui pero' solo parole esplicite.
+        // Questo pezzo prima scavalcava `dice()` e confrontava a
+        // sottostringa: "discharging" contiene "charging", "not_charging"
+        // contiene "charging", "unplugged" contiene "plugged", e cosi' un
+        // `sensor.*_battery_state` dell'app companion faceva disegnare "in
+        // carica" una batteria che si stava scaricando. Peggio: girando
+        // prima di `aParole` e vincendo su `scarica` (riga piu' in basso),
+        // sovrascriveva anche la logica giusta. Adesso usa lo stesso
+        // criterio di `dice()`: i "no" per primi, e a parole intere.
+        const t = normale(alt.state);
+        if (!NO_CARICA.some((x) => contiene(t, x))
+            && ["in carica", "charging", "plugged"].some((x) => contiene(t, x))) {
           carica = true;
         }
       });
@@ -11524,7 +12376,11 @@ const ConDisegni = (Base) => class extends Base {
       // entita' della casa a ogni disegno costava carissimo
       if (PARENTI[c.entity] === undefined) {
         const trovate = [];
-        const pezzi = String(c.entity).split(".")[1].split("_");
+        // `entity` scritto male (senza il punto): `split(".")[1]` era
+        // undefined e il `.split("_")` dopo faceva morire tutto il disegno.
+        // Tutte le altre righe qui intorno sono difese, questa no.
+        const coda = String(c.entity).split(".")[1] || "";
+        const pezzi = coda ? coda.split("_") : [];
         for (let i = pezzi.length - 1; i >= 1 && !trovate.length; i -= 1) {
           const radice2 = pezzi.slice(0, i).join("_");
           if (radice2.length < 2) break;
@@ -11619,6 +12475,17 @@ const ConDisegni = (Base) => class extends Base {
       // solo il fulmine cambia l'ingombro
       forma = b.carica ? "batteria|c" : "batteria|-";
     }
+    // L'umidita' ha il suo disegno (la goccia col livello): senza questo
+    // ramo si pescava la goccia statica al 55% e non seguiva la lettura.
+    if (nomeIcona === "umidita") {
+      const u = st && st.attributes ? st.attributes.unit_of_measurement : "";
+      const n = numeroVero(st ? st.state : null);
+      // solo una percentuale vera: un'umidita' assoluta in g/m3 non e' un livello
+      const perc = n !== null && (!u || u === "%") ? Math.max(0, Math.min(100, n)) : NaN;
+      disegno = disegnoUmidita(perc);
+      chiave = "umidita|" + (isFinite(perc) ? Math.round(perc) : "-");
+      forma = "umidita";
+    }
     if (nomeIcona === "termometro") {
       const gradi = this._gradiDi(st);
       if (gradi !== null) {
@@ -11636,7 +12503,18 @@ const ConDisegni = (Base) => class extends Base {
       chiave = "aspira|" + (fuori ? "fuori" : "base");
       forma = "aspirapolvere";
     }
-    if (nomeIcona === "tapparella" && dove !== null) {
+    // Tapparella a rele': non ha `current_position`, sa solo aprire e
+    // chiudere, quindi `_quantoAperta` torna null e si cadeva sul disegno
+    // fisso delle ICONE - tre stecche a mezzo vano - percio' una tapparella
+    // CHIUSA si vedeva a meta' e non cambiava mai. Lo stato basta per
+    // disegnarla tutta giu' o tutta su.
+    let doveTap = dove;
+    if (nomeIcona === "tapparella" && doveTap === null && st) {
+      const s = String(st.state).toLowerCase();
+      if (s === "closed") doveTap = 0;
+      else if (s === "open") doveTap = 100;
+    }
+    if (nomeIcona === "tapparella" && doveTap !== null) {
       // si muove se lo dice Home Assistant o se lo sto ancora portando io
       let moto = (st && st.state === "opening") ? "su"
         : ((st && st.state === "closing") ? "giu" : "");
@@ -11644,7 +12522,9 @@ const ConDisegni = (Base) => class extends Base {
       disegno = disegnoTapparella(moto);
       chiave = "tapparella|" + moto;
       forma = "tapparella|pos";
-      taglia = this._posizioneDisegno(st);
+      // col viaggio in corso comanda il viaggio; senza posizione vera
+      // (`_posizioneDisegno` tornerebbe null) vale quella dedotta dallo stato
+      taglia = dove !== null ? this._posizioneDisegno(st) : doveTap;
     }
     return { disegno: disegno, chiave: chiave, forma: forma, taglia: taglia };
   }
@@ -11844,7 +12724,9 @@ const ConFinestra = (Base) => class extends Base {
           // molte telecamere, il posto dove rimediare e' questo.
           const suo = { ...cfg };
           const el = this._eGriglia(suo)
-            ? this._costruisciGriglia(suo, aiuti, this._anteprimaSchede)
+            // qui siamo nell'ANTEPRIMA: dentro alla griglia il cartellino
+            // al posto della telecamera e' quello che vogliamo
+            ? this._costruisciGriglia(suo, aiuti, this._anteprimaSchede, true)
             : (this._pesante(suo) ? this._cartellino(suo)
               : aiuti.createCardElement(suo));
           el.hass = this._hass;
@@ -11966,7 +12848,17 @@ const ConFinestra = (Base) => class extends Base {
     document.addEventListener("keydown", this._esc = (e) => {
       if (e.key === "Escape") this._chiudiFinestra();
     });
-    if (this._fCorpo.childElementCount) { this._aggiornaFinestra(); return; }
+    // LA CACHE VA A FIRMA, NON A "CI SONO DEI FIGLI". Home Assistant riusa
+    // la stessa casella e le richiama setConfig con una configurazione
+    // nuova - succede a ogni ritocco nell'anteprima dell'editor - e
+    // _fCorpo non lo svuota nessuno: cosi' il pop-up continuava a mostrare
+    // le schede della prima apertura. Con la firma del contenuto accanto
+    // alla cache, appena cambia qualcosa si ricostruisce.
+    const firmaCorpo = this._firmaContenuto();
+    if (this._fCorpo.childElementCount && this._firmaCorpo === firmaCorpo) {
+      this._aggiornaFinestra();
+      return;
+    }
 
     const scelte = c.finestra_cards || (c.finestra_card ? [c.finestra_card] : null);
     const elenco = (c.finestra_entita && c.finestra_entita.length)
@@ -11978,7 +12870,7 @@ const ConFinestra = (Base) => class extends Base {
     // punto di nascita misurato un attimo fa era quello di una finestra
     // vuota, piu' bassa e quindi piu' in mezzo allo schermo. Rimisuro
     // quando il contenuto c'e' - da li' in poi la misura e' gia' buona.
-    const monta = (lista) => Promise.resolve(this._montaSchede(lista))
+    const monta = (lista) => Promise.resolve(this._montaSchede(lista, firmaCorpo))
       .then(() => { requestAnimationFrame(() => this._faiNascere()); });
 
     const schede = [];
@@ -11999,6 +12891,29 @@ const ConFinestra = (Base) => class extends Base {
     return monta(schede);
   }
 
+  // LA FIRMA DI QUELLO CHE VA DENTRO AL POP-UP. Tutto quello che decide il
+  // contenuto, in una riga: se cambia, le schede montate non valgono piu' e
+  // vanno rifatte. La tengo qui dentro cosi' non serve che nessun altro
+  // svuoti _fCorpo quando arriva una configurazione nuova.
+  _firmaContenuto() {
+    const c = this._config || {};
+    try {
+      return JSON.stringify([
+        c.finestra_cards || null,
+        c.finestra_card || null,
+        c.finestra_entita || null,
+        c.finestra_scheda || null,
+        c.finestra_scheda_altra || null,
+        !!c.finestra_grafico,
+        c.entity || null,
+      ]);
+    } catch (e) {
+      // una configurazione che non si scrive in JSON: meglio rifare il
+      // contenuto ogni volta che tenersi addosso quello vecchio
+      return "ogni-volta:" + Date.now();
+    }
+  }
+
   // le schede del pop-up, cosi' come stanno scritte
   _schedeFinestra() {
     const c = this._config || {};
@@ -12013,7 +12928,13 @@ const ConFinestra = (Base) => class extends Base {
   // piu' di una colonna. La misura la scrivo in dodicesimi come dappertutto
   // e qui la riporto sulle colonne che ci sono: con cinque colonne, 12 = 5,
   // 6 = 2, 3 = 1.
-  _costruisciGriglia(cfg, aiuti, figli) {
+  //
+  // `anteprima` dice DOVE stiamo: nel riquadro delle impostazioni o nel
+  // pop-up vero. Serve perche' la telecamera va spenta solo nell'anteprima;
+  // _pesante e' un test sul TIPO, non sul contesto, e usandolo sempre una
+  // telecamera dentro a un grid diventava un cartellino grigio anche nel
+  // pop-up vero - mentre la stessa telecamera fuori dal grid funzionava.
+  _costruisciGriglia(cfg, aiuti, figli, anteprima) {
     // Se la griglia non dice quante colonne vuole, Home Assistant ne fa
     // TRE: se ne mettessi due la disposizione cambierebbe da sola.
     const quante = Math.max(1, Math.min(12,
@@ -12035,7 +12956,8 @@ const ConFinestra = (Base) => class extends Base {
       const cc = c || {};
       let el = null;
       try {
-        el = this._pesante(cc) ? this._cartellino(cc) : aiuti.createCardElement(cc);
+        el = (anteprima && this._pesante(cc))
+          ? this._cartellino(cc) : aiuti.createCardElement(cc);
       } catch (e) { return; }
       try { el.hass = this._hass; } catch (e) { /* pazienza */ }
       // Dentro a una griglia la misura si conta nelle SUE colonne: 1 vuol
@@ -12107,11 +13029,22 @@ const ConFinestra = (Base) => class extends Base {
     busta.toggleAttribute("vestita", true);
   }
 
-  async _montaSchede(schede) {
+  async _montaSchede(schede, firma) {
+    // UN MONTAGGIO PER VOLTA, E IL CONTRASSEGNO SI GUARDA PRIMA DELL'AWAIT.
+    // La guardia della cache in _apriFinestra e' sincrona, questa funzione
+    // no: al primo uso della sessione "loadCardHelpers()" importa il
+    // modulo, e due aperture ravvicinate (due "prova apertura", o
+    // tocco-chiudi-tocco veloce) entravano qui tutte e due prima che si
+    // risolvesse. Risultato: ogni scheda appesa due volte, e _schede
+    // riazzerato lasciava le copie del primo giro senza "hass", ferme.
+    if (this._staMontando) return;
+    this._staMontando = true;
     try {
       const helpers = await window.loadCardHelpers();
       this._misureFinestra(this._fCorpo);
       if (this._finestra) this._misureFinestra(this._finestra);
+      // e si svuota PRIMA di appendere: _fCorpo non lo azzerava nessuno
+      this._fCorpo.innerHTML = "";
       this._schede = [];
       // le griglie si aprono: le loro caselle diventano pezzi a se', cosi'
       // ognuna puo' avere la sua misura (vedi _pezziFinestra)
@@ -12120,7 +13053,8 @@ const ConFinestra = (Base) => class extends Base {
         const i = pezzo.chiave;
         try {
           const el = this._eGriglia(cfg)
-            ? this._costruisciGriglia(cfg, helpers, this._schede)
+            // pop-up VERO: niente cartellini, le telecamere qui si vedono
+            ? this._costruisciGriglia(cfg, helpers, this._schede, false)
             : helpers.createCardElement(cfg);
           el.hass = this._hass;
           // ogni scheda dentro il pop-up si veste per conto suo
@@ -12142,8 +13076,12 @@ const ConFinestra = (Base) => class extends Base {
           this._fCorpo.appendChild(avviso);
         }
       });
+      // da qui in poi il contenuto corrisponde a questa configurazione
+      this._firmaCorpo = firma;
     } catch (err) {
       this._fCorpo.textContent = T("Non riesco a creare il contenuto della finestra.");
+    } finally {
+      this._staMontando = false;
     }
   }
 
@@ -12789,13 +13727,28 @@ const ConGrafici = (Base) => class extends Base {
     const ore = Number(c.grafico_ore) > 0 ? Number(c.grafico_ore) : 24;
     const chiave = c.entity + "|" + ore;
     const adesso = Date.now();
+    // un'entita' che lo storico non ce l'ha (fuori dal recorder, o appena
+    // nata) non ce l'avra' nemmeno fra cinque minuti: quella la richiedo
+    // una volta all'ora, se no sono chiamate ogni cinque minuti per sempre
+    const ogni = (this._senzaStorico && this._chiaveStoria === chiave)
+      ? 3600000 : 300000;
     // la storia si chiede una volta ogni cinque minuti, non a ogni disegno
     if (this._chiaveStoria !== chiave || !this._quandoStoria
-        || adesso - this._quandoStoria > 300000) {
+        || adesso - this._quandoStoria > ogni) {
       // cambiando entita' (o cassa seguita) la storia di prima non vale piu':
       // se no si vedeva la linea dell'entita' PRECEDENTE, coi suoi minimo e
       // massimo nel suggerimento, finche' non arrivava la risposta nuova.
-      if (this._chiaveStoria !== chiave) this._storia = null;
+      // Ma SOLO se una chiave ce l'avevo gia': con `_chiaveStoria` ancora
+      // `undefined` lo storico che trovo non e' di un'altra entita', e'
+      // quello che mi ha messo in mano qualcun altro da fuori (il riquadro
+      // "Dove va ogni pezzo" copia lo storico della casella vera nella sua
+      // casellina, che ha `solo-casella` e non lo chiede mai). Buttandolo,
+      // alla prima apertura di quel riquadro si componeva la disposizione
+      // su una casella senza grafico, diversa da quella vera.
+      if (this._chiaveStoria !== undefined && this._chiaveStoria !== chiave) {
+        this._storia = null;
+        this._senzaStorico = 0;
+      }
       this._chiaveStoria = chiave;
       this._quandoStoria = adesso;
       const da = new Date(adesso - ore * 3600000).toISOString();
@@ -12803,6 +13756,21 @@ const ConGrafici = (Base) => class extends Base {
       this._chiediStoria(c.entity, da, a);
     }
     this._disegnaLinea(st);
+  }
+
+  // PER CHI RIEMPIE UNA CASELLINA DA FUORI. Il riquadro "Dove va ogni
+  // pezzo" fa una casellina con `solo-casella`, che di suo non chiede mai
+  // lo storico: se glielo si vuole passare, si passa QUI - storico e chiave
+  // insieme - cosi' al disegno dopo non viene buttato. Scrivere a mano il
+  // solo `_storia` funziona ancora (vedi `_disegnaAndamento`), ma lascia la
+  // casellina senza una chiave sua.
+  _metteStoria(punti, ore) {
+    const c = this._config || {};
+    const o = Number(ore) > 0 ? Number(ore)
+      : (Number(c.grafico_ore) > 0 ? Number(c.grafico_ore) : 24);
+    this._storia = Array.isArray(punti) ? punti : null;
+    this._chiaveStoria = (c.entity || "") + "|" + o;
+    this._quandoStoria = Date.now();
   }
 
   // due strade per lo storico: prima il websocket, poi l'indirizzo normale
@@ -12863,8 +13831,14 @@ const ConGrafici = (Base) => class extends Base {
       let t = g.lu !== undefined ? g.lu * 1000
         : (g.last_updated || g.last_changed || null);
       if (typeof t === "string") t = Date.parse(t);
-      return { v: v, t: Number(t) || 0 };
-    }).filter((x) => !isNaN(x.v) && !this._misuraFinta(x.v));
+      // Un marcatempo illeggibile (un `Date.parse` fallito) diventava zero,
+      // e lo zero fa danni: in `_disegnaLinea` basta che il PRIMO punto
+      // abbia t = 0 perche' tutto il grafico torni alla spaziatura per
+      // numero d'ordine, e uno zero in mezzo allunga la durata e schiaccia
+      // il resto sul bordo destro. Senza momento il campione e' inservibile:
+      // lo butto, invece di metterlo a zero.
+      return { v: v, t: Number(t) };
+    }).filter((x) => !isNaN(x.v) && x.t > 0 && !this._misuraFinta(x.v));
 
     try {
       const risposta = await this._hass.callWS({
@@ -12878,8 +13852,22 @@ const ConGrafici = (Base) => class extends Base {
       });
       const righe = (risposta && risposta[chi]) || [];
       if (righe.length) {
+        this._senzaStorico = 0;
         this._storia = this._assottiglia(numeri(righe));
         this._disegnaLinea();
+        return;
+      }
+      // HA RISPOSTO BENE, MA NON C'E' NIENTE. Prima qui non si usciva: si
+      // provava anche la seconda strada su tutta la finestra, che tornava
+      // vuota anche lei, e il giro si rifaceva identico ogni cinque minuti
+      // finche' la casella stava in pagina - due chiamate a vuoto per
+      // sempre. L'entita' e' fuori dal recorder (o e' appena nata): me lo
+      // segno, cosi' `_disegnaAndamento` ci torna fra un'ora.
+      if (risposta) {
+        this._senzaStorico = Date.now();
+        this._storia = [];
+        this._disegnaLinea();
+        this._niente("questa entita non ha storico (esclusa dal recorder?)");
         return;
       }
     } catch (e) { /* pazienza: ci provo con l'altra strada */ }
@@ -12893,7 +13881,14 @@ const ConGrafici = (Base) => class extends Base {
       const righe = (Array.isArray(risposta) && risposta[0]) || [];
       this._storia = this._assottiglia(numeri(righe));
       this._disegnaLinea();
-      if (!this._storia.length) this._niente("lo storico e vuoto");
+      if (!this._storia.length) {
+        // niente nemmeno qui: vale lo stesso discorso di sopra, non sta a
+        // noi richiederlo ogni cinque minuti
+        this._senzaStorico = Date.now();
+        this._niente("lo storico e vuoto");
+      } else {
+        this._senzaStorico = 0;
+      }
       return;
     } catch (e) {
       this._storia = null;
@@ -12925,10 +13920,15 @@ const ConGrafici = (Base) => class extends Base {
     if (punti.length < 2) {
       box.toggleAttribute("hidden", true);
       if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", true);
+      // `_disegnaAndamento` l'aveva gia' accesa fidandosi: se poi il
+      // grafico non si disegna va spenta, se no le scritte si prendono
+      // l'ombra e il velo scuro per niente
+      this.toggleAttribute("congrafico", false);
       return;
     }
     box.toggleAttribute("hidden", false);
     if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", false);
+    this.toggleAttribute("congrafico", true);
     // ne bastano un centinaio: se sono di piu' li assottiglio
     const max = 120;
     let scelti = punti;
@@ -12949,6 +13949,12 @@ const ConGrafici = (Base) => class extends Base {
     const tuttiV = punti.map((x) => x.v);
     const bassoVero = Math.min.apply(null, tuttiV);
     const altoVero = Math.max.apply(null, tuttiV);
+    // UNA SERIE PIATTA NON STA AL FONDO. `campo = alto - basso || 1`
+    // salvava dalla divisione per zero, ma poi `28 - 0 * 26` dava 28 per
+    // tutti i punti: due unita' dal bordo basso di una striscia alta
+    // trenta. Succedeva con qualunque sensore fermo per tutta la finestra
+    // (un setpoint, la batteria al 100%, un contatore che non si muove).
+    const piatta = !(alto > basso);
     const campo = alto - basso || 1;
     // DI LATO SI VA COL TEMPO, NON COL NUMERO D'ORDINE. Le letture non
     // arrivano a ritmo regolare: un sensore puo' mandarne tre in due minuti
@@ -12962,11 +13968,17 @@ const ConGrafici = (Base) => class extends Base {
     const aTempo = primo > 0 && durata > 0;
     const coord = scelti.map((x, i) =>
       [aTempo ? ((x.t - primo) / durata) * 100 : i * passo,
-        28 - ((x.v - basso) / campo) * 26]);
+        piatta ? 15 : 28 - ((x.v - basso) / campo) * 26]);
     // me li tengo da parte: servono al mirino
     this._disegnati = scelti;
     this._coord = coord;
-    const riga = this._filoMorbido(this._ammorbidisci(coord));
+    // La linea disegnata NON passa per i punti grezzi: li media in
+    // settanta caselle, ci stende una media mobile 1-2-1 e sposta la
+    // griglia di mezza casella. Me la tengo da parte, se no il pallino del
+    // mirino resta staccato dalla linea (e sfasato di lato).
+    const morbide = this._ammorbidisci(coord);
+    this._coordDisegno = morbide;
+    const riga = this._filoMorbido(morbide);
     box.querySelector(".riga").setAttribute("d", riga);
     const pieno = box.querySelector(".pieno");
     pieno.setAttribute("d", riga + " L100 30 L0 30 Z");
@@ -13069,6 +14081,25 @@ const ConGrafici = (Base) => class extends Base {
     return d;
   }
 
+  // DOVE PASSA LA LINEA DISEGNATA a una certa quota di lato. Serve al
+  // mirino: il pallino va messo sulla linea che si vede, non sul punto
+  // grezzo, che su una striscia alta trentotto punti sta anche diversi
+  // pixel piu' su o piu' giu'. Il valore nel cartellino resta quello vero.
+  _quotaDisegnata(x) {
+    const d = this._coordDisegno;
+    if (!d || !d.length) return null;
+    const dentro = (y) => Math.max(1, Math.min(29, y));
+    if (x <= d[0][0]) return dentro(d[0][1]);
+    for (let i = 1; i < d.length; i += 1) {
+      if (x <= d[i][0]) {
+        const dx = d[i][0] - d[i - 1][0] || 1;
+        const q = (x - d[i - 1][0]) / dx;
+        return dentro(d[i - 1][1] + (d[i][1] - d[i - 1][1]) * q);
+      }
+    }
+    return dentro(d[d.length - 1][1]);
+  }
+
   // CHI MUOVE IL MIRINO. Col mouse basta passare sopra la casella. Col dito
   // no: il browser prende il gesto per uno scorrimento della pagina e dopo un
   // attimo lo annulla (pointercancel), e il mirino spariva. Percio' sopra al
@@ -13138,7 +14169,9 @@ const ConGrafici = (Base) => class extends Base {
     this._mirino.querySelector(".mira").style.left = xy[0] + "%";
     const palla = this._mirino.querySelector(".palla");
     palla.style.left = xy[0] + "%";
-    palla.style.top = (xy[1] / 30 * 100) + "%";
+    // sulla linea che si vede, alla stessa quota di lato del punto scelto
+    const quotaY = this._quotaDisegnata(xy[0]);
+    palla.style.top = ((quotaY === null ? xy[1] : quotaY) / 30 * 100) + "%";
 
     const u = this._hass && this._config.entity
       && this._hass.states[this._config.entity]
@@ -13235,7 +14268,10 @@ const ConGrafici = (Base) => class extends Base {
     const c = this._config;
     if (c.sottotitolo_entita) return c.sottotitolo_entita;
     if (c.disposizione !== "persona" || !this._hass) return null;
-    const candidati = c.info_entita || [];
+    // `info_entita` scritto scalare nello YAML (`info_entita: sensor.x`) e'
+    // una stringa, e il `.find` qui sotto faceva TypeError dentro `_render`:
+    // la casella non si disegnava piu'. `comeElenco` e' proprio per questo.
+    const candidati = comeElenco(c.info_entita);
     const buono = candidati.find((eid) => {
       const id = eid.toLowerCase();
       if (!(id.includes("geocoded") || id.includes("location")
@@ -13568,6 +14604,15 @@ const ConMusica = (Base) => class extends Base {
     const card = this.shadowRoot && this.shadowRoot.querySelector("ha-card");
     if (!card) return;
     const posto = card.clientHeight;
+    // LA CASELLA HA CAMBIATO MISURA: IL CONTAGIRI RIPARTE DA ZERO.
+    // Senza questo, una volta superati i dieci giri senza convergere il
+    // contatore restava alto per sempre: da li' in poi ogni
+    // ridimensionamento otteneva UN solo scatto di correzione invece della
+    // rincorsa completa, e il lettore restava della misura sbagliata.
+    if (this._postoPrima !== posto) {
+      this._postoPrima = posto;
+      this._giriLettore = 0;
+    }
     // Dove comincia il primo pezzo e dove finisce l'ultimo. I pezzi
     // staccati dal flusso - la copertina di sfondo, il cielo, il velo -
     // non contano: stanno dietro e non chiedono posto.
@@ -13669,7 +14714,19 @@ const ConMusica = (Base) => class extends Base {
     const apri = vuole === undefined ? pan.hidden : !!vuole;
     pan.hidden = !apri;
     if (this._menuCoda) this._menuCoda.hidden = true;
-    if (!apri) { this._render(); return; }
+    if (!apri) {
+      // ANCHE IN CHIUSURA SI FA IL GIRO COMPLETO, come nelle gemelle
+      // _apriCoda e _apriCerca che le chiamano fuori dal "if (apri)".
+      // Uscendo subito da qui restavano fuori due cose: l'ascolto del
+      // "tocco fuori" rimaneva attaccato al documento a riquadro chiuso
+      // (e da li' ogni tocco veniva scartato: niente piu' pop-up ne'
+      // dettagli), e PANNELLI_APERTI restava su "sfoglia", cosi' il
+      // riquadro si riapriva da solo al render successivo.
+      this._ricordaPannello();
+      this._guardaFuori();
+      this._render();
+      return;
+    }
     this._disegnaPastiglie();
     if (this._pastiglie) {
       Array.from(this._pastiglie.children).forEach((b) =>
@@ -13686,7 +14743,7 @@ const ConMusica = (Base) => class extends Base {
   _sfogliaIndietro() {
     const prima = (this._pila || []).pop();
     if (!prima) { this._apriSfoglia(false); return; }
-    this._scriviSfoglia(prima.voci, prima.titolo, true);
+    this._scriviSfoglia(prima.voci, prima.titolo);
   }
 
   _caricaSfoglia(chiave, titolo) {
@@ -13746,18 +14803,23 @@ const ConMusica = (Base) => class extends Base {
     });
   }
 
-  _scriviSfoglia(voci, titolo, indietro) {
+  _scriviSfoglia(voci, titolo) {
     const pan = this._panSfoglia;
     const elenco = pan.querySelector(".s-elenco");
     pan.querySelector(".s-titolo").textContent = T(titolo);
     pan.querySelector(".s-indietro").hidden = !(this._pila || []).length;
     elenco.innerHTML = "";
+    // _ULTIMEVOCI E' SEMPRE LA CARTELLA CHE SI STA VEDENDO, anche quando ci
+    // si arriva col tasto "<" e anche se dentro non c'e' niente. Prima la
+    // scrivevo solo andando avanti: dopo un "indietro" restava la cartella
+    // da cui si era usciti, finiva nella pila al giro dopo e il "<"
+    // successivo riportava la' invece che al livello di sopra.
+    this._ultimeVoci = { voci: voci || [], titolo };
     if (!voci || !voci.length) {
       elenco.innerHTML = TH('<div class="s-nota">Qui non c-e niente.</div>'
         .replace("c-e", "c" + String.fromCharCode(39) + "e"));
       return;
     }
-    if (!indietro) this._ultimeVoci = { voci, titolo };
     const eid = this._entitaAttiva ? this._entitaAttiva() : this._config.entity;
     voci.forEach((v) => {
       const riga = document.createElement("div");
@@ -14120,7 +15182,20 @@ const ConMusica = (Base) => class extends Base {
     if (!box || !this._hass || !this._hass.callWS) return;
     const ora = Date.now();
     if (quale !== undefined) {
-      if (box._perChi === quale || ora - (box._quando || 0) < 2000) return;
+      if (box._perChi === quale) return;
+      // IL FRENO RIMANDA, NON BUTTA VIA. La domanda respinta andava persa e
+      // nessuno riprovava (box._perChi restava sulla traccia di prima),
+      // cosi' la coda rimaneva vecchia fino al render successivo. Adesso la
+      // riprovo appena i due secondi sono scaduti.
+      const resta = 2000 - (ora - (box._quando || 0));
+      if (resta > 0) {
+        clearTimeout(box._piuTardi);
+        box._piuTardi = setTimeout(() => {
+          box._piuTardi = 0;
+          if (this.isConnected) this._chiediCoda(eid, quale);
+        }, resta + 20);
+        return;
+      }
       box._perChi = quale;
     }
     box._quando = ora;
@@ -14230,6 +15305,15 @@ const ConMusica = (Base) => class extends Base {
     if (adesso < 0 && st && st.attributes.media_title) {
       adesso = elenco.findIndex((v) => v.titolo === st.attributes.media_title);
     }
+    // LO SCORRIMENTO SE L'HA MESSO LUI NON SI TOCCA. La lista si riscrive
+    // tutta (innerHTML = "") e il browser azzera lo scorrimento, quindi me
+    // lo segno PRIMA: se non e' dove l'avevo lasciato io, l'ha spostato
+    // l'utente a mano e glielo rimetto dov'era invece di riportarlo sul
+    // brano in corso. Se no, scorrendo i brani in fondo, al cambio di
+    // traccia (o 0,4-1,4 s dopo Su/Giu/Rimuovi) tornava sempre all'inizio.
+    const eraSu = lista.scrollTop;
+    const aMano = lista._mioScorri !== undefined
+      && Math.abs(eraSu - lista._mioScorri) > 4;
     lista.innerHTML = "";
     elenco.forEach((v, n) => {
       const riga = document.createElement("div");
@@ -14284,9 +15368,21 @@ const ConMusica = (Base) => class extends Base {
     });
     // la riga che suona la porto sotto gli occhi, senza scossoni
     const q = lista.querySelector(".coda-riga[adesso]");
-    if (q && q.offsetParent) {
-      lista.scrollTop = Math.max(0, q.offsetTop - 6);
+    if (aMano) {
+      lista.scrollTop = eraSu;
+    } else if (q && q.offsetParent) {
+      // LA POSIZIONE SI CONTA RISPETTO ALLA LISTA, non all'offsetParent.
+      // ".coda-lista" non e' posizionata, quindi l'offsetParent della riga
+      // e' ".pannello" (absolute, con padding 8px 10px) e "offsetTop"
+      // portava dentro quel padding piu' l'altezza di ".p-testa": una riga
+      // intera di troppo, e il brano in corso finiva sempre appena SOPRA il
+      // bordo visibile. Con la differenza fra i due rettangoli il conto e'
+      // esatto e non dipende da come sta lo stile.
+      const rl = lista.getBoundingClientRect();
+      const rq = q.getBoundingClientRect();
+      lista.scrollTop = Math.max(0, lista.scrollTop + (rq.top - rl.top) - 6);
     }
+    lista._mioScorri = lista.scrollTop;
   }
 
   // I VOLUMI DELLE CASSE UNITE. Torna niente se non c'e' gruppo, o se le
@@ -14743,8 +15839,16 @@ const ConMusica = (Base) => class extends Base {
       via.addEventListener("click", (e) => {
         e.stopPropagation();
         if (!this._hass) return;
+        // LA CODA LA TIENE IL CAPOGRUPPO, come per il tastino "porta qui la
+        // coda" qui sopra. Mandando il comando alla cassa configurata, se
+        // quella e' un'agganciata (coda vuota) il tasto si vedeva - anche le
+        // agganciate annunciano supported_features & 8192 - e non faceva
+        // niente. _entitaAttiva() di solito rimedia, ma la sua correzione
+        // vale solo con _scelto impostato: a pagina appena caricata e gruppo
+        // in pausa cade sulla cassa della configurazione.
+        const suo = this._hass.states[this._config.entity];
         this._hass.callService("media_player", "clear_playlist",
-          { entity_id: this._config.entity });
+          { entity_id: this._capoGruppo(suo) || this._config.entity });
         this._chiudiPannelli();
       });
       box.appendChild(via);
@@ -14962,6 +16066,11 @@ const ConMusica = (Base) => class extends Base {
   _chiaveMemoria() { return "casa-tile:cassa:" + this._lettori().join("|"); }
 
   _ricordaScelto(eid) {
+    // SENZA ELENCO DI LETTORI NON SI SCRIVE NIENTE. La chiave sarebbe
+    // "casa-tile:cassa:" per TUTTE le caselle della casa, e chi la legge la
+    // guarda solo quando i lettori sono piu' di uno: scriverci dentro
+    // sporcava una chiave condivisa senza servire a niente.
+    if (!this._lettori().length) return;
     try { localStorage.setItem(this._chiaveMemoria(), eid); } catch (e) { /* niente */ }
   }
 
@@ -15412,16 +16521,24 @@ const ConPezzi = (Base) => class extends Base {
     // da che parte cresce: e' attaccata a destra o a sinistra?
     const aDestra = isFinite(dove.dx) && (dove.x + mia / 2) > 50;
     const cima = dove.y;
-    const fondo = dove.y + (isFinite(dove.h) ? dove.h : 0);
+    // IL FONDO VERO VUOLE L'INGRANDIMENTO. Nei `posti` la "h" e' salvata
+    // SENZA ingrandimento e _posaPezzo applica scale(s) ancorato a "top
+    // left": il pezzo arriva quindi a y + h*s, non a y + h. Con le altezze
+    // grezze un'icona ingrandita di fianco risultava "sopra o sotto" invece
+    // che accanto, non veniva contata come ostacolo e la scritta le finiva
+    // addosso. La larghezza, due righe sotto, era gia' corretta.
+    const fondo = dove.y + (isFinite(dove.h) ? dove.h : 0) * s;
     let spazio = aDestra ? (100 - dove.dx) : (100 - dove.x);   // fino al bordo
     Object.keys(posti || {}).forEach((altro) => {
       if (altro === chi) return;
       const p = posti[altro];
       if (!p || !isFinite(p.x) || !isFinite(p.y)) return;
-      // solo chi gli sta DI FIANCO: se sta sopra o sotto non da' fastidio
-      const suoFondo = p.y + (isFinite(p.h) ? p.h : 0);
-      if (suoFondo <= cima + 1 || p.y >= fondo - 1) return;
       const sp = isFinite(p.s) && p.s > 0 ? p.s : 1;
+      // solo chi gli sta DI FIANCO: se sta sopra o sotto non da' fastidio.
+      // Anche qui l'altezza va moltiplicata per il SUO ingrandimento, per
+      // lo stesso motivo del "fondo" qui sopra.
+      const suoFondo = p.y + (isFinite(p.h) ? p.h : 0) * sp;
+      if (suoFondo <= cima + 1 || p.y >= fondo - 1) return;
       const suaLarga = (isFinite(p.w) ? p.w : 0) * sp;
       if (aDestra) {
         // cresce verso sinistra: mi fermo al bordo destro di quello li'
@@ -18176,6 +19293,26 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
           ? true : this._base.yt_cuore };
     }
     this._config = this._base;
+    // ENTITA' CAMBIATA = MEMORIA DA BUTTARE. Quello che mi ero segnato
+    // parla della vecchia entita', e tenerlo fa dire bugie alla casella:
+    // - `_ultimoBuono` e' l'ultimo valore valido letto, e chi disegna lo
+    //   rimette al posto di un "unknown". Non azzerandolo, cambiando entita'
+    //   (nell'editor succede a ogni carattere digitato, ma anche da YAML o
+    //   per una rinomina in Home Assistant) la casella mostrava il valore di
+    //   PRIMA col fumetto "Ultimo valore letto: adesso il sensore non
+    //   risponde": un numero di un'altra entita', spacciato per il suo.
+    // - `_modoColore` e' il tastino tinta/bianco, che ha senso solo per la
+    //   lampada di prima.
+    // - `_largoMax` e' la larghezza piu' grande mai vista, segnata sotto una
+    //   chiave fatta di entita' e nome: cambiata la chiave, il numero che ho
+    //   in mano non c'entra piu' niente e va riletto.
+    const firmaMemoria = (this._config.entity || "") + "|" + (this._config.name || "");
+    if (this._firmaMemoria !== undefined && this._firmaMemoria !== firmaMemoria) {
+      this._ultimoBuono = undefined;
+      this._modoColore = null;
+      this._largoMax = undefined;
+    }
+    this._firmaMemoria = firmaMemoria;
     // IL SEGNO DELLA COLONNA DI DESTRA. Ogni ritocco ridisegna la casella,
     // che per un attimo e' piu' corta: il browser tronca lo scorrimento e
     // lui perde di vista proprio la scheda che sta modificando. Mi segno
@@ -18479,6 +19616,14 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
           <div class="f-corpo"></div>
         </div>
       </div>`);
+    // Questi due non si prendono qui ma alla prima misura ("se non ce l'ho,
+    // cercalo"), e la scocca si rifa' davvero: al cambio di lingua _render
+    // richiama _costruisci, cosa che su un'installazione non italiana
+    // succede una volta per casella all'avvio. Senza azzerarli restavano
+    // puntati a elementi staccati, altoDi()/chiedi() tornavano 0 e la
+    // casella si teneva per sempre il nome schiacciato su una riga.
+    this._testa = null;
+    this._rigaIcona = null;
     this._card = root.querySelector("ha-card");
     this._nome = root.querySelector(".nome");
     this._sotto = root.querySelector(".sotto");
@@ -18950,12 +20095,24 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     let dove = null;
     if (st && st.attributes.latitude !== undefined && st.attributes.longitude !== undefined) {
       dove = st.attributes.latitude + "," + st.attributes.longitude;
-    } else if (c.sottotitolo_entita && this._hass) {
-      const alt = this._hass.states[c.sottotitolo_entita];
-      if (alt && alt.state && alt.state.length > 4) dove = alt.state;
-    } else if (st && st.state && st.state.length > 4) {
-      dove = st.state;
     }
+    // A CASCATA, non "o l'uno o l'altro". Prima era una catena di else if:
+    // bastava che il campo del sottotitolo fosse COMPILATO perche' lo stato
+    // dell'entita' principale non venisse mai guardato. Con un sensore di
+    // geocodifica vuoto - o fermo su "unknown", che essendo lungo sette
+    // caratteri passava anche lui per un indirizzo buono - partiva l'avviso
+    // "non dice dove si trova" pur avendo l'indirizzo a portata di mano.
+    // Ora provo i rami uno dopo l'altro finche' uno ne da' uno buono.
+    const buono = (v) => {
+      const t = String(v === undefined || v === null ? "" : v).trim();
+      if (t.length <= 4) return "";
+      return ["unknown", "unavailable", "none"].includes(t.toLowerCase()) ? "" : t;
+    };
+    if (!dove && c.sottotitolo_entita && this._hass) {
+      const alt = this._hass.states[c.sottotitolo_entita];
+      dove = (alt ? buono(alt.state) : "") || null;
+    }
+    if (!dove && st) dove = buono(st.state) || null;
     if (!dove) {
       window.alert("Questa entita non dice dove si trova: non ha ne le coordinate "
         + "ne un indirizzo. Scegli un'entita con la posizione, oppure indica "
@@ -19067,6 +20224,12 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
     // per sempre senza misura (era il caso della casellina del riquadro,
     // che veniva grande mentre l'anteprima era compatta)
     if (this._osserva && this._cartaOsservata !== card) {
+      // ...e la VECCHIA la lascio andare: la scocca si rifa' (cambio di
+      // lingua) e l'osservatore restava attaccato anche alla ha-card di
+      // prima, buttata via ma ancora sorvegliata - una in piu' a ogni giro.
+      if (this._cartaOsservata) {
+        try { this._osserva.unobserve(this._cartaOsservata); } catch (e) { /* pazienza */ }
+      }
       try { this._osserva.observe(card); this._cartaOsservata = card; } catch (e) { /* pazienza */ }
     }
     const q = card.getBoundingClientRect();
@@ -19888,7 +21051,16 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
         : "";
       // le due scritte le rifaccio solo se cambia la forma, se no basta il testo
       const forma = brano ? "due" : "una";
-      if (this._sotto.dataset.forma !== forma) {
+      // ...ma la forma segnata vale solo se gli span ci sono DAVVERO. Il
+      // segno vive su `.sotto` e i due span sono i suoi figli: gli altri
+      // rami qui sotto rifanno il contenuto e se li portano via. Il segno
+      // restava "due", tornando sulla musica la ricostruzione veniva
+      // saltata, querySelector(".brano") era null e la casella moriva con
+      // la scheda rossa dentro setConfig. Ora i rami il segno lo levano, e
+      // qui mi accerto comunque che i figli ci siano.
+      const gia = this._sotto.querySelector(".brano")
+        && (forma === "una" || this._sotto.querySelector(".artista"));
+      if (this._sotto.dataset.forma !== forma || !gia) {
         this._sotto.dataset.forma = forma;
         this._sotto.innerHTML = brano
           ? '<span class="brano"></span><span class="artista"></span>'
@@ -19903,13 +21075,26 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
       this._sotto.style.display = "";
     } else if (modo === "musica") {
       this._sotto.textContent = sotto;
+      // il segno della forma se ne va insieme ai figli: vedi il vinile
+      delete this._sotto.dataset.forma;
       this._sotto.style.display = sotto ? "" : "none";
     } else if (comePersona) {
       const parti = [];
+      // qui il contenuto di `.sotto` lo rifaccio da capo: il segno della
+      // forma del vinile non vale piu'
+      delete this._sotto.dataset.forma;
+      // E lo stato e l'indirizzo, che arrivano da fuori, dentro a innerHTML
+      // vanno protetti: tutto il resto del file scrive con textContent,
+      // qui no perche' la riga e' fatta di pezzi, e un valore che contiene
+      // un "<" (geocodifiche strane, nomi di posti) si mangiava il resto
+      // della riga.
+      const vivo = (t) => String(t === undefined || t === null ? "" : t)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
       if (st) {
         const quanto = c.mostra_da_quanto === false ? "" : daQuanto(st.last_changed);
         const via = this._quantoLontanoDaCasa(st);
-        parti.push('<span class="stato">' + this._valoreDi(st) + "</span>");
+        parti.push('<span class="stato">' + vivo(this._valoreDi(st)) + "</span>");
         const extra = [quanto, via].filter(Boolean).join(" \u00b7 ");
         if (extra) {
           parti.push('<span class="quando" title="Distanza in linea d’aria dal '
@@ -19917,11 +21102,13 @@ class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGrafici(Co
             + extra + "</span>");
         }
       }
-      if (sotto) parti.push('<span class="via">\uD83D\uDCCD ' + sotto + "</span>");
+      if (sotto) parti.push('<span class="via">\uD83D\uDCCD ' + vivo(sotto) + "</span>");
       this._sotto.innerHTML = TH(parti.join(""));
       this._sotto.style.display = parti.length ? "" : "none";
     } else {
       this._sotto.textContent = sotto;
+      // come sopra: chi si porta via i figli pulisce anche il segno
+      delete this._sotto.dataset.forma;
       this._sotto.style.display = sotto ? "" : "none";
     }
     // l'anello attorno alla foto dice dove si trova
@@ -20122,6 +21309,38 @@ function confermaDoppia(tasto, domanda) {
   return false;
 }
 
+// Chi ha il fuoco DENTRO l'ombra. Gli editor vivono nello shadow root di
+// `hui-card-element-editor`: da li' `document.activeElement` torna l'host piu'
+// esterno e MAI l'input, quindi ogni guardia scritta con quello era sempre
+// vera e il campo si riscriveva mentre ci si scriveva dentro.
+function haIlFuoco(el) {
+  if (!el) return false;
+  const radice = el.getRootNode ? el.getRootNode() : document;
+  return (radice.activeElement || document.activeElement) === el;
+}
+
+// Un numero dentro al min/max scritto nell'HTML. Un <input type=number> fa
+// partire `change` anche col valore fuori intervallo: scrivendo 99 in "Quante
+// barre" (max 10) restava 99, e con 1 nel fondo scala le barre erano piene.
+// Campo vuoto (o non numerico) = `diSerie`, cosi' chi chiama decide se vuol
+// dire "il valore di serie" o "non scrivere niente".
+function dentroIlimiti(el, diSerie) {
+  if (!el) return diSerie;
+  const n = Number(el.value);
+  if (String(el.value).trim() === "" || !Number.isFinite(n)) return diSerie;
+  const min = String(el.min) !== "" ? Number(el.min) : -Infinity;
+  const max = String(el.max) !== "" ? Number(el.max) : Infinity;
+  const v = Math.min(max, Math.max(min, n));
+  // si vede subito che l'ho limitato, invece di scrivere di nascosto un
+  // numero diverso da quello che si legge nella casella
+  if (v !== n) el.value = String(v);
+  return v;
+}
+
+// Lo stesso id due volte in `righe` vuol dire la stessa riga vista doppia,
+// e togliendone una si spengono entrambe.
+const senzaDoppioni = (a) => a.filter((x, i) => a.indexOf(x) === i);
+
 function titoloSez(v, testo) {
   v = v || [];
   return icoSez(v[0]) + '<span class="ce-sez-testo">' + testo
@@ -20225,14 +21444,49 @@ function ordineRighe(config, elenco) {
   const tutte = elenco.map((r) => r.id);
   // un elenco scritto comanda anche quando e' VUOTO: vuol dire "nessuna riga",
   // e il riquadro sparisce. Senza elenco, invece, si vedono tutte.
+  // i doppioni si tolgono SEMPRE qui: se uno e' finito in `righe` (succedeva
+  // trascinando mentre l'elenco si rifaceva) la riga si vedeva due volte
   const scelte = Array.isArray(config.righe)
-    ? config.righe.filter((id) => tutte.includes(id)) : tutte;
+    ? senzaDoppioni(config.righe.filter((id) => tutte.includes(id))) : tutte;
   return { scelte, spente: tutte.filter((id) => !scelte.includes(id)) };
 }
 
-// Disegna l'elenco in `box`. `scrivi(config)` riceve la configurazione nuova.
+// Disegna l'elenco in `box`. `scrivi(config, come)` riceve la configurazione
+// nuova; `come.ridisegna === false` dice a chi chiama che NON serve rifare
+// l'elenco (vedi il cambio di nome qui sotto).
 function disegnaRighe(box, elenco, config, scrivi) {
   const { scelte, spente } = ordineRighe(config, elenco);
+  // Quello che gli ascoltatori di ogni riga devono leggere ADESSO, non le
+  // variabili del giro in cui sono nati: due modifiche di fila (rinomina e
+  // poi spunta) e la seconda riscriveva sopra la prima la configurazione
+  // vecchia, perche' fra le due nessuno aveva rifatto l'elenco.
+  box._stato = { config, scelte, elenco };
+  // la firma di quello che sto per disegnare: righe, ordine, e i nomi di
+  // serie (una riga tua rinominata cambia l'etichetta, e quella va rifatta)
+  const firma = JSON.stringify([scelte, spente,
+    elenco.map((r) => [r.id, r.nome, r.etichetta])]);
+  if (box._firma === firma && box.childElementCount) {
+    // Le righe sono le stesse, nello stesso ordine: non le rifaccio, rimetto
+    // solo i valori nelle caselle che ci sono gia'. Rifare l'elenco in mezzo
+    // a un clic distruggeva l'elemento sotto al puntatore - su una casella di
+    // testo `change` parte durante il mousedown, PRIMA del mouseup - e il
+    // clic andava ripetuto; e se si stava trascinando, la riga finiva doppia.
+    box.querySelectorAll(".ce-riga[data-id]").forEach((r) => {
+      const id = r.dataset.id;
+      const voce = elenco.find((x) => x.id === id) || {};
+      const n = r.querySelector(".nome");
+      const atteso = (config.nomi_righe || {})[id] || "";
+      if (n && n.value !== atteso && !haIlFuoco(n)) n.value = atteso;
+      const t = r.querySelector(".tinta");
+      const colore = (config.colori_righe || {})[id] || voce.colore || "#888888";
+      if (t && t.value !== colore && !haIlFuoco(t)) t.value = colore;
+    });
+    return;
+  }
+  box._firma = firma;
+  // se si stava trascinando una riga, il trascinamento finisce qui: la riga
+  // che aveva in mano sta per essere buttata via
+  if (box._trascino) box._trascino();
   box.innerHTML = "";
   [...scelte, ...spente].forEach((id) => {
     const accesa = scelte.includes(id);
@@ -20252,21 +21506,26 @@ function disegnaRighe(box, elenco, config, scrivi) {
     nome.title = T("Nome sulla scheda (vuoto =") + " " + T(voce.etichetta) + ")";
     nome.value = (config.nomi_righe || {})[id] || "";
     nome.addEventListener("change", () => {
-      const nomi = { ...(config.nomi_righe || {}) };
+      const ora = box._stato.config;
+      const nomi = { ...(ora.nomi_righe || {}) };
       const t = nome.value.trim();
       if (t) nomi[id] = t; else delete nomi[id];
-      const c = { ...config, nomi_righe: nomi };
+      const c = { ...ora, nomi_righe: nomi };
       if (!Object.keys(nomi).length) delete c.nomi_righe;
-      scrivi(c);
+      // `ridisegna: false`: un cambio di nome non cambia ne' le righe ne'
+      // l'ordine, e rifare l'elenco adesso - in mezzo al mousedown che ha
+      // tolto il fuoco alla casella - manderebbe perso il clic in corso
+      scrivi(c, { ridisegna: false });
     });
 
     // il colore della riga: senza scelta resta quello di serie
     const tinta = riga.querySelector(".tinta");
     tinta.value = (config.colori_righe || {})[id] || voce.colore || "#888888";
     const scriviColore = (valore) => {
-      const colori = { ...(config.colori_righe || {}) };
+      const ora = box._stato.config;
+      const colori = { ...(ora.colori_righe || {}) };
       if (valore) colori[id] = valore; else delete colori[id];
-      const c2 = { ...config, colori_righe: colori };
+      const c2 = { ...ora, colori_righe: colori };
       if (!Object.keys(colori).length) delete c2.colori_righe;
       scrivi(c2);
     };
@@ -20274,9 +21533,9 @@ function disegnaRighe(box, elenco, config, scrivi) {
     riga.querySelector(".pulisci").addEventListener("click", () => scriviColore(null));
 
     riga.querySelector("input[type=checkbox]").addEventListener("change", (e) => {
-      const n = scelte.filter((x) => x !== id);
+      const n = box._stato.scelte.filter((x) => x !== id);
       if (e.target.checked) n.push(id);
-      scrivi({ ...config, righe: n });
+      scrivi({ ...box._stato.config, righe: senzaDoppioni(n) });
     });
 
     // SI SPOSTA TRASCINANDO LA MANIGLIA (pointer events, ascoltati su tutta
@@ -20290,7 +21549,22 @@ function disegnaRighe(box, elenco, config, scrivi) {
       e.preventDefault();
       try { maniglia.setPointerCapture(e.pointerId); } catch (err) { /* pazienza */ }
       riga.classList.add("trascino");
+      // `muovi` e `lascia` stanno su `window` e lavorano sulla riga presa
+      // alla pressione: se intanto arriva un `setConfig` l'elenco si rifa',
+      // questa riga resta staccata e reinserirla la metterebbe accanto alla
+      // sua copia nuova - al rilascio l'id finirebbe in `righe` DUE volte.
+      // Percio' il trascinamento si interrompe appena la riga non e' piu' al
+      // suo posto, e `stacca` e' anche la maniglia che `disegnaRighe` tira
+      // quando sta per buttare via l'elenco.
+      const stacca = () => {
+        window.removeEventListener("pointermove", muovi);
+        window.removeEventListener("pointerup", lascia);
+        window.removeEventListener("pointercancel", lascia);
+        riga.classList.remove("trascino");
+        if (box._trascino === stacca) box._trascino = null;
+      };
       const muovi = (ev) => {
+        if (riga.parentNode !== box) { stacca(); return; }
         const altre = [...box.querySelectorAll(".ce-riga.accesa")].filter((r) => r !== riga);
         const prima = altre.find((r) => {
           const q = r.getBoundingClientRect();
@@ -20300,13 +21574,17 @@ function disegnaRighe(box, elenco, config, scrivi) {
         else box.insertBefore(riga, box.querySelector(".ce-riga.spenta") || null);
       };
       const lascia = () => {
-        window.removeEventListener("pointermove", muovi);
-        window.removeEventListener("pointerup", lascia);
-        window.removeEventListener("pointercancel", lascia);
-        riga.classList.remove("trascino");
-        const nuovo = [...box.querySelectorAll(".ce-riga.accesa")].map((r) => r.dataset.id);
-        if (nuovo.join() !== scelte.join()) scrivi({ ...config, righe: nuovo });
+        const alsuoposto = riga.parentNode === box;
+        stacca();
+        // riga fantasma: scriverne l'ordine vorrebbe dire scrivere l'id di
+        // una riga che nell'elenco vero c'e' gia'
+        if (!alsuoposto) return;
+        const nuovo = senzaDoppioni(
+          [...box.querySelectorAll(".ce-riga.accesa")].map((r) => r.dataset.id));
+        const prima = box._stato.scelte;
+        if (nuovo.join() !== prima.join()) scrivi({ ...box._stato.config, righe: nuovo });
       };
+      box._trascino = stacca;
       window.addEventListener("pointermove", muovi);
       window.addEventListener("pointerup", lascia);
       window.addEventListener("pointercancel", lascia);
@@ -20484,6 +21762,39 @@ const PERIODI = [
   ["Bolletta", "bimestre", "bimonthly"],
 ];
 
+// QUANDO E' COMINCIATO IL PERIODO IN CORSO (ora locale).
+// Serve al ripristino del valore vecchio: cancellando gli aiutanti alle 23:00
+// e rifacendoli alle 00:30, il contatore di «oggi» appena nato veniva
+// calibrato al valore di IERI, perche' il confronto guardava solo il numero.
+// Quel salto entra anche nelle statistiche a lungo termine - l'utility_meter
+// e' `total_increasing` - e da li' non si toglie piu'.
+function inizioDelPeriodo(chiave) {
+  const q = String(chiave || "").toLowerCase();
+  const d = new Date();
+  const a = d.getFullYear();
+  const m = d.getMonth();
+  const g = d.getDate();
+  if (["ora", "hour", "hourly"].includes(q)) return new Date(a, m, g, d.getHours());
+  if (["oggi", "today", "daily"].includes(q)) return new Date(a, m, g);
+  // la settimana comincia di lunedi': getDay() torna 0 per la domenica
+  if (["settimana", "week", "weekly"].includes(q)) return new Date(a, m, g - ((d.getDay() + 6) % 7));
+  if (["mese", "month", "monthly"].includes(q)) return new Date(a, m, 1);
+  // il bimestre comincia il primo dei mesi dispari (qui gennaio e' 0)
+  if (["bimestre", "bimonthly"].includes(q)) return new Date(a, m % 2 === 0 ? m : m - 1, 1);
+  return null;
+}
+
+// il valore che mi ero segnato e' ancora di questo periodo?
+function stessoPeriodo(quando, chiave) {
+  const inizio = inizioDelPeriodo(chiave);
+  if (!inizio) return true;        // un ciclo che non conosco: non mi metto in mezzo
+  if (!quando) return false;       // non so di quando e' quel valore: non lo rimetto
+  // `cancellaQuesti` lo scrive in UTC, tagliato ai minuti e senza la Z
+  const t = new Date(/[zZ]$/.test(String(quando)) ? String(quando) : quando + "Z");
+  if (isNaN(t.getTime())) return false;
+  return t.getTime() >= inizio.getTime();
+}
+
 // il nome del sensore, senza la coda "energia"/"totale"
 function nomeSorgente(hass, eid) {
   const st = hass.states[eid];
@@ -20538,6 +21849,70 @@ async function flusso(hass, handler, dati, menu) {
   return (r.result && (r.result.entry_id || r.result)) || null;
 }
 
+// RIMETTE A POSTO UNA VOCE CHE C'E' GIA'.
+//
+// `gia(...)` ritrova l'aiutante che c'e' e NON gli riscrive dentro niente:
+// correggere un template qui serviva solo a chi lo creava da zero, mentre chi
+// ce l'aveva gia' si teneva quello sbagliato per sempre (e il costo della
+// bolletta senza la quota fissa non si vede, e' solo piu' basso).
+// Questo apre il flusso delle OPZIONI della voce, parte dai valori che ci
+// sono - il flusso li porta indietro come `suggested_value`, sono quelli che
+// l'interfaccia ti mostra gia' compilati - e cambia solo i campi che gli
+// dico: cosi' non azzera quelli che non conosce. Se non riesce a leggere
+// quello che c'e' dentro lascia perdere, invece di sovrascrivere a occhi
+// chiusi. `cambi[campo] = null` vuol dire "questo campo va via".
+async function riallinea(hass, entryId, cambi, parla, perche) {
+  if (!entryId || !cambi) return false;
+  const dillo = parla || (() => {});
+  try {
+    let r = await hass.callApi("POST", "config/config_entries/options/flow",
+      { handler: entryId, show_advanced_options: true });
+    for (let giro = 0; giro < 8; giro++) {
+      if (!r || r.type === "create_entry" || r.type === "abort") return false;
+      const campi = (r.data_schema || []).filter((c) => c && c.name);
+      if (!campi.length) return false;
+      const ora = {};
+      let letti = 0;
+      campi.forEach((c) => {
+        const d = c.description || {};
+        if (Object.prototype.hasOwnProperty.call(d, "suggested_value")) {
+          ora[c.name] = d.suggested_value;
+          letti++;
+        }
+      });
+      if (!letti) return false;              // non so cosa c'e' dentro: non lo tocco
+      const invio = { ...ora };
+      let cambiato = false;
+      Object.keys(cambi).forEach((k) => {
+        if (!campi.some((c) => c.name === k)) return;   // campo che non mi offre
+        if (cambi[k] === null) {
+          if (invio[k] !== undefined && invio[k] !== null && invio[k] !== "") cambiato = true;
+          delete invio[k];
+          return;
+        }
+        if (String(invio[k] === undefined || invio[k] === null ? "" : invio[k]) !== String(cambi[k])) {
+          cambiato = true;
+        }
+        invio[k] = cambi[k];
+      });
+      if (!cambiato) return false;           // e' gia' come lo scriverei oggi
+      r = await hass.callApi("POST", "config/config_entries/options/flow/" + r.flow_id, invio);
+      if (r && r.type === "create_entry") {
+        dillo("Ho rimesso a posto un aiutante che c'era gia'" + (perche ? ": " + perche : "") + ".");
+        return true;
+      }
+    }
+  } catch (e) { /* non ci riesco: meglio lasciare quello che c'e' */ }
+  return false;
+}
+
+// la voce di configurazione di un'entita' (per poterla riallineare)
+function voceDellEntita(reg, voci, eid) {
+  const e = (reg || []).find((x) => x.entity_id === eid);
+  if (!e || !e.config_entry_id) return null;
+  return (voci || []).find((v) => v.entry_id === e.config_entry_id) || null;
+}
+
 async function creaContatore(hass, nome, sorgente, ciclo) {
   return flusso(hass, "utility_meter", {
     name: nome, source: sorgente, cycle: ciclo, offset: 0, tariffs: [],
@@ -20546,20 +21921,79 @@ async function creaContatore(hass, nome, sorgente, ciclo) {
   });
 }
 
-async function creaEnergiaKwh(hass, nome, sorgente) {
-  return flusso(hass, "template", {
-    name: nome,
-    state: "{{ (states('" + sorgente + "') | float(0) / 1000) | round(4) }}",
-    unit_of_measurement: "kWh", device_class: "energy", state_class: "total_increasing",
-  }, "sensor");
+// UN CONTATORE NON SI LEGGE CON `float(0)`.
+//
+// Un contatore cumulativo (kWh) che non si riesce a leggere - presa staccata,
+// integrazione ricaricata, OGNI riavvio di Home Assistant - con `float(0)`
+// diventa ZERO, e quello zero costa: per un sensore
+// `state_class: total_increasing` il recorder vede il calo, dichiara "il
+// contatore e' ripartito da zero" e quando il valore torna somma alle
+// statistiche a lungo termine TUTTO il contatore. Nel pannello Energia resta
+// un picco grande come il contatore intero, e non lo ripulisce nessun
+// aggiornamento della scheda: si corregge solo a mano da
+// Developer tools > Statistics. Lo stesso zero fa ripartire da capo anche gli
+// utility_meter costruiti sopra.
+// Quindi quando la sorgente non e' un numero il template non pubblica
+// niente: `none` diventa "unknown", e uno stato non numerico il recorder lo
+// SALTA, senza inventarsi ne' cali ne' ripartenze.
+//
+// Dove invece la somma deve valere zero se un pezzo manca - la quota fissa
+// che non e' ancora stata creata, il prezzo - `float(0)` RESTA: li' lo zero
+// e' la verita', non una bugia.
+const daStato = (ent) => "states('" + ent + "')";
+const daAttributo = (ent, attr) => "state_attr('" + ent + "', '" + attr + "')";
+
+// `letture` sono espressioni Jinja (daStato/daAttributo): diventano v0, v1...
+// e la `formula` si calcola solo se sono tutte dei numeri.
+function seLeggibili(letture, formula) {
+  const quali = [].concat(letture);
+  const set = quali.map((e, i) => "{% set v" + i + " = " + e + " | float(default=none) %}").join("");
+  const cond = quali.map((e, i) => "v" + i + " is not none").join(" and ");
+  return set + "{% if " + cond + " %}{{ " + formula + " }}{% else %}{{ none }}{% endif %}";
 }
 
-async function creaCosto(hass, nome, stato) {
+// Lo stesso controllo come template di DISPONIBILITA'. Se il flusso di Home
+// Assistant offre il campo `availability` l'entita' diventa "unavailable"
+// invece di "unknown" (piu' pulito: il recorder salta tutte e due); se non lo
+// offre, `flusso` non lo manda e ci pensa il template dello stato.
+function disponibileSe(letture) {
+  return "{{ " + [].concat(letture).map((e) => e + " | float(default=none) is not none")
+    .join(" and ") + " }}";
+}
+
+function datiEnergiaKwh(nome, sorgente) {
+  return {
+    name: nome,
+    state: seLeggibili(daStato(sorgente), "(v0 / 1000) | round(4)"),
+    availability: disponibileSe(daStato(sorgente)),
+    unit_of_measurement: "kWh", device_class: "energy", state_class: "total_increasing",
+  };
+}
+
+async function creaEnergiaKwh(hass, nome, sorgente) {
+  return flusso(hass, "template", datiEnergiaKwh(nome, sorgente), "sensor");
+}
+
+// `cresce: false` per i sensori che sono una FOTOGRAFIA e non un contatore.
+// `state_class: total` vuole un valore che cresce (o che dice quando e'
+// ripartito): su "Costo ... ieri", che a ogni mezzanotte sale o scende a
+// seconda di com'e' andato il giorno prima, la somma delle statistiche a
+// lungo termine non significa niente - e quella somma sbagliata resta nel
+// database anche dopo. Quelli nascono senza state_class: restano un valore
+// da guardare, che e' quello che sono.
+function datiCosto(nome, stato, extra) {
+  const o = extra || {};
+  const d = {
+    name: nome, state: stato, unit_of_measurement: "€", device_class: "monetary",
+  };
+  if (o.cresce !== false) d.state_class = "total";
+  if (o.disponibile) d.availability = o.disponibile;
+  return d;
+}
+
+async function creaCosto(hass, nome, stato, extra) {
   // il flusso dei template parte da un menu: prima dico che voglio un sensore
-  return flusso(hass, "template", {
-    name: nome, state: stato, unit_of_measurement: "€",
-    device_class: "monetary", state_class: "total",
-  }, "sensor");
+  return flusso(hass, "template", datiCosto(nome, stato, extra), "sensor");
 }
 
 // tutti gli aiutanti che sono un prezzo in euro al kWh
@@ -20611,11 +22045,19 @@ function passoAzzera(titolo, quale, servizio, valore) {
   };
 }
 
+// due pezzi di configurazione sono lo stesso pezzo? (le chiavi in ordine,
+// cosi' non conta come sono scritte)
+function ordinato(x) {
+  if (Array.isArray(x)) return "[" + x.map(ordinato).join(",") + "]";
+  if (x && typeof x === "object") {
+    return "{" + Object.keys(x).sort().map((k) => JSON.stringify(k) + ":" + ordinato(x[k])).join(",") + "}";
+  }
+  return JSON.stringify(x === undefined ? null : x);
+}
+
 async function creaScriptAzzera(hass, dillo) {
   const parla = dillo || (() => {});
   const eid = "script." + ID_AZZERA;
-  if (hass.states[eid]) return eid;
-  parla("Creo lo script dell'azzeramento...");
   const mese = passoAzzera("Il mese, solo se lo hai chiesto", "mese",
     "utility_meter.calibrate", { value: "0" });
   mese.if[0].value_template = "{{ anche_il_mese | default(false)"
@@ -20645,6 +22087,28 @@ async function creaScriptAzzera(hass, dillo) {
       passoAzzera("I minuti dell'ultimo ciclo", "ciclo_minuti", "input_number.set_value", { value: 0 }),
     ],
   };
+  // LO SCRIPT VECCHIO SI RISCRIVE. Prima c'era un `if (hass.states[eid])
+  // return eid` in cima: uno script creato da una versione vecchia non veniva
+  // mai aggiornato, anche dopo che i passi erano cambiati, e chi ce l'aveva
+  // gia' si teneva per sempre l'azzeramento di allora. Adesso confronto
+  // quello che c'e' con quello che scriverei oggi e lo riscrivo solo se
+  // differisce (stesso id = stessa entita', niente storico perso).
+  if (hass.states[eid]) {
+    let attuale = null;
+    try {
+      attuale = await hass.callApi("GET", "config/script/config/" + ID_AZZERA);
+    } catch (e) { attuale = null; }
+    if (attuale && typeof attuale === "object") {
+      const soloMie = {};
+      Object.keys(conf).forEach((k) => { soloMie[k] = attuale[k]; });
+      if (ordinato(soloMie) === ordinato(conf)) return eid;
+      parla("Lo script dell'azzeramento e' di una versione vecchia: lo riscrivo.");
+    } else {
+      // non riesco a leggere quello che c'e': non lo tocco, meglio il suo
+      // che un mio sovrascritto alla cieca
+      return eid;
+    }
+  } else parla("Creo lo script dell'azzeramento...");
   await hass.callApi("POST", "config/script/config/" + ID_AZZERA, conf);
   parla("Script dell'azzeramento: " + eid);
   return eid;
@@ -20672,11 +22136,22 @@ function prezzoDellaCasa(hass) {
 // Non guardo `hass.states`: dentro a una scheda quella e' una fotografia che
 // Home Assistant sostituisce, e la nostra copia non cambierebbe mai. Chiedo
 // a lui l'elenco vero, finche' non ce lo vede.
+//
+// L'INDIRIZZO DEVE ESSERE QUELLO VERO, non lo slug che mi aspetto: se quello
+// slug e' occupato da un'entita' che in `hass.states` non si vede (un
+// aiutante disabilitato) Home Assistant crea il doppione e lo chiama
+// `..._2`. Aspettando lo slug sbagliato l'attesa andava in timeout dopo 3
+// secondi, l'utente leggeva "non si fa vedere: il valore non l'ho scritto" e
+// restava un input_number nuovo e vuoto. L'id vero sta nella risposta della
+// creazione: vedi `daCreato`.
 async function aspettaAiutante(hass, entityId, quanti = 25) {
-  const chiave = String(entityId).split(".")[1];
+  const pezzi = String(entityId).split(".");
+  const dominio = pezzi[0];
+  const chiave = pezzi.slice(1).join(".");
+  if (!dominio || !chiave) return false;
   for (let i = 0; i < quanti; i++) {
     try {
-      const elenco = await hass.callWS({ type: "input_number/list" });
+      const elenco = await hass.callWS({ type: dominio + "/list" });
       if ((elenco || []).some((x) => x && x.id === chiave)) return true;
     } catch (e) { /* non risponde: riprovo */ }
     await new Promise((r) => setTimeout(r, 120));
@@ -20695,11 +22170,19 @@ async function scriviTariffa(hass, voci, dillo) {
     v = { ...v, id: idDellaVoce(hass, v) };
     if (!hass.states[v.id]) {
       parla("Creo " + v.nome + "...");
-      await hass.callWS({
+      // l'indirizzo lo dice la risposta, non lo indovino dal nome
+      const fatto = await hass.callWS({
         type: "input_number/create", name: v.nome, min: 0, max: v.unita === "%" ? 100 : 5,
         step: v.unita === "%" ? 1 : 0.0001, mode: "box", unit_of_measurement: v.unita,
         icon: "mdi:currency-eur",
       });
+      const vero = daCreato("input_number", fatto, v.nome);
+      if (vero !== v.id) {
+        parla("⚠ L'indirizzo " + v.id + " era gia' occupato: " + v.nome
+          + " e' nato come " + vero + ". Le altre schede cercano quello di prima:"
+          + " o rinomini l'aiutante che lo occupa, o " + v.nome + " lo scrivi a mano.");
+      }
+      v = { ...v, id: vero };
       if (!await aspettaAiutante(hass, v.id)) {
         parla("⚠ " + v.nome + " non si fa vedere: il valore non l'ho scritto.");
         continue;
@@ -20712,17 +22195,24 @@ async function scriviTariffa(hass, voci, dillo) {
   const base = (messi.energia || 0) + (messi.rete || 0) + (messi.accise || 0);
   const totale = Math.round(base * (1 + (messi.iva || 0) / 100) * 10000) / 10000;
   if (totale > 0) {
+    // anche qui l'indirizzo e' quello che dice la risposta della creazione
+    let idTotale = ID_TOTALE;
     if (!hass.states[ID_TOTALE]) {
-      await hass.callWS({
+      const fatto = await hass.callWS({
         type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.0001,
         mode: "box", unit_of_measurement: "\u20ac/kWh", icon: "mdi:currency-eur",
       });
-      if (!await aspettaAiutante(hass, ID_TOTALE)) {
+      idTotale = daCreato("input_number", fatto, "Prezzo energia");
+      if (idTotale !== ID_TOTALE) {
+        parla("L'indirizzo " + ID_TOTALE + " era gia' occupato: il totale e' nato come "
+          + idTotale + ", e le altre schede cercano quello di prima.");
+      }
+      if (!await aspettaAiutante(hass, idTotale)) {
         parla("⚠ Il totale non si fa vedere: non l'ho scritto.");
         return { totale, energia: messi.energia || 0 };
       }
     }
-    await hass.callService("input_number", "set_value", { entity_id: ID_TOTALE, value: totale });
+    await hass.callService("input_number", "set_value", { entity_id: idTotale, value: totale });
     parla("Totale della bolletta: " + totale.toFixed(4) + " \u20ac/kWh");
   }
   return { totale, energia: messi.energia || 0 };
@@ -20774,25 +22264,28 @@ async function prezzoDelKWh(hass, opzioni, dillo, conto) {
     return gia;
   }
   dillo("Creo il prezzo in €/kWh...");
-  await hass.callWS({
+  const fatto = await hass.callWS({
     type: "input_number/create", name: "Prezzo energia", min: 0, max: 5, step: 0.0001,
     mode: "box", unit_of_measurement: "€/kWh", icon: "mdi:currency-eur",
   });
+  // l'indirizzo e' quello della risposta: se `prezzo_energia` era occupato da
+  // un aiutante che in `hass.states` non si vede, questo e' nato come
+  // `..._2` e scrivere nel primo non farebbe niente
+  const suo = daCreato("input_number", fatto, "Prezzo energia");
   // stesso motivo di scriviTariffa: appena creato l'aiutante non c'e'
   // ancora, e scrivergli dentro il valore non farebbe niente
-  if (!await aspettaAiutante(hass, "input_number.prezzo_energia")) {
+  if (!await aspettaAiutante(hass, suo)) {
     dillo("Il prezzo non si fa vedere: scrivilo tu nel pop-up della scheda.");
-    return "input_number.prezzo_energia";
+    return suo;
   }
   conto.creati++;
   const v = Number(opzioni.prezzo);
   if (Number.isFinite(v) && v > 0) {
     try {
-      await hass.callService("input_number", "set_value",
-        { entity_id: "input_number.prezzo_energia", value: v });
+      await hass.callService("input_number", "set_value", { entity_id: suo, value: v });
     } catch (e) { dillo("Il prezzo lo scrivi tu nel pop-up della scheda."); }
   }
-  return "input_number.prezzo_energia";
+  return suo;
 }
 
 /**
@@ -20806,6 +22299,130 @@ function cercaVoce(voci, reg, dominio, nome) {
   const v = voci.find((x) => x.domain === dominio
     && String(x.title || "").toLowerCase() === nome.toLowerCase());
   return v ? entitaDellaVoce(reg, v.entry_id) : null;
+}
+
+// ------------------------------------------------------------ IL MARCATORE
+//
+// Riconoscere i propri aiutanti dal solo TITOLO della voce di configurazione
+// non basta. Due schede casa-elettrodomestico chiamate entrambe «Forno» si
+// prendevano gli aiutanti a vicenda: la seconda adottava soglia, contatore
+// del ciclo e le quattro memorie della prima, e poi le riscriveva anche
+// l'automazione; le due schede mostravano gli stessi numeri e «Cancella gli
+// aiutanti» di una cancellava quelli dell'altra. E un aiutante fatto a mano
+// dall'utente, se si chiamava come il mio, finiva nella cancellazione gia'
+// spuntato.
+//
+// Quindi ogni aiutante che creo lo scrivo in configurazione sotto
+// `aiutanti_miei` (ruolo -> entita'): QUELLA e' la prova che e' roba mia,
+// insieme al taccuino di questo giro del tasto (APPENA_FATTI) e agli
+// indirizzi che la scheda si tiene gia' (`ciclo`, `soglia_acceso`).
+// Il titolo resta solo come RIPIEGO per le schede nate prima di questa
+// correzione - quelle che hanno aiutanti scritti in configurazione ma nessun
+// elenco - e per chi li rifa' dopo averli cancellati: cosi' le
+// installazioni di prima ritrovano i loro.
+//
+// NOTA PER CHI LAVORA SUGLI EDITOR: perche' il ripiego si spenga davvero
+// anche sulle schede nuove, l'editor deve ripassare qui `aiutanti_miei` fra
+// le opzioni (una riga: `aiutanti_miei: this._config.aiutanti_miei`).
+// Finche' non lo fa, il riconoscimento resta quello di prima; l'elenco serve
+// comunque da subito, perche' e' lui che tiene in piedi «Cancella gli
+// aiutanti» (niente piu' orfani) e che distingue la roba tua dalla mia.
+
+// Gli aiutanti creati in QUESTO giro del tasto. creaCicli parte subito dopo
+// creaSensoriElettrodomestico e non riceve la sua patch: senza questo
+// taccuino la soglia appena fatta la ritrovava solo per nome - che e'
+// quello che stiamo smettendo di fare - e ne nasceva una seconda. La chiave
+// comprende la SORGENTE, cosi' due schede con lo stesso nome ma su prese
+// diverse non si scambiano niente. Vive quanto la pagina dell'editor: non e'
+// memoria, e' il passaggio di mano dentro allo stesso clic.
+const APPENA_FATTI = new Map();
+const chiaveFatto = (dominio, nome, sorgente) =>
+  dominio + "|" + String(nome || "").trim().toLowerCase() + "|" + (sorgente || "");
+function segnaFatto(dominio, nome, sorgente, eid) {
+  if (eid) APPENA_FATTI.set(chiaveFatto(dominio, nome, sorgente), eid);
+  return eid || null;
+}
+function giaFatto(dominio, nome, sorgente) {
+  return APPENA_FATTI.get(chiaveFatto(dominio, nome, sorgente)) || null;
+}
+
+// Guarda davvero questa sorgente? La soglia se lo tiene nell'attributo
+// `entity_id`, l'integrale (Riemann) in `source`. utility_meter,
+// history_stats e i template non lo dicono: li' torna null, «non lo so».
+function guardaQuesto(hass, eid, sorgente) {
+  const a = ((hass.states[eid] || {}).attributes) || {};
+  const suo = a.entity_id || a.source || a.source_id;
+  if (!suo || !sorgente) return null;
+  return [].concat(suo).includes(sorgente);
+}
+
+// Questa scheda ha gia' degli aiutanti suoi? (allora e' una di prima del
+// marcatore, e il ripiego sul titolo le serve per ritrovarli)
+function schedaConAiutanti(opzioni) {
+  const o = opzioni || {};
+  const pieno = (x) => !!x && typeof x === "object" && Object.values(x).some((v) => v);
+  return pieno(o.gia) || pieno(o.ciclo) || pieno(o.memoria) || pieno(o.stats)
+    || !!o.soglia_acceso || !!o.reset_script || !!o.aiutanti_miei;
+}
+
+/**
+ * Il libretto degli aiutanti di una scheda. `stato()` deve tornare
+ * { voci, reg } aggiornati (li rinfresca chi crea).
+ * `sempreIlTitolo: true` per la scheda della casa, dove i contatori non
+ * tornano indietro nelle opzioni e il titolo e' l'unica strada che c'e'.
+ */
+function proprieta(hass, opzioni, stato, sempreIlTitolo) {
+  const mappa = { ...((opzioni && opzioni.aiutanti_miei) || {}) };
+  const conElenco = Object.keys(mappa).length > 0;
+  const ripiego = !!sempreIlTitolo || (!conElenco && schedaConAiutanti(opzioni));
+  return {
+    mappa,
+    ripiego,
+    // l'aiutante di questo ruolo: il mio se ce l'ho ancora, se no quello che
+    // si chiama come lo chiamerei io - ma solo col ripiego, o se dimostra di
+    // guardare la mia stessa sorgente
+    mio(ruolo, dominio, nome, sorgente) {
+      const fatto = giaFatto(dominio, nome, sorgente);
+      if (fatto) return fatto;
+      const { voci, reg } = stato();
+      const suo = mappa[ruolo];
+      // c'e' ancora? lo chiedo al REGISTRO, non a `hass.states`: quella e'
+      // una fotografia di prima e un aiutante creato in questo stesso giro
+      // del tasto non ci sarebbe
+      if (suo && (reg || []).some((x) => x.entity_id === suo)) return suo;
+      const trovato = cercaVoce(voci || [], reg || [], dominio, nome);
+      if (!trovato) return null;
+      if (ripiego) return trovato;
+      return guardaQuesto(hass, trovato, sorgente) === true ? trovato : null;
+    },
+    segna(ruolo, eid) { if (eid) mappa[ruolo] = eid; return eid || null; },
+  };
+}
+
+// IL NOME DI BASE, UNO SOLO PER TUTTI.
+// creaSensoriElettrodomestico e creaCicli se lo calcolavano ognuna a modo
+// suo: la prima col nome del DISPOSITIVO e il `.trim()`, la seconda col solo
+// `name` della scheda, senza ripiego e senza trim. Senza `name` la prima
+// creava «Lavatrice in funzione» e la seconda cercava «Lavatrice Potenza in
+// funzione» (il friendly_name dei watt: `nomeSorgente` toglie
+// energia/totale, non «potenza») e ne faceva una SECONDA: in configurazione
+// finiva la seconda, i history_stats restavano agganciati alla prima, che
+// non stava in nessuna chiave e non si poteva piu' cancellare. Bastava uno
+// spazio in fondo al nome.
+const BASE_DECISA = new Map();
+function nomeDispositivo(hass, eid) {
+  const voce = ((hass && hass.entities) || {})[eid];
+  const dev = voce && voce.device_id && ((hass.devices || {})[voce.device_id]);
+  const n = dev && (dev.name_by_user || dev.name);
+  return n ? String(n).trim() : "";
+}
+function nomeBase(hass, opzioni, sorgente) {
+  const dato = String((opzioni && opzioni.nome) || "").trim();
+  if (dato) return dato;
+  // quello che ha deciso creaSensoriElettrodomestico in questo stesso giro
+  // (e' lui che ha anche il contatore dei kWh per scegliere il dispositivo)
+  if (BASE_DECISA.has(sorgente)) return BASE_DECISA.get(sorgente);
+  return nomeDispositivo(hass, sorgente) || nomeSorgente(hass, sorgente);
 }
 
 async function creaSensoriBase(hass, opzioni, dillo) {
@@ -20822,7 +22439,11 @@ async function creaSensoriBase(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
+  // La scheda della casa cerca ANCHE per titolo, sempre: i suoi contatori non
+  // tornano indietro nelle opzioni quando ripremi il tasto, quindi il titolo
+  // e' l'unica strada per ritrovarli invece di rifarli. Qui non c'e' il
+  // rischio delle due schede omonime: di casa ce n'e' una.
+  const libretto = proprieta(hass, opzioni, () => ({ voci, reg }), true);
 
   // 1. il prezzo in euro al kWh
   const prezzo = await prezzoDelKWh(hass, opzioni, dillo, conto);
@@ -20832,9 +22453,9 @@ async function creaSensoriBase(hass, opzioni, dillo) {
   const nuovi = [];
   for (const [etichetta, chiave, ciclo] of PERIODI) {
     const nome = comePrima(chiave, false) || (base + " " + chiave);
-    const vecchio = gia("utility_meter", nome);
+    const vecchio = libretto.mio("contatore_" + chiave, "utility_meter", nome);
     if (vecchio) {
-      contatori[chiave] = vecchio;
+      contatori[chiave] = libretto.segna("contatore_" + chiave, vecchio);
       conto.riusati++;
       dillo(etichetta + ": c'era gia' (" + vecchio + ").");
     } else {
@@ -20847,7 +22468,10 @@ async function creaSensoriBase(hass, opzioni, dillo) {
     reg = await registro(hass);
     for (const [chiave, id, nome] of nuovi) {
       const e = entitaDellaVoce(reg, id);
-      if (e) contatori[chiave] = await sistemaNome(hass, e, nome, dillo);
+      if (!e) continue;
+      contatori[chiave] = libretto.segna("contatore_" + chiave,
+        await sistemaNome(hass, e, nome, dillo));
+      segnaFatto("utility_meter", nome, sorgente, contatori[chiave]);
     }
   }
 
@@ -20880,37 +22504,75 @@ async function creaSensoriBase(hass, opzioni, dillo) {
     mese: "now().day",
     bimestre: "((now() - " + PRIMO_DEL_BIMESTRE + ").days + 1)",
   };
+  // LA QUOTA SI LEGGE MENTRE GIRA, non quando creo il template.
+  // Prima il termine della quota entrava solo se l'aiutante esisteva GIA':
+  // chi premeva «Crea contatori e costi» prima di «Scrivi la tariffa» -
+  // sono due tasti indipendenti, niente lo impedisce - si teneva i costi
+  // senza quota per sempre, perche' al secondo giro `gia("template", nome)`
+  // ritrovava la voce e non le riscriveva dentro niente. La bolletta
+  // risultava piu' bassa di quota x giorni e dalla scheda non si vedeva.
+  // Adesso il termine c'e' sempre: finche' l'aiutante non esiste
+  // `states()` torna "unknown" e `float(0)` lo fa valere zero - qui lo zero
+  // e' la verita' - e il giorno che lo crei i costi se ne accorgono da soli.
+  // Il CONTATORE invece non si legge con `float(0)`: vedi seLeggibili.
   const perPrezzo = (entita, chiave) => {
-    const base = "states('" + entita + "') | float(0) * states('" + prezzo + "') | float(0)";
     const quanti = GIORNI[chiave];
-    if (!quanti || !hass.states[QUOTA]) return "{{ (" + base + ") | round(2) }}";
+    const euro = "v0 * states('" + prezzo + "') | float(0)";
     // (i giorni non guardano piu' l'entita': stanno sul calendario)
-    return "{{ (" + base + " + states('" + QUOTA + "') | float(0) * " + quanti + ") | round(2) }}";
+    const quota = quanti ? " + states('" + QUOTA + "') | float(0) * " + quanti : "";
+    return seLeggibili(daStato(entita), "(" + euro + quota + ") | round(2)");
   };
   voci = await vociDiConfigurazione(hass);
   for (const [etichetta, chiave] of PERIODI.map((p) => [p[0], p[1]])) {
     if (!contatori[chiave]) continue;
     const nome = comePrima(chiave, true) || ("Costo " + base.toLowerCase() + " " + chiave);
-    const vecchio = gia("template", nome);
+    const vecchio = libretto.mio("costo_" + chiave, "template", nome);
+    const formula = perPrezzo(contatori[chiave], chiave);
+    const quando = disponibileSe(daStato(contatori[chiave]));
     if (vecchio) {
-      costi[chiave] = vecchio;
+      costi[chiave] = libretto.segna("costo_" + chiave, vecchio);
       conto.riusati++;
+      // quello che c'e' puo' essere nato senza la quota fissa, o col
+      // contatore letto a `float(0)`: lo riporto a quello che scriverei oggi
+      const voce = voceDellEntita(reg, voci, vecchio);
+      if (voce) {
+        await riallinea(hass, voce.entry_id, { state: formula, availability: quando }, dillo,
+          "il costo di " + etichetta.toLowerCase() + " adesso comprende la quota fissa"
+          + " e non vale zero quando il contatore non si legge");
+      }
     } else {
       dillo("Creo il costo di " + etichetta.toLowerCase() + "...");
-      nuoviCosti.push([chiave, await creaCosto(hass, nome,
-        perPrezzo(contatori[chiave], chiave)), nome]);
+      nuoviCosti.push([chiave, await creaCosto(hass, nome, formula,
+        { disponibile: quando }), nome]);
       conto.creati++;
     }
   }
   // e il costo di ieri, dal periodo chiuso del contatore di oggi
   if (contatori.oggi) {
     const nome = comePrima("ieri", true) || ("Costo " + base.toLowerCase() + " ieri");
-    const vecchio = gia("template", nome);
-    if (vecchio) { costi.ieri = vecchio; conto.riusati++; } else {
+    const vecchio = libretto.mio("costo_ieri", "template", nome);
+    // La quota di un giorno c'e' anche qui: «Costo oggi» la comprende, e
+    // senza di lei lo stesso giorno finiva mostrato con due numeri diversi -
+    // uno mentre e' oggi, un altro il giorno dopo.
+    const letto = daAttributo(contatori.oggi, "last_period");
+    const stato = seLeggibili(letto, "(v0 * states('" + prezzo + "') | float(0)"
+      + " + states('" + QUOTA + "') | float(0)) | round(2)");
+    // `cresce: false`: questo non e' un contatore, e' la fotografia del
+    // periodo chiuso (vedi datiCosto)
+    const comeOggi = { cresce: false, disponibile: disponibileSe(letto) };
+    if (vecchio) {
+      costi.ieri = libretto.segna("costo_ieri", vecchio);
+      conto.riusati++;
+      const voce = voceDellEntita(reg, voci, vecchio);
+      if (voce) {
+        await riallinea(hass, voce.entry_id,
+          { state: stato, availability: comeOggi.disponibile, state_class: null }, dillo,
+          "«costo di ieri»: ci metto la quota fissa come su «oggi» e gli tolgo lo"
+          + " state_class, che su una fotografia sporcava le statistiche");
+      }
+    } else {
       dillo("Creo il costo di ieri...");
-      const stato = "{{ (state_attr('" + contatori.oggi + "', 'last_period') | float(0) * states('"
-        + prezzo + "') | float(0)) | round(2) }}";
-      nuoviCosti.push(["ieri", await creaCosto(hass, nome, stato), nome]);
+      nuoviCosti.push(["ieri", await creaCosto(hass, nome, stato, comeOggi), nome]);
       conto.creati++;
     }
   }
@@ -20918,7 +22580,9 @@ async function creaSensoriBase(hass, opzioni, dillo) {
     reg = await registro(hass);
     for (const [chiave, id, nome] of nuoviCosti) {
       const e = entitaDellaVoce(reg, id);
-      if (e) costi[chiave] = await sistemaNome(hass, e, nome, dillo);
+      if (!e) continue;
+      costi[chiave] = libretto.segna("costo_" + chiave, await sistemaNome(hass, e, nome, dillo));
+      segnaFatto("template", nome, sorgente, costi[chiave]);
     }
   }
 
@@ -20932,6 +22596,12 @@ async function creaSensoriBase(hass, opzioni, dillo) {
       const ora = Number((hass.states[eid] || {}).state);
       if (Number.isFinite(ora) && ora >= v - 0.0005) {
         dillo(nome + ": sta gia' contando (" + ora + "), non lo tocco.");
+        continue;
+      }
+      // il valore vecchio si rimette SOLO se siamo ancora nello stesso
+      // periodo di quel contatore: vedi stessoPeriodo
+      if (!stessoPeriodo((memoria[nome] || {}).quando, chiave)) {
+        dillo(nome + ": quel valore e' del periodo prima, lo lascio a zero.");
         continue;
       }
       rimessi++;
@@ -20949,7 +22619,11 @@ async function creaSensoriBase(hass, opzioni, dillo) {
     return riga;
   });
   await avvisoUnita(hass, Object.values(contatori), dillo);
+  // l'elenco di quello che ho creato io: vedi IL MARCATORE
   const patch = { periods };
+  // l'elenco di quello che ho creato io (vedi IL MARCATORE): vuoto non lo
+  // scrivo, se no cancellerei quello che c'e' gia' scritto
+  if (Object.keys(libretto.mappa).length) patch.aiutanti_miei = libretto.mappa;
   // la memoria e' servita: la butto, se no al prossimo giro rischia di
   // riportare indietro contatori che intanto sono andati avanti
   if (Object.keys(memoria).length) patch.helper_memoria = null;
@@ -20989,10 +22663,63 @@ const finestre = (opzioni) => {
   return FINESTRE_TUTTE.filter(([chiave]) => scelti.includes(chiave));
 };
 
+// la sorgente misura in kilowatt?
+function inKilo(hass, eid) {
+  const u = String(((((hass || {}).states || {})[eid] || {}).attributes || {})
+    .unit_of_measurement || "").trim().toLowerCase();
+  return u.startsWith("k");
+}
+
+// LA SOGLIA DI DEFAULT guarda l'unita' della sorgente.
+// 10 va bene in W; con una sorgente in kW sarebbero 10 kW, una soglia che non
+// si accende mai - e tempo, cicli e automazione del ciclo restano a zero in
+// silenzio, senza un errore - quindi diventano 0,01 kW (cioe' 10 W).
+// Il valore SCRITTO non si converte: l'editor mette l'unita' della sorgente
+// accanto alla casella («Sopra questi kW sta lavorando»), quindi arriva
+// gia' nell'unita' giusta. Resta da sistemare il precompilato `value="10"`
+// della casella, che sta nell'editor.
+function sogliaDi(hass, potenza, soglia) {
+  const n = Number(soglia);
+  if (Number.isFinite(n) && n > 0) return n;
+  return inKilo(hass, potenza) ? 0.01 : 10;
+}
+
+// UN'ISTERESI, se no il binary_sensor sfarfalla.
+// Con `hysteresis: 0` un apparecchio che in standby sta attorno alla soglia
+// (forno o lavastoviglie a 9-11 W con la soglia a 10) accende e spegne la
+// soglia a ogni lettura. L'automazione del ciclo e' protetta dai
+// `for: {seconds: ...}`, ma il history_stats dei CICLI e' `type: count` e
+// conta ogni sfarfallio: «e' partito 180 volte oggi», e quello storico non
+// si recupera. Un decimo della soglia (soglia 10 -> accende sopra 11, spegne
+// sotto 9) tiene fuori il rumore, e andando a percentuale vale anche quando
+// la soglia e' in kW.
+function isteresiDi(soglia) {
+  const s = Math.abs(Number(soglia) || 0);
+  if (!s) return 0;
+  return Math.round(s * 0.1 * 1e6) / 1e6;
+}
+
+function datiSoglia(hass, nome, potenza, soglia) {
+  const s = sogliaDi(hass, potenza, soglia);
+  return { name: nome, entity_id: potenza, upper: s, hysteresis: isteresiDi(s) };
+}
+
 async function creaSoglia(hass, nome, potenza, soglia) {
-  return flusso(hass, "threshold", {
-    name: nome, entity_id: potenza, upper: soglia, hysteresis: 0,
-  });
+  return flusso(hass, "threshold", datiSoglia(hass, nome, potenza, soglia));
+}
+
+// l'isteresi su una soglia che c'era gia': quelle fatte prima sono nate con
+// zero e sfarfallano ancora, e il template non basta a sistemarle
+async function isteresiAnche(hass, voci, reg, eid, parla) {
+  if (!eid) return;
+  const a = ((hass.states[eid] || {}).attributes) || {};
+  if (Number(a.hysteresis) !== 0) return;      // ce l'ha gia' (o non lo dice)
+  const su = Number(a.upper);
+  if (!Number.isFinite(su) || !su) return;
+  const voce = voceDellEntita(reg, voci, eid);
+  if (!voce) return;
+  await riallinea(hass, voce.entry_id, { hysteresis: isteresiDi(su) }, parla,
+    "la soglia era senza isteresi e sfarfallava a ogni lettura");
 }
 
 async function creaStorico(hass, nome, acceso, tipo, inizio) {
@@ -21002,13 +22729,28 @@ async function creaStorico(hass, nome, acceso, tipo, inizio) {
   });
 }
 
-async function creaIntegrale(hass, nome, potenza) {
-  return flusso(hass, "integration", {
-    name: nome, source: potenza, unit_prefix: "k", unit_time: "h",
+// IL PREFISSO DIPENDE DALL'UNITA' DELLA SORGENTE.
+// L'integrale divide sempre per il prefisso: W·s / (1000 x 3600) = kWh,
+// giusto; ma kW·s / (1000 x 3600) = kWh/1000, e veniva fuori «FV oggi 0,012
+// kWh» invece di 12, con l'unita' «kkWh» - e tutti gli utility_meter
+// costruiti sopra si portavano dietro unita' e scala sbagliate, anche nelle
+// statistiche a lungo termine. Non e' un caso di scuola: creaFonte e
+// creaRisparmio entrano qui con `u === "w" || u === "kw"`, e l'editor accetta
+// esplicitamente i kW.
+// Con una sorgente gia' in kW il prefisso non serve: non lo mando nemmeno,
+// cosi' ci mette il suo «nessuno» il flusso di Home Assistant, senza che
+// debba indovinare io come si chiama quel valore.
+// Unita' vuota o sconosciuta (apparecchio staccato nel momento in cui lo
+// creo): resta "k", che e' il caso di gran lunga piu' comune.
+function creaIntegrale(hass, nome, potenza) {
+  const dati = {
+    name: nome, source: potenza, unit_time: "h",
     // un minuto, non cinque: cosi' dice il suo primo valore (e la sua unita')
     // quasi subito, anche se l'apparecchio e' spento
     method: "left", round: 3, max_sub_interval: { hours: 0, minutes: 1, seconds: 0 },
-  });
+  };
+  if (!inKilo(hass, potenza)) dati.unit_prefix = "k";
+  return flusso(hass, "integration", dati);
 }
 
 // I contatori appena nati che non hanno ancora un'unita'. Succede quando
@@ -21094,11 +22836,14 @@ async function creaCicli(hass, opzioni, dillo) {
   const { potenza, energia, soglia } = opzioni;
   if (!potenza) throw new Error("Serve il sensore dei Watt.");
   if (!energia) throw new Error("Serve il contatore dei kWh.");
-  const base = opzioni.nome || nomeSorgente(hass, potenza);
+  // lo stesso nome che usa creaSensoriElettrodomestico, trim compreso: vedi
+  // nomeBase (prima qui mancavano il trim e il ripiego sul dispositivo, e la
+  // soglia veniva creata due volte)
+  const base = nomeBase(hass, opzioni, potenza);
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
+  const libretto = proprieta(hass, opzioni, () => ({ voci, reg }));
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
   const esiste = (eid) => !!hass.states[eid];
 
@@ -21111,17 +22856,23 @@ async function creaCicli(hass, opzioni, dillo) {
 
   // 1. quando sta lavorando
   const nomeSoglia = base + " in funzione";
-  let acceso = giaMio(opzioni.soglia_acceso) || gia("threshold", nomeSoglia);
+  let acceso = giaMio(opzioni.soglia_acceso) || libretto.mio("soglia", "threshold", nomeSoglia, potenza);
   if (!acceso) {
     parla("Creo la soglia «" + nomeSoglia + "»...");
-    await creaSoglia(hass, nomeSoglia, potenza, Number(soglia) || 10);
+    await creaSoglia(hass, nomeSoglia, potenza, soglia);
     await rinfresca();
-    acceso = await sistemaNome(hass, gia("threshold", nomeSoglia), nomeSoglia, parla);
-  } else parla("La soglia c'era gia'.");
+    acceso = await sistemaNome(hass, cercaVoce(voci, reg, "threshold", nomeSoglia), nomeSoglia, parla);
+    segnaFatto("threshold", nomeSoglia, potenza, acceso);
+  } else {
+    parla("La soglia c'era gia'.");
+    // se era nata senza isteresi sfarfalla ancora: gliela metto
+    await isteresiAnche(hass, voci, reg, acceso, parla);
+  }
+  libretto.segna("soglia", acceso);
 
   // 2. il contatore del ciclo: nessun ciclo suo, lo azzero io alla partenza
   const nomeContatore = base + " ciclo kWh";
-  let contatore = giaMio(miei.contatore) || gia("utility_meter", nomeContatore);
+  let contatore = giaMio(miei.contatore) || libretto.mio("ciclo_contatore", "utility_meter", nomeContatore);
   if (!contatore) {
     parla("Creo il contatore del ciclo...");
     await flusso(hass, "utility_meter", {
@@ -21130,8 +22881,11 @@ async function creaCicli(hass, opzioni, dillo) {
       always_available: true,
     });
     await rinfresca();
-    contatore = await sistemaNome(hass, gia("utility_meter", nomeContatore), nomeContatore, parla);
+    contatore = await sistemaNome(hass, cercaVoce(voci, reg, "utility_meter", nomeContatore),
+      nomeContatore, parla);
+    segnaFatto("utility_meter", nomeContatore, energia, contatore);
   } else parla("Il contatore del ciclo c'era gia'.");
+  libretto.segna("ciclo_contatore", contatore);
 
   // 3. le tre memorie dell'ultimo ciclo
   const nKwh = base + " ultimo ciclo kWh";
@@ -21149,13 +22903,24 @@ async function creaCicli(hass, opzioni, dillo) {
     const suo = String((st.attributes || {}).friendly_name || "").trim().toLowerCase();
     return !suo || suo === nome.trim().toLowerCase();
   };
-  const memoriaDi = (dominio, nome, vecchia, crea) => {
+  const memoriaDi = async (dominio, nome, vecchia, crea) => {
     // quella che la scheda sta gia' usando vince su qualunque nome
     if (giaMio(vecchia)) return vecchia;
     const atteso = dominio + "." + slug(nome);
-    if (mia(atteso, nome)) return atteso;
-    if (esiste(atteso)) parla("\u00ab" + slug(nome) + "\u00bb e' gia' di un'altra cosa: ne faccio una mia.");
-    return crea();
+    // quella creata in questo stesso giro del tasto e' mia per certo
+    const fatta = giaFatto(dominio, nome, potenza);
+    if (fatta) return fatta;
+    // IL NOME DA SOLO NON BASTA a dire che e' mia: con due schede chiamate
+    // entrambe «Forno» la seconda si prendeva le quattro memorie della
+    // prima - stessi numeri in tutte e due, e «Cancella gli aiutanti» di
+    // una che cancellava quelle dell'altra. Il nome lo accetto solo col
+    // ripiego, cioe' per le schede che quelle memorie le avevano gia' ma non
+    // se le sono scritte in configurazione (vedi IL MARCATORE).
+    if (libretto.ripiego && mia(atteso, nome)) return atteso;
+    if (esiste(atteso)) parla("«" + slug(nome) + "» e' gia' di un'altra cosa: ne faccio una mia.");
+    // la segno nel taccuino del giro: se ripremi il tasto non ne nasce un'altra
+    const fresca = await crea();
+    return segnaFatto(dominio, nome, potenza, fresca) || fresca;
   };
   const eKwh = await memoriaDi("input_number", nKwh, miei.consumo, () => {
     parla("Creo la memoria dei kWh..."); return creaNumero(hass, nKwh, "kWh", 0.001, 1000);
@@ -21228,16 +22993,39 @@ async function creaCicli(hass, opzioni, dillo) {
               if: [{ condition: "numeric_state", entity_id: contatore, above: BRICIOLA_KWH }],
               then: [
                 {
+                  // qui `float(0)` va bene e resta: ci si arriva solo dopo il
+                  // `numeric_state above` qui sopra, quindi il contatore e'
+                  // per forza un numero - e la destinazione e' un
+                  // input_number, non un sensore con le statistiche
                   action: "input_number.set_value", target: { entity_id: eKwh },
                   data: { value: "{{ states('" + contatore + "') | float(0) | round(3) }}" },
                 },
                 {
+                  // I MINUTI, CON IL FUSO GIUSTO.
+                  // `as_datetime` di una stringa senza fuso torna un datetime
+                  // NAIVE, e `as_local` di Home Assistant un naive lo tratta
+                  // come UTC e lo converte: la partenza finiva spostata
+                  // avanti di un'ora d'inverno e di due d'estate, `now() -
+                  // partenza` veniva negativo e il `| max` su 0 lo
+                  // appiattiva. D'estate OGNI ciclo piu' corto di due ore
+                  // registrava «0 min» - e il numero resta scritto
+                  // nell'input_number. La contraddizione si vedeva nella
+                  // stessa scheda: mentre il ciclo girava la card leggeva la
+                  // stessa stringa come ora LOCALE e diceva «1h 28m».
+                  // La stringa dell'input_datetime E' ora locale, quindi al
+                  // naive attacco il fuso di casa: `.replace(tzinfo=
+                  // now().tzinfo)` tiene il fuso giusto per QUELLA data (ora
+                  // solare o legale), cosa che un offset fisso non farebbe.
+                  // Le parentesi attorno al conto prima di `| round(0)` non
+                  // si toccano: in Jinja i filtri legano piu' forte di `-`,
+                  // e senza di quelle si arrotonderebbe solo l'attesa.
                   // i minuti: 0 se la partenza non e' credibile (la scheda
                   // mostra "-", che e' la verita'), se no il tempo vero
                   action: "input_number.set_value", target: { entity_id: eMin },
                   data: {
-                    value: "{% if " + SOSPETTA_CORPO + " %}0{% else %}"
-                      + "{{ [0, ((now() - (states('" + eVia + "') | as_datetime | as_local))"
+                    value: "{% set via = states('" + eVia + "') | as_datetime %}"
+                      + "{% if " + SOSPETTA_CORPO + " or via is none %}0{% else %}"
+                      + "{{ [0, ((now() - via.replace(tzinfo=now().tzinfo))"
                       + ".total_seconds() / 60 - " + ATTESA_MIN + ") | round(0)] | max }}{% endif %}",
                   },
                 },
@@ -21276,14 +23064,29 @@ async function creaCicli(hass, opzioni, dillo) {
       ],
     }],
   };
+  // L'AUTOMAZIONE SI RITROVA DAL SUO ID, non dal nome ne' da uno slug
+  // ricostruito. L'id lo scrivo in configurazione (`ciclo.automazione`): e'
+  // l'unica cosa che non cambia ne' rinominando la scheda ne' quando lo slug
+  // collide con quello di un'altra scheda («Forno» e «Forno »
+  // con uno spazio in piu' danno `..._2`, e la radice ricostruita a colpi di
+  // replace puntava sull'automazione della PRIMA scheda).
+  let suo = null;
+  let idSuo = String((opzioni.ciclo || {}).automazione || "") || null;
+  if (idSuo) {
+    suo = automazioni.find((x) => String((hass.states[x].attributes || {}).id || "") === idSuo) || null;
+    if (!suo) idSuo = null;      // cancellata a mano: ne rifaccio una
+  }
   // Se c'era gia' NON la lascio com'e': la riscrivo. E' roba fatta da me, e
   // se non la rifaccio cambiare i minuti di attesa non servirebbe a niente.
   // Riscriverla sullo stesso id vuol dire che l'entita' resta quella.
-  let suo = automazioni.find((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto);
+  if (!suo) {
+    suo = automazioni.find((x) => (hass.states[x].attributes.friendly_name || "") === nomeAuto) || null;
+  }
   // RINOMINANDO LA SCHEDA cambia anche questo nome, e senza quello che segue
   // nasceva una SECONDA automazione: la prima restava accesa e continuava a
-  // scrivere nelle vecchie memorie, e \u00abCancella gli aiutanti\u00bb non la
-  // trovava piu'. La ritrovo dall'indirizzo, che il rinomino non cambia.
+  // scrivere nelle vecchie memorie, e «Cancella gli aiutanti» non la
+  // trovava piu'. Per le schede che non hanno ancora l'id scritto in
+  // configurazione resta il ripiego sull'indirizzo di prima.
   if (!suo) {
     const prima = radiceDellaScheda({ ciclo: opzioni.ciclo || {}, soglia_acceso: opzioni.soglia_acceso });
     const eidPrima = prima ? "automation." + prima + "_segna_il_ciclo" : "";
@@ -21294,9 +23097,9 @@ async function creaCicli(hass, opzioni, dillo) {
   }
   if (!suo) {
     parla("Creo l'automazione del ciclo...");
-    await creaAutomazione(hass, corpoAuto);
+    idSuo = await creaAutomazione(hass, corpoAuto);
   } else {
-    const idSuo = hass.states[suo].attributes.id;
+    idSuo = String((hass.states[suo].attributes || {}).id || "") || idSuo;
     if (idSuo) {
       parla("Rimetto a posto l'automazione del ciclo (" + ATTESA_SEC + " s di fermo)...");
       await hass.callApi("POST", "config/automation/config/" + idSuo, { id: idSuo, ...corpoAuto });
@@ -21304,15 +23107,21 @@ async function creaCicli(hass, opzioni, dillo) {
   }
 
   parla("Cicli agganciati.");
-  return {
-    ciclo: { fine: eFine, durata: eMin, consumo: eKwh, contatore, inizio: eVia },
-    soglia_acceso: acceso,
-  };
+  const fuoriCiclo = { fine: eFine, durata: eMin, consumo: eKwh, contatore, inizio: eVia };
+  // l'id dell'automazione viaggia dentro `ciclo`, che la scheda si tiene gia'
+  if (idSuo) fuoriCiclo.automazione = String(idSuo);
+  return { ciclo: fuoriCiclo, soglia_acceso: acceso };
 }
 
 /**
  * I kWh di una fonte (i pannelli, la batteria): se il sensore e' in Watt gli
- * costruisco il contatore, poi i due periodi. Torna { oggi, mese }.
+ * costruisco il contatore, poi i tre periodi.
+ * Torna { oggi, settimana, mese } piu' gli aiutanti di mezzo - la somma,
+ * l'integrale, il template dei Wh - che prima non tornavano a nessuno:
+ * nascevano, non finivano in nessuna chiave della configurazione, e
+ * `aiutantiDellaScheda` (che legge solo la configurazione) non li vedeva.
+ * Risultato: restavano in Impostazioni > Helper per sempre, senza nessuna
+ * scheda che li usasse e senza modo di cancellarli dal pop-up.
  */
 async function creaFonte(hass, opzioni, dillo) {
   const parla = dillo || (() => {});
@@ -21320,65 +23129,98 @@ async function creaFonte(hass, opzioni, dillo) {
     .filter((x) => x && hass.states[x]);
   if (!quali.length) throw new Error("Scegli il sensore.");
   let fonte = quali[0];
-  const base = opzioni.nome || nomeSorgente(hass, fonte);
+  const base = nomeBase(hass, opzioni, fonte);
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
+  // la fonte del fotovoltaico non torna indietro nelle opzioni: il titolo
+  // resta l'unica strada per ritrovare quello che ho gia' fatto
+  const libretto = proprieta(hass, opzioni, () => ({ voci, reg }), true);
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
 
   // piu' apparecchi (due batterie, due inverter): prima li sommo con l'aiutante
   // "somma" di Home Assistant, poi conto i periodi su quello
   if (quali.length > 1) {
     const nomeSomma = base + " totale";
-    let somma = gia("min_max", nomeSomma);
+    let somma = libretto.mio("somma", "min_max", nomeSomma);
     if (!somma) {
-      parla("Sommo " + quali.length + " sensori in \u00ab" + nomeSomma + "\u00bb...");
+      parla("Sommo " + quali.length + " sensori in «" + nomeSomma + "»...");
       await flusso(hass, "min_max", {
         name: nomeSomma, entity_ids: quali, type: "sum", round_digits: 3,
       });
       await rinfresca();
-      somma = await sistemaNome(hass, gia("min_max", nomeSomma), nomeSomma, parla);
+      somma = await sistemaNome(hass, cercaVoce(voci, reg, "min_max", nomeSomma), nomeSomma, parla);
     }
-    fonte = somma;
+    fonte = libretto.segna("somma", somma) || somma;
   }
 
-  const a = (hass.states[fonte].attributes || {});
+  // L'UNITA' LA CHIEDO ALLE SORGENTI, non alla somma.
+  // `hass.states` qui dentro e' la fotografia di PRIMA (lo stesso motivo per
+  // cui avvisoUnita si rifa' gli stati): l'aiutante «somma» appena creato
+  // non c'e', e `hass.states[fonte].attributes` era un TypeError secco al
+  // primo giro con due o piu' sensori - «Non ce l'ho fatta: Cannot read
+  // properties of undefined» - lasciando dietro il min_max e nessun
+  // contatore (al secondo tentativo funzionava). La somma ha comunque
+  // l'unita' delle sue sorgenti.
+  const a = ((hass.states[fonte] || hass.states[quali[0]] || {}).attributes) || {};
   const u = String(a.unit_of_measurement || "").toLowerCase();
   let kwh = fonte;
   if (u === "w" || u === "kw") {
     const nome = base + " energia";
-    kwh = gia("integration", nome);
+    kwh = libretto.mio("energia", "integration", nome, fonte);
     if (!kwh) {
       parla("Calcolo i kWh di " + base.toLowerCase() + " dai Watt...");
       await creaIntegrale(hass, nome, fonte);
       await rinfresca();
-      kwh = await sistemaNome(hass, gia("integration", nome), nome, parla);
+      kwh = await sistemaNome(hass, cercaVoce(voci, reg, "integration", nome), nome, parla);
+      segnaFatto("integration", nome, fonte, kwh);
     }
+    libretto.segna("energia", kwh);
   } else if (u === "wh") {
     const nome = base + " kWh";
-    kwh = gia("template", nome);
+    kwh = libretto.mio("kwh_da_wh", "template", nome);
     if (!kwh) {
       parla("Il sensore e' in Wh: lo porto in kWh...");
       await creaEnergiaKwh(hass, nome, fonte);
       await rinfresca();
-      kwh = await sistemaNome(hass, gia("template", nome), nome, parla);
+      kwh = await sistemaNome(hass, cercaVoce(voci, reg, "template", nome), nome, parla);
+      segnaFatto("template", nome, fonte, kwh);
+    } else {
+      // quello che c'e' puo' essere nato col `float(0)` che regalava uno
+      // zero al recorder a ogni riavvio: lo riporto a quello di oggi
+      const voce = voceDellEntita(reg, voci, kwh);
+      const d = datiEnergiaKwh(nome, fonte);
+      if (voce) {
+        await riallinea(hass, voce.entry_id,
+          { state: d.state, availability: d.availability }, parla,
+          "i kWh dai Wh adesso restano indisponibili invece di valere zero");
+      }
     }
+    libretto.segna("kwh_da_wh", kwh);
   }
 
   const fuori = {};
   for (const [chiave, ciclo] of [["oggi", "daily"], ["settimana", "weekly"], ["mese", "monthly"]]) {
     const nome = base + " " + chiave;
-    let e = gia("utility_meter", nome);
+    let e = libretto.mio("contatore_" + chiave, "utility_meter", nome);
     if (!e) {
       parla("Creo " + nome.toLowerCase() + "...");
       await creaContatore(hass, nome, kwh, ciclo);
       await rinfresca();
-      e = await sistemaNome(hass, gia("utility_meter", nome), nome, parla);
+      e = await sistemaNome(hass, cercaVoce(voci, reg, "utility_meter", nome), nome, parla);
+      segnaFatto("utility_meter", nome, kwh, e);
     }
-    fuori[chiave] = e;
+    fuori[chiave] = libretto.segna("contatore_" + chiave, e);
   }
   await avvisoUnita(hass, Object.values(fuori), parla);
+  // NOTA PER CHI LAVORA SULL'EDITOR DI casa-energia: questi due si scrivono
+  // in configurazione solo se l'editor spande tutto quello che torna
+  // (`{...this._config, ...p}`) invece di copiare le sole chiavi
+  // oggi/settimana/mese. Finche' non lo fa, la somma e l'integrale restano
+  // orfani come prima - il calcolo di qui e' pronto.
+  if (fonte !== quali[0]) fuori.fv_somma = fonte;
+  if (kwh !== fonte) fuori.fv_energia = kwh;
+  if (Object.keys(libretto.mappa).length) fuori.aiutanti_fv = libretto.mappa;
   return fuori;
 }
 
@@ -21400,7 +23242,9 @@ async function creaRisparmio(hass, opzioni, dillo) {
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
-  const gia = (dominio, nome) => cercaVoce(voci, reg, dominio, nome);
+  // come creaFonte: qui non torna indietro niente nelle opzioni, il titolo
+  // resta l'unica strada per ritrovare quello che ho gia' fatto
+  const libretto = proprieta(hass, opzioni, () => ({ voci, reg }), true);
   const rinfresca = async () => { voci = await vociDiConfigurazione(hass); reg = await registro(hass); };
 
   // 1. i kWh: se il sensore e' in Watt me li calcolo
@@ -21409,42 +23253,73 @@ async function creaRisparmio(hass, opzioni, dillo) {
   let kwh = fonte;
   if (unita === "w" || unita === "kw") {
     const nome = base + " energia";
-    kwh = gia("integration", nome);
+    kwh = libretto.mio("energia", "integration", nome, fonte);
     if (!kwh) {
       parla("Calcolo i kWh dai Watt...");
       await creaIntegrale(hass, nome, fonte);
       await rinfresca();
-      kwh = await sistemaNome(hass, gia("integration", nome), nome, parla);
+      kwh = await sistemaNome(hass, cercaVoce(voci, reg, "integration", nome), nome, parla);
+      segnaFatto("integration", nome, fonte, kwh);
     } else parla("I kWh c'erano gia'.");
+    libretto.segna("energia", kwh);
   }
 
   // 2. quanti euro sono: i kWh arrivati per quello che avresti pagato
+  // I kWh si leggono con `float(default=none)` e non con `float(0)`: questo
+  // template finisce dentro a due utility_meter `total_increasing`, e uno
+  // zero a ogni riavvio di Home Assistant faceva dichiarare al recorder una
+  // ripartenza e sommava alle statistiche tutto il contatore (vedi
+  // seLeggibili). Il PREZZO invece resta a `float(0)`: li' lo zero e' un
+  // prezzo che non c'e', non una bugia.
   const nomeEuro = "Risparmio fotovoltaico";
-  let euro = gia("template", nomeEuro)
+  const formulaEuro = seLeggibili(daStato(kwh),
+    "(v0 * states('" + prezzo + "') | float(0)) | round(4)");
+  const quandoEuro = disponibileSe(daStato(kwh));
+  let euro = libretto.mio("euro", "template", nomeEuro)
     || Object.keys(hass.states).find((x) => x.startsWith("sensor.")
       && (hass.states[x].attributes.friendly_name || "") === nomeEuro);
   if (!euro) {
     parla("Creo il valore in euro del risparmio...");
-    await creaCosto(hass, nomeEuro,
-      "{{ (states('" + kwh + "') | float(0) * states('" + prezzo + "') | float(0)) | round(4) }}");
+    await creaCosto(hass, nomeEuro, formulaEuro, { disponibile: quandoEuro });
     await rinfresca();
-    euro = await sistemaNome(hass, gia("template", nomeEuro), nomeEuro, parla);
-  } else parla("Il risparmio in euro c'era gia'.");
+    euro = await sistemaNome(hass, cercaVoce(voci, reg, "template", nomeEuro), nomeEuro, parla);
+    segnaFatto("template", nomeEuro, kwh, euro);
+  } else {
+    parla("Il risparmio in euro c'era gia'.");
+    const voce = voceDellEntita(reg, voci, euro);
+    if (voce) {
+      await riallinea(hass, voce.entry_id,
+        { state: formulaEuro, availability: quandoEuro }, parla,
+        "il risparmio non vale piu' zero quando i kWh non si leggono");
+    }
+  }
+  libretto.segna("euro", euro);
 
   // 3. i due contatori, oggi e mese
   const fuori = {};
   for (const [chiave, etichetta, ciclo] of [["oggi", "oggi", "daily"], ["mese", "mese", "monthly"]]) {
     const nome = nomeEuro + " " + etichetta;
-    let e = gia("utility_meter", nome);
+    let e = libretto.mio("contatore_" + chiave, "utility_meter", nome);
     if (!e) {
       parla("Creo il risparmio di " + etichetta + "...");
       await creaContatore(hass, nome, euro, ciclo);
       await rinfresca();
-      e = await sistemaNome(hass, gia("utility_meter", nome), nome, parla);
+      e = await sistemaNome(hass, cercaVoce(voci, reg, "utility_meter", nome), nome, parla);
+      segnaFatto("utility_meter", nome, euro, e);
     }
-    fuori["risparmio_" + chiave] = e;
+    fuori["risparmio_" + chiave] = libretto.segna("contatore_" + chiave, e);
   }
   parla("Pannelli agganciati.");
+  // L'INTEGRALE E IL TEMPLATE DEGLI EURO TORNANO A CASA. Prima uscivano solo
+  // i due contatori: «<nome> energia» e «Risparmio fotovoltaico» non
+  // finivano in nessuna chiave, e `aiutantiDellaScheda` - che legge solo la
+  // configurazione - non li vedeva: restavano in Impostazioni > Helper senza
+  // nessuna scheda che li usasse e senza modo di cancellarli dal pop-up.
+  // L'editor di casa-energia spande tutto quello che torna, quindi qui
+  // basta tornarli.
+  if (euro) fuori.risparmio_euro = euro;
+  if (kwh !== fonte) fuori.risparmio_energia = kwh;
+  if (Object.keys(libretto.mappa).length) fuori.aiutanti_risparmio = libretto.mappa;
   return fuori;
 }
 
@@ -21454,49 +23329,76 @@ async function creaRisparmio(hass, opzioni, dillo) {
  */
 async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   const potenza = opzioni.potenza;
+  // la presa che hai SCELTO TU nel picker: me la segno adesso, perche' due
+  // righe sotto `opzioni.energia` puo' diventare un template fatto da me
+  const sceltoDaTe = opzioni.energia || null;
+  let nostroDaWh = null;
   // se il contatore scelto e' in Wh me lo porto in kWh prima di usarlo
   if (opzioni.energia) {
     const u = String(((hass.states[opzioni.energia] || {}).attributes || {}).unit_of_measurement || "");
     if (u.toLowerCase() === "wh") {
-      const nome = (opzioni.nome || nomeSorgente(hass, opzioni.energia)) + " kWh";
+      const nome = nomeBase(hass, opzioni, opzioni.energia) + " kWh";
+      // anche col nome che gli davo prima (il ripiego era il friendly_name
+      // del sensore, adesso e' il nome del dispositivo): se no a chi ce
+      // l'ha gia' ne nascerebbe un secondo, identico
+      const nomePrima = (opzioni.nome || nomeSorgente(hass, opzioni.energia)).trim() + " kWh";
       const voci0 = await vociDiConfigurazione(hass);
       const reg0 = await registro(hass);
-      const trovato = voci0.find((x) => x.domain === "template"
-        && String(x.title || "").toLowerCase() === nome.toLowerCase());
+      const cercaTitolo = (voci, t) => voci.find((x) => x.domain === "template"
+        && String(x.title || "").toLowerCase() === t.toLowerCase());
+      const trovato = cercaTitolo(voci0, nome)
+        || (nomePrima !== nome ? cercaTitolo(voci0, nomePrima) : null);
       if (trovato) {
-        opzioni = { ...opzioni, energia: entitaDellaVoce(reg0, trovato.entry_id) };
+        nostroDaWh = entitaDellaVoce(reg0, trovato.entry_id);
+        opzioni = { ...opzioni, energia: nostroDaWh };
+        // quello che c'e' puo' essere nato col `float(0)`, che a ogni
+        // riavvio di Home Assistant pubblicava zero e faceva impazzire le
+        // statistiche del contatore (vedi seLeggibili): lo riallineo
+        const d = datiEnergiaKwh(nome, sceltoDaTe);
+        await riallinea(hass, trovato.entry_id,
+          { state: d.state, availability: d.availability }, dillo,
+          "i kWh dai Wh adesso restano indisponibili invece di valere zero");
       } else {
         (dillo || (() => {}))("Il contatore e' in Wh: lo porto in kWh...");
         await creaEnergiaKwh(hass, nome, opzioni.energia);
         const reg1 = await registro(hass);
         const voci1 = await vociDiConfigurazione(hass);
-        const nuovo = voci1.find((x) => x.domain === "template"
-          && String(x.title || "").toLowerCase() === nome.toLowerCase());
-        if (nuovo) opzioni = { ...opzioni, energia: entitaDellaVoce(reg1, nuovo.entry_id) };
+        const nuovo = cercaTitolo(voci1, nome);
+        if (nuovo) {
+          nostroDaWh = entitaDellaVoce(reg1, nuovo.entry_id);
+          opzioni = { ...opzioni, energia: nostroDaWh };
+        }
       }
     }
   }
   if (!potenza || !hass.states[potenza]) throw new Error("Scegli la presa che misura i Watt.");
-  const base = (opzioni.nome || nomeSorgente(hass, potenza)).trim();
-  const soglia = Number(opzioni.soglia) > 0 ? Number(opzioni.soglia) : 10;
+  // lo stesso nome che usa creaCicli, trim compreso: vedi nomeBase
+  const base = nomeBase(hass, opzioni, potenza);
+  // e me lo ricordo per creaCicli, che parte subito dopo e non riceve questa
+  // patch (e' lui a sapere il contatore dei kWh, quindi il dispositivo buono)
+  BASE_DECISA.set(potenza, base);
+  const soglia = sogliaDi(hass, potenza, opzioni.soglia);
   const conto = { creati: 0, riusati: 0 };
 
   let voci = await vociDiConfigurazione(hass);
   let reg = await registro(hass);
+  const libretto = proprieta(hass, opzioni, () => ({ voci, reg }));
+  // il template dei Wh->kWh l'ho fatto io: va nell'elenco, se no resta orfano
+  if (nostroDaWh) libretto.segna("kwh_da_wh", nostroDaWh);
   const nuovi = [];
-  // cerca la voce gia' fatta; se non c'e' la crea e segna che va risolta
-  const trovaOCrea = async (dominio, nome, fai, dove) => {
-    const v = voci.find((x) => x.domain === dominio
-      && String(x.title || "").toLowerCase() === nome.toLowerCase());
-    if (v) {
-      const e = entitaDellaVoce(reg, v.entry_id);
+  // cerca la voce gia' fatta - per marcatore, non per solo titolo (vedi IL
+  // MARCATORE); se non c'e' la crea e segna che va risolta
+  const trovaOCrea = async (ruolo, dominio, nome, sorgente, fai, dove) => {
+    const e = libretto.mio(ruolo, dominio, nome, sorgente);
+    if (e) {
       conto.riusati++;
-      if (e) dove(e);
+      libretto.segna(ruolo, e);
+      dove(e);
       return e;
     }
     dillo("Creo: " + nome + "...");
     conto.creati++;
-    nuovi.push([await fai(), dove, nome]);
+    nuovi.push([await fai(), dove, nome, ruolo, dominio, sorgente]);
     return null;
   };
   const risolvi = async () => {
@@ -21504,10 +23406,12 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
     reg = await registro(hass);
     voci = await vociDiConfigurazione(hass);
     const lista = nuovi.splice(0);
-    for (const [id, dove, nome] of lista) {
+    for (const [id, dove, nome, ruolo, dominio, sorgente] of lista) {
       let e = entitaDellaVoce(reg, id);
       if (!e) continue;
       if (nome) e = await sistemaNome(hass, e, nome, dillo);
+      libretto.segna(ruolo, e);
+      segnaFatto(dominio, nome, sorgente, e);
       dove(e);
     }
   };
@@ -21515,16 +23419,18 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   // 1. "sta lavorando": serve solo per tempo e cicli
   let acceso = null;
   if (opzioni.tempi !== false) {
-    await trovaOCrea("threshold", base + " in funzione",
+    await trovaOCrea("soglia", "threshold", base + " in funzione", potenza,
       () => creaSoglia(hass, base + " in funzione", potenza, soglia), (e) => { acceso = e; });
     await risolvi();
     if (!acceso) throw new Error("Non trovo l'entita' della soglia appena creata.");
+    // se la soglia c'era gia' ed era senza isteresi, sfarfallava: gliela metto
+    await isteresiAnche(hass, voci, reg, acceso, dillo);
   }
 
   // 2. i kWh: quelli della presa se ci sono, se no li calcolo dai Watt
   let kwh = opzioni.energia || null;
   if (!kwh) {
-    await trovaOCrea("integration", base + " energia",
+    await trovaOCrea("kwh_integrale", "integration", base + " energia", potenza,
       () => creaIntegrale(hass, base + " energia", potenza), (e) => { kwh = e; });
     await risolvi();
   } else {
@@ -21540,10 +23446,10 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
     // tempo e cicli si creano SOLO se li hai chiesti: per una presa che sta
     // sempre accesa sono sei aiutanti che non guarderai mai
     if (opzioni.tempi !== false) {
-      await trovaOCrea("history_stats", base + " tempo " + chiave,
+      await trovaOCrea("tempo_" + chiave, "history_stats", base + " tempo " + chiave, acceso,
         () => creaStorico(hass, base + " tempo " + chiave, acceso, "time", inizio),
         (e) => { periodi[periodo].time = e; });
-      await trovaOCrea("history_stats", base + " cicli " + chiave,
+      await trovaOCrea("cicli_" + chiave, "history_stats", base + " cicli " + chiave, acceso,
         () => creaStorico(hass, base + " cicli " + chiave, acceso, "count", inizio),
         (e) => { cicli[chiave] = e; });
     }
@@ -21558,7 +23464,7 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
       const comePrima = Object.keys(opzioni.memoria || {}).find((t) =>
         !/^costo/i.test(t) && new RegExp("(^|[ _])" + chiave + "$", "i").test(t));
       const nomeContatore = comePrima || (base + " energia " + chiave);
-      await trovaOCrea("utility_meter", nomeContatore,
+      await trovaOCrea("contatore_" + chiave, "utility_meter", nomeContatore, kwh,
         () => creaContatore(hass, nomeContatore, kwh, ciclo),
         (e) => { periodi[periodo].energy = e; });
     }
@@ -21575,6 +23481,11 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
     const contatore = periodi[periodo].energy;
     if (!contatore) continue;
     if (!opzioni.costi) {
+      // Questo riconoscimento e' ancora per NOME, ma e' in sola lettura e
+      // finisce fra gli «adottati»: la scheda lo mostra e la
+      // cancellazione non lo propone mai. Due schede omonime possono
+      // mostrare lo stesso costo - che e' inevitabile quando puntano allo
+      // stesso apparecchio - ma nessuna delle due puo' rovinarlo.
       const gia = Object.values(hass.states).find((x) => x.entity_id.startsWith("sensor.")
         && (x.attributes.friendly_name || "").toLowerCase()
           === ("Costo " + base.toLowerCase() + " " + chiave).toLowerCase());
@@ -21587,8 +23498,21 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
       continue;
     }
     const nome = "Costo " + base.toLowerCase() + " " + chiave;
-    await trovaOCrea("template", nome, () => creaCosto(hass, nome,
-      "{{ (states('" + contatore + "') | float(0) * states('" + prezzo + "') | float(0)) | round(2) }}"),
+    // il contatore letto con `float(default=none)`: se non si legge il costo
+    // resta indisponibile invece di crollare a zero (vedi seLeggibili)
+    const formula = seLeggibili(daStato(contatore),
+      "(v0 * states('" + prezzo + "') | float(0)) | round(2)");
+    const quando = disponibileSe(daStato(contatore));
+    const vecchioCosto = libretto.mio("costo_" + chiave, "template", nome);
+    if (vecchioCosto) {
+      const voce = voceDellEntita(reg, voci, vecchioCosto);
+      if (voce) {
+        await riallinea(hass, voce.entry_id, { state: formula, availability: quando }, dillo,
+          "il costo di " + chiave + " non vale piu' zero quando il contatore non si legge");
+      }
+    }
+    await trovaOCrea("costo_" + chiave, "template", nome, contatore,
+      () => creaCosto(hass, nome, formula, { disponibile: quando }),
       (e) => { periodi[periodo].cost = e; });
   }
   await risolvi();
@@ -21609,6 +23533,13 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
         dillo(nome + ": sta gia' contando (" + ora + "), non lo tocco.");
         continue;
       }
+      // solo se siamo ancora nello stesso periodo di quel contatore: vedi
+      // stessoPeriodo (cancellati alle 23:00 e rifatti alle 00:30, «oggi»
+      // ripartiva dal valore di ieri e il salto entrava nelle statistiche)
+      if (!stessoPeriodo((memoria[nome] || {}).quando, periodo)) {
+        dillo(nome + ": quel valore e' del periodo prima, lo lascio a zero.");
+        continue;
+      }
       dillo("Rimetto " + v + " su " + nome + " (era il valore di prima).");
       try {
         await hass.callService("utility_meter", "calibrate", { entity_id: eid, value: String(v) });
@@ -21617,10 +23548,23 @@ async function creaSensoriElettrodomestico(hass, opzioni, dillo) {
   }
   await avvisoUnita(hass, Object.values(periodi).map((x) => x.energy), dillo);
   const patch = { period_entities: periodi, stats: { ...(opzioni.stats || {}) } };
-  if (adottati.length) patch.costi_adottati = adottati;
   if (Object.keys(memoria).length) patch.helper_memoria = null;
   // senza questa la finestra dei grafici non disegna "Questo mese" e "Quest'anno"
   if (kwh) patch.energy_stat_entity = kwh;
+  // QUELLO CHE HAI SCELTO TU NEL PICKER NON E' ROBA MIA.
+  // `energy_stat_entity` e' il sensore dei kWh: se l'hai puntato a un TUO
+  // utility_meter, integrale o template helper - il caso normale di chi ha
+  // gia' i suoi contatori - il suo dominio e' fra i DOMINI_AIUTANTI e
+  // «Cancella gli aiutanti» lo metteva in elenco GIA' SPUNTATO: un clic e
+  // spariva lui con tutto il suo storico, mentre il testo del riquadro
+  // promette che «la presa e i sensori del dispositivo non si toccano».
+  // Quindi me lo segno fra quelli adottati: miei sono solo quelli che ho
+  // creato io (vedi IL MARCATORE). Il template dei Wh->kWh invece l'ho fatto
+  // io, e quello resta cancellabile.
+  if (kwh && sceltoDaTe && kwh === sceltoDaTe && kwh !== nostroDaWh) adottati.push(kwh);
+  if (adottati.length) patch.costi_adottati = adottati;
+  // l'elenco di quello che ho creato io: vedi IL MARCATORE
+  if (Object.keys(libretto.mappa).length) patch.aiutanti_miei = libretto.mappa;
   // il tasto "Azzera i contatori" vuole uno script: se non ne hai gia' uno tuo
   // glielo faccio io, ed e' lo stesso per tutta la casa
   if (!opzioni.reset_script) {
@@ -21662,6 +23606,18 @@ function aiutantiDellaScheda(hass, cfg) {
   ["fv_casa", "pannelli", "batteria", "risparmio"].forEach((chi) => {
     ["oggi", "settimana", "mese"].forEach((q) => metti(cfg[chi + "_" + q]));
   });
+  // gli aiutanti di mezzo del fotovoltaico e del risparmio: la somma,
+  // l'integrale dai Watt, il template degli euro. Prima non finivano in
+  // nessuna chiave e restavano in Impostazioni > Helper per sempre.
+  ["fv_somma", "fv_energia", "risparmio_euro", "risparmio_energia"].forEach((k) => metti(cfg[k]));
+  // L'ELENCO DI QUELLO CHE HO CREATO IO (vedi IL MARCATORE): e' qui che
+  // finiscono anche gli aiutanti che la scheda non mostra - la soglia creata
+  // per i tempi, il template dei Wh->kWh - e che senza questo non erano
+  // cancellabili da nessuna parte.
+  ["aiutanti_miei", "aiutanti_fv", "aiutanti_risparmio"].forEach((k) => {
+    const m = cfg[k];
+    if (m && typeof m === "object") Object.values(m).forEach(metti);
+  });
   // i pezzi dell'ultimo ciclo: il contatore, le quattro memorie e la soglia
   const c = cfg.ciclo || {};
   metti(c.contatore);
@@ -21686,9 +23642,19 @@ function aiutantiDellaScheda(hass, cfg) {
 function radiceDellaScheda(cfg) {
   const c = cfg.ciclo || {};
   const da = (eid, coda) => {
-    // Home Assistant appende _2 quando lo slug e' occupato: quella coda non
-    // fa parte della radice.
-    const o = (String(eid || "").split(".")[1] || "").replace(/_\d+$/, "");
+    // IL `_N` NON SI TOGLIE PIU'.
+    // Qui c'era un `.replace(/_\d+$/, "")` per «togliere la coda che Home
+    // Assistant appende quando lo slug e' occupato». Succedeva il
+    // contrario: con due schede dagli slug uguali («Forno» e «Forno »
+    // con uno spazio in piu'), la seconda aveva
+    // `automation.forno_segna_il_ciclo_2`, il replace la riduceva a "forno" e
+    // «Cancella gli aiutanti» proponeva - spuntata - l'automazione della
+    // PRIMA scheda: cancellandola la prima smetteva di registrare i cicli e
+    // la `_2` restava invisibile a tutte e due.
+    // Gli indirizzi veri delle memorie stanno in `cfg.ciclo`, e l'id
+    // dell'automazione in `cfg.ciclo.automazione`: questa radice e' solo il
+    // ripiego per le schede che non ce l'hanno ancora scritto.
+    const o = String(eid || "").split(".")[1] || "";
     return o.endsWith(coda) ? o.slice(0, -coda.length) : "";
   };
   // PRIMA GLI INDIRIZZI, POI il nome. Gli indirizzi non cambiano quando
@@ -21731,7 +23697,22 @@ async function aiutantiVeri(hass, cfg) {
       }
     });
   }
-  // l'automazione del ciclo: la riconosco dal nome che le ho dato io
+  // L'AUTOMAZIONE DEL CICLO: PRIMA DAL SUO ID, che la scheda si e' scritto in
+  // `ciclo.automazione` quando l'ha creata. Il nome e lo slug ricostruito
+  // puntavano all'automazione di un'altra scheda quando i due slug
+  // collidevano (vedi radiceDellaScheda).
+  const idMio = String((cfg.ciclo || {}).automazione || "");
+  if (idMio) {
+    const eid = Object.keys(hass.states).find((x) => x.startsWith("automation.")
+      && String((hass.states[x].attributes || {}).id || "") === idMio);
+    if (eid) {
+      fuori.push({ entity: eid, tipo: "automazione", id: idMio,
+        titolo: (hass.states[eid].attributes || {}).friendly_name || eid });
+    }
+    return fuori;
+  }
+  // il ripiego per le schede nate prima, che l'id non ce l'hanno scritto:
+  // la riconosco dal nome che le ho dato io
   const base = radiceDellaScheda(cfg);
   if (base && (cfg.ciclo || cfg.soglia_acceso)) {
     const eid = "automation." + base + "_segna_il_ciclo";
@@ -21782,8 +23763,15 @@ function scollegaEntita(cfg, spariti) {
   const c = { ...cfg };
   const CHIAVI = ["oggi_energia", "oggi_costo", "settimana_energia", "settimana_costo",
     "mese_energia", "mese_costo", "bolletta_energia", "bolletta_costo", "energy_stat_entity",
-    "soglia_acceso"];
+    "soglia_acceso", "fv_somma", "fv_energia", "risparmio_euro", "risparmio_energia"];
   CHIAVI.forEach((k) => { if (via.has(c[k])) delete c[k]; });
+  // l'elenco di quello che ho creato io: via le righe delle entita' sparite
+  ["aiutanti_miei", "aiutanti_fv", "aiutanti_risparmio"].forEach((k) => {
+    if (!c[k] || typeof c[k] !== "object") return;
+    const m = {};
+    Object.keys(c[k]).forEach((r) => { if (!via.has(c[k][r])) m[r] = c[k][r]; });
+    if (Object.keys(m).length) c[k] = m; else delete c[k];
+  });
   ["fv_casa", "pannelli", "batteria", "risparmio"].forEach((chi) => {
     ["oggi", "settimana", "mese"].forEach((q) => {
       if (via.has(c[chi + "_" + q])) delete c[chi + "_" + q];
@@ -21818,226 +23806,15 @@ function scollegaEntita(cfg, spariti) {
     ["contatore", "consumo", "durata", "fine", "inizio"].forEach((k) => {
       if (via.has(ci[k])) delete ci[k];
     });
+    // l'id dell'automazione non e' un'entita': se l'automazione e' stata
+    // cancellata va via anche lui, se no al giro dopo cerco un id che non
+    // c'e' piu'
+    if (ci.automazione && [...via].some((x) => String(x).startsWith("automation."))) {
+      delete ci.automazione;
+    }
     if (Object.keys(ci).length) c.ciclo = ci; else delete c.ciclo;
   }
   return c;
-}
-
-// La riga per scegliere una foto, fatta come quella della casella animata:
-// l'anteprima, il tasto che apre la galleria del telefono o le cartelle del
-// PC, il campo per scrivere l'indirizzo se la foto sta gia' sul box, e il
-// tasto per toglierla. Tutto su una riga sola.
-//
-// Le due schede dei consumi avevano solo un campo di testo nudo dove andava
-// scritto "/local/qualcosa.jpg" a mano: per riempirlo bisognava gia' sapere
-// come si carica un file su Home Assistant, che e' esattamente la cosa che il
-// tasto risparmia.
-//
-// Sta qui in mezzo, in un pezzo solo, cosi' non ci sono copie che invecchiano
-// ognuna per conto suo.
-
-
-const STILE_FOTO = `
-.dm-foto{margin:10px 0 2px}
-.dm-foto-riga{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.dm-foto-ant{width:64px;height:44px;border-radius:8px;object-fit:cover;
-  border:1px solid var(--divider-color,#444);background:#0003;cursor:pointer}
-.dm-foto-ant[hidden]{display:none}
-.dm-foto-bt{border:1px solid var(--divider-color,#555);
-  background:var(--card-background-color,#1c1c1c);
-  color:var(--primary-text-color,#e1e1e1);border-radius:9px;padding:8px 12px;
-  font-size:13px;font-weight:600;cursor:pointer}
-.dm-foto-bt:hover{border-color:var(--primary-color,#03a9f4)}
-.dm-foto-bt[hidden]{display:none}
-.dm-foto-via{opacity:.75}
-.dm-foto-ind{flex:1;min-width:160px;border-radius:9px;padding:8px 10px;
-  border:1px solid var(--divider-color,#555);
-  background:var(--card-background-color,#1c1c1c);
-  color:var(--primary-text-color,#e1e1e1);font-size:13px}
-.dm-foto-nota{flex-basis:100%;font-size:12.5px;
-  color:var(--secondary-text-color,#9b9b9b);margin-top:2px;word-break:break-all}
-.dm-foto-nota.errore{color:#ff8a80}
-`;
-
-// Carica il file dentro a Home Assistant e torna l'indirizzo da salvare.
-async function caricaFoto(hass, file) {
-  const dati = new FormData();
-  dati.append("file", file);
-  const risposta = await fetch("/api/image/upload", {
-    method: "POST",
-    headers: { Authorization: "Bearer " + hass.auth.data.access_token },
-    body: dati,
-  });
-  if (!risposta.ok) throw new Error("HTTP " + risposta.status);
-  const info = await risposta.json();
-  return "/api/image/serve/" + info.id + "/original";
-}
-
-// La riga intera, pronta da appendere. Torna anche `aggiorna(valore)`, per
-// rinfrescarla quando la configurazione cambia da fuori.
-//   dammiHass - una funzione: l'hass arriva DOPO che la riga e' gia' fatta
-//   scrivi    - lo chiamo con il nuovo indirizzo, o con "" se togli la foto
-function rigaFoto({ dammiHass, valore, tasto, scrivi }) {
-  const box = document.createElement("div");
-  box.className = "dm-foto";
-  const riga = document.createElement("div");
-  riga.className = "dm-foto-riga";
-
-  const ant = document.createElement("img");
-  ant.className = "dm-foto-ant";
-  ant.alt = "";
-  ant.title = T("Tocca per scegliere un'altra foto");
-
-  const file = document.createElement("input");
-  file.type = "file";
-  file.accept = "image/*";
-  file.style.display = "none";
-
-  const scegli = document.createElement("button");
-  scegli.className = "dm-foto-bt";
-  scegli.type = "button";
-  scegli.textContent = tasto || T("Usa un'immagine mia (telefono o PC)");
-
-  const indirizzo = document.createElement("input");
-  indirizzo.type = "text";
-  indirizzo.className = "dm-foto-ind";
-  indirizzo.placeholder = T("oppure l'indirizzo: /local/mia.jpg");
-
-  const via = document.createElement("button");
-  via.className = "dm-foto-bt dm-foto-via";
-  via.type = "button";
-  via.textContent = T("Togli la foto");
-
-  const nota = document.createElement("div");
-  nota.className = "dm-foto-nota";
-
-  // l'input di QUESTA riga, non il primo della pagina: se no si apre la
-  // galleria di un altro campo e la foto finisce nel posto sbagliato
-  const apri = () => file.click();
-  ant.addEventListener("click", apri);
-  scegli.addEventListener("click", apri);
-
-  file.addEventListener("change", async () => {
-    const f = file.files && file.files[0];
-    if (!f) return;
-    nota.className = "dm-foto-nota";
-    nota.textContent = T("Sto caricando") + " " + f.name + "...";
-    try {
-      scrivi(await caricaFoto(dammiHass(), f));
-    } catch (e) {
-      nota.className = "dm-foto-nota errore";
-      nota.textContent = T("Non sono riuscito a caricarla") + ": " + e.message;
-    }
-  });
-  indirizzo.addEventListener("change", () => scrivi(indirizzo.value.trim()));
-  via.addEventListener("click", () => scrivi(""));
-
-  riga.append(ant, scegli, file, indirizzo, via, nota);
-  box.appendChild(riga);
-
-  const aggiorna = (v) => {
-    const c = v || "";
-    ant.hidden = !c;
-    if (c) ant.src = c;
-    via.hidden = !c;
-    scegli.textContent = c
-      ? T("Scegli un'altra foto")
-      : (tasto || T("Usa un'immagine mia (telefono o PC)"));
-    if (document.activeElement !== indirizzo) indirizzo.value = c;
-    if (!nota.classList.contains("errore")) nota.textContent = "";
-  };
-  aggiorna(valore);
-  box.aggiorna = aggiorna;
-  return box;
-}
-
-// ---------------------------------------------------------------------------
-// LA SCELTA DEL DISEGNO: la griglia, non la tendina.
-//
-// Una tendina fa leggere venticinque nomi uno per volta per cercare una cosa
-// che si riconosce a colpo d'occhio. La griglia li fa vedere tutti insieme,
-// col filtro per scriverci dentro, e in fondo il tasto per usare una foto tua
-// al posto del disegno - piu' quella di quando la scheda lavora, che puo'
-// essere anche una gif. E' la stessa scelta della casella animata.
-
-const STILE_DISEGNI = `
-.dm-dis{margin:8px 0 2px}
-.dm-dis-cerca{width:100%;box-sizing:border-box;border-radius:9px;padding:9px 11px;
-  margin-bottom:8px;border:1px solid var(--divider-color,#555);
-  background:var(--card-background-color,#1c1c1c);
-  color:var(--primary-text-color,#e1e1e1);font-size:13px}
-.dm-dis-griglia{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));
-  gap:6px;max-height:268px;overflow:auto;padding:2px;border-radius:10px}
-.dm-dis-uno{display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:6px 3px 5px;border-radius:10px;cursor:pointer;
-  border:1px solid transparent;background:var(--secondary-background-color,#222);
-  color:var(--primary-text-color,#e1e1e1)}
-.dm-dis-uno:hover{border-color:var(--divider-color,#666)}
-.dm-dis-uno.scelto{border-color:var(--primary-color,#03a9f4);
-  box-shadow:0 0 0 1px var(--primary-color,#03a9f4) inset}
-.dm-dis-uno svg,.dm-dis-uno img{width:34px;height:34px;display:block;object-fit:contain}
-.dm-dis-uno b{font-size:10px;font-weight:600;line-height:1.15;text-align:center;
-  max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dm-dis-vuoto{font-size:12.5px;color:var(--secondary-text-color,#9b9b9b);padding:8px 2px}
-`;
-
-// elenco = [[chiave, nome], ...]   disegna(chiave) -> l'HTML dell'anteprima
-function sceltaDisegno({ elenco, disegna, scelto, scrivi }) {
-  const box = document.createElement("div");
-  box.className = "dm-dis";
-
-  const cerca = document.createElement("input");
-  cerca.type = "search";
-  cerca.className = "dm-dis-cerca";
-  cerca.placeholder = T("Cerca il disegno: lavatrice, forno, presa...");
-
-  const griglia = document.createElement("div");
-  griglia.className = "dm-dis-griglia";
-  const vuoto = document.createElement("div");
-  vuoto.className = "dm-dis-vuoto";
-  vuoto.hidden = true;
-  vuoto.textContent = T("Nessun disegno con questo nome.");
-
-  let qualeScelto = scelto;
-  const tasti = elenco.map(([chiave, nome]) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "dm-dis-uno";
-    b.title = nome;
-    b.dataset.chiave = chiave;
-    // il nome sta nel dizionario, il disegno e' nostro: niente da proteggere
-    b.innerHTML = disegna(chiave) + "<b></b>";
-    b.querySelector("b").textContent = T(nome);
-    b.addEventListener("click", () => {
-      qualeScelto = chiave;
-      tasti.forEach((x) => x.classList.toggle("scelto", x.dataset.chiave === chiave));
-      scrivi(chiave);
-    });
-    griglia.appendChild(b);
-    return b;
-  });
-
-  const filtra = () => {
-    const q = cerca.value.trim().toLowerCase();
-    let visti = 0;
-    tasti.forEach((b) => {
-      const ok = !q || b.title.toLowerCase().includes(q)
-        || b.dataset.chiave.includes(q);
-      b.hidden = !ok;
-      if (ok) visti += 1;
-    });
-    vuoto.hidden = visti > 0;
-  };
-  cerca.addEventListener("input", filtra);
-
-  box.append(cerca, griglia, vuoto);
-
-  box.aggiorna = (v) => {
-    qualeScelto = v;
-    tasti.forEach((x) => x.classList.toggle("scelto", x.dataset.chiave === v));
-  };
-  box.aggiorna(qualeScelto);
-  return box;
 }
 
 // -*- coding: utf-8 -*-
@@ -22447,7 +24224,17 @@ const ConEditor = (Base) => class extends Base {
       disegna: (k) => CHIP_SVGS[k]
         || (HERO_BUILDERS[k] ? HERO_BUILDERS[k]("g" + k) : ""),
       scelto: (this._config || {}).artwork || diSerie,
-      scrivi: (k) => this._scriviScelta("artwork", k),
+      scrivi: (k) => {
+        const prima = (this._config || {}).artwork;
+        this._scriviScelta("artwork", k);
+        // Chi vuole saperlo lo sa DA QUI: `artwork` non sta in nessuno schema
+        // dell'ha-form, quindi da `_cambiatoForm` un cambio di disegno non si
+        // vedeva mai (l'editor degli elettrodomestici ci attacca la proposta
+        // dell'apparecchio che somiglia al disegno).
+        if (k && k !== prima && typeof this._sceltoDisegno === "function") {
+          this._sceltoDisegno(k, prima);
+        }
+      },
     });
     const etiFoto = document.createElement("div");
     etiFoto.className = "ce-aiuto";
@@ -22505,6 +24292,20 @@ const ConEditor = (Base) => class extends Base {
     if (this._grigliaDisegni) this._grigliaDisegni.aggiorna(c.artwork);
   }
 
+  // Rimette nei moduli i dati freschi, DOPO ogni modifica della
+  // configurazione - anche quelle fatte fuori dal modulo (la griglia dei
+  // disegni, una spunta, un tasto). Serve perche' `ha-form` rimanda indietro
+  // tutto il suo `data` con sopra il campo cambiato: con la fotografia
+  // vecchia dentro, la prima modifica successiva di un campo qualunque
+  // riporta indietro quello che era stato cambiato altrove.
+  _rinfrescaModuli() {
+    if (!this._costruito || typeof this._datiForm !== "function") return;
+    const dati = this._datiForm();
+    const moduli = (this._moduli && this._moduli.length)
+      ? this._moduli : [this._form, this._formTutto];
+    moduli.forEach((f) => { if (f) f.data = dati; });
+  }
+
   // le scelte dei riquadri sono configurazione: le scrivo subito, se no Home
   // Assistant non accende il tasto Salva
   _scriviScelta(chiave, valore) {
@@ -22515,6 +24316,7 @@ const ConEditor = (Base) => class extends Base {
     } else c[chiave] = valore;
     this._config = c;
     this._emetti();
+    this._rinfrescaModuli();
   }
 
   // il nome di un'entita' senza la coda "potenza": e' quella che si vede
@@ -22541,11 +24343,36 @@ const ConEditor = (Base) => class extends Base {
     return "#" + v.map((n) => Math.max(0, Math.min(255, Number(n) || 0)).toString(16).padStart(2, "0")).join("");
   }
 
+  // Anche la forma corta (#fff): in YAML si scrive spesso cosi', e prima
+  // tornava `undefined` - che poi faceva CANCELLARE il colore alla prima
+  // modifica di qualunque campo (vedi `_coloriDalForm` qui sotto).
   _versoRgb(v) {
-    const m = /^#?([0-9a-f]{6})$/i.exec(String(v || ""));
+    const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(v || "").trim());
     if (!m) return undefined;
-    const n = parseInt(m[1], 16);
+    const sei = m[1].length === 3 ? m[1].replace(/./g, (c) => c + c) : m[1];
+    const n = parseInt(sei, 16);
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+
+  // I colori che tornano dal modulo, tradotti in esadecimale.
+  // `ha-form` rimanda indietro TUTTO il suo `data` con sopra il campo
+  // cambiato: se in configurazione c'e' un colore che non so far vedere al
+  // selettore (`red`, una variabile del tema), `_versoRgb` gli ha passato
+  // `undefined` e quell'`undefined` torna indietro a ogni modifica. Non e'
+  // una cancellazione, e' l'eco della mia: il colore resta com'era.
+  // Se invece il colore era mostrabile, un `undefined` e' davvero l'utente
+  // che l'ha svuotato, e allora si cancella come prima.
+  _coloriDalForm(v, chiavi) {
+    chiavi.forEach((k) => {
+      if (!(k in v)) return;
+      const grezzo = (this._config || {})[k];
+      const vuoto = v[k] === undefined || v[k] === null || v[k] === "";
+      if (vuoto && grezzo !== undefined && this._versoRgb(grezzo) === undefined) {
+        v[k] = grezzo;
+        return;
+      }
+      v[k] = this._versoHex(v[k]);
+    });
   }
 
   // Il contrario di "crea": butta via gli aiutanti che questa scheda si e'
@@ -22574,7 +24401,9 @@ const ConEditor = (Base) => class extends Base {
         if (Object.keys(memoria).length) c.helper_memoria = memoria;
         this._config = c;
         this._emetti();
-        this._form.data = this._datiForm();
+        // tutti i moduli, non solo quello in cima: quello sotto teneva la
+        // fotografia vecchia e alla prima modifica la rimandava indietro
+        this._rinfrescaModuli();
         this._esito.textContent += T("Fatto:") + " " + esito.cancellati + " "
           + T("cancellati.") + " "
           + T("I valori me li sono segnati: se li rifai ripartono da li'.");
@@ -23327,6 +25156,19 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return u === "kw" ? n * 1000 : n;
   }
 
+  // LA SECONDA FOTO, quella che si vede solo mentre lavora. L'HTML del
+  // riquadro lo costruisce setConfig una volta sola, quindi qui non rifaccio
+  // niente: cambio solo l'indirizzo dell'img, e solo se e' diverso da quello
+  // che c'e' gia'. Senza questo la foto "accesa" promessa dall'editor non si
+  // vedeva mai, perche' setConfig non sa se l'apparecchio sta lavorando.
+  _aggiornaFoto(acceso) {
+    const src = fotoDiScheda(this._config, acceso);
+    if (!src) return;
+    this._root.querySelectorAll(".dm-ap-hero img").forEach((img) => {
+      if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+    });
+  }
+
   _val(hass, entityId, digits, attr) {
     const st = entityId ? hass.states[entityId] : null;
     if (!st) return "\u2014";
@@ -23366,9 +25208,18 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const oggi = a(cfg.bill_today);
     const mese = a(cfg.bill_month);
     const tot = (id) => this._euro(id ? hass.states[id]?.state : null);
+    // ANCHE I kWh VOGLIONO IL TRATTINO. `oggi[k] ?? 0` scriveva "0,00 kWh"
+    // quando l'attributo non c'e' per niente: si leggeva "kWh presi dalla
+    // rete: 0,00" con la riga Totale qui sotto a "—". Zero e "non lo so" non
+    // sono la stessa cosa, come gia' fa _euro().
+    const kWh = (v) => {
+      const n = Number(v);
+      return v === null || v === undefined || v === "" || !Number.isFinite(n)
+        ? "—" : `${numero(n, 2)} kWh`;
+    };
     const riga = (label, k, euro = true, colore = null, forte = false) => this._statRow2c(colore, forte, label,
-      euro ? this._euro(oggi[k]) : `${numero(oggi[k] ?? 0, 2)} kWh`,
-      euro ? this._euro(mese[k]) : `${numero(mese[k] ?? 0, 2)} kWh`);
+      euro ? this._euro(oggi[k]) : kWh(oggi[k]),
+      euro ? this._euro(mese[k]) : kWh(mese[k]));
     return `
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Il conto, voce per voce &nbsp;(oggi &middot; mese)</div>
         ${riga("kWh presi dalla rete", "kwh", false, "#3fb4ea")}
@@ -23585,22 +25436,84 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // --- Top consumo automatico (aggiunta cash83) -----------------------
   // Tutti i sensori con device_class "power" in W/kW, tranne il totale casa e
   // quelli che contengono una delle parole di top_exclude (produzione, batterie...).
-  _autoLoads(hass) {
+  // L'ELENCO delle prese, tenuto da parte. preseDiCasa() passa su TUTTE le
+  // entita' della casa e poi le ordina: `set hass` scatta a ogni cambio di
+  // stato di qualunque cosa, e _topText + _barre facevano due scansioni
+  // complete ogni volta. L'elenco pero' cambia di rado (un'entita' nuova, la
+  // configurazione cambiata): me lo ricordo e rileggo solo i watt, che invece
+  // cambiano sempre. Lo rifaccio quando cambia il numero di entita', quando
+  // cambia la configurazione, e comunque ogni mezzo minuto - se no una presa
+  // tornata leggibile dopo un riavvio (preseDiCasa scarta chi non e' un
+  // numero) sarebbe rimasta fuori per sempre.
+  _elencoPrese(hass) {
+    const quante = Object.keys(hass.states || {}).length;
+    const adesso = Date.now();
+    if (this._prese && this._preseQuante === quante && this._preseCfg === this._config
+        && adesso - this._preseQuando < 30000) return this._prese;
     const cfg = this._config;
     // il nome scritto nella scheda vince su quello dell'entita'
     const miei = cfg.nomi_prese || {};
-    const loads = preseDiCasa(hass)
+    this._prese = preseDiCasa(hass)
       .filter((x) => contaNelTop(cfg, x.entity))
-      .map((x) => ({ label: miei[x.entity] || x.nome, entity: x.entity, live: x.w }));
+      .map((x) => ({ label: miei[x.entity] || x.nome, entity: x.entity }));
+    this._preseQuante = quante;
+    this._preseCfg = this._config;
+    this._preseQuando = adesso;
+    return this._prese;
+  }
+
+  // I watt che il fotovoltaico sta mandando in casa adesso, dal sensore
+  // scelto nell'editor ("Fotovoltaico in casa"). Puo' essere uno o piu' di
+  // uno: li sommo. Se non si sa niente torna NaN.
+  _wattFotovoltaico(hass) {
+    const sorgenti = comeElenco(this._config.fv_casa_entita).filter(Boolean);
+    if (!sorgenti.length) return NaN;
+    let somma = NaN;
+    sorgenti.forEach((eid) => {
+      const st = hass.states[eid];
+      if (!st) return;
+      let n = numeroVero(st.state);
+      if (!Number.isFinite(n)) return;
+      const u = String((st.attributes || {}).unit_of_measurement || "").trim().toLowerCase();
+      if (u === "kw") n *= 1000;
+      somma = (Number.isFinite(somma) ? somma : 0) + Math.max(0, n);
+    });
+    return somma;
+  }
+
+  _autoLoads(hass) {
+    const cfg = this._config;
+    // i watt di adesso, dall'elenco che mi sono tenuto; l'ordine lo rifaccio
+    // qui, perche' chi consuma di piu' cambia di continuo
+    const loads = this._elencoPrese(hass).map((x) => {
+      const st = hass.states[x.entity];
+      let w = st ? numeroVero(st.state) : NaN;
+      const u = String(((st || {}).attributes || {}).unit_of_measurement || "").trim().toLowerCase();
+      if (u === "kw") w *= 1000;
+      return { label: x.label, entity: x.entity, live: Number.isFinite(w) ? Math.max(0, w) : 0 };
+    }).sort((a, b) => b.live - a.live);
     const tot = this._wattCasa(hass);
     const misurato = loads.reduce((t, l) => t + l.live, 0);
-    const non = Number.isFinite(tot) ? Math.max(0, tot - misurato) : null;
+    // RETE PIU' SOLE. power_entity misura solo quello che entra DALLA RETE
+    // (sta scritto in _curveDellaCasa), mentre le prese misurano il consumo
+    // vero, che il sole lo paga lui. Con il fotovoltaico che produce il
+    // confronto "prese contro casa" era truccato: il non misurato si
+    // schiacciava a zero e partiva l'avviso del doppione ogni ora di sole,
+    // invitando a smontare una configurazione sana.
+    const fv = this._wattFotovoltaico(hass);
+    const casa = Number.isFinite(tot) ? tot + (Number.isFinite(fv) ? fv : 0) : NaN;
+    const non = Number.isFinite(casa) ? Math.max(0, casa - misurato) : null;
     // Se le prese sommate superano la casa, da qualche parte c'e' un doppione:
     // quasi sempre un sensore che e' il TOTALE di altri gia' contati. Non posso
     // saperlo da solo (nessuno me lo dice), ma posso dirlo invece di far finta
-    // che il non misurato sia zero.
-    const doppione = Number.isFinite(tot) && misurato > tot + Math.max(20, tot * 0.05);
-    return { loads, non, tot, doppione, misurato };
+    // che il non misurato sia zero. Lo dico solo se la differenza NON si
+    // spiega col fotovoltaico: se c'e' un impianto ma non so quanto sta
+    // dando in questo momento, sto zitto.
+    const fvIgnoto = !Number.isFinite(fv)
+      && !!(cfg.fv_casa_entita || cfg.fv_casa_oggi || cfg.fv_casa_settimana || cfg.fv_casa_mese);
+    const doppione = Number.isFinite(casa) && !fvIgnoto
+      && misurato > casa + Math.max(20, casa * 0.05);
+    return { loads, non, tot, casa, doppione, misurato };
   }
 
 
@@ -23626,11 +25539,13 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     }
   }
 
-  _barre(hass) {
+  // `auto` arriva da fuori: `set hass` fa il conto una volta sola e lo passa
+  // qui e a _topText, invece di farne fare una scansione per uno.
+  _barre(hass, auto) {
     const cfg = this._config;
     if (cfg.barre_vive) {
       const quante = Number(cfg.barre_quante) || 6;
-      const { loads } = this._autoLoads(hass);
+      const { loads } = auto || this._autoLoads(hass);
       const scala = (w) => Math.min(3500, Math.max(500, Math.ceil((w || 0) * 1.3 / 500) * 500));
       // il fondo scala me lo ricordo: se no la barra si riscala mentre guardi
       this._scale = this._scale || {};
@@ -23648,10 +25563,10 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return lista;
   }
 
-  _topText(hass) {
+  _topText(hass, auto) {
     const cfg = this._config;
     if (!cfg.top_auto) return "—";
-    const { loads, non } = this._autoLoads(hass);
+    const { loads, non } = auto || this._autoLoads(hass);
     const min = cfg.top_min_w ?? 5;
     let best = loads[0] && loads[0].live >= min ? loads[0] : null;
     if (non !== null && non >= min && (!best || non > best.live)) {
@@ -23664,7 +25579,8 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const cfg = this._config;
     if (!cfg.top_auto) return this._openConsumiOriginale();
     const hass = this._hass;
-    const { loads, non, tot, doppione, misurato } = this._autoLoads(hass);
+    const auto = this._autoLoads(hass);
+    const { loads, non, tot, casa, doppione, misurato } = auto;
     const righe = loads.slice();
     if (non !== null) righe.push({ label: cfg.unmeasured_label || "Non misurato", live: non, non: true });
     righe.sort((x, y) => y.live - x.live);
@@ -23672,14 +25588,16 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // se le prese sommate superano la casa c'e' un doppione (di solito un
     // sensore che e' gia' la somma di altri): dirlo, invece di mostrare un
     // "Non misurato" schiacciato a zero che sembra giusto e non lo e'
+    // nel messaggio ci va il consumo VERO (rete + sole), che e' quello con cui
+    // ho fatto il confronto: scriverci la sola rete non tornava con i conti
     const avviso = doppione
       ? `<div class="dm-ap-reset-note">Le prese sommate fanno ${Math.round(misurato)} W ma la casa
-         ne misura ${Math.round(tot)}: qualcuna è contata due volte, di solito un sensore che
+         ne misura ${Math.round(casa)}: qualcuna è contata due volte, di solito un sensore che
          è già la somma di altri. Si toglie dall'editor, togliendole la spunta
          in «Top consumo».</div>`
       : "";
     this._openDialog("Consumi", `
-      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">In evidenza</div>${this._statRow("Top consumo", this._topText(hass))}${Number.isFinite(tot) ? this._statRow("Totale casa", `${tot.toFixed(0)} W`) : ""}</div>
+      <div class="dm-ap-sec"><div class="dm-ap-sec-cap">In evidenza</div>${this._statRow("Top consumo", this._topText(hass, auto))}${Number.isFinite(tot) ? this._statRow("Totale casa", `${tot.toFixed(0)} W`) : ""}</div>
       <div class="dm-ap-sec"><div class="dm-ap-sec-cap">Tutte le prese e i sensori (live)</div>${rows}${avviso}</div>
     `);
   }
@@ -23743,6 +25661,19 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
     })();
     const wattText = this._root.querySelector(".dm-e-watt");
     if (wattText) wattText.textContent = numero(wattVal, 0);
+    // la seconda foto, quella "mentre lavora": qui la casa sta consumando
+    this._aggiornaFoto(wattVal > 0);
+
+    // Il sensore del costo comanda, MA solo se dice davvero qualcosa: prima
+    // bastava che ESISTESSE, e se era unavailable/unknown _val tornava "—" e
+    // il ramo che sa fare il conto (kWh x prezzo) non veniva mai preso. La
+    // gemella lo risolve cosi' in elettro-elettrodomestico ("se quel sensore
+    // e' rotto NON deve lasciare il trattino").
+    const costoBuono = (eid) => {
+      const st = eid ? hass.states[eid] : null;
+      if (!st || ["unavailable", "unknown", "none", ""].includes(st.state)) return false;
+      return Number.isFinite(numeroVero(st.state));
+    };
 
     // I periodi si cercano per NOME: se l'elenco ne ha meno di quattro (un
     // contatore cancellato, uno non creato) le posizioni slittano e la
@@ -23758,7 +25689,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       { const x = this._root.querySelector(".dm-e-today-cost");
         if (x) {
           const k = numeroVero((hass.states[pOggi.energy] || {}).state);
-          x.textContent = hass.states[pOggi.cost] ? this._val(hass, pOggi.cost, 2)
+          x.textContent = costoBuono(pOggi.cost) ? this._val(hass, pOggi.cost, 2)
             : (Number.isFinite(k) && tariffa.totale > 0
               ? this._euro(k * tariffa.totale + (tariffa.quota || 0)) : "\u2014");
         } }
@@ -23767,7 +25698,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       { const x = this._root.querySelector(".dm-e-month-cost");
         if (x) {
           const k = numeroVero((hass.states[pMese.energy] || {}).state);
-          x.textContent = hass.states[pMese.cost] ? this._val(hass, pMese.cost, 2)
+          x.textContent = costoBuono(pMese.cost) ? this._val(hass, pMese.cost, 2)
             : (Number.isFinite(k) && tariffa.totale > 0
               ? this._euro(k * tariffa.totale + (tariffa.quota || 0) * new Date().getDate()) : "\u2014");
         } }
@@ -23779,7 +25710,9 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       if (x) {
         const kwh = cfg.bolletta_energia ? this._val(hass, cfg.bolletta_energia, 1) : "";
         // il contatore degli euro si chiama "EUR": lo scrivo col simbolo
-        let euro = cfg.bolletta_costo && hass.states[cfg.bolletta_costo]
+        // anche qui il sensore deve DIRE qualcosa: se e' unavailable _euro()
+        // tornava "—", che e' pieno, e il conto qui sotto non partiva piu'
+        let euro = costoBuono(cfg.bolletta_costo)
           ? this._euro(hass.states[cfg.bolletta_costo].state) : "";
         if (!euro && cfg.bolletta_energia && tariffa.totale > 0) {
           const st = hass.states[cfg.bolletta_energia];
@@ -23801,7 +25734,10 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
       }
     }
     this._sistemaColonne();
-    { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass); }
+    // UNA SOLA VOLTA per giro: il conto delle prese serve al Top consumo e
+    // alle barre, e prima ognuno dei due se lo rifaceva da capo
+    const auto = cfg.top_auto || cfg.barre_vive ? this._autoLoads(hass) : null;
+    { const x = this._root.querySelector(".dm-e-top"); if (x) x.textContent = this._topText(hass, auto); }
     // LE RIGHE TUE: quello che dice l'entita', scritto come hai scelto.
     // "valore" lascia fare a Home Assistant (numero e unita' sua), cosi' va
     // bene anche per i gradi, l'umidita' o una percentuale.
@@ -23900,7 +25836,7 @@ class CasaEnergia extends ConGrafico(ConFinestrelle(HTMLElement)) {
 
     // Le barre si riordinano da sole: chi consuma di piu' sta in cima. A parita'
     // resta l'ordine che hai messo tu nell'editor, se no ballerebbero a vuoto.
-    const barre = this._barre(hass);
+    const barre = this._barre(hass, auto);
     const metersEl = this._root.querySelector(".dm-ap-meters");
     if (metersEl && metersEl.children.length !== barre.length) this._rifaiBarre(barre.length);
     barre.forEach(({ c, live }, i) => {
@@ -24044,6 +25980,14 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       (x) => String(x.label || "").trim().toLowerCase() === nome) || {};
   }
 
+  // `top_auto` NON si mette nei dati del modulo: non sta in nessuno schema di
+  // questo editor, quindi nessuno lo rimetterebbe a posto, e `ha-form` lo
+  // rimanda indietro a ogni singola modifica (nome, potenza, tema...).
+  // Com'era calcolato - assente diventava `false` - bastava rinominare la
+  // scheda per spegnere da sola la spunta «Cerca da sola tutte le prese»:
+  // l'elenco delle prese spariva e il Top consumo non cercava piu' niente.
+  // Assente vuol dire ACCESO (la scheda legge `top_auto !== false`), e con lo
+  // spread qui sotto il valore vero, quando c'e', passa com'e'.
   _datiForm() {
     const c = this._config;
     return { ...c,
@@ -24052,37 +25996,69 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       mese_energia: this._periodo("mese").energy || "",
       mese_costo: this._periodo("mese").cost || "",
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
-      finestra_scritta: this._versoRgb(c.finestra_scritta),
-      top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false };
+      finestra_scritta: this._versoRgb(c.finestra_scritta) };
   }
 
   // rimette i quattro sensori dentro periods/periods_prev. "Ieri" e "mese
   // scorso" non sono altri sensori: sono l'attributo last_period di questi.
   _rimettiPeriodi(c, v) {
     const chiavi = ["oggi_energia", "oggi_costo", "mese_energia", "mese_costo"];
-    if (!chiavi.some((k) => k in v)) return;
-    const val = (k) => (k in v ? v[k] : (this._periodo(k.split("_")[0])[k.split("_")[1] === "energia" ? "energy" : "cost"] || ""));
+    // le quattro chiavi NON stanno in configurazione: sono solo le caselle
+    const adesso = (k) => {
+      const pezzi = k.split("_");
+      return this._periodo(pezzi[0])[pezzi[1] === "energia" ? "energy" : "cost"] || "";
+    };
+    chiavi.forEach((k) => delete c[k]);
+    // `_datiForm` mette SEMPRE queste quattro chiavi nei dati del modulo, e
+    // `ha-form` le rimanda indietro tutte a ogni modifica: guardare se la
+    // chiave c'e' non bastava, la guardia passava sempre e i periodi si
+    // riscrivevano anche cambiando soltanto il tema. Qui conta solo se il
+    // valore e' DAVVERO cambiato.
+    const cambiate = chiavi.filter((k) => k in v && String(v[k] || "") !== adesso(k));
+    if (!cambiate.length) return;
+    const val = (k) => (cambiate.includes(k) ? String(v[k] || "") : adesso(k));
     const oggiE = val("oggi_energia"), oggiC = val("oggi_costo");
     const meseE = val("mese_energia"), meseC = val("mese_costo");
-    const periodi = [];
-    if (oggiE || oggiC) periodi.push({ label: "Oggi", energy: oggiE, cost: oggiC });
-    if (meseE || meseC) periodi.push({ label: "Mese", energy: meseE, cost: meseC });
-    const prima = [];
-    if (oggiE || oggiC) prima.push({ label: "Ieri", energy: oggiE, energy_attr: "last_period", cost: oggiC, cost_attr: "last_period" });
-    if (meseE || meseC) prima.push({ label: "Mese scorso", energy: meseE, energy_attr: "last_period", cost: meseC, cost_attr: "last_period" });
-    // gli altri periodi che l'utente si e' scritto a mano restano dove sono
-    const suoi = comeElenco(c.periods).filter((x) => !["oggi", "mese"].includes(String(x.label || "").trim().toLowerCase()));
-    const suoiPrima = comeElenco(c.periods_prev).filter((x) => !["ieri", "mese scorso"].includes(String(x.label || "").trim().toLowerCase()));
-    if (periodi.length) c.periods = periodi.concat(suoi); else delete c.periods;
-    if (prima.length) c.periods_prev = prima.concat(suoiPrima); else delete c.periods_prev;
-    ["oggi_energia", "oggi_costo", "mese_energia", "mese_costo"].forEach((k) => delete c[k]);
+    // quali delle MIE voci restano in piedi: svuotate le caselle, vanno via
+    const resta = { oggi: !!(oggiE || oggiC), mese: !!(meseE || meseC) };
+    const restaPrima = { ieri: resta.oggi, "mese scorso": resta.mese };
+    const miei = [];
+    if (resta.oggi) miei.push({ label: "Oggi", energy: oggiE, cost: oggiC });
+    if (resta.mese) miei.push({ label: "Mese", energy: meseE, cost: meseC });
+    const mieiPrima = [];
+    if (resta.oggi) mieiPrima.push({ label: "Ieri", energy: oggiE, energy_attr: "last_period", cost: oggiC, cost_attr: "last_period" });
+    if (resta.mese) mieiPrima.push({ label: "Mese scorso", energy: meseE, energy_attr: "last_period", cost: meseC, cost_attr: "last_period" });
+    const eti = (x) => String((x && x.label) || "").trim().toLowerCase();
+    // Rimette le MIE voci dove erano, lasciando stare tutte le altre.
+    // Prima l'elenco si riscriveva con Oggi e Mese davanti a tutto, e
+    // Ora/Settimana/Bolletta cambiavano posto a ogni modifica; e quando qui
+    // non c'era ne' «Oggi» ne' «Mese» (etichette diverse, o aiutanti
+    // cancellati) il `delete` portava via anche quelle, che non sono mie.
+    const fondi = (vecchi, nuovi, mie) => {
+      const dentro = vecchi
+        .filter((x) => !(eti(x) in mie) || mie[eti(x)])
+        .map((x) => nuovi.find((n) => eti(n) === eti(x)) || x);
+      return dentro.concat(nuovi.filter((n) => !dentro.some((x) => eti(x) === eti(n))));
+    };
+    const tutti = fondi(comeElenco(c.periods), miei, resta);
+    if (tutti.length) c.periods = tutti; else delete c.periods;
+    const prima = comeElenco(c.periods_prev);
+    if (!prima.length) {
+      // non c'era: lo scrivo io, com'e' sempre stato
+      if (mieiPrima.length) c.periods_prev = mieiPrima;
+    } else {
+      // c'era: un `periods_prev` scritto a mano e' una scelta, non si
+      // riscrive d'ufficio. Aggiorno solo le voci che ci sono gia'.
+      const quelleLi = mieiPrima.filter((n) => prima.some((x) => eti(x) === eti(n)));
+      const dopo = fondi(prima, quelleLi, restaPrima);
+      if (dopo.length) c.periods_prev = dopo; else delete c.periods_prev;
+    }
   }
 
   _cambiatoForm(v) {
-    // le terne del selettore tornano esadecimali
-    ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
-      if (k in v) v[k] = this._versoHex(v[k]);
-    });
+    // le terne del selettore tornano esadecimali (e un colore che il
+    // selettore non sapeva far vedere non si cancella: vedi _coloriDalForm)
+    this._coloriDalForm(v, ["finestra_sfondo", "finestra_scritta"]);
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
       if (v[k] === "" || v[k] === undefined || v[k] === null) delete c[k];
@@ -24092,14 +26068,21 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._rimettiPeriodi(c, v);
     this._config = c;
     this._emetti();
+    // i moduli tengono una copia dei dati e la rimandano indietro TUTTA alla
+    // modifica dopo: senza questo rinfresco, in quella finestra una modifica
+    // fatta altrove (la griglia dei disegni, una spunta) tornava indietro
+    this._rinfrescaModuli();
   }
 
   _disegnaRighe() {
     if (!this._righe) return;
-    disegnaRighe(this._righe, [...RIGHE_OGGI, ...righeMie(this._config)], this._config, (c) => {
+    disegnaRighe(this._righe, [...RIGHE_OGGI, ...righeMie(this._config)], this._config, (c, come) => {
       this._config = c;
       this._emetti();
-      this._disegnaRighe();
+      // un cambio di NOME non rifa' l'elenco: `change` su una casella di
+      // testo parte durante il mousedown che le toglie il fuoco, cioe' prima
+      // del mouseup, e rifacendolo adesso il clic in corso andrebbe perso
+      if (!come || come.ridisegna !== false) this._disegnaRighe();
       this._riassunti();
     });
     this._disegnaMie();
@@ -24111,7 +26094,11 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     { const v = this.querySelector(".ce-barre-vive");
       if (v) v.checked = !!this._config.barre_vive;
       const q = this.querySelector(".ce-barre-quante");
-      if (q && !q.dataset.tocco) q.value = this._config.barre_quante || 6;
+      // `dataset.tocco` su questo campo non lo scriveva nessuno (lo scrive
+      // solo `_disegnaTariffa`, sui campi .ce-t-*): la guardia era morta e il
+      // numero appena digitato veniva sostituito mentre lo si scriveva.
+      // Quello che serve e' sapere se il campo ha il fuoco ADESSO.
+      if (q && !haIlFuoco(q)) q.value = this._config.barre_quante || 6;
       this._mostraQuante(); }
     { const sc = this.querySelector(".ce-barra-nuova");
       if (sc && this._hass) {
@@ -24127,7 +26114,10 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     { const o = this.querySelector(".ce-barre-ordine");
       if (o) o.checked = this._config.barre_in_ordine !== false; }
     { const fs = this.querySelector(".ce-barre-max");
-      if (fs && document.activeElement !== fs) fs.value = this._config.max_power || ""; }
+      // `document.activeElement`, da dentro l'ombra di hui-card-element-editor,
+      // torna l'host piu' esterno e MAI questo input: il confronto era sempre
+      // vero e il campo si riscriveva mentre ci si scriveva dentro
+      if (fs && !haIlFuoco(fs)) fs.value = this._config.max_power || ""; }
     this._disegnaCircuiti();
   }
 
@@ -24622,6 +26612,8 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       const patch = await creaSensoriBase(this._hass, {
         sorgente,
         memoria: this._config.helper_memoria || {},
+        // vedi il gemello dell'elettrodomestico: il libretto di chi e' chi
+        aiutanti_miei: this._config.aiutanti_miei,
         // il prezzo e' quello della tariffa qui sopra: per la casa vale il TOTALE,
         // che e' quello che paghi davvero in bolletta
         prezzo_entita: (this._hass.states[ID_TOTALE] ? ID_TOTALE : prezzoDellaCasa(this._hass))
@@ -24632,14 +26624,16 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       // la memoria dei valori, se e' stata usata, si butta (patch la mette a null)
       if (patch.helper_memoria === null) delete this._config.helper_memoria;
       this._emetti();
-      this._form.data = this._datiForm();
-    if (this._formTutto) this._formTutto.data = this._datiForm();
+      this._rinfrescaModuli();
       // i kWh del fotovoltaico che arriva in casa
       for (const [chiave, sel, nome] of [["fv_casa", ".ce-fvcasa-pick", "Fotovoltaico in casa"]]) {
         const ent = lista((this.querySelector(sel) || {}).value || this._config[chiave + "_entita"]);
         if (!ent.length) continue;
         const p = await creaFonte(this._hass, { entita: ent, nome }, (t) => this._dillo(t));
-        this._config = { ...this._config, [chiave + "_oggi"]: p.oggi,
+        // si spande TUTTO quello che torna: prima si tenevano solo i tre
+        // contatori e la somma min_max piu' l'integrale restavano in Helper
+        // per sempre, invisibili a "Cancella gli aiutanti"
+        this._config = { ...this._config, ...p, [chiave + "_oggi"]: p.oggi,
           [chiave + "_settimana"]: p.settimana, [chiave + "_mese"]: p.mese,
           [chiave + "_entita"]: ent };
         this._emetti();
@@ -24816,8 +26810,10 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       }
       const quante = this.querySelector(".ce-barre-quante");
       if (quante) {
+        // dentro al 2-10 scritto nell'HTML: un <input type=number> fa partire
+        // `change` anche col valore fuori intervallo, e scrivendo 99 restava 99
         quante.addEventListener("change", () =>
-          this._scriviScelta("barre_quante", Number(quante.value) || 6));
+          this._scriviScelta("barre_quante", dentroIlimiti(quante, 6)));
       }
       const ordine = this.querySelector(".ce-barre-ordine");
       if (ordine) {
@@ -24828,8 +26824,10 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       // era attaccato a niente: ci scrivevi dentro e non succedeva nulla
       const fondo = this.querySelector(".ce-barre-max");
       if (fondo) {
+        // dentro al 500-30000 scritto nell'HTML: con 1 tutte le barre
+        // risultavano piene. Campo vuoto = "" e la voce sparisce, come prima.
         fondo.addEventListener("change", () =>
-          this._scriviScelta("max_power", Number(fondo.value) || ""));
+          this._scriviScelta("max_power", dentroIlimiti(fondo, "")));
       }
       this.querySelector(".ce-cancella").addEventListener("click", () => this._cancellaSensori());
       this.querySelectorAll(".ce-t-energia, .ce-t-rete, .ce-t-accise, .ce-t-iva, .ce-t-quota").forEach((x) =>
@@ -24842,8 +26840,7 @@ class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._disegnaPrese();
     this._disegnaFvCasa();
     this._disegnaTariffa();
-    this._form.data = this._datiForm();
-    if (this._formTutto) this._formTutto.data = this._datiForm();
+    this._rinfrescaModuli();
     this._disegnaRighe();
   }
 }
@@ -24907,8 +26904,25 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     return elenco.filter((b) => b && b.entity).map((b) => ({
       entity: b.entity,
       label: b.label || this._nomeEntita(b.entity),
-      max: Number(b.max) || c.max_power || 1000,
+      // il fondo scala va SANIFICATO: `c.max_power` scritto come stringa
+      // ("2200") o a zero nello YAML faceva uscire "NaN%" dalla barra (il
+      // browser scarta la dichiarazione e la barra resta ferma)
+      max: numeroVero(b.max) > 0 ? numeroVero(b.max)
+        : (numeroVero(c.max_power) > 0 ? numeroVero(c.max_power) : 1000),
     }));
+  }
+
+  // LA SECONDA FOTO, quella che si vede solo mentre lavora. L'HTML del
+  // riquadro lo costruisce setConfig una volta sola, e li' non si sa ancora se
+  // l'apparecchio sta lavorando: ecco perche' la foto "accesa" promessa
+  // dall'editor non si vedeva mai. Qui non rifaccio niente, cambio solo
+  // l'indirizzo dell'img, e solo quando e' diverso da quello che c'e' gia'.
+  _aggiornaFoto(acceso) {
+    const src = fotoDiScheda(this._config, acceso);
+    if (!src || !this._root) return;
+    this._root.querySelectorAll(".dm-ap-hero img").forEach((img) => {
+      if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+    });
   }
 
   _nomeEntita(eid) {
@@ -25104,12 +27118,27 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
   // Il tempo: dal sensore "history_stats" sono ore con la virgola (1.25),
   // dagli attributi dell'esempio e' gia' una scritta ("1h 15m"). Qui le porto
   // tutte e due alla stessa faccia.
+  // I MINUTI, QUALUNQUE UNITA' ABBIA IL SENSORE. `device_class: duration`
+  // gira in secondi piu' spesso di quanto si pensi: prima erano minuti solo
+  // se l'unita' cominciava per "min", e tutto il resto veniva preso per ore,
+  // cosi' un residuo di 1800 s diventava "1800h 00m". Senza unita' valgono
+  // MINUTI, che e' quello che l'editor promette ("minuti gia' fatti",
+  // "minuti che mancano"), non ore.
+  _minutiDi(st) {
+    const n = numeroVero(st && st.state);
+    if (!Number.isFinite(n)) return NaN;
+    const u = String(((st.attributes) || {}).unit_of_measurement || "").trim().toLowerCase();
+    if (u === "s" || u.startsWith("sec")) return n / 60;
+    if (u === "h" || u.startsWith("hour") || u.startsWith("or")) return n * 60;
+    if (u === "d" || u.startsWith("day") || u.startsWith("gior")) return n * 1440;
+    return n; // min, minuti, minutes - e anche "senza unita'"
+  }
+
   _tempoLeggibile(st) {
     if (!st) return "\u2014";
-    const n = numeroVero(st.state);
-    if (!Number.isFinite(n)) return st.state || "\u2014";
-    const unita = String(st.attributes.unit_of_measurement || "h").toLowerCase();
-    const minuti = Math.round(unita.startsWith("min") ? n : n * 60);
+    const m = this._minutiDi(st);
+    if (!Number.isFinite(m)) return st.state || "\u2014";
+    const minuti = Math.round(m);
     if (minuti < 60) return minuti + " min";
     return Math.floor(minuti / 60) + "h " + String(minuti % 60).padStart(2, "0") + "m";
   }
@@ -25200,7 +27229,9 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     const tr = buono(c.elapsed_entity);
     if (tr) out.duration = this._tempoLeggibile(tr);
     const res = buono(c.remaining_entity);
-    const mancano = res ? numeroVero(res.state) : NaN;
+    // il residuo anche lui con l'unita' letta davvero: prima erano sempre
+    // minuti, e 1800 secondi spostavano l'ora della fine di 30 ore
+    const mancano = res ? this._minutiDi(res) : NaN;
     if (Number.isFinite(mancano) && mancano >= 0) {
       out.end = new Date(Date.now() + mancano * 60000)
         .toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" });
@@ -25252,21 +27283,23 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
   _renderPeriodRow(hass, periodKey) {
     const cfg = this._config;
     const s = cfg.stats || {};
-    // "ieri"/"mese precedente"/"anno precedente" non sono entita' separate: sono
-    // l'attributo "last_period" che i contatori utility_meter (cicli_oggi/mese/anno)
-    // popolano da soli al rollover del periodo - stesso dato che usava la vecchia card.
+    // I CICLI DEI PERIODI FINITI NON SI POSSONO SAPERE. Il commento di prima
+    // diceva "contatori utility_meter", ma i contatori dei cicli li crea
+    // l'integrazione history_stats (type: "count"), che l'attributo
+    // `last_period` non ce l'ha: chiederglielo lasciava la colonna \u00abCicli\u00bb
+    // vuota per sempre su \u00abIeri\u00bb e \u00abMese scorso\u00bb, con tutti gli aiutanti
+    // creati bene. Meglio non chiederlo: la colonna non si mostra (le celle
+    // a trattino sono gia' scartate qui sotto) invece di mostrarsi vuota.
     const CYCLE_SOURCE = {
-      today: [s.cycles_today, null],
-      yesterday: [s.cycles_today, "last_period"],
-      week: [s.cycles_week, null],
-      month: [s.cycles_month, null],
-      month_prev: [s.cycles_month, "last_period"],
-      year: [s.cycles_year, null],
-      year_prev: [s.cycles_year, "last_period"],
+      today: s.cycles_today,
+      week: s.cycles_week,
+      month: s.cycles_month,
+      year: s.cycles_year,
     };
-    const [cyclesEnt, cyclesAttr] = CYCLE_SOURCE[periodKey] || [null, null];
+    const cyclesEnt = CYCLE_SOURCE[periodKey] || null;
     const cyclesSt = cyclesEnt ? hass.states[cyclesEnt] : null;
-    const cycles = cyclesSt ? (cyclesAttr ? (cyclesSt.attributes?.[cyclesAttr] ?? "\u2014") : cyclesSt.state) : "\u2014";
+    const cycles = cyclesSt && !["unavailable", "unknown"].includes(cyclesSt.state)
+      ? cyclesSt.state : "\u2014";
     // se la scheda ha entita' sue per questo periodo (tempo, costo), comandano
     // quelle: sono gli helper che crea il tasto "Crea i sensori base"
     const pEnt = this._periodi()[periodKey] || {};
@@ -25321,7 +27354,10 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     let liveHtml = "";
     if (live.state_entity) {
       const raw = hass.states[live.state_entity]?.state;
-      const mapped = this._config.state_map[raw];
+      // `state_map:` lasciato vuoto nello YAML arriva come null e lo spread di
+      // setConfig cancella il default: senza questa protezione era un
+      // TypeError, cioe' il rettangolo rosso al posto della scheda
+      const mapped = (this._config.state_map || {})[raw];
       liveHtml += this._row("Stato apparecchio", `<span class="dm-ap-row-val">${esc(mapped?.label || raw || "n/d")}</span>`);
     }
     if (live.progress_entity) {
@@ -25641,7 +27677,11 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     let label = "SPENTO";
     const liveStateEntity = cfg.live?.state_entity;
     const rawState = liveStateEntity ? hass.states[liveStateEntity]?.state : null;
-    const mapped = rawState && cfg.state_map[rawState];
+    // `state_map:` vuoto nello YAML vale null e lo spread di setConfig butta
+    // il default: senza il controllo bastava un'entita' di stato qualunque per
+    // avere un TypeError a ogni `set hass` (scheda rossa). Dieci righe piu'
+    // giu', per lo stesso accesso, il controllo c'era gia'.
+    const mapped = rawState && cfg.state_map && cfg.state_map[rawState];
     if (mapped) {
       mode = mapped.mode;
       label = mapped.label;
@@ -25659,6 +27699,8 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // Sta lavorando: lo sanno i tasti, che prima di spegnere la presa a meta'
     // lavaggio chiedono conferma (`_chiediPrima` in elettro-condivisi.js).
     this._staLavorando = mode === "running";
+    // la seconda foto, quella "mentre lavora": qui lo sappiamo, setConfig no
+    this._aggiornaFoto(mode === "running");
 
     const card = this._root.querySelector(".dm-ap-card");
     // Quanto sta tirando, da 0 a 1: e' la stessa cosa che riempie la barra
@@ -25700,8 +27742,13 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     this._root.querySelectorAll(".dm-e-watt").forEach((x) => {
       x.textContent = nonNumerica ? "—" : numero(powerVal, 0);
     });
+    // IL FONDO SCALA SANIFICATO, come fa la gemella (elettro-energia). Con
+    // `max_power: 0` usciva "NaN%" - il browser scarta la dichiarazione e la
+    // barra resta ferma - e con una stringa poteva uscire sempre "100%". Il
+    // valore buono ce l'ho gia' qui sopra (`massimo`), uso quello.
+    const fondo = Number.isFinite(massimo) && massimo > 0 ? massimo : 2200;
     this._root.querySelector(".dm-ap-bar i").style.width =
-      `${Math.min(100, Math.round((powerVal / cfg.max_power) * 100))}%`;
+      `${Math.min(100, Math.max(0, Math.round((powerVal / fondo) * 100)))}%`;
 
     const progressEntity = cfg.live?.progress_entity;
     const progressBar = this._root.querySelector(".dm-ap-progress-bar");
@@ -25724,11 +27771,6 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
       progressBar.style.width = `${Number.isFinite(pVal) ? Math.min(100, Math.max(0, pVal)) : 0}%`;
     }
 
-    let end = this._cycleAttr(hass, "end");
-    let duration = this._cycleAttr(hass, "duration");
-    let energy = this._cycleAttr(hass, "energy");
-    let cost = this._cycleAttr(hass, "cost");
-    let costPieno = this._cycleAttr(hass, "cost_pieno");
     const sogliaOn = cfg.soglia_acceso
       && hass.states[cfg.soglia_acceso]?.state === "on";
     // anche a watt zero il ciclo puo' essere ancora aperto: e' il caso del
@@ -25736,6 +27778,18 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
     // riaccendono. Finche' e' aperto resta "Ciclo in corso".
     const vivo = (mode === "running" || sogliaOn || this._cicloAperto(hass))
       ? this._cicloVivo(hass) : null;
+    // MENTRE IL CICLO GIRA NON SI EREDITA NIENTE DALL'ULTIMO. Prima si
+    // partiva sempre dalle memorie dell'ultimo ciclo e si sovrascriveva solo
+    // quello che il ciclo vivo sa dire: sotto il titolo "Ciclo in corso"
+    // comparivano i kWh e gli euro di ieri, indistinguibili dai veri. Succede
+    // a inizio ciclo, col sensore dell'energia di un'integrazione cloud
+    // ancora "unknown" o l'utility_meter non ripristinato dopo un riavvio:
+    // quello che non si sa ancora resta "—".
+    let end = vivo ? null : this._cycleAttr(hass, "end");
+    let duration = vivo ? null : this._cycleAttr(hass, "duration");
+    let energy = vivo ? null : this._cycleAttr(hass, "energy");
+    let cost = vivo ? null : this._cycleAttr(hass, "cost");
+    let costPieno = vivo ? null : this._cycleAttr(hass, "cost_pieno");
     const cap = this._root.querySelector(".dm-c-cap");
     const sub = this._root.querySelector(".dm-ap-cycle-sub");
     if (cap) cap.textContent = T(vivo ? "Ciclo in corso" : "Ultimo ciclo");
@@ -25834,7 +27888,11 @@ class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)) {
       const w2 = st2 && !["unavailable", "unknown"].includes(st2.state) ? numeroVero(st2.state) : NaN;
       const val2 = Number.isFinite(w2) ? Math.max(0, w2) : 0;
       scritta.textContent = val2 >= 1000 ? `${numero(val2 / 1000, 1)} kW` : `${numero(val2, 0)} W`;
-      barra.style.width = `${Math.min(100, Math.round((val2 / b.max) * 100))}%`;
+      // b.max adesso arriva gia' sano da _barreExtra, ma la larghezza la
+      // chiudo comunque fra 0 e 100: una percentuale NaN il browser la
+      // scarta e la barra resta ferma senza dire niente
+      const pct2 = (val2 / b.max) * 100;
+      barra.style.width = `${Number.isFinite(pct2) ? Math.min(100, Math.max(0, Math.round(pct2))) : 0}%`;
     });
 
     const warnEl = this._root.querySelector(".dm-ap-warn");
@@ -25928,7 +27986,10 @@ const SCHEMA_TUTTO = [
   { name: "power_entity", selector: { entity: { domain: "sensor" } } },
   // il resto in cassetti, che si aprono solo se servono
   { name: "g_acceso", type: "expandable", flatten: true, title: "Quando e' acceso", schema: [
-    { name: "threshold_run", selector: { number: { min: 0, max: 3000, step: 1, mode: "box", unit_of_measurement: "W" } } },
+    // min 1 come la casella `.ce-soglia` qui sotto: erano due interfacce per
+    // lo stesso numero e non dicevano la stessa cosa (qui 0-3000, la casella
+    // da 1 e senza tetto). E 0 vorrebbe dire «in funzione sempre».
+    { name: "threshold_run", selector: { number: { min: 1, max: 3000, step: 1, mode: "box", unit_of_measurement: "W" } } },
     { name: "threshold_standby", selector: { number: { min: 0, max: 500, step: 0.5, mode: "box", unit_of_measurement: "W" } } },
     { name: "ciclo_attesa_sec", selector: { number: { min: 10, max: 1800, step: 5, mode: "box", unit_of_measurement: "s" } } },
     { name: "stato", selector: { entity: {} } },
@@ -26037,15 +28098,14 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
   }
 
   _cambiatoForm(v) {
-    // hai cambiato il disegno? allora vado a cercare l'apparecchio che gli
-    // somiglia. Lo PROPONGO e basta: la scheda non si compila da sola.
-    if ("artwork" in v && v.artwork && v.artwork !== this._config.artwork) {
-      this._proponiDalDisegno(v.artwork);
-    }
-    // le terne del selettore tornano esadecimali
-    ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
-      if (k in v) v[k] = this._versoHex(v[k]);
-    });
+    // La proposta dal disegno NON sta piu' qui: `artwork` non e' in nessuno
+    // schema di questo editor, quindi l'ha-form lo scartava e la condizione
+    // (`v.artwork !== this._config.artwork`, con v.artwork che arrivava dallo
+    // spread della configurazione stessa) era sempre falsa. Ora parte da dove
+    // il disegno si scegli davvero, la griglia: vedi `_sceltoDisegno`.
+    // le terne del selettore tornano esadecimali (e un colore che il
+    // selettore non sapeva far vedere non si cancella: vedi _coloriDalForm)
+    this._coloriDalForm(v, ["finestra_sfondo", "finestra_scritta"]);
     if ("interruttori_lista" in v) {
       const prima = {};
       comeElenco(this._config.interruttori).forEach((x) => { if (x && x.entity) prima[x.entity] = x.label; });
@@ -26086,12 +28146,24 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     }
     this._config = c;
     this._emetti();
+    // I moduli tengono una copia dei dati e la rimandano indietro TUTTA alla
+    // modifica dopo: senza questo rinfresco, in quella finestra una modifica
+    // fatta altrove (un disegno scelto nella griglia, una spunta) tornava
+    // indietro da sola alla prima parola scritta in un campo qualunque.
+    this._datiAiModuli();
     // quello che si legge dalla configurazione va rifatto adesso: se no la
     // riga di una barra appena scelta compare solo riaprendo l'editor
     this._notaRighe();
     this._disegnaBarre();
     this._noteBarre();
     this._riassunti();
+  }
+
+  // Il disegno e' stato scelto nella GRIGLIA (lo chiama `_attaccaDisegno`,
+  // che sa qual era quello di prima): e' l'unico posto dove il disegno
+  // cambia davvero, perche' nel modulo `artwork` non c'e'.
+  _sceltoDisegno(disegno) {
+    this._proponiDalDisegno(disegno);
   }
 
   // cerca in casa un apparecchio che somigli al disegno scelto
@@ -26166,7 +28238,14 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       max.style.maxWidth = "90px";
       max.value = b.max || 1000;
       const scrivi = () => {
-        const c = { ...this._config, barre: barre.map((x, k) => k !== i ? x
+        // L'elenco si rilegge ADESSO, come fa `_disegnaCircuiti` nell'editor
+        // dell'energia: `scrivi` emette e non ridisegna, quindi le chiusure
+        // restano vecchie finche' non arriva il `setConfig` di Home Assistant.
+        // Catturando `barre` al disegno, scrivendo il nome della barra 1 e
+        // subito quello della barra 2 la seconda riscriveva sopra la prima
+        // com'era.
+        const ora = comeElenco(this._config.barre);
+        const c = { ...this._config, barre: ora.map((x, k) => k !== i ? x
           : { ...x, label: nome.value.trim() || this._nomeDi(x.entity), max: Number(max.value) || 1000 }) };
         this._config = c;
         this._emetti();
@@ -26202,9 +28281,10 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     return (st && st.attributes && st.attributes.friendly_name) || "";
   }
 
+  // una copia sola del rinfresco, in elettro-condivisi.js: questo e' solo il
+  // nome con cui lo chiama questo editor
   _datiAiModuli() {
-    const dati = this._datiForm();
-    (this._moduli || []).forEach((f) => { f.data = dati; });
+    this._rinfrescaModuli();
   }
 
   // i tasti: la lista con "Aggiungi" e l'icona di ognuno
@@ -26228,6 +28308,8 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         ciclo_kwh: ci.consumo || "",
         ciclo_minuti: ci.durata || "",
         ciclo_fine: ci.fine || "",
+        // non veniva passato, percio' il mese non si azzerava mai
+        anche_il_mese: true,
       },
     }).then(() => this._dillo(T("Azzerati.")))
       // prima scriveva "Azzerati." qualunque cosa fosse successo - script
@@ -26295,10 +28377,13 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
 
   _disegnaRighe() {
     if (!this._righe) return;
-    disegnaRighe(this._righe, this._righeDaOffrire(), this._config, (c) => {
+    disegnaRighe(this._righe, this._righeDaOffrire(), this._config, (c, come) => {
       this._config = c;
       this._emetti();
-      this._disegnaRighe();
+      // un cambio di NOME non rifa' l'elenco: `change` su una casella di
+      // testo parte durante il mousedown che le toglie il fuoco, cioe' prima
+      // del mouseup, e rifacendolo adesso il clic in corso andrebbe perso
+      if (!come || come.ridisegna !== false) this._disegnaRighe();
     });
     this._notaRighe();
     this._disegnaBarre();
@@ -26397,6 +28482,17 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     const unEl = this.querySelector(".ce-soglia-un");
     if (eti) eti.textContent = "Sopra questi " + un + " sta lavorando";
     if (unEl) unEl.textContent = un;
+    // La casella era tarata sui Watt anche quando la sorgente e' in kW: il
+    // `min="1"` voleva dire 1 kW, cioe' 1000 W, e 0,01 non si poteva
+    // nemmeno scrivere. Limiti e passo seguono l'unita'.
+    const inKw = un.toLowerCase() === "kw";
+    const campoSoglia = this.querySelector(".ce-soglia");
+    if (campoSoglia) {
+      campoSoglia.min = inKw ? "0.01" : "1";
+      campoSoglia.max = inKw ? "30" : "3000";
+      campoSoglia.step = inKw ? "0.01" : "1";
+      if (this._config.threshold_run === undefined) campoSoglia.value = inKw ? "0.01" : "10";
+    }
     // rimetto le spunte come le avevi lasciate
     const scelti = this._config.periodi;
     if (Array.isArray(scelti)) {
@@ -26415,9 +28511,26 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         : "Questo dispositivo <b>non conta i kWh</b>, dice solo i Watt: me li calcolo io, minuto per minuto. E' un aiutante in piu', ma e' l'unico modo.";
     }
     const soglia = this.querySelector(".ce-soglia");
-    if (soglia && !soglia.dataset.tocco && this._config.threshold_run) {
+    // La guardia di prima era morta due volte: `dataset.tocco` su questo
+    // campo non lo scriveva nessuno (lo scrive solo `_disegnaTariffa`, sui
+    // campi .ce-t-*), e `threshold_run` a 0 e' falso, quindi col valore
+    // sbagliato in configurazione il campo non si rimetteva mai a posto.
+    // Quello che serve e' sapere se il campo ha il fuoco ADESSO.
+    if (soglia && !haIlFuoco(soglia) && this._config.threshold_run !== undefined) {
       soglia.value = this._config.threshold_run;
     }
+  }
+
+  // La soglia che va negli aiutanti e nell'automazione del ciclo: dentro al
+  // min/max della casella, e con la casella vuota quella che c'e' scritta in
+  // configurazione (se no `Number("")` faceva 0, cioe' «sempre in funzione»).
+  _sogliaScelta() {
+    const campo = this.querySelector(".ce-soglia");
+    // il valore di serie segue l'unita' come i limiti qui sopra
+    const un = String((((this._hass || {}).states || {})[this._config.power_entity] || {})
+      .attributes?.unit_of_measurement || "W").toLowerCase();
+    const diSerie = Number(this._config.threshold_run) || (un === "kw" ? 0.01 : 10);
+    return dentroIlimiti(campo, diSerie);
   }
 
   // Guarda l'entita' della potenza prima di creare qualunque cosa: vera se
@@ -26472,9 +28585,27 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
     this._esito.hidden = false;
     this._esito.classList.remove("male");
     this._esito.textContent = "";
+    // Se in casa c'e' GIA' un aiutante in €/kWh, chi crea i sensori esce al
+    // ramo "uso quello che c'era gia'" e la tariffa appena scritta qui viene
+    // buttata senza scriverla da nessuna parte. Almeno lo dico, invece di
+    // perderla in silenzio: la cura vera sta in elettro-crea.js, che non e'
+    // un file mio.
+    if (prezzoScelto === "__mia__") {
+      const gia = prezziDelKWh(this._hass).filter((id) => !INGREDIENTE.test(id));
+      if (gia.length) {
+        this._dillo("⚠ In casa c'e' gia' un prezzo in €/kWh ("
+          + this._nomeDi(gia[0]) + "): i sensori useranno quello, e la tariffa"
+          + " che hai scritto qui NON viene salvata. Per cambiare il prezzo"
+          + " cambialo in quell'aiutante, o nella scheda Energia Casa.");
+      }
+    }
     try {
       const patch = await creaSensoriElettrodomestico(this._hass, {
         memoria: this._config.helper_memoria || {},
+        // il libretto di chi e' chi: senza questo la creazione riconosce i
+        // propri aiutanti dal titolo, e due schede con lo stesso nome se li
+        // prendono a vicenda
+        aiutanti_miei: this._config.aiutanti_miei,
         reset_script: this._config.reset_script,
         // i contatori che la scheda gia' usa: quelli si riusano, non si rifanno
         gia: {
@@ -26484,7 +28615,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
         },
         nome: this._config.name || this._nomeDispositivo(kwh || potenza),
         potenza, energia: kwh || null,
-        soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+        soglia: this._sogliaScelta(),
         prezzo_entita: (() => {
           const v = (this.querySelector(".ce-prezzo-ent") || {}).value;
           return v === "__mia__" ? "" : (v || this._config.prezzo_entita);
@@ -26503,7 +28634,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           || ((patch.period_entities || {}).today || {}).energy);
         const piu = await creaCicli(this._hass, {
           potenza, energia: kwhVero, nome: this._config.name,
-          soglia: Number((this.querySelector(".ce-soglia") || {}).value),
+          soglia: this._sogliaScelta(),
           attesa: Number(this._config.ciclo_attesa_sec) || 100,
           // quello che la scheda ha GIA': se glielo do, rinominandola non si
           // rifa' tutto col nome nuovo lasciando indietro lo storico
@@ -26536,7 +28667,7 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
           <div class="ce-aiuto">${T("A un apparecchio o a una presa servono <b>due aiutanti</b>: i kWh di oggi e i kWh del mese. Il <b>costo non ha un sensore</b>: sono i kWh per il prezzo, e il conto lo fa la scheda mentre lo guardi. Il prezzo si scrive una volta sola nella scheda <i>Energia Casa</i>: qui vale la <b>sola energia</b>, se no le tasse le paghi due volte.")}</div>
           <div class="ce-riga"><span class="ent">${T("Sensore dei kWh")}</span><ha-entity-picker class="ce-kwh-pick" allow-custom-entity></ha-entity-picker></div>
           <div class="ce-aiuto ce-nota-kwh"></div>
-          <div class="ce-riga"><span class="ent ce-soglia-eti">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" value="10"> <span class="ce-soglia-un">W</span></div>
+          <div class="ce-riga"><span class="ent ce-soglia-eti">Sopra questi W sta lavorando</span><input type="number" class="ce-soglia max" step="1" min="1" max="3000" value="10"> <span class="ce-soglia-un">W</span></div>
           <div class="ce-riga"><span class="ent">${T("Prezzo dei sensori che creo")}</span><select class="ce-prezzo-ent"></select></div>
           <div class="ce-riga ce-voci" hidden><span class="ent">Quanto paghi l'energia, &euro;/kWh</span><input type="number" class="ce-v-energia max" step="0.0001" min="0" placeholder="0.1657"></div>
           <div class="ce-riga ce-voci" hidden><span class="ent">${T("Qui va la <b>sola energia</b>. Rete, accise, IVA e quota fissa le conta gia\u0027 la scheda grande della casa.")}</span></div>
@@ -26662,15 +28793,55 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       }
       const spuntaCicli = this.querySelector(".ce-cicli");
       if (spuntaCicli) {
-        spuntaCicli.checked = !!this._config.ciclo;
         spuntaCicli.addEventListener("change", () => {
-          if (!spuntaCicli.checked) this._scriviScelta("ciclo", "");
+          // mi ricordo la TUA scelta: lo stato della spunta si ricalcola a
+          // ogni disegno, e senza questo appena spuntata (per CREARE i cicli,
+          // che in configurazione non ci sono ancora) il primo `setConfig` la
+          // spegneva di nuovo
+          this._vuoleCicli = spuntaCicli.checked;
+          if (spuntaCicli.checked) {
+            // rimetto quello che avevo tenuto da parte: prima il ramo
+            // `checked` non c'era affatto, e rimettere la spunta lasciava la
+            // configurazione vuota con la spunta accesa
+            if (!this._config.ciclo && this._cicloDaParte) {
+              this._scriviScelta("ciclo", this._cicloDaParte);
+              this._cicloDaParte = null;
+              this._dillo(T("Rimessi i riferimenti agli aiutanti del ciclo."));
+            }
+            return;
+          }
+          if (!this._config.ciclo) return;
+          // Togliere la spunta buttava via i riferimenti ai sei aiutanti del
+          // ciclo, senza chiedere niente - l'unica azione distruttiva di
+          // questo editor che non passava da una conferma. Adesso non si
+          // butta: si tiene da parte e torna rimettendo la spunta.
+          this._cicloDaParte = this._config.ciclo;
+          this._scriviScelta("ciclo", "");
+          this._dillo(T("I riferimenti agli aiutanti del ciclo li ho tenuti da parte: rimetti la spunta prima di chiudere e tornano come erano. Gli aiutanti non li ho toccati."));
         });
       }
-      this.querySelector(".ce-prezzo-ent").addEventListener("change", (e) =>
-        this._scriviScelta("prezzo_entita", e.target.value));
+      this.querySelector(".ce-prezzo-ent").addEventListener("change", (e) => {
+        // «__mia__» e' una voce della tendina, non un'entita': scritta in
+        // configurazione la scheda cercava hass.states["__mia__"], sempre
+        // vuoto, e sulla riga del costo compariva comunque il secondo numero.
+        // Che fosse sbagliata lo diceva gia' `_creaSensori`, che la traduceva
+        // in "" prima di passarla.
+        const v = e.target.value;
+        this._scriviScelta("prezzo_entita", v === "__mia__" ? "" : v);
+      });
       this.querySelector(".ce-soglia").addEventListener("change", (e) => {
-        this._scriviScelta("threshold_run", Number(e.target.value));
+        // Campo vuoto = non scrivo niente. `Number("")` fa 0, che e' finito,
+        // quindi `_scriviScelta` lo conservava: `threshold_run: 0` vuol dire
+        // «in funzione sempre, anche a zero watt» - ed e' lo stesso numero
+        // che finisce nell'automazione del ciclo.
+        if (String(e.target.value).trim() === "") {
+          // il campo resta bianco: lo rimetto a quello che c'e' scritto
+          if (this._config.threshold_run !== undefined) e.target.value = this._config.threshold_run;
+          return;
+        }
+        // e dentro al min/max dell'HTML: un <input type=number> fa partire
+        // `change` anche col valore fuori intervallo
+        this._scriviScelta("threshold_run", dentroIlimiti(e.target, undefined));
         this._datiAiModuli();
       });
       this.querySelector(".ce-prepara").addEventListener("click", () => {
@@ -26702,6 +28873,15 @@ class CasaElettrodomesticoEditor extends ConEditor(HTMLElement) {
       });
     }
     if (this._hass) (this._moduli || []).forEach((f) => { f.hass = this._hass; });
+    // Lo stato della spunta dei cicli si ricalcola a OGNI disegno: stava
+    // dentro al `if (!this._costruito)` e dopo aver tolto `ciclo` restava
+    // accesa con la configurazione vuota. Se l'hai toccata tu comanda la tua
+    // scelta (serve per crearli: in configurazione non ci sono ancora).
+    const cicli = this.querySelector(".ce-cicli");
+    if (cicli) {
+      cicli.checked = this._vuoleCicli !== undefined
+        ? this._vuoleCicli : !!this._config.ciclo;
+    }
     const azzera = this.querySelector(".ce-azzera");
     if (azzera) azzera.hidden = !this._config.reset_script;
     this._disegnaKwh();

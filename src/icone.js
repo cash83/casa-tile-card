@@ -2,6 +2,7 @@
 // I disegni delle icone e il catalogo MDI.
 
 import { coloreTemperatura } from './colori.js';
+import { T, laLingua } from './lingua.js';
 
 export const ICONE = {
   luce: `<defs><radialGradient id="g1" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#fff6d0"/><stop offset="1" stop-color="#ffc247"/></radialGradient></defs>
@@ -387,22 +388,58 @@ export const ICONE = {
 <path d="M12 40a10 10 0 0 1 0 8"/><path d="M52 40a10 10 0 0 0 0 8"/></g></g>`,
 };
 
+// LA RESA "NON LO SO", uguale in tutti i disegni che la usano: grigio
+// spento, contorno tratteggiato e punto di domanda. Serve ogni volta che il
+// dato manca o non e' del tipo atteso, perche' prima in quei casi si
+// disegnava l'ipotesi rassicurante (batteria piena e verde, sole pieno)
+// proprio sui sensori che devono allarmare: una batteria con le cinque
+// tacche mentre il sensore diceva "scarica" e' peggio di nessun disegno.
+export const TINTA_IGNOTA = "#9fb0c4";
+
+// Il punto di domanda come sagoma, non come testo: il <text> dipende dai
+// caratteri della plancia e nelle caselle piccole si perde.
+export function puntoDomanda(cx, cy, scala, tinta) {
+  const c = tinta || TINTA_IGNOTA;
+  const s = Number(scala) || 1;
+  // la sagoma e' disegnata in un riquadro 10x14 con l'origine in alto a
+  // sinistra: la sposto perche' il suo centro cada su (cx, cy)
+  return '<g transform="translate(' + (cx - 5 * s).toFixed(2) + ','
+    + (cy - 7 * s).toFixed(2) + ') scale(' + s.toFixed(3) + ')">'
+    + '<path d="M1.2 3.4a3.8 3.8 0 1 1 3.8 3.8v2.2" fill="none" stroke="' + c
+    + '" stroke-width="2.2" stroke-linecap="round"/>'
+    + '<circle cx="5" cy="12.4" r="1.5" fill="' + c + '"/></g>';
+}
+
 // La batteria non e' un disegno fisso: la costruisco con la carica vera.
 export function disegnoBatteria(perc, carica, scarica) {
   const n = Number(perc);
-  const p = isNaN(n) ? 100 : Math.max(0, Math.min(100, n));
+  // Un valore non numerico NON diventa piu' 100: un `binary_sensor` con
+  // device_class battery su `on` vuol dire "batteria scarica", e un sensore
+  // `unavailable` non dice niente. Prima entrambi uscivano come batteria
+  // piena e verde, cioe' il contrario di quello che sta succedendo.
+  const noto = !isNaN(n);
+  const p = noto ? Math.max(0, Math.min(100, n)) : 0;
   const tinta = p <= 20 ? "#ff4d4d" : (p <= 45 ? "#ffb020" : "#3fd98a");
   const FONDO = "#0b1119";
-  // il corpo, con il contorno chiaro e il polo a destra
+  // il contorno dice da solo come sta: grigio se il livello non si sa,
+  // rosso a zero (vuota si deve vedere anche senza una tacca accesa),
+  // chiaro nel caso normale
+  const bordo = !noto ? TINTA_IGNOTA : (p === 0 ? tinta : "#dbe7f5");
+  const tratto = noto ? "" : ' stroke-dasharray="7 5"';
+  // il corpo, con il contorno e il polo a destra
   const corpo = '<rect x="8" y="19" width="44" height="26" rx="6.5" fill="' + FONDO
-    + '" stroke="#dbe7f5" stroke-width="3"/>'
-    + '<rect x="52.5" y="26.5" width="5" height="11" rx="2.4" fill="#dbe7f5"/>';
+    + '" stroke="' + bordo + '" stroke-width="3"' + tratto + '/>'
+    + '<rect x="52.5" y="26.5" width="5" height="11" rx="2.4" fill="' + bordo + '"/>';
   // dentro: il pieno tagliato a blocchi, come le batterie vere
   const DENTRO = 12;
   const LARGO = 36;
-  const pieno = LARGO * p / 100;
   let blocchi = "";
-  if (pieno > 0.5) {
+  if (noto && p > 0) {
+    // Sotto l'1,4% `LARGO * p / 100` dava meno di mezzo pixel e non si
+    // dipingeva NIENTE: la batteria quasi morta si vedeva vuota e grigia,
+    // proprio nel momento piu' critico. Finche' il livello non e' zero una
+    // tacca rossa si vede sempre.
+    const pieno = Math.max(3.5, LARGO * p / 100);
     blocchi = '<rect x="' + DENTRO + '" y="23.5" width="' + pieno.toFixed(1)
       + '" height="17" rx="1.6" fill="' + tinta + '"/>'
       + '<rect x="' + DENTRO + '" y="23.5" width="' + pieno.toFixed(1)
@@ -418,6 +455,10 @@ export function disegnoBatteria(perc, carica, scarica) {
       }
     }
   }
+  // livello sconosciuto: dentro ci va il punto di domanda e il fulmine
+  // resta fuori. Senza livello la cosa da dire e' che il livello non si sa,
+  // e il fulmine prenderebbe tutto lo spazio del dubbio.
+  if (!noto) return corpo + puntoDomanda(30, 32, 1.4);
   // in carica: il fulmine grande, come sulle batterie del telefono
   const fulmine = carica
     ? '<g class="an caricafulmine"><path d="M34 20l-11 15h7.5l-2.5 10 11-15h-7.5z" '
@@ -440,8 +481,19 @@ export function disegnoBatteria(perc, carica, scarica) {
 // le barre rovesciate copiate da Windows ("\local\foto.jpg") e la barra
 // davanti che manca. Invece di non far niente in silenzio, lo raddrizzo.
 export function indirizzoFoto(x) {
-  let v = String(x || "").trim().split("\\").join("/");
-  if (!v) return "";
+  const grezzo = String(x || "").trim();
+  if (!grezzo) return "";
+  // Un percorso di RETE di Windows ("\\\\192.168.50.165\\share\\foto.jpg") non
+  // e' un indirizzo web: raddrizzando le barre diventava
+  // "//192.168.50.165/share/foto.jpg", il browser lo leggeva come indirizzo
+  // protocol-relative e chiedeva la foto in HTTP a un host che non e' un
+  // server web - sfondo che non compare e nessun messaggio. Meglio niente
+  // che una richiesta a vuoto.
+  if (/^\\\\/.test(grezzo) || /^\/\//.test(grezzo)) return "";
+  // stessa storia per un percorso del disco ("C:\\foto.jpg"): al browser non
+  // si puo' chiedere
+  if (/^[a-z]:[\\/]/i.test(grezzo)) return "";
+  const v = grezzo.split("\\").join("/");
   if (/^(https?:|data:|\/)/.test(v)) return v;
   return "/" + v.replace(/^\/+/, "");
 }
@@ -466,6 +518,44 @@ export function disegnoTermometro(gradi) {
     + '<circle cx="30" cy="46" r="6.5" fill="' + tinta + '"/>'
     + '<g stroke="#5f7189" stroke-width="1.6" stroke-linecap="round">'
     + '<path d="M40 14h5"/><path d="M40 22h5"/><path d="M40 30h5"/></g>';
+}
+
+// L'UMIDITA' ha il suo disegno: una goccia che si riempie come una
+// percentuale. Prima i sensori con device_class humidity prendevano il
+// termometro e il numero ci entrava cosi' com'era: 72 % di umidita' davano
+// `(72+10)/70 = 1`, colonna piena da cima a fondo, e `coloreTemperatura(72)`
+// rosso acceso; sotto il 30 % usciva arancione. Il numero scritto accanto
+// era giusto, urlava solo il disegno.
+const GOCCIA = "M32 8c8.4 12.4 14.6 19 14.6 27A14.6 14.6 0 0 1 17.4 35"
+  + "c0-8 6.2-14.6 14.6-27z";
+export function disegnoUmidita(perc) {
+  const n = Number(perc);
+  const noto = isFinite(n);
+  const p = noto ? Math.max(0, Math.min(100, n)) : 0;
+  // l'acqua sale dal fondo della goccia (y=49.6) alla sua punta (y=20):
+  // cosi' mezza goccia piena si legge come mezza percentuale
+  const cima = 49.6 - 29.6 * p / 100;
+  const livello = noto
+    ? '<g clip-path="url(#umidtaglio)">'
+      + '<rect x="14" y="' + cima.toFixed(1) + '" width="36" height="'
+      + (50.4 - cima).toFixed(1) + '" fill="url(#umidacqua)"/>'
+      + '<rect x="14" y="' + cima.toFixed(1) + '" width="36" height="2.2" '
+      + 'fill="#dff1ff" opacity=".65"/></g>'
+    : "";
+  return '<defs><clipPath id="umidtaglio"><path d="' + GOCCIA + '"/></clipPath>'
+    + '<linearGradient id="umidacqua" x1="0" y1="1" x2="0" y2="0">'
+    + '<stop offset="0" stop-color="#2b8fe0"/>'
+    + '<stop offset="1" stop-color="#6fd0ff"/></linearGradient></defs>'
+    + '<path d="' + GOCCIA + '" fill="#101c2b" stroke="'
+    + (noto ? "#4a688c" : TINTA_IGNOTA) + '" stroke-width="2"'
+    + (noto ? "" : ' stroke-dasharray="7 5"') + "/>"
+    + livello
+    // la scaletta a destra, fuori dalla goccia (il suo bordo arriva a
+    // x=46.6): i quarti per leggere il livello a occhio
+    + '<g stroke="#7f93aa" stroke-width="1.4" stroke-linecap="round" opacity=".65">'
+    + '<path d="M49.5 20.4v29.2"/><path d="M47.5 42.2h2"/>'
+    + '<path d="M47.5 34.8h2"/><path d="M47.5 27.4h2"/></g>'
+    + (noto ? "" : puntoDomanda(32, 34, 1.3));
 }
 
 export function disegnoTapparella(moto) {
@@ -498,11 +588,13 @@ export function disegnoTapparella(moto) {
 // gira; quando e' in carica sta dentro alla base, fermo.
 // e' fuori a lavorare, o sta attaccato alla base? "docked" e' l'unico
 // stato in cui sta davvero fermo dentro; il resto (spento, sconosciuto)
-// non e' un lavoro, quindi sta fermo anche quello
+// non e' un lavoro, quindi sta fermo anche quello.
+// `error` passava come "fuori a lavorare": un robot piantato in guasto si
+// vedeva girovagare con la spazzola che ruota. Un guasto non e' un lavoro.
+const ASPIRA_FERMO = ["docked", "unavailable", "unknown", "off", "error"];
 export function aspiraFuori(st) {
-  const q = st ? String(st.state) : "";
-  return !!q && q !== "docked" && q !== "unavailable"
-    && q !== "unknown" && q !== "off";
+  const q = st ? String(st.state).toLowerCase() : "";
+  return !!q && ASPIRA_FERMO.indexOf(q) < 0;
 }
 
 export function disegnoAspira(fuori) {
@@ -543,16 +635,31 @@ export function disegnoAspira(fuori) {
       + '<g transform="translate(-15.44,4.92) scale(.82)" opacity=".95">'
       + robot + '</g>';
   }
-  // fuori: scivola via dalla base una volta sola, poi va avanti e indietro
+  // Fuori: il robot sta nelle sue coordinate naturali, che sono GIA' quelle
+  // di fuori dalla base. Prima era avvolto anche in `.aspiraesce`, che la
+  // posizione "nella base" ce l'ha solo nel keyframe `from` applicato con
+  // `both`: con le animazioni in pausa ("Non si muove mai", l'anteprima
+  // delle impostazioni, la copia dell'editor dei pezzi) il robot restava
+  // seduto nella base mentre stava pulendo. Si perde la scivolata d'uscita,
+  // ma la posizione non dipende piu' dall'animazione.
   return tinta + fermo + torre
-    + '<g class="an aspiraesce"><g class="an aspiragira">'
-    + robot + "</g></g>";
+    + '<g class="an aspiragira">' + robot + "</g>";
 }
 
 // nella tendina delle icone e ovunque si peschi il disegno "a nome", faccio
 // vedere il robot fuori dalla base: e' quello che si riconosce a colpo
 // d'occhio. La casella e il pop-up poi ci mettono lo stato vero.
 ICONE.aspirapolvere = disegnoAspira(true);
+
+// la goccia dell'umidita' nel catalogo: a meta', cosi' si capisce che il
+// livello e' il dato. Nella casella ci va `disegnoUmidita(percentuale)`.
+ICONE.umidita = disegnoUmidita(55);
+
+// il disegno "non lo so": serve a chi non ha un dato (il meteo che non
+// risponde, per esempio) invece di far vedere un sole pieno
+ICONE.ignoto = '<circle cx="32" cy="32" r="21" fill="#141c28" stroke="'
+  + TINTA_IGNOTA + '" stroke-width="2.6" stroke-dasharray="7 6" opacity=".9"/>'
+  + puntoDomanda(32, 32, 2.2);
 
 // quanto della tapparella si vede giu': un numero solo, niente da ridisegnare
 export function tagliaTapparella(svg, pos) {
@@ -572,13 +679,27 @@ export function iconaAutomatica(eid, st) {
   const dc = String(attr.device_class || "").toLowerCase();
   const nome = (String(eid || "") + " " + String(attr.friendly_name || "")).toLowerCase();
   const dice = (...parole) => parole.some((x) => nome.indexOf(x) >= 0);
+  // Parole INTERE, per i pezzi corti: "car" dentro "Carla", "Carlo", "Oscar"
+  // o "carica" non e' un'auto, e "auto" dentro "automatico" nemmeno. Il
+  // trattino, il punto e la lineetta bassa degli entity_id contano come
+  // spazi, cosi' "device_tracker.auto_di_gabriele" resta un'auto.
+  const parole = nome.split(/[^a-z0-9àèéìòù]+/).filter(Boolean);
+  const diceTutta = (...ps) => ps.some((x) => parole.indexOf(x) >= 0);
 
-  if (dominio === "weather") return ICONA_METEO[st && st.state] || "sole";
+  if (dominio === "weather") {
+    // Meteo che non risponde = "non lo so", non "sereno": `unavailable`,
+    // `unknown` e l'entita' mancante cadevano tutti sul sole pieno, e si
+    // vedeva un bel sole quando il meteo semplicemente non c'era.
+    const q = String((st && st.state) || "").toLowerCase();
+    if (!q || q === "unavailable" || q === "unknown") return "ignoto";
+    return ICONA_METEO[st.state] || "ignoto";
+  }
   if (dominio === "person") return "persona";
   if (dominio === "device_tracker") {
     if (dice("corriere", "consegna", "spedizion", "amazon")) return "corriere";
     if (dice("orologio", "watch")) return "orologio_polso";
-    return dice("auto", "macchina", "seat", "car", "veicolo") ? "automobile" : "persona";
+    return diceTutta("auto", "automobile", "macchina", "seat", "car", "veicolo")
+      ? "automobile" : "persona";
   }
   if (dominio === "camera") return dice("campanell", "citofon") ? "campanello_video" : "telecamera";
   if (dominio === "vacuum") return "aspirapolvere";
@@ -638,7 +759,11 @@ export function iconaAutomatica(eid, st) {
     if (dice("condizion", "climatizz")) return "condizionatore";
     if (dice("ventilat", "ventola", "fan")) return "ventola";
     if (dice("campanell", "citofon")) return "campanello_video";
-    if (dice("telecam", "camera", "cctv")) return "telecamera";
+    // "camera" nuda NO: in italiano e' una stanza, e `switch.presa_camera_da_letto`,
+    // `scene.camera_notte` e `input_boolean.camera_ospiti` diventavano telecamere
+    if (dice("telecam", "webcam", "videocam", "camera.", "cam_", "cctv")) {
+      return "telecamera";
+    }
     if (dice("aspirapolver", "dreame", "roomba", "robot")) return "aspirapolvere";
     if (dice("orologio", "watch", "smartwatch")) return "orologio_polso";
     if (dice("powerstation", "power station", "landbook", "ecoflow")) return "powerstation";
@@ -659,10 +784,26 @@ export function iconaAutomatica(eid, st) {
   }
   if (dominio === "sensor" || dominio === "binary_sensor" || dominio === "number"
       || dominio === "input_number" || dominio === "select" || dominio === "counter") {
+    // IL DEVICE_CLASS PRIMA DEI NOMI. Qui nessuna regola intercettava porte,
+    // finestre e movimenti, e la ricerca per nome su "camera" (che in
+    // italiano e' una stanza) faceva finire `binary_sensor.finestra_camera`,
+    // `porta_camera`, `movimento_camera` e `sensor.luminosita_camera` tutti
+    // su telecamera. Quello che Home Assistant dichiara vale piu' del nome.
+    if (dc === "window") return "finestra";
+    if (dc === "garage_door") return "garage";
+    if (dc === "door" || dc === "opening") return "porta";
+    if (dc === "motion" || dc === "moving" || dc === "vibration") return "movimento";
+    if (dc === "occupancy" || dc === "presence") return "persona";
+    if (dc === "lock") return "serratura";
+    if (dc === "smoke" || dc === "gas" || dc === "carbon_monoxide") return "fumo";
+    // su un binary_sensor `moisture` vuol dire bagnato/perdita, non umidita'
+    if (dc === "moisture" && dominio === "binary_sensor") return "acqua";
     if (dc === "battery" || dice("batteri", "battery", "soc")) return "batteria";
     if (dc === "temperature" || dice("temperatur", "termo", "gradi")) return "termometro";
     if (dc === "humidity" || dc === "moisture" || dice("umidit")) {
-      return dice("pianta", "terreno", "soil", "plant") ? "pianta" : "termometro";
+      // l'umidita' ha la sua goccia: col termometro il 72 % si vedeva come
+      // una colonna piena e rossa
+      return dice("pianta", "terreno", "soil", "plant") ? "pianta" : "umidita";
     }
     if (dice("pianta", "soil", "plant", "basilico", "peperonc")) return "pianta";
     if (dice("anycubic", "kobra", "bambu", "prusa", "stampante 3")) return "stampante3d";
@@ -679,7 +820,8 @@ export function iconaAutomatica(eid, st) {
     if (dice("lavastovigl", "dishwasher")) return "lavastoviglie";
     if (dice("asciugatric", "dryer", "asciuga")) return "asciugatrice";
     if (dice("lavatric", "lavasciug", "washer")) return "lavatrice";
-    if (dice("telecam", "camera")) return "telecamera";
+    // vedi sopra: "camera" nuda e' una stanza, non una telecamera
+    if (dice("telecam", "webcam", "videocam", "camera.", "cam_")) return "telecamera";
     if (dice("frigo", "forno", "microond")) return "presa";
     // il sole solo a chi il sole lo prende davvero
     if (dice("solar", "fotovolt", "pannell", "produzion", "pv ")) return "sole";
@@ -753,6 +895,8 @@ export const SINONIMI = {
   vento: "aria raffica",
   stampante: "stampante 3d printer anycubic kobra",
   misura: "sensore valore stato quadrante generico",
+  umidita: "umidita goccia percentuale igrometro bagno vapore",
+  ignoto: "non lo so sconosciuto manca dato punto di domanda",
   porta: "ingresso uscita apertura chiusa aperta",
   finestra: "vetro apertura serramento",
   serratura: "lucchetto chiave chiusura blocco",
@@ -1287,6 +1431,69 @@ export function disegnoMdi(nome, tinta) {
     + ' transform="translate(0 1.2)"/></g></g>'
     + '<g transform="translate(6.4 6.4) scale(2.13)">'
     + '<path d="' + d + '" fill="url(#' + id + ')"/></g>';
+}
+
+// LE ETICHETTE DELLE ICONE, in italiano.
+//
+// Nella tendina il nome sotto al disegno era `T(chiave)`, e `T()` in
+// italiano torna la chiave com'e': chi aveva la casa in inglese leggeva
+// "sun and clouds", chi ce l'aveva in italiano - il caso normale - leggeva
+// "sole_nuvole". Qui ci sono i nomi italiani di quelle che non si leggono
+// da sole; per tutte le altre la chiave E' gia' la parola giusta (luce,
+// presa, porta) e basta togliere la lineetta bassa.
+//
+// Sta in questo file e non in `lingua.js` di proposito: `lingua.js` lo
+// riscrive da zero `strumenti/fai_lingua.py`, e una tabella scritta a mano
+// la' dentro sparirebbe al primo giro dello script.
+export const ETICHETTE_ICONE = {
+  sole_nuvole: "sole e nuvole",
+  campanello_video: "videocitofono",
+  porta_scorrevole: "porta scorrevole",
+  orologio_polso: "orologio da polso",
+  casa_corrente: "corrente di casa",
+  contatore_luce: "contatore della luce",
+  cassetta_posta: "cassetta della posta",
+  sensore_movimento: "sensore di movimento",
+  finestra_aperta: "finestra aperta",
+  ricarica_auto: "ricarica dell'auto",
+  macchina_caffe: "macchina del caffe'",
+  striscia_led: "striscia LED",
+  pannello_solare: "pannello solare",
+  corrente_ac: "corrente alternata",
+  corrente_dc: "corrente continua",
+  lucchetto_aperto: "lucchetto aperto",
+  lampadina_accesa: "lampadina accesa",
+  chiave_inglese: "chiave inglese",
+  nuvola_cloud: "nuvola (cloud)",
+  filtro_aria: "filtro dell'aria",
+  robot_aspirapolvere: "robot aspirapolvere",
+  pc_fisso: "PC fisso",
+  stampante3d: "stampante 3D",
+  stampante_3d: "stampante 3D (mdi)",
+  lavatrice_mdi: "lavatrice (mdi)",
+  robot_mdi: "robot (mdi)",
+  tv_mdi: "TV (mdi)",
+  wifi_mdi: "wifi (mdi)",
+  // le due aggiunte qui: la goccia dell'umidita' e il "non lo so"
+  umidita: "umidita'",
+  ignoto: "non lo so",
+};
+
+// L'inglese delle due icone nuove: la tabella `EN` di `lingua.js` la
+// genera uno script da `strumenti/da_tradurre.json`, quindi le due voci che
+// non ci sono ancora le tengo qui accanto alle italiane.
+const ETICHETTE_ICONE_EN = {
+  umidita: "humidity",
+  ignoto: "unknown",
+};
+
+// Il nome da far leggere per un'icona, nella lingua di chi guarda. La
+// chiave che finisce nella plancia non cambia: si traduce solo quello che
+// si LEGGE.
+export function etichettaIcona(nome) {
+  const k = String(nome || "");
+  if (laLingua() !== "it") return ETICHETTE_ICONE_EN[k] || T(k);
+  return ETICHETTE_ICONE[k] || k.split("_").join(" ");
 }
 
 export const NOMI_ICONE = Object.keys(ICONE);

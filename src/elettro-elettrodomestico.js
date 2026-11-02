@@ -9,6 +9,7 @@ import {
   numero,
   unitaBella,
   disegnoDiScheda,
+  fotoDiScheda,
   ICON_CHART,
   ICON_BOLT,
   ICON_FLAG,
@@ -79,8 +80,25 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     return elenco.filter((b) => b && b.entity).map((b) => ({
       entity: b.entity,
       label: b.label || this._nomeEntita(b.entity),
-      max: Number(b.max) || c.max_power || 1000,
+      // il fondo scala va SANIFICATO: `c.max_power` scritto come stringa
+      // ("2200") o a zero nello YAML faceva uscire "NaN%" dalla barra (il
+      // browser scarta la dichiarazione e la barra resta ferma)
+      max: numeroVero(b.max) > 0 ? numeroVero(b.max)
+        : (numeroVero(c.max_power) > 0 ? numeroVero(c.max_power) : 1000),
     }));
+  }
+
+  // LA SECONDA FOTO, quella che si vede solo mentre lavora. L'HTML del
+  // riquadro lo costruisce setConfig una volta sola, e li' non si sa ancora se
+  // l'apparecchio sta lavorando: ecco perche' la foto "accesa" promessa
+  // dall'editor non si vedeva mai. Qui non rifaccio niente, cambio solo
+  // l'indirizzo dell'img, e solo quando e' diverso da quello che c'e' gia'.
+  _aggiornaFoto(acceso) {
+    const src = fotoDiScheda(this._config, acceso);
+    if (!src || !this._root) return;
+    this._root.querySelectorAll(".dm-ap-hero img").forEach((img) => {
+      if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+    });
   }
 
   _nomeEntita(eid) {
@@ -276,12 +294,27 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
   // Il tempo: dal sensore "history_stats" sono ore con la virgola (1.25),
   // dagli attributi dell'esempio e' gia' una scritta ("1h 15m"). Qui le porto
   // tutte e due alla stessa faccia.
+  // I MINUTI, QUALUNQUE UNITA' ABBIA IL SENSORE. `device_class: duration`
+  // gira in secondi piu' spesso di quanto si pensi: prima erano minuti solo
+  // se l'unita' cominciava per "min", e tutto il resto veniva preso per ore,
+  // cosi' un residuo di 1800 s diventava "1800h 00m". Senza unita' valgono
+  // MINUTI, che e' quello che l'editor promette ("minuti gia' fatti",
+  // "minuti che mancano"), non ore.
+  _minutiDi(st) {
+    const n = numeroVero(st && st.state);
+    if (!Number.isFinite(n)) return NaN;
+    const u = String(((st.attributes) || {}).unit_of_measurement || "").trim().toLowerCase();
+    if (u === "s" || u.startsWith("sec")) return n / 60;
+    if (u === "h" || u.startsWith("hour") || u.startsWith("or")) return n * 60;
+    if (u === "d" || u.startsWith("day") || u.startsWith("gior")) return n * 1440;
+    return n; // min, minuti, minutes - e anche "senza unita'"
+  }
+
   _tempoLeggibile(st) {
     if (!st) return "\u2014";
-    const n = numeroVero(st.state);
-    if (!Number.isFinite(n)) return st.state || "\u2014";
-    const unita = String(st.attributes.unit_of_measurement || "h").toLowerCase();
-    const minuti = Math.round(unita.startsWith("min") ? n : n * 60);
+    const m = this._minutiDi(st);
+    if (!Number.isFinite(m)) return st.state || "\u2014";
+    const minuti = Math.round(m);
     if (minuti < 60) return minuti + " min";
     return Math.floor(minuti / 60) + "h " + String(minuti % 60).padStart(2, "0") + "m";
   }
@@ -372,7 +405,9 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     const tr = buono(c.elapsed_entity);
     if (tr) out.duration = this._tempoLeggibile(tr);
     const res = buono(c.remaining_entity);
-    const mancano = res ? numeroVero(res.state) : NaN;
+    // il residuo anche lui con l'unita' letta davvero: prima erano sempre
+    // minuti, e 1800 secondi spostavano l'ora della fine di 30 ore
+    const mancano = res ? this._minutiDi(res) : NaN;
     if (Number.isFinite(mancano) && mancano >= 0) {
       out.end = new Date(Date.now() + mancano * 60000)
         .toLocaleTimeString(laLocale(), { hour: "2-digit", minute: "2-digit" });
@@ -424,21 +459,23 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
   _renderPeriodRow(hass, periodKey) {
     const cfg = this._config;
     const s = cfg.stats || {};
-    // "ieri"/"mese precedente"/"anno precedente" non sono entita' separate: sono
-    // l'attributo "last_period" che i contatori utility_meter (cicli_oggi/mese/anno)
-    // popolano da soli al rollover del periodo - stesso dato che usava la vecchia card.
+    // I CICLI DEI PERIODI FINITI NON SI POSSONO SAPERE. Il commento di prima
+    // diceva "contatori utility_meter", ma i contatori dei cicli li crea
+    // l'integrazione history_stats (type: "count"), che l'attributo
+    // `last_period` non ce l'ha: chiederglielo lasciava la colonna \u00abCicli\u00bb
+    // vuota per sempre su \u00abIeri\u00bb e \u00abMese scorso\u00bb, con tutti gli aiutanti
+    // creati bene. Meglio non chiederlo: la colonna non si mostra (le celle
+    // a trattino sono gia' scartate qui sotto) invece di mostrarsi vuota.
     const CYCLE_SOURCE = {
-      today: [s.cycles_today, null],
-      yesterday: [s.cycles_today, "last_period"],
-      week: [s.cycles_week, null],
-      month: [s.cycles_month, null],
-      month_prev: [s.cycles_month, "last_period"],
-      year: [s.cycles_year, null],
-      year_prev: [s.cycles_year, "last_period"],
+      today: s.cycles_today,
+      week: s.cycles_week,
+      month: s.cycles_month,
+      year: s.cycles_year,
     };
-    const [cyclesEnt, cyclesAttr] = CYCLE_SOURCE[periodKey] || [null, null];
+    const cyclesEnt = CYCLE_SOURCE[periodKey] || null;
     const cyclesSt = cyclesEnt ? hass.states[cyclesEnt] : null;
-    const cycles = cyclesSt ? (cyclesAttr ? (cyclesSt.attributes?.[cyclesAttr] ?? "\u2014") : cyclesSt.state) : "\u2014";
+    const cycles = cyclesSt && !["unavailable", "unknown"].includes(cyclesSt.state)
+      ? cyclesSt.state : "\u2014";
     // se la scheda ha entita' sue per questo periodo (tempo, costo), comandano
     // quelle: sono gli helper che crea il tasto "Crea i sensori base"
     const pEnt = this._periodi()[periodKey] || {};
@@ -493,7 +530,10 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     let liveHtml = "";
     if (live.state_entity) {
       const raw = hass.states[live.state_entity]?.state;
-      const mapped = this._config.state_map[raw];
+      // `state_map:` lasciato vuoto nello YAML arriva come null e lo spread di
+      // setConfig cancella il default: senza questa protezione era un
+      // TypeError, cioe' il rettangolo rosso al posto della scheda
+      const mapped = (this._config.state_map || {})[raw];
       liveHtml += this._row("Stato apparecchio", `<span class="dm-ap-row-val">${esc(mapped?.label || raw || "n/d")}</span>`);
     }
     if (live.progress_entity) {
@@ -813,7 +853,11 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     let label = "SPENTO";
     const liveStateEntity = cfg.live?.state_entity;
     const rawState = liveStateEntity ? hass.states[liveStateEntity]?.state : null;
-    const mapped = rawState && cfg.state_map[rawState];
+    // `state_map:` vuoto nello YAML vale null e lo spread di setConfig butta
+    // il default: senza il controllo bastava un'entita' di stato qualunque per
+    // avere un TypeError a ogni `set hass` (scheda rossa). Dieci righe piu'
+    // giu', per lo stesso accesso, il controllo c'era gia'.
+    const mapped = rawState && cfg.state_map && cfg.state_map[rawState];
     if (mapped) {
       mode = mapped.mode;
       label = mapped.label;
@@ -831,6 +875,8 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     // Sta lavorando: lo sanno i tasti, che prima di spegnere la presa a meta'
     // lavaggio chiedono conferma (`_chiediPrima` in elettro-condivisi.js).
     this._staLavorando = mode === "running";
+    // la seconda foto, quella "mentre lavora": qui lo sappiamo, setConfig no
+    this._aggiornaFoto(mode === "running");
 
     const card = this._root.querySelector(".dm-ap-card");
     // Quanto sta tirando, da 0 a 1: e' la stessa cosa che riempie la barra
@@ -872,8 +918,13 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     this._root.querySelectorAll(".dm-e-watt").forEach((x) => {
       x.textContent = nonNumerica ? "—" : numero(powerVal, 0);
     });
+    // IL FONDO SCALA SANIFICATO, come fa la gemella (elettro-energia). Con
+    // `max_power: 0` usciva "NaN%" - il browser scarta la dichiarazione e la
+    // barra resta ferma - e con una stringa poteva uscire sempre "100%". Il
+    // valore buono ce l'ho gia' qui sopra (`massimo`), uso quello.
+    const fondo = Number.isFinite(massimo) && massimo > 0 ? massimo : 2200;
     this._root.querySelector(".dm-ap-bar i").style.width =
-      `${Math.min(100, Math.round((powerVal / cfg.max_power) * 100))}%`;
+      `${Math.min(100, Math.max(0, Math.round((powerVal / fondo) * 100)))}%`;
 
     const progressEntity = cfg.live?.progress_entity;
     const progressBar = this._root.querySelector(".dm-ap-progress-bar");
@@ -896,11 +947,6 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       progressBar.style.width = `${Number.isFinite(pVal) ? Math.min(100, Math.max(0, pVal)) : 0}%`;
     }
 
-    let end = this._cycleAttr(hass, "end");
-    let duration = this._cycleAttr(hass, "duration");
-    let energy = this._cycleAttr(hass, "energy");
-    let cost = this._cycleAttr(hass, "cost");
-    let costPieno = this._cycleAttr(hass, "cost_pieno");
     const sogliaOn = cfg.soglia_acceso
       && hass.states[cfg.soglia_acceso]?.state === "on";
     // anche a watt zero il ciclo puo' essere ancora aperto: e' il caso del
@@ -908,6 +954,18 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
     // riaccendono. Finche' e' aperto resta "Ciclo in corso".
     const vivo = (mode === "running" || sogliaOn || this._cicloAperto(hass))
       ? this._cicloVivo(hass) : null;
+    // MENTRE IL CICLO GIRA NON SI EREDITA NIENTE DALL'ULTIMO. Prima si
+    // partiva sempre dalle memorie dell'ultimo ciclo e si sovrascriveva solo
+    // quello che il ciclo vivo sa dire: sotto il titolo "Ciclo in corso"
+    // comparivano i kWh e gli euro di ieri, indistinguibili dai veri. Succede
+    // a inizio ciclo, col sensore dell'energia di un'integrazione cloud
+    // ancora "unknown" o l'utility_meter non ripristinato dopo un riavvio:
+    // quello che non si sa ancora resta "—".
+    let end = vivo ? null : this._cycleAttr(hass, "end");
+    let duration = vivo ? null : this._cycleAttr(hass, "duration");
+    let energy = vivo ? null : this._cycleAttr(hass, "energy");
+    let cost = vivo ? null : this._cycleAttr(hass, "cost");
+    let costPieno = vivo ? null : this._cycleAttr(hass, "cost_pieno");
     const cap = this._root.querySelector(".dm-c-cap");
     const sub = this._root.querySelector(".dm-ap-cycle-sub");
     if (cap) cap.textContent = T(vivo ? "Ciclo in corso" : "Ultimo ciclo");
@@ -1006,7 +1064,11 @@ export class CasaElettrodomestico extends ConGrafico(ConFinestrelle(HTMLElement)
       const w2 = st2 && !["unavailable", "unknown"].includes(st2.state) ? numeroVero(st2.state) : NaN;
       const val2 = Number.isFinite(w2) ? Math.max(0, w2) : 0;
       scritta.textContent = val2 >= 1000 ? `${numero(val2 / 1000, 1)} kW` : `${numero(val2, 0)} W`;
-      barra.style.width = `${Math.min(100, Math.round((val2 / b.max) * 100))}%`;
+      // b.max adesso arriva gia' sano da _barreExtra, ma la larghezza la
+      // chiudo comunque fra 0 e 100: una percentuale NaN il browser la
+      // scarta e la barra resta ferma senza dire niente
+      const pct2 = (val2 / b.max) * 100;
+      barra.style.width = `${Number.isFinite(pct2) ? Math.min(100, Math.max(0, Math.round(pct2))) : 0}%`;
     });
 
     const warnEl = this._root.querySelector(".dm-ap-warn");

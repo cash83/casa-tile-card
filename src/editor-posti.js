@@ -13,6 +13,29 @@ import { aYaml, daYaml } from './yaml.js';
 // finche' resta aperta la pagina e non dipende da nessuno.
 let APPUNTI_POSTI = null;
 
+// CHI HA IL FUOCO, DAVVERO. Le impostazioni vivono dentro all'ombra di
+// `hui-card-element-editor`: da li' `document.activeElement` (e
+// `ownerDocument.activeElement`, che e' la stessa cosa) danno sempre l'host
+// piu' esterno, MAI il campo. Quindi tutti i controlli "non riscrivere il
+// campo mentre lui ci sta scrivendo" non scattavano mai: lo YAML incollato
+// nella pista veniva sostituito di colpo e le cifre di "grande %", "da
+// sinistra" e "dall'alto" si cancellavano a ogni pixel di movimento.
+// La radice giusta e' quella del campo stesso (getRootNode, come fa
+// `guardaSeAnteprima` in elettro-condivisi.js), e il suo activeElement puo'
+// essere a sua volta l'host di un'altra ombra: scendo finche' c'e' da
+// scendere.
+function ilFuoco(el) {
+  try {
+    const radice = (el && el.getRootNode) ? el.getRootNode() : document;
+    let a = radice ? radice.activeElement : null;
+    for (let i = 0; i < 20; i += 1) {
+      if (!a || !a.shadowRoot || !a.shadowRoot.activeElement) break;
+      a = a.shadowRoot.activeElement;
+    }
+    return a || null;
+  } catch (e) { return null; }
+}
+
 export const ConPosti = (Base) => class extends Base {
   // Il riquadro dove si trascinano i pezzi: dentro c'e' una casella vera,
   // in piccolo, della stessa forma dell'anteprima.
@@ -218,10 +241,16 @@ export const ConPosti = (Base) => class extends Base {
         if (Math.abs(k - 1) < 0.005) delete v.s;
         else v.s = Math.round(k * 100) / 100;
       }
+      // la casellina SVUOTATA vuol dire "non toccare", non zero: Number("")
+      // fa 0 e isFinite(0) e' vero, quindi selezionando il contenuto di "da
+      // sinistra" per riscriverlo e cliccando altrove il `change` sul blur
+      // scriveva x: 0 e il pezzo saltava nell'angolo. E' lo stesso controllo
+      // delle due caselline della grandezza (vedi `_numeriGrandezza`).
+      const vuota = (c) => String(c.value).trim() === "";
       const x = Number(px.value);
       const y = Number(py.value);
-      if (isFinite(x)) v.x = Math.max(0, Math.min(100, Math.round(x * 10) / 10));
-      if (isFinite(y)) v.y = Math.max(0, Math.min(100, Math.round(y * 10) / 10));
+      if (!vuota(px) && isFinite(x)) v.x = Math.max(0, Math.min(100, Math.round(x * 10) / 10));
+      if (!vuota(py) && isFinite(y)) v.y = Math.max(0, Math.min(100, Math.round(y * 10) / 10));
       // "dx" e' quanto dista da DESTRA: si ricava dagli altri due - sulla
       // larghezza INGRANDITA, che e' quella che si vede - e senza rifarlo
       // il pezzo attaccato a destra tornerebbe dov'era
@@ -942,7 +971,9 @@ export const ConPosti = (Base) => class extends Base {
       rinfresca: () => {
         if (dentro.hidden || !edHa) return;
         try {
-          if (edHa.ownerDocument.activeElement === edHa) return;
+          // il fuoco va chiesto alla radice d'ombra del campo, se no il
+          // controllo non scatta mai (vedi `ilFuoco`)
+          if (ilFuoco(edHa) === edHa) return;
           edHa.value = inRiga(roba());
         } catch (e) { /* pazienza */ }
       },
@@ -953,6 +984,16 @@ export const ConPosti = (Base) => class extends Base {
   _aggiornaPista() {
     const box = this._postiBox;
     if (!box || !box._carta || !this._hass) return;
+    // IL DITO E' GIU': LA PISTA NON SI TOCCA. Al primo trascinamento `giu`
+    // emette (fissa i pezzi dove stanno) mentre il dito e' ancora premuto:
+    // Home Assistant rimanda la configurazione, setConfig -> _render ->
+    // _giroCompleto -> _costruisciPosti arrivano qui, e la riconfigurazione
+    // della casellina faceva tornare il pezzo di scatto dov'era - con una
+    // "misura:" sotto il dito l'elemento veniva ricreato e il pezzo non
+    // seguiva piu' fino al rilascio. Me lo segno e rifaccio il giro appena
+    // molla (vedi `_pistaTrascina`). E' la stessa protezione di
+    // powerstation-card.
+    if (box._inMano) { box._pistaDaRifare = true; return; }
     try {
       box._carta.setConfig({ ...this._cfgPista() });
       // LA CASSA CHE SEGUE LA CASELLA VERA. Il riquadro qui dentro e' una
@@ -1126,7 +1167,10 @@ export const ConPosti = (Base) => class extends Base {
     // le due caselline dicono sempre dove si e' arrivati - ma non mentre
     // ci sta scrivendo dentro
     if (box._numeri) {
-      const dentro = box._numeri.largo.ownerDocument.activeElement;
+      // il fuoco dalla radice d'ombra del campo: con `ownerDocument` il
+      // controllo era sempre falso e i timer a 350/1200 ms e il
+      // ResizeObserver cancellavano i numeri che stava scrivendo
+      const dentro = ilFuoco(box._numeri.largo);
       if (dentro !== box._numeri.largo) {
         box._numeri.largo.value = String(Math.round(box._largoVero || 0));
       }
@@ -1178,16 +1222,33 @@ export const ConPosti = (Base) => class extends Base {
   // righe). E' quella che deve fare da modello al riquadro, se no lui
   // compone su una forma e poi sulla plancia ne trova un'altra.
   _cartaPlancia() {
-    if (this._planciaSalvata && this._planciaSalvata.isConnected) {
-      return this._planciaSalvata;
-    }
     // Girare tutta la pagina costa: lo faccio UNA volta per ogni casella
     // che sto sistemando. Prima, quando non la trovavo (e' il caso delle
     // caselle che vivono solo dentro ai pop-up), rifacevo il giro a ogni
     // ricontrollo e la finestra delle impostazioni si trascinava.
     const chi = (this._config || {}).entity + "|" + (this._config || {}).name;
-    if (this._planciaCercata === chi) return null;
+    // il nodo salvato vale solo per la casella per cui l'ho cercato: se nel
+    // frattempo sono cambiati entita' o nome quello e' un'altra card. Prima
+    // il controllo stava DOPO, quindi lo restituiva comunque.
+    if (this._planciaCercata === chi) {
+      if (this._planciaSalvata && this._planciaSalvata.isConnected) {
+        return this._planciaSalvata;
+      }
+      if (!this._planciaSalvata) return null;
+    }
+    // E NON PIU' DI UN GIRO OGNI SECONDO E MEZZO. Scrivendo nel campo "Nome"
+    // il nome cambia a ogni tasto: cambia la chiave qui sopra, il nome
+    // digitato non combacia piu' con nessuna casella viva, e il giro si
+    // rifaceva per intero (120.000 nodi attraverso tutte le ombre) a ogni
+    // lettera - era la finestra delle impostazioni che si incollava.
+    const quando = Date.now();
+    if (quando - (this._planciaQuando || 0) < 1500) {
+      return (this._planciaSalvata && this._planciaSalvata.isConnected)
+        ? this._planciaSalvata : null;
+    }
+    this._planciaQuando = quando;
     this._planciaCercata = chi;
+    this._planciaSalvata = null;
     // una scheda che vive dentro al pop-up sulla plancia non c'e': il giro
     // di tutta la pagina sarebbe fatica buttata via
     if (this._perIlPopup()) return null;
@@ -1460,6 +1521,9 @@ export const ConPosti = (Base) => class extends Base {
       this._giaSbrogliato = false;
       this._planciaCercata = null;
       this._planciaSalvata = null;
+      // cambia la casella per davvero: il giro va rifatto subito, senza
+      // aspettare il freno del secondo e mezzo
+      this._planciaQuando = 0;
       this._aggiornaPista();
     });
     box._chi.append(eti, torna);
@@ -1473,6 +1537,25 @@ export const ConPosti = (Base) => class extends Base {
   }
 
   _pistaTrascina(carta) {
+    // UN SOLO ARMAMENTARIO PER CASELLINA. Dopo un distacco/riattacco (cambio
+    // di linguetta) `connectedCallback` richiama questa funzione per rimettere
+    // gli ascoltatori sulla finestra: senza buttare via i pezzi del giro
+    // prima restava un quadratino giallo orfano - che risponde al tocco e non
+    // ridimensiona niente - insieme alle due maniglie di lato, e l'ascoltatore
+    // del clic sulla carta si raddoppiava a ogni riattacco.
+    if (carta._mieiPezzi) {
+      carta._mieiPezzi.forEach((el) => {
+        try { el.remove(); } catch (e) { /* era gia' andato */ }
+      });
+      carta._mieiPezzi = null;
+    }
+    if (carta._fermaClic) {
+      carta.removeEventListener("click", carta._fermaClic, true);
+      carta._fermaClic = null;
+    }
+    // e la mano alzata di un trascinamento interrotto a meta' va abbassata,
+    // se no la pista non si rinfrescherebbe mai piu'
+    if (this._postiBox) this._postiBox._inMano = false;
     const PEZZI = [
       ["valore", ".valore"],
       ["nome", ".testi"],
@@ -1568,6 +1651,17 @@ export const ConPosti = (Base) => class extends Base {
     const latoDestra = faiLato("destra");
     const latoSotto = faiLato("sotto");
     const lati = [latoDestra, latoSotto];
+    // i tre pezzi che ho messo io nel riquadro: me li segno per poterli
+    // buttare via al prossimo giro (vedi in cima)
+    carta._mieiPezzi = [maniglia, latoDestra, latoSotto];
+
+    // LA MANO ALZATA mentre sto trascinando: finche' e' alzata
+    // `_aggiornaPista` esce subito e non riconfigura la casellina sotto il
+    // dito. Si alza PRIMA di emettere e si abbassa al rilascio.
+    const alzaMano = (si) => {
+      const b = this._postiBox;
+      if (b) b._inMano = !!si;
+    };
 
     const pezziDi = (chi) => {
       const radice = carta.shadowRoot;
@@ -1680,7 +1774,11 @@ export const ConPosti = (Base) => class extends Base {
       // sta scrivendo dentro
       if (numeri) {
         const dove = ((this._cfgPista() || {}).posti || {})[chi] || {};
-        const dentro = numeri.gr.ownerDocument.activeElement;
+        // il fuoco dalla radice d'ombra del campo: con `ownerDocument` il
+        // controllo era sempre falso, e siccome `giu` fa preventDefault il
+        // fuoco resta nel campo mentre `muovi` richiama qui - le cifre
+        // scritte a mano si cancellavano a ogni pixel di movimento
+        const dentro = ilFuoco(numeri.gr);
         numeri.chi.textContent = T("Pezzo: ") + chi;
         const metti = (campo, valore) => {
           if (dentro === campo) return;
@@ -1936,6 +2034,11 @@ export const ConPosti = (Base) => class extends Base {
       setTimeout(aggiornaManiglia, 0);
       e.preventDefault();
       e.stopPropagation();
+      // ALZO LA MANO PRIMA DI EMETTERE: da qui sotto partono fino a due
+      // emissioni col dito ancora premuto, e la configurazione che Home
+      // Assistant rimanda arriverebbe a riconfigurare la casellina sotto il
+      // dito (vedi `_aggiornaPista`)
+      alzaMano(true);
       // la prima volta fisso tutti i pezzi dove stanno adesso, se no
       // saltano tutti appena ne muovo uno
       const mia = this._cfgPista();
@@ -2111,6 +2214,21 @@ export const ConPosti = (Base) => class extends Base {
     window.addEventListener("pointermove", tiraMuovi, true);
     ["pointerup", "pointercancel"].forEach((ev) =>
       window.addEventListener(ev, tiraLascia, true));
+    // E LA MANO SI ABBASSA AL RILASCIO, qualunque cosa sia successa in mezzo
+    // (anche se `giu` e' uscito prima di prendere qualcosa). Va per ultimo,
+    // cosi' arriva dopo `lascia`. Se mentre tenevo premuto ho saltato un
+    // rinfresco della pista, lo recupero adesso.
+    const mollaMano = () => {
+      const b = this._postiBox;
+      if (!b || !b._inMano) return;
+      alzaMano(false);
+      if (b._pistaDaRifare) {
+        b._pistaDaRifare = false;
+        this._aggiornaPista();
+      }
+    };
+    ["pointerup", "pointercancel"].forEach((ev) =>
+      window.addEventListener(ev, mollaMano, true));
     // e quando lui tocca una casella dentro all'anteprima del pop-up
     const scegli = (e) => {
       const cfg = e.detail && e.detail.config;
@@ -2136,6 +2254,9 @@ export const ConPosti = (Base) => class extends Base {
       this._giaSbrogliato = false;
       this._planciaCercata = null;
       this._planciaSalvata = null;
+      // ha scelto un'altra scheda: il giro va rifatto subito, senza
+      // aspettare il freno del secondo e mezzo
+      this._planciaQuando = 0;
       this._aggiornaPista();
       const box = this._postiBox;
       if (box) box.scrollIntoView({ block: "nearest" });
@@ -2153,14 +2274,20 @@ export const ConPosti = (Base) => class extends Base {
       window.removeEventListener("pointermove", tiraMuovi, true);
       ["pointerup", "pointercancel"].forEach((ev) =>
         window.removeEventListener(ev, tiraLascia, true));
+      ["pointerup", "pointercancel"].forEach((ev) =>
+        window.removeEventListener(ev, mollaMano, true));
     };
     // e mentre sposto un pezzo la casella non deve fare il suo mestiere
-    carta.addEventListener("click", (e) => {
+    // (me lo segno sulla carta: al riattacco va tolto, se no se ne accumula
+    // uno per ogni cambio di linguetta)
+    const fermaClic = (e) => {
       if (!preso && !carta._appenaSpostato) return;
       e.preventDefault();
       e.stopPropagation();
       carta._appenaSpostato = false;
-    }, true);
+    };
+    carta._fermaClic = fermaClic;
+    carta.addEventListener("click", fermaClic, true);
   }
 
   // QUANDO LUI TIRA L'ANGOLO DI UNA SCHEDA nell'anteprima del pop-up.

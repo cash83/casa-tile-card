@@ -5,7 +5,8 @@
 // variabili locali con quel nome, e coprirebbero l'aiuto.
 import { riempiRiquadro, comeElenco, statoTradotto } from './aiuti.js';
 import { COLORI, coloreLampada, daRgb } from './colori.js';
-import { ICONE, MDI_PAROLE, NOMI_ICONE, NOMI_MDI, SINONIMI, disegnoMdi, iconaAutomatica } from './icone.js';
+import { ICONE, MDI_PAROLE, NOMI_ICONE, NOMI_MDI, SINONIMI, disegnoMdi, etichettaIcona, iconaAutomatica } from './icone.js';
+import { elementoAFuoco } from './editor-foto.js';
 import { T, TH } from './lingua.js';
 import { ETICHETTE, SEZIONI } from './schema.js';
 
@@ -60,9 +61,11 @@ export const ConIcone = (Base) => class extends Base {
           .replace(/url\(#([a-z0-9]+)\)/g, "url(#$1_p" + k + ")");
         b.innerHTML = '<svg viewBox="0 0 64 64" fill="none">' + dentro
           + '</svg><span class="nome"></span>';
-        // il nome scritto sotto e' tradotto, la chiave che finisce
-        // nella plancia (`dataset.nome`) resta quella italiana
-        b.querySelector(".nome").textContent = T(nome);
+        // il nome scritto sotto e' quello da leggere, la chiave che finisce
+        // nella plancia (`dataset.nome`) resta quella italiana. Con `T()`
+        // in italiano si leggeva la chiave grezza ("sole_nuvole"), perche'
+        // `T()` traduce solo VERSO l'inglese.
+        b.querySelector(".nome").textContent = etichettaIcona(nome);
         b.addEventListener("click", () => {
           this._config = { ...this._config, icona: nome };
           this._emetti();
@@ -137,8 +140,9 @@ export const ConIcone = (Base) => class extends Base {
         const q = cerca.value.trim().toLowerCase();
         box.querySelectorAll(".sceltaIcona").forEach((b) => {
           const nome = b.dataset.nome || "";
+          // si cerca anche per come l'etichetta e' scritta sotto al disegno
           const parole = (SINONIMI[nome] || MDI_PAROLE[nome] || "")
-            + " " + nome + " " + T(nome);
+            + " " + nome + " " + etichettaIcona(nome) + " " + T(nome);
           b.hidden = !!q && nome !== "auto"
             && parole.toLowerCase().replace(/_/g, " ").indexOf(q) < 0;
         });
@@ -179,8 +183,12 @@ export const ConIcone = (Base) => class extends Base {
       r.ant.hidden = !mia;
       r.via.hidden = !mia;
       if (mia && r.ant.getAttribute("src") !== mia) r.ant.src = mia;
-      // mentre ci sta scrivendo dentro non gliela cambio sotto le mani
-      if (document.activeElement !== r.campo) r.campo.value = mia || "";
+      // mentre ci sta scrivendo dentro non gliela cambio sotto le mani.
+      // `document.activeElement`, da dentro l'ombra di
+      // `hui-card-element-editor`, torna l'host piu' esterno e MAI il
+      // campo: la guardia non scattava e il campo si riscriveva a ogni
+      // ridisegno, cancellando quello che l'utente stava digitando.
+      if (elementoAFuoco(r.campo) !== r.campo) r.campo.value = mia || "";
       if (r.nota && !r.fisso) r.nota.textContent = "";
     });
     // la seconda ha senso solo se c'e' la prima: se no non si torna indietro

@@ -11,7 +11,7 @@ import { numero, tastiDi, NOMI_DISEGNI as DISEGNI, comeElenco } from './elettro-
 import { T, TH, traduciSchema } from './lingua.js';
 import { STILE_FOTO, STILE_DISEGNI } from './editor-foto.js';
 import { contaNelTop, preseDiCasa } from './elettro-prepara.js';
-import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez } from './elettro-righe-editor.js';
+import { STILE_EDITOR, confermaDoppia, disegnaRighe, disegnaTasti, titoloSez, haIlFuoco, dentroIlimiti } from './elettro-righe-editor.js';
 import { creaFonte, creaRisparmio, ID_TOTALE, prezzoDellaCasa, idDellaVoce, VOCI_TARIFFA, scriviTariffa, creaSensoriBase } from './elettro-crea.js';
 
 // quello che si legge sotto al campo. L'etichetta dice come si chiama
@@ -126,6 +126,14 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       (x) => String(x.label || "").trim().toLowerCase() === nome) || {};
   }
 
+  // `top_auto` NON si mette nei dati del modulo: non sta in nessuno schema di
+  // questo editor, quindi nessuno lo rimetterebbe a posto, e `ha-form` lo
+  // rimanda indietro a ogni singola modifica (nome, potenza, tema...).
+  // Com'era calcolato - assente diventava `false` - bastava rinominare la
+  // scheda per spegnere da sola la spunta «Cerca da sola tutte le prese»:
+  // l'elenco delle prese spariva e il Top consumo non cercava piu' niente.
+  // Assente vuol dire ACCESO (la scheda legge `top_auto !== false`), e con lo
+  // spread qui sotto il valore vero, quando c'e', passa com'e'.
   _datiForm() {
     const c = this._config;
     return { ...c,
@@ -134,37 +142,69 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       mese_energia: this._periodo("mese").energy || "",
       mese_costo: this._periodo("mese").cost || "",
       finestra_sfondo: this._versoRgb(c.finestra_sfondo),
-      finestra_scritta: this._versoRgb(c.finestra_scritta),
-      top_auto: c.top_auto !== false && c.top_auto !== undefined ? c.top_auto : false };
+      finestra_scritta: this._versoRgb(c.finestra_scritta) };
   }
 
   // rimette i quattro sensori dentro periods/periods_prev. "Ieri" e "mese
   // scorso" non sono altri sensori: sono l'attributo last_period di questi.
   _rimettiPeriodi(c, v) {
     const chiavi = ["oggi_energia", "oggi_costo", "mese_energia", "mese_costo"];
-    if (!chiavi.some((k) => k in v)) return;
-    const val = (k) => (k in v ? v[k] : (this._periodo(k.split("_")[0])[k.split("_")[1] === "energia" ? "energy" : "cost"] || ""));
+    // le quattro chiavi NON stanno in configurazione: sono solo le caselle
+    const adesso = (k) => {
+      const pezzi = k.split("_");
+      return this._periodo(pezzi[0])[pezzi[1] === "energia" ? "energy" : "cost"] || "";
+    };
+    chiavi.forEach((k) => delete c[k]);
+    // `_datiForm` mette SEMPRE queste quattro chiavi nei dati del modulo, e
+    // `ha-form` le rimanda indietro tutte a ogni modifica: guardare se la
+    // chiave c'e' non bastava, la guardia passava sempre e i periodi si
+    // riscrivevano anche cambiando soltanto il tema. Qui conta solo se il
+    // valore e' DAVVERO cambiato.
+    const cambiate = chiavi.filter((k) => k in v && String(v[k] || "") !== adesso(k));
+    if (!cambiate.length) return;
+    const val = (k) => (cambiate.includes(k) ? String(v[k] || "") : adesso(k));
     const oggiE = val("oggi_energia"), oggiC = val("oggi_costo");
     const meseE = val("mese_energia"), meseC = val("mese_costo");
-    const periodi = [];
-    if (oggiE || oggiC) periodi.push({ label: "Oggi", energy: oggiE, cost: oggiC });
-    if (meseE || meseC) periodi.push({ label: "Mese", energy: meseE, cost: meseC });
-    const prima = [];
-    if (oggiE || oggiC) prima.push({ label: "Ieri", energy: oggiE, energy_attr: "last_period", cost: oggiC, cost_attr: "last_period" });
-    if (meseE || meseC) prima.push({ label: "Mese scorso", energy: meseE, energy_attr: "last_period", cost: meseC, cost_attr: "last_period" });
-    // gli altri periodi che l'utente si e' scritto a mano restano dove sono
-    const suoi = comeElenco(c.periods).filter((x) => !["oggi", "mese"].includes(String(x.label || "").trim().toLowerCase()));
-    const suoiPrima = comeElenco(c.periods_prev).filter((x) => !["ieri", "mese scorso"].includes(String(x.label || "").trim().toLowerCase()));
-    if (periodi.length) c.periods = periodi.concat(suoi); else delete c.periods;
-    if (prima.length) c.periods_prev = prima.concat(suoiPrima); else delete c.periods_prev;
-    ["oggi_energia", "oggi_costo", "mese_energia", "mese_costo"].forEach((k) => delete c[k]);
+    // quali delle MIE voci restano in piedi: svuotate le caselle, vanno via
+    const resta = { oggi: !!(oggiE || oggiC), mese: !!(meseE || meseC) };
+    const restaPrima = { ieri: resta.oggi, "mese scorso": resta.mese };
+    const miei = [];
+    if (resta.oggi) miei.push({ label: "Oggi", energy: oggiE, cost: oggiC });
+    if (resta.mese) miei.push({ label: "Mese", energy: meseE, cost: meseC });
+    const mieiPrima = [];
+    if (resta.oggi) mieiPrima.push({ label: "Ieri", energy: oggiE, energy_attr: "last_period", cost: oggiC, cost_attr: "last_period" });
+    if (resta.mese) mieiPrima.push({ label: "Mese scorso", energy: meseE, energy_attr: "last_period", cost: meseC, cost_attr: "last_period" });
+    const eti = (x) => String((x && x.label) || "").trim().toLowerCase();
+    // Rimette le MIE voci dove erano, lasciando stare tutte le altre.
+    // Prima l'elenco si riscriveva con Oggi e Mese davanti a tutto, e
+    // Ora/Settimana/Bolletta cambiavano posto a ogni modifica; e quando qui
+    // non c'era ne' «Oggi» ne' «Mese» (etichette diverse, o aiutanti
+    // cancellati) il `delete` portava via anche quelle, che non sono mie.
+    const fondi = (vecchi, nuovi, mie) => {
+      const dentro = vecchi
+        .filter((x) => !(eti(x) in mie) || mie[eti(x)])
+        .map((x) => nuovi.find((n) => eti(n) === eti(x)) || x);
+      return dentro.concat(nuovi.filter((n) => !dentro.some((x) => eti(x) === eti(n))));
+    };
+    const tutti = fondi(comeElenco(c.periods), miei, resta);
+    if (tutti.length) c.periods = tutti; else delete c.periods;
+    const prima = comeElenco(c.periods_prev);
+    if (!prima.length) {
+      // non c'era: lo scrivo io, com'e' sempre stato
+      if (mieiPrima.length) c.periods_prev = mieiPrima;
+    } else {
+      // c'era: un `periods_prev` scritto a mano e' una scelta, non si
+      // riscrive d'ufficio. Aggiorno solo le voci che ci sono gia'.
+      const quelleLi = mieiPrima.filter((n) => prima.some((x) => eti(x) === eti(n)));
+      const dopo = fondi(prima, quelleLi, restaPrima);
+      if (dopo.length) c.periods_prev = dopo; else delete c.periods_prev;
+    }
   }
 
   _cambiatoForm(v) {
-    // le terne del selettore tornano esadecimali
-    ["finestra_sfondo", "finestra_scritta"].forEach((k) => {
-      if (k in v) v[k] = this._versoHex(v[k]);
-    });
+    // le terne del selettore tornano esadecimali (e un colore che il
+    // selettore non sapeva far vedere non si cancella: vedi _coloriDalForm)
+    this._coloriDalForm(v, ["finestra_sfondo", "finestra_scritta"]);
     const c = { ...this._config };
     Object.keys(v).forEach((k) => {
       if (v[k] === "" || v[k] === undefined || v[k] === null) delete c[k];
@@ -174,14 +214,21 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._rimettiPeriodi(c, v);
     this._config = c;
     this._emetti();
+    // i moduli tengono una copia dei dati e la rimandano indietro TUTTA alla
+    // modifica dopo: senza questo rinfresco, in quella finestra una modifica
+    // fatta altrove (la griglia dei disegni, una spunta) tornava indietro
+    this._rinfrescaModuli();
   }
 
   _disegnaRighe() {
     if (!this._righe) return;
-    disegnaRighe(this._righe, [...RIGHE_OGGI, ...righeMie(this._config)], this._config, (c) => {
+    disegnaRighe(this._righe, [...RIGHE_OGGI, ...righeMie(this._config)], this._config, (c, come) => {
       this._config = c;
       this._emetti();
-      this._disegnaRighe();
+      // un cambio di NOME non rifa' l'elenco: `change` su una casella di
+      // testo parte durante il mousedown che le toglie il fuoco, cioe' prima
+      // del mouseup, e rifacendolo adesso il clic in corso andrebbe perso
+      if (!come || come.ridisegna !== false) this._disegnaRighe();
       this._riassunti();
     });
     this._disegnaMie();
@@ -193,7 +240,11 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     { const v = this.querySelector(".ce-barre-vive");
       if (v) v.checked = !!this._config.barre_vive;
       const q = this.querySelector(".ce-barre-quante");
-      if (q && !q.dataset.tocco) q.value = this._config.barre_quante || 6;
+      // `dataset.tocco` su questo campo non lo scriveva nessuno (lo scrive
+      // solo `_disegnaTariffa`, sui campi .ce-t-*): la guardia era morta e il
+      // numero appena digitato veniva sostituito mentre lo si scriveva.
+      // Quello che serve e' sapere se il campo ha il fuoco ADESSO.
+      if (q && !haIlFuoco(q)) q.value = this._config.barre_quante || 6;
       this._mostraQuante(); }
     { const sc = this.querySelector(".ce-barra-nuova");
       if (sc && this._hass) {
@@ -209,7 +260,10 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     { const o = this.querySelector(".ce-barre-ordine");
       if (o) o.checked = this._config.barre_in_ordine !== false; }
     { const fs = this.querySelector(".ce-barre-max");
-      if (fs && document.activeElement !== fs) fs.value = this._config.max_power || ""; }
+      // `document.activeElement`, da dentro l'ombra di hui-card-element-editor,
+      // torna l'host piu' esterno e MAI questo input: il confronto era sempre
+      // vero e il campo si riscriveva mentre ci si scriveva dentro
+      if (fs && !haIlFuoco(fs)) fs.value = this._config.max_power || ""; }
     this._disegnaCircuiti();
   }
 
@@ -704,6 +758,8 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       const patch = await creaSensoriBase(this._hass, {
         sorgente,
         memoria: this._config.helper_memoria || {},
+        // vedi il gemello dell'elettrodomestico: il libretto di chi e' chi
+        aiutanti_miei: this._config.aiutanti_miei,
         // il prezzo e' quello della tariffa qui sopra: per la casa vale il TOTALE,
         // che e' quello che paghi davvero in bolletta
         prezzo_entita: (this._hass.states[ID_TOTALE] ? ID_TOTALE : prezzoDellaCasa(this._hass))
@@ -714,14 +770,16 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       // la memoria dei valori, se e' stata usata, si butta (patch la mette a null)
       if (patch.helper_memoria === null) delete this._config.helper_memoria;
       this._emetti();
-      this._form.data = this._datiForm();
-    if (this._formTutto) this._formTutto.data = this._datiForm();
+      this._rinfrescaModuli();
       // i kWh del fotovoltaico che arriva in casa
       for (const [chiave, sel, nome] of [["fv_casa", ".ce-fvcasa-pick", "Fotovoltaico in casa"]]) {
         const ent = lista((this.querySelector(sel) || {}).value || this._config[chiave + "_entita"]);
         if (!ent.length) continue;
         const p = await creaFonte(this._hass, { entita: ent, nome }, (t) => this._dillo(t));
-        this._config = { ...this._config, [chiave + "_oggi"]: p.oggi,
+        // si spande TUTTO quello che torna: prima si tenevano solo i tre
+        // contatori e la somma min_max piu' l'integrale restavano in Helper
+        // per sempre, invisibili a "Cancella gli aiutanti"
+        this._config = { ...this._config, ...p, [chiave + "_oggi"]: p.oggi,
           [chiave + "_settimana"]: p.settimana, [chiave + "_mese"]: p.mese,
           [chiave + "_entita"]: ent };
         this._emetti();
@@ -898,8 +956,10 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       }
       const quante = this.querySelector(".ce-barre-quante");
       if (quante) {
+        // dentro al 2-10 scritto nell'HTML: un <input type=number> fa partire
+        // `change` anche col valore fuori intervallo, e scrivendo 99 restava 99
         quante.addEventListener("change", () =>
-          this._scriviScelta("barre_quante", Number(quante.value) || 6));
+          this._scriviScelta("barre_quante", dentroIlimiti(quante, 6)));
       }
       const ordine = this.querySelector(".ce-barre-ordine");
       if (ordine) {
@@ -910,8 +970,10 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
       // era attaccato a niente: ci scrivevi dentro e non succedeva nulla
       const fondo = this.querySelector(".ce-barre-max");
       if (fondo) {
+        // dentro al 500-30000 scritto nell'HTML: con 1 tutte le barre
+        // risultavano piene. Campo vuoto = "" e la voce sparisce, come prima.
         fondo.addEventListener("change", () =>
-          this._scriviScelta("max_power", Number(fondo.value) || ""));
+          this._scriviScelta("max_power", dentroIlimiti(fondo, "")));
       }
       this.querySelector(".ce-cancella").addEventListener("click", () => this._cancellaSensori());
       this.querySelectorAll(".ce-t-energia, .ce-t-rete, .ce-t-accise, .ce-t-iva, .ce-t-quota").forEach((x) =>
@@ -924,8 +986,7 @@ export class CasaEnergiaEditor extends ConEditor(HTMLElement) {
     this._disegnaPrese();
     this._disegnaFvCasa();
     this._disegnaTariffa();
-    this._form.data = this._datiForm();
-    if (this._formTutto) this._formTutto.data = this._datiForm();
+    this._rinfrescaModuli();
     this._disegnaRighe();
   }
 }

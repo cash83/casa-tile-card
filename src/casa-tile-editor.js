@@ -51,8 +51,14 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
       if (this._config.coda === undefined) this._config.coda = true;
       if (this._config.yt_cuore === undefined) this._config.yt_cuore = true;
     }
-    this._planciaCercata = null;
-    this._planciaSalvata = null;
+    // LA CARD SULLA PLANCIA NON LA CERCO PIU' DA CAPO A OGNI GIRO. Qui
+    // dentro ci passa OGNI modifica (emetto, Home Assistant mi rimanda la
+    // configurazione e richiama setConfig): azzerando la memoria,
+    // `_cartaPlancia` rifaceva la discesa ricorsiva di tutto il documento
+    // attraverso le ombre - 120.000 nodi - a ogni lettera scritta nel campo
+    // "Nome", e la finestra delle impostazioni si incollava. La memoria sa
+    // gia' invalidarsi da sola: e' legata a entita'+nome e controlla che il
+    // nodo salvato sia ancora attaccato.
     this._render();
   }
   set hass(hass) { scegliLingua(hass); this._hass = hass; this._propaga(); }
@@ -500,6 +506,11 @@ export class CasaTileEditor extends ConPosti(ConColori(ConIcone(ConSchede(HTMLEl
     clearTimeout(this._scordaForm);
     clearTimeout(this._ripassoAnt);
     this._planciaSalvata = null;
+    // e dimentico anche PER CHI l'avevo cercata, se no alla riapertura
+    // `_cartaPlancia` si crederebbe a posto ("gia' cercata, non c'era") e
+    // non la cercherebbe mai piu'
+    this._planciaCercata = null;
+    this._planciaQuando = 0;
     this._veraSalvata = null;
   }
 

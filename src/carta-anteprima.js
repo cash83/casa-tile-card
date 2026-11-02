@@ -139,9 +139,14 @@ export const ConAnteprima = (Base) => class extends Base {
 
   _spiaLaColonna(box) {
     if (!box || box.__casaSpia) return;
-    box.__casaSpia = true;
-    SEGNI_ANTEPRIMA.set(box, { dove: box.scrollTop, pieno: box.scrollHeight });
-    box.addEventListener("scroll", () => {
+    // La colonna vive piu' di noi: la finestra delle impostazioni rifa' le
+    // caselle a ogni modifica, lei resta. Con la guardia `__casaSpia`
+    // messa a `true` l'ascoltatore non si levava mai, e siccome chiude su
+    // `this` la colonna teneva in vita per sempre la PRIMA casella che
+    // l'aveva trovata (e nessun'altra riusciva piu' a rimettere la spia,
+    // perche' la guardia la credeva ancora buona). Adesso mi tengo da
+    // parte chi l'ha messa, cosi' si puo' levare quando mi stacco.
+    const spia = () => {
       const m = SEGNI_ANTEPRIMA.get(box) || { dove: 0, pieno: 0 };
       if (box.scrollHeight > m.pieno) m.pieno = box.scrollHeight;
       // Mentre sto rimettendo a posto non do retta a niente: gli
@@ -161,7 +166,37 @@ export const ConAnteprima = (Base) => class extends Base {
         m.quando = Date.now();
       }
       SEGNI_ANTEPRIMA.set(box, m);
-    }, { passive: true });
+    };
+    box.__casaSpia = spia;
+    this._spiaColonna = { box: box, spia: spia };
+    // il segno di dov'era NON si azzera: quando la casella viene rifatta la
+    // spia si rimette, e ripartire da zero vorrebbe dire perdere proprio il
+    // posto che stiamo cercando di non perdere
+    if (!SEGNI_ANTEPRIMA.has(box)) {
+      SEGNI_ANTEPRIMA.set(box, { dove: box.scrollTop, pieno: box.scrollHeight });
+    }
+    box.addEventListener("scroll", spia, { passive: true });
+  }
+
+  // TUTTO QUELLO CHE HO LASCIATO SULLA COLONNA, me lo riprendo. Lo
+  // `disconnectedCallback` della casella sta in casa-tile.js e non passa
+  // dai mixin, quindi non posso scriverlo qui: pero' quello chiama
+  // `this._ascoltoVesti()`, che e' roba nostra, ed e' li' che aggancio
+  // questa pulizia (vedi `_ascoltaRivestiti`).
+  _pulisciAnteprima() {
+    const s = this._spiaColonna;
+    this._spiaColonna = null;
+    if (s && s.box) {
+      s.box.removeEventListener("scroll", s.spia);
+      if (s.box.__casaSpia === s.spia) s.box.__casaSpia = null;
+      if (s.box.__casaCarta === this) s.box.__casaCarta = null;
+    }
+    this._boxAnt = null;
+    // e i tre ascoltatori che mollano il ripasso: il loro `setTimeout` di
+    // pulizia sta in `_segni`, e `disconnectedCallback` quei timer li
+    // cancella - quindi se la casella si stacca prima dei 1400 ms non li
+    // levava nessuno
+    if (this._levaMolla) this._levaMolla();
   }
 
   // c'e' dentro anche il riquadro delle impostazioni? (guarda anche dentro
@@ -201,8 +236,17 @@ export const ConAnteprima = (Base) => class extends Base {
     box.__casaFino = Date.now() + 1400;
     let mollato = false;
     const molla = () => { mollato = true; box.__casaFino = 0; };
+    // se un ripasso di prima e' ancora in piedi, i suoi tre ascoltatori li
+    // levo adesso: qui sotto si cancellano i suoi timer, compreso quello
+    // che doveva levarli lui
+    if (this._levaMolla) this._levaMolla();
     ["wheel", "touchmove", "keydown"].forEach((ev) =>
       box.addEventListener(ev, molla, { passive: true, once: true }));
+    this._levaMolla = () => {
+      this._levaMolla = null;
+      ["wheel", "touchmove", "keydown"].forEach((ev) =>
+        box.removeEventListener(ev, molla));
+    };
     const rimetti = () => {
       if (mollato || !box.isConnected) return;
       // Se sta modificando una scheda, e' LEI il punto fermo: la rimetto
@@ -236,8 +280,7 @@ export const ConAnteprima = (Base) => class extends Base {
     this._segni = [60, 150, 300, 500, 800, 1200]
       .map((quando) => setTimeout(rimetti, quando));
     this._segni.push(setTimeout(() => {
-      ["wheel", "touchmove", "keydown"].forEach((ev) =>
-        box.removeEventListener(ev, molla));
+      if (this._levaMolla) this._levaMolla();
     }, 1400));
   }
 
@@ -309,8 +352,13 @@ export const ConAnteprima = (Base) => class extends Base {
       this._vestiAnteprima();
     };
     window.addEventListener("casa-rivestiti", preso, true);
-    this._ascoltoVesti = () =>
+    this._ascoltoVesti = () => {
       window.removeEventListener("casa-rivestiti", preso, true);
+      // la casella si sta staccando (e' `disconnectedCallback` a chiamare
+      // questa): e' il momento di levare anche quello che ho appeso alla
+      // colonna dell'anteprima, che a noi non sopravvive
+      this._pulisciAnteprima();
+    };
   }
 
   _vestiAnteprima() {

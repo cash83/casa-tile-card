@@ -283,8 +283,18 @@ export const ConSchede = (Base) => class extends Base {
       ? this._configDiPartenza(String(card.type || "")).then((base) => {
           if (Object.keys(base).length <= 1) return card;
           const unita = { ...base, ...card };
-          // la salvo dopo, quando il pannello e' gia' in piedi
-          setTimeout(() => aggiorna(unita), 500);
+          // la salvo dopo, quando il pannello e' gia' in piedi - ma PRIMA
+          // controllo che al posto suo ci sia ancora lei: in mezzo secondo
+          // si fa in tempo a cancellarla (✕) o a riordinare una scheda che
+          // sta prima, e `aggiorna` scrive sempre al posto fotografato alla
+          // nascita della riga (`l[i] = nuova`), quindi la configurazione di
+          // partenza finiva addosso a un'altra scheda. Stesso controllo del
+          // ramo gemello in `_scegli`.
+          setTimeout(() => {
+            const qui = (this._schede() || [])[indice];
+            if (!qui || String(qui.type || "") !== String(card.type || "")) return;
+            aggiorna(unita);
+          }, 500);
           return unita;
         })
       : Promise.resolve(card);
@@ -297,10 +307,13 @@ export const ConSchede = (Base) => class extends Base {
         ed.lovelace = this._lov();
         dentro.appendChild(ed);
         ed.value = card;
-        // me lo segno: quando cambio la misura di una casella dentro alla
-        // griglia devo dirglielo, se no lui tiene in mano la griglia
-        // VECCHIA e alla prima occasione la rimanda indietro cancellando
-        // quello che ho appena scritto (era il rimbalzo)
+        // me lo segno per chi avesse bisogno di parlargli. Il rimbalzo -
+        // lui tiene in mano la copia VECCHIA e alla prima occasione la
+        // rimanda indietro cancellando quello che ho scritto da fuori - non
+        // si cura piu' da qui: lo cura la FUSIONE dentro ad `aggiorna` (vedi
+        // `_costruisciBlocco`), che e' l'unica strada buona anche per i
+        // pannelli nativi delle schede, a cui non si puo' ridare la
+        // configurazione mentre lui ci sta scrivendo dentro.
         box._edHA = ed;
         ed.addEventListener("config-changed", (e) => {
           e.stopPropagation();
@@ -321,7 +334,7 @@ export const ConSchede = (Base) => class extends Base {
         clearTimeout(this._scordaCodice);
         this._scordaCodice = setTimeout(() => { this._apriCodicePer = null; }, 2500);
       }
-      box.appendChild(this._codiceScheda(card, aggiorna, subito));
+      box.appendChild(this._codiceScheda(card, aggiorna, subito, indice));
     }).catch(() => {
       // SE L'EDITOR DELLA SCHEDA NON SI CARICA (una card di HACS che non
       // risponde, una configurazione a meta', un errore suo) il Layout deve
@@ -331,13 +344,13 @@ export const ConSchede = (Base) => class extends Base {
       attesa.textContent = T("Le impostazioni di questa scheda non si sono "
         + "caricate. Il codice lo trovi qui sotto.");
       if (!box.querySelector(".codice-scheda")) {
-        box.appendChild(this._codiceScheda(card, aggiorna, false));
+        box.appendChild(this._codiceScheda(card, aggiorna, false, indice));
       }
     });
   }
 
   // il codice della scheda, in YAML come in Home Assistant
-  _codiceScheda(card, aggiorna, subito) {
+  _codiceScheda(card, aggiorna, subito, indice) {
     const box = document.createElement("div");
     box.className = "codice-scheda";
     const apri = document.createElement("button");
@@ -349,13 +362,25 @@ export const ConSchede = (Base) => class extends Base {
     const esito = document.createElement("div");
     esito.className = "esito";
     let leggi = null;
+    let rinfresca = null;
+
+    // LA CONFIGURAZIONE DI ADESSO, non quella fotografata alla nascita della
+    // riga: in mezzo lui puo' aver cambiato mezza scheda dal pannello, o
+    // tirato il suo angolo nell'anteprima. Partendo dalla fotografia,
+    // "Applica il codice" riportava indietro tutto. Fa come il riquadro
+    // gemello della pista (`_codicePosti`), che a ogni riapertura richiama
+    // `roba()`.
+    const roba = () => {
+      const c = (this._schede() || [])[indice];
+      return (c && typeof c === "object") ? c : card;
+    };
 
     const conEditorHa = () => {
       const ed = document.createElement("ha-yaml-editor");
       ed.hass = this._hass;
       dentro.appendChild(ed);
-      ed.defaultValue = card;
-      let ultimo = card;
+      let ultimo = roba();
+      ed.defaultValue = ultimo;
       let buono = true;
       ed.addEventListener("value-changed", (e) => {
         e.stopPropagation();
@@ -364,15 +389,27 @@ export const ConSchede = (Base) => class extends Base {
         esito.textContent = buono ? "" : "YAML non valido";
       });
       leggi = () => (buono ? ultimo : null);
+      rinfresca = () => {
+        const base = roba();
+        ultimo = base;
+        buono = true;
+        // `defaultValue` lo guarda solo alla prima comparsa: dopo, il
+        // contenuto si cambia con `setValue`
+        try {
+          if (typeof ed.setValue === "function") ed.setValue(base);
+          else ed.defaultValue = base;
+        } catch (e) { /* pazienza: resta quello di prima */ }
+      };
     };
 
     const conCasella = () => {
       const area = document.createElement("textarea");
       area.rows = 12;
       area.spellcheck = false;
-      area.value = aYaml(card, 0);
+      area.value = aYaml(roba(), 0);
       dentro.appendChild(area);
       leggi = () => daYaml(area.value);
+      rinfresca = () => { area.value = aYaml(roba(), 0); };
     };
 
     const applica = document.createElement("button");
@@ -386,7 +423,9 @@ export const ConSchede = (Base) => class extends Base {
         if (!nuova || typeof nuova !== "object") throw new Error("codice vuoto o non valido");
         if (!nuova.type) throw new Error('manca la riga "type:"');
         esito.textContent = "";
-        aggiorna(nuova);
+        // qui il codice E' la verita' intera: se ha cancellato una riga la
+        // voleva cancellare, quindi niente fusione (vedi `aggiorna`)
+        aggiorna(nuova, true);
       } catch (e) {
         esito.textContent = "Codice non valido: " + e.message;
       }
@@ -398,6 +437,11 @@ export const ConSchede = (Base) => class extends Base {
         costruito = true;
         const c_e = await this._attendiTag("ha-yaml-editor", 1200);
         if (c_e) conEditorHa(); else conCasella();
+      } else if (dentro.hidden && rinfresca) {
+        // riaprendolo, il codice deve essere quello di ADESSO: se no
+        // "Applica il codice" rimandava indietro la scheda di quando la
+        // riga e' nata
+        rinfresca();
       }
       const chiuso = dentro.hidden;
       dentro.hidden = !chiuso;
@@ -743,10 +787,29 @@ export const ConSchede = (Base) => class extends Base {
       if (this._apertaIdx === i) {
         const box = document.createElement("div");
         box.className = "editor-scheda";
-        const aggiorna = (nuova) => {
+        // `intera` = quello che arriva e' tutta la verita' (il riquadro del
+        // codice YAML). Senza, e' un pannello che tiene in mano una COPIA
+        // VECCHIA della scheda: gliela diamo una volta sola alla nascita
+        // della riga (`_editorNativo`) e nessuno glie la ripassa, ma quando
+        // emette emette tutta la sua copia. Cosi' la misura tirata nel suo
+        // angolo nell'anteprima (`_scriviMisura`) e i pezzi spostati nella
+        // pista (`_scriviPosti`) - roba che il pannello non sa nemmeno che
+        // esista - sparivano al primo campo che si cambiava. Allora non
+        // sostituisco: FONDO. Una chiave che non c'era nemmeno nella copia
+        // che gli ho dato lui non puo' averla tolta, quindi se adesso manca
+        // vale quella di adesso; le chiavi che conosceva restano sue,
+        // cancellazioni comprese.
+        const aggiorna = (nuova, intera) => {
           const l = this._schede().slice();
-          l[i] = nuova;
-          const tec = String(nuova.type || "?");
+          const ora = l[i] || {};
+          const fusa = { ...nuova };
+          if (!intera) {
+            Object.keys(ora).forEach((k) => {
+              if (!(k in nuova) && !(k in card)) fusa[k] = ora[k];
+            });
+          }
+          l[i] = fusa;
+          const tec = String(fusa.type || "?");
           tipo.querySelector(".chiaro").textContent = nomeScheda(tec);
           tipo.querySelector(".piccolo").textContent = tec.replace("custom:", "");
           this._salvaSchede(l, false);

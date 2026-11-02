@@ -509,13 +509,28 @@ export const ConGrafici = (Base) => class extends Base {
     const ore = Number(c.grafico_ore) > 0 ? Number(c.grafico_ore) : 24;
     const chiave = c.entity + "|" + ore;
     const adesso = Date.now();
+    // un'entita' che lo storico non ce l'ha (fuori dal recorder, o appena
+    // nata) non ce l'avra' nemmeno fra cinque minuti: quella la richiedo
+    // una volta all'ora, se no sono chiamate ogni cinque minuti per sempre
+    const ogni = (this._senzaStorico && this._chiaveStoria === chiave)
+      ? 3600000 : 300000;
     // la storia si chiede una volta ogni cinque minuti, non a ogni disegno
     if (this._chiaveStoria !== chiave || !this._quandoStoria
-        || adesso - this._quandoStoria > 300000) {
+        || adesso - this._quandoStoria > ogni) {
       // cambiando entita' (o cassa seguita) la storia di prima non vale piu':
       // se no si vedeva la linea dell'entita' PRECEDENTE, coi suoi minimo e
       // massimo nel suggerimento, finche' non arrivava la risposta nuova.
-      if (this._chiaveStoria !== chiave) this._storia = null;
+      // Ma SOLO se una chiave ce l'avevo gia': con `_chiaveStoria` ancora
+      // `undefined` lo storico che trovo non e' di un'altra entita', e'
+      // quello che mi ha messo in mano qualcun altro da fuori (il riquadro
+      // "Dove va ogni pezzo" copia lo storico della casella vera nella sua
+      // casellina, che ha `solo-casella` e non lo chiede mai). Buttandolo,
+      // alla prima apertura di quel riquadro si componeva la disposizione
+      // su una casella senza grafico, diversa da quella vera.
+      if (this._chiaveStoria !== undefined && this._chiaveStoria !== chiave) {
+        this._storia = null;
+        this._senzaStorico = 0;
+      }
       this._chiaveStoria = chiave;
       this._quandoStoria = adesso;
       const da = new Date(adesso - ore * 3600000).toISOString();
@@ -523,6 +538,21 @@ export const ConGrafici = (Base) => class extends Base {
       this._chiediStoria(c.entity, da, a);
     }
     this._disegnaLinea(st);
+  }
+
+  // PER CHI RIEMPIE UNA CASELLINA DA FUORI. Il riquadro "Dove va ogni
+  // pezzo" fa una casellina con `solo-casella`, che di suo non chiede mai
+  // lo storico: se glielo si vuole passare, si passa QUI - storico e chiave
+  // insieme - cosi' al disegno dopo non viene buttato. Scrivere a mano il
+  // solo `_storia` funziona ancora (vedi `_disegnaAndamento`), ma lascia la
+  // casellina senza una chiave sua.
+  _metteStoria(punti, ore) {
+    const c = this._config || {};
+    const o = Number(ore) > 0 ? Number(ore)
+      : (Number(c.grafico_ore) > 0 ? Number(c.grafico_ore) : 24);
+    this._storia = Array.isArray(punti) ? punti : null;
+    this._chiaveStoria = (c.entity || "") + "|" + o;
+    this._quandoStoria = Date.now();
   }
 
   // due strade per lo storico: prima il websocket, poi l'indirizzo normale
@@ -583,8 +613,14 @@ export const ConGrafici = (Base) => class extends Base {
       let t = g.lu !== undefined ? g.lu * 1000
         : (g.last_updated || g.last_changed || null);
       if (typeof t === "string") t = Date.parse(t);
-      return { v: v, t: Number(t) || 0 };
-    }).filter((x) => !isNaN(x.v) && !this._misuraFinta(x.v));
+      // Un marcatempo illeggibile (un `Date.parse` fallito) diventava zero,
+      // e lo zero fa danni: in `_disegnaLinea` basta che il PRIMO punto
+      // abbia t = 0 perche' tutto il grafico torni alla spaziatura per
+      // numero d'ordine, e uno zero in mezzo allunga la durata e schiaccia
+      // il resto sul bordo destro. Senza momento il campione e' inservibile:
+      // lo butto, invece di metterlo a zero.
+      return { v: v, t: Number(t) };
+    }).filter((x) => !isNaN(x.v) && x.t > 0 && !this._misuraFinta(x.v));
 
     try {
       const risposta = await this._hass.callWS({
@@ -598,8 +634,22 @@ export const ConGrafici = (Base) => class extends Base {
       });
       const righe = (risposta && risposta[chi]) || [];
       if (righe.length) {
+        this._senzaStorico = 0;
         this._storia = this._assottiglia(numeri(righe));
         this._disegnaLinea();
+        return;
+      }
+      // HA RISPOSTO BENE, MA NON C'E' NIENTE. Prima qui non si usciva: si
+      // provava anche la seconda strada su tutta la finestra, che tornava
+      // vuota anche lei, e il giro si rifaceva identico ogni cinque minuti
+      // finche' la casella stava in pagina - due chiamate a vuoto per
+      // sempre. L'entita' e' fuori dal recorder (o e' appena nata): me lo
+      // segno, cosi' `_disegnaAndamento` ci torna fra un'ora.
+      if (risposta) {
+        this._senzaStorico = Date.now();
+        this._storia = [];
+        this._disegnaLinea();
+        this._niente("questa entita non ha storico (esclusa dal recorder?)");
         return;
       }
     } catch (e) { /* pazienza: ci provo con l'altra strada */ }
@@ -613,7 +663,14 @@ export const ConGrafici = (Base) => class extends Base {
       const righe = (Array.isArray(risposta) && risposta[0]) || [];
       this._storia = this._assottiglia(numeri(righe));
       this._disegnaLinea();
-      if (!this._storia.length) this._niente("lo storico e vuoto");
+      if (!this._storia.length) {
+        // niente nemmeno qui: vale lo stesso discorso di sopra, non sta a
+        // noi richiederlo ogni cinque minuti
+        this._senzaStorico = Date.now();
+        this._niente("lo storico e vuoto");
+      } else {
+        this._senzaStorico = 0;
+      }
       return;
     } catch (e) {
       this._storia = null;
@@ -645,10 +702,15 @@ export const ConGrafici = (Base) => class extends Base {
     if (punti.length < 2) {
       box.toggleAttribute("hidden", true);
       if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", true);
+      // `_disegnaAndamento` l'aveva gia' accesa fidandosi: se poi il
+      // grafico non si disegna va spenta, se no le scritte si prendono
+      // l'ombra e il velo scuro per niente
+      this.toggleAttribute("congrafico", false);
       return;
     }
     box.toggleAttribute("hidden", false);
     if (this._toccoGrafico) this._toccoGrafico.toggleAttribute("hidden", false);
+    this.toggleAttribute("congrafico", true);
     // ne bastano un centinaio: se sono di piu' li assottiglio
     const max = 120;
     let scelti = punti;
@@ -669,6 +731,12 @@ export const ConGrafici = (Base) => class extends Base {
     const tuttiV = punti.map((x) => x.v);
     const bassoVero = Math.min.apply(null, tuttiV);
     const altoVero = Math.max.apply(null, tuttiV);
+    // UNA SERIE PIATTA NON STA AL FONDO. `campo = alto - basso || 1`
+    // salvava dalla divisione per zero, ma poi `28 - 0 * 26` dava 28 per
+    // tutti i punti: due unita' dal bordo basso di una striscia alta
+    // trenta. Succedeva con qualunque sensore fermo per tutta la finestra
+    // (un setpoint, la batteria al 100%, un contatore che non si muove).
+    const piatta = !(alto > basso);
     const campo = alto - basso || 1;
     // DI LATO SI VA COL TEMPO, NON COL NUMERO D'ORDINE. Le letture non
     // arrivano a ritmo regolare: un sensore puo' mandarne tre in due minuti
@@ -682,11 +750,17 @@ export const ConGrafici = (Base) => class extends Base {
     const aTempo = primo > 0 && durata > 0;
     const coord = scelti.map((x, i) =>
       [aTempo ? ((x.t - primo) / durata) * 100 : i * passo,
-        28 - ((x.v - basso) / campo) * 26]);
+        piatta ? 15 : 28 - ((x.v - basso) / campo) * 26]);
     // me li tengo da parte: servono al mirino
     this._disegnati = scelti;
     this._coord = coord;
-    const riga = this._filoMorbido(this._ammorbidisci(coord));
+    // La linea disegnata NON passa per i punti grezzi: li media in
+    // settanta caselle, ci stende una media mobile 1-2-1 e sposta la
+    // griglia di mezza casella. Me la tengo da parte, se no il pallino del
+    // mirino resta staccato dalla linea (e sfasato di lato).
+    const morbide = this._ammorbidisci(coord);
+    this._coordDisegno = morbide;
+    const riga = this._filoMorbido(morbide);
     box.querySelector(".riga").setAttribute("d", riga);
     const pieno = box.querySelector(".pieno");
     pieno.setAttribute("d", riga + " L100 30 L0 30 Z");
@@ -789,6 +863,25 @@ export const ConGrafici = (Base) => class extends Base {
     return d;
   }
 
+  // DOVE PASSA LA LINEA DISEGNATA a una certa quota di lato. Serve al
+  // mirino: il pallino va messo sulla linea che si vede, non sul punto
+  // grezzo, che su una striscia alta trentotto punti sta anche diversi
+  // pixel piu' su o piu' giu'. Il valore nel cartellino resta quello vero.
+  _quotaDisegnata(x) {
+    const d = this._coordDisegno;
+    if (!d || !d.length) return null;
+    const dentro = (y) => Math.max(1, Math.min(29, y));
+    if (x <= d[0][0]) return dentro(d[0][1]);
+    for (let i = 1; i < d.length; i += 1) {
+      if (x <= d[i][0]) {
+        const dx = d[i][0] - d[i - 1][0] || 1;
+        const q = (x - d[i - 1][0]) / dx;
+        return dentro(d[i - 1][1] + (d[i][1] - d[i - 1][1]) * q);
+      }
+    }
+    return dentro(d[d.length - 1][1]);
+  }
+
   // CHI MUOVE IL MIRINO. Col mouse basta passare sopra la casella. Col dito
   // no: il browser prende il gesto per uno scorrimento della pagina e dopo un
   // attimo lo annulla (pointercancel), e il mirino spariva. Percio' sopra al
@@ -858,7 +951,9 @@ export const ConGrafici = (Base) => class extends Base {
     this._mirino.querySelector(".mira").style.left = xy[0] + "%";
     const palla = this._mirino.querySelector(".palla");
     palla.style.left = xy[0] + "%";
-    palla.style.top = (xy[1] / 30 * 100) + "%";
+    // sulla linea che si vede, alla stessa quota di lato del punto scelto
+    const quotaY = this._quotaDisegnata(xy[0]);
+    palla.style.top = ((quotaY === null ? xy[1] : quotaY) / 30 * 100) + "%";
 
     const u = this._hass && this._config.entity
       && this._hass.states[this._config.entity]
@@ -955,7 +1050,10 @@ export const ConGrafici = (Base) => class extends Base {
     const c = this._config;
     if (c.sottotitolo_entita) return c.sottotitolo_entita;
     if (c.disposizione !== "persona" || !this._hass) return null;
-    const candidati = c.info_entita || [];
+    // `info_entita` scritto scalare nello YAML (`info_entita: sensor.x`) e'
+    // una stringa, e il `.find` qui sotto faceva TypeError dentro `_render`:
+    // la casella non si disegnava piu'. `comeElenco` e' proprio per questo.
+    const candidati = comeElenco(c.info_entita);
     const buono = candidati.find((eid) => {
       const id = eid.toLowerCase();
       if (!(id.includes("geocoded") || id.includes("location")

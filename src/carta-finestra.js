@@ -113,7 +113,9 @@ export const ConFinestra = (Base) => class extends Base {
           // molte telecamere, il posto dove rimediare e' questo.
           const suo = { ...cfg };
           const el = this._eGriglia(suo)
-            ? this._costruisciGriglia(suo, aiuti, this._anteprimaSchede)
+            // qui siamo nell'ANTEPRIMA: dentro alla griglia il cartellino
+            // al posto della telecamera e' quello che vogliamo
+            ? this._costruisciGriglia(suo, aiuti, this._anteprimaSchede, true)
             : (this._pesante(suo) ? this._cartellino(suo)
               : aiuti.createCardElement(suo));
           el.hass = this._hass;
@@ -235,7 +237,17 @@ export const ConFinestra = (Base) => class extends Base {
     document.addEventListener("keydown", this._esc = (e) => {
       if (e.key === "Escape") this._chiudiFinestra();
     });
-    if (this._fCorpo.childElementCount) { this._aggiornaFinestra(); return; }
+    // LA CACHE VA A FIRMA, NON A "CI SONO DEI FIGLI". Home Assistant riusa
+    // la stessa casella e le richiama setConfig con una configurazione
+    // nuova - succede a ogni ritocco nell'anteprima dell'editor - e
+    // _fCorpo non lo svuota nessuno: cosi' il pop-up continuava a mostrare
+    // le schede della prima apertura. Con la firma del contenuto accanto
+    // alla cache, appena cambia qualcosa si ricostruisce.
+    const firmaCorpo = this._firmaContenuto();
+    if (this._fCorpo.childElementCount && this._firmaCorpo === firmaCorpo) {
+      this._aggiornaFinestra();
+      return;
+    }
 
     const scelte = c.finestra_cards || (c.finestra_card ? [c.finestra_card] : null);
     const elenco = (c.finestra_entita && c.finestra_entita.length)
@@ -247,7 +259,7 @@ export const ConFinestra = (Base) => class extends Base {
     // punto di nascita misurato un attimo fa era quello di una finestra
     // vuota, piu' bassa e quindi piu' in mezzo allo schermo. Rimisuro
     // quando il contenuto c'e' - da li' in poi la misura e' gia' buona.
-    const monta = (lista) => Promise.resolve(this._montaSchede(lista))
+    const monta = (lista) => Promise.resolve(this._montaSchede(lista, firmaCorpo))
       .then(() => { requestAnimationFrame(() => this._faiNascere()); });
 
     const schede = [];
@@ -268,6 +280,29 @@ export const ConFinestra = (Base) => class extends Base {
     return monta(schede);
   }
 
+  // LA FIRMA DI QUELLO CHE VA DENTRO AL POP-UP. Tutto quello che decide il
+  // contenuto, in una riga: se cambia, le schede montate non valgono piu' e
+  // vanno rifatte. La tengo qui dentro cosi' non serve che nessun altro
+  // svuoti _fCorpo quando arriva una configurazione nuova.
+  _firmaContenuto() {
+    const c = this._config || {};
+    try {
+      return JSON.stringify([
+        c.finestra_cards || null,
+        c.finestra_card || null,
+        c.finestra_entita || null,
+        c.finestra_scheda || null,
+        c.finestra_scheda_altra || null,
+        !!c.finestra_grafico,
+        c.entity || null,
+      ]);
+    } catch (e) {
+      // una configurazione che non si scrive in JSON: meglio rifare il
+      // contenuto ogni volta che tenersi addosso quello vecchio
+      return "ogni-volta:" + Date.now();
+    }
+  }
+
   // le schede del pop-up, cosi' come stanno scritte
   _schedeFinestra() {
     const c = this._config || {};
@@ -282,7 +317,13 @@ export const ConFinestra = (Base) => class extends Base {
   // piu' di una colonna. La misura la scrivo in dodicesimi come dappertutto
   // e qui la riporto sulle colonne che ci sono: con cinque colonne, 12 = 5,
   // 6 = 2, 3 = 1.
-  _costruisciGriglia(cfg, aiuti, figli) {
+  //
+  // `anteprima` dice DOVE stiamo: nel riquadro delle impostazioni o nel
+  // pop-up vero. Serve perche' la telecamera va spenta solo nell'anteprima;
+  // _pesante e' un test sul TIPO, non sul contesto, e usandolo sempre una
+  // telecamera dentro a un grid diventava un cartellino grigio anche nel
+  // pop-up vero - mentre la stessa telecamera fuori dal grid funzionava.
+  _costruisciGriglia(cfg, aiuti, figli, anteprima) {
     // Se la griglia non dice quante colonne vuole, Home Assistant ne fa
     // TRE: se ne mettessi due la disposizione cambierebbe da sola.
     const quante = Math.max(1, Math.min(12,
@@ -304,7 +345,8 @@ export const ConFinestra = (Base) => class extends Base {
       const cc = c || {};
       let el = null;
       try {
-        el = this._pesante(cc) ? this._cartellino(cc) : aiuti.createCardElement(cc);
+        el = (anteprima && this._pesante(cc))
+          ? this._cartellino(cc) : aiuti.createCardElement(cc);
       } catch (e) { return; }
       try { el.hass = this._hass; } catch (e) { /* pazienza */ }
       // Dentro a una griglia la misura si conta nelle SUE colonne: 1 vuol
@@ -376,11 +418,22 @@ export const ConFinestra = (Base) => class extends Base {
     busta.toggleAttribute("vestita", true);
   }
 
-  async _montaSchede(schede) {
+  async _montaSchede(schede, firma) {
+    // UN MONTAGGIO PER VOLTA, E IL CONTRASSEGNO SI GUARDA PRIMA DELL'AWAIT.
+    // La guardia della cache in _apriFinestra e' sincrona, questa funzione
+    // no: al primo uso della sessione "loadCardHelpers()" importa il
+    // modulo, e due aperture ravvicinate (due "prova apertura", o
+    // tocco-chiudi-tocco veloce) entravano qui tutte e due prima che si
+    // risolvesse. Risultato: ogni scheda appesa due volte, e _schede
+    // riazzerato lasciava le copie del primo giro senza "hass", ferme.
+    if (this._staMontando) return;
+    this._staMontando = true;
     try {
       const helpers = await window.loadCardHelpers();
       this._misureFinestra(this._fCorpo);
       if (this._finestra) this._misureFinestra(this._finestra);
+      // e si svuota PRIMA di appendere: _fCorpo non lo azzerava nessuno
+      this._fCorpo.innerHTML = "";
       this._schede = [];
       // le griglie si aprono: le loro caselle diventano pezzi a se', cosi'
       // ognuna puo' avere la sua misura (vedi _pezziFinestra)
@@ -389,7 +442,8 @@ export const ConFinestra = (Base) => class extends Base {
         const i = pezzo.chiave;
         try {
           const el = this._eGriglia(cfg)
-            ? this._costruisciGriglia(cfg, helpers, this._schede)
+            // pop-up VERO: niente cartellini, le telecamere qui si vedono
+            ? this._costruisciGriglia(cfg, helpers, this._schede, false)
             : helpers.createCardElement(cfg);
           el.hass = this._hass;
           // ogni scheda dentro il pop-up si veste per conto suo
@@ -411,8 +465,12 @@ export const ConFinestra = (Base) => class extends Base {
           this._fCorpo.appendChild(avviso);
         }
       });
+      // da qui in poi il contenuto corrisponde a questa configurazione
+      this._firmaCorpo = firma;
     } catch (err) {
       this._fCorpo.textContent = T("Non riesco a creare il contenuto della finestra.");
+    } finally {
+      this._staMontando = false;
     }
   }
 

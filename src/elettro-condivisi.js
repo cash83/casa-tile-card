@@ -411,7 +411,17 @@ export const ConEditor = (Base) => class extends Base {
       disegna: (k) => CHIP_SVGS[k]
         || (HERO_BUILDERS[k] ? HERO_BUILDERS[k]("g" + k) : ""),
       scelto: (this._config || {}).artwork || diSerie,
-      scrivi: (k) => this._scriviScelta("artwork", k),
+      scrivi: (k) => {
+        const prima = (this._config || {}).artwork;
+        this._scriviScelta("artwork", k);
+        // Chi vuole saperlo lo sa DA QUI: `artwork` non sta in nessuno schema
+        // dell'ha-form, quindi da `_cambiatoForm` un cambio di disegno non si
+        // vedeva mai (l'editor degli elettrodomestici ci attacca la proposta
+        // dell'apparecchio che somiglia al disegno).
+        if (k && k !== prima && typeof this._sceltoDisegno === "function") {
+          this._sceltoDisegno(k, prima);
+        }
+      },
     });
     const etiFoto = document.createElement("div");
     etiFoto.className = "ce-aiuto";
@@ -469,6 +479,20 @@ export const ConEditor = (Base) => class extends Base {
     if (this._grigliaDisegni) this._grigliaDisegni.aggiorna(c.artwork);
   }
 
+  // Rimette nei moduli i dati freschi, DOPO ogni modifica della
+  // configurazione - anche quelle fatte fuori dal modulo (la griglia dei
+  // disegni, una spunta, un tasto). Serve perche' `ha-form` rimanda indietro
+  // tutto il suo `data` con sopra il campo cambiato: con la fotografia
+  // vecchia dentro, la prima modifica successiva di un campo qualunque
+  // riporta indietro quello che era stato cambiato altrove.
+  _rinfrescaModuli() {
+    if (!this._costruito || typeof this._datiForm !== "function") return;
+    const dati = this._datiForm();
+    const moduli = (this._moduli && this._moduli.length)
+      ? this._moduli : [this._form, this._formTutto];
+    moduli.forEach((f) => { if (f) f.data = dati; });
+  }
+
   // le scelte dei riquadri sono configurazione: le scrivo subito, se no Home
   // Assistant non accende il tasto Salva
   _scriviScelta(chiave, valore) {
@@ -479,6 +503,7 @@ export const ConEditor = (Base) => class extends Base {
     } else c[chiave] = valore;
     this._config = c;
     this._emetti();
+    this._rinfrescaModuli();
   }
 
   // il nome di un'entita' senza la coda "potenza": e' quella che si vede
@@ -505,11 +530,36 @@ export const ConEditor = (Base) => class extends Base {
     return "#" + v.map((n) => Math.max(0, Math.min(255, Number(n) || 0)).toString(16).padStart(2, "0")).join("");
   }
 
+  // Anche la forma corta (#fff): in YAML si scrive spesso cosi', e prima
+  // tornava `undefined` - che poi faceva CANCELLARE il colore alla prima
+  // modifica di qualunque campo (vedi `_coloriDalForm` qui sotto).
   _versoRgb(v) {
-    const m = /^#?([0-9a-f]{6})$/i.exec(String(v || ""));
+    const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(v || "").trim());
     if (!m) return undefined;
-    const n = parseInt(m[1], 16);
+    const sei = m[1].length === 3 ? m[1].replace(/./g, (c) => c + c) : m[1];
+    const n = parseInt(sei, 16);
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+
+  // I colori che tornano dal modulo, tradotti in esadecimale.
+  // `ha-form` rimanda indietro TUTTO il suo `data` con sopra il campo
+  // cambiato: se in configurazione c'e' un colore che non so far vedere al
+  // selettore (`red`, una variabile del tema), `_versoRgb` gli ha passato
+  // `undefined` e quell'`undefined` torna indietro a ogni modifica. Non e'
+  // una cancellazione, e' l'eco della mia: il colore resta com'era.
+  // Se invece il colore era mostrabile, un `undefined` e' davvero l'utente
+  // che l'ha svuotato, e allora si cancella come prima.
+  _coloriDalForm(v, chiavi) {
+    chiavi.forEach((k) => {
+      if (!(k in v)) return;
+      const grezzo = (this._config || {})[k];
+      const vuoto = v[k] === undefined || v[k] === null || v[k] === "";
+      if (vuoto && grezzo !== undefined && this._versoRgb(grezzo) === undefined) {
+        v[k] = grezzo;
+        return;
+      }
+      v[k] = this._versoHex(v[k]);
+    });
   }
 
   // Il contrario di "crea": butta via gli aiutanti che questa scheda si e'
@@ -538,7 +588,9 @@ export const ConEditor = (Base) => class extends Base {
         if (Object.keys(memoria).length) c.helper_memoria = memoria;
         this._config = c;
         this._emetti();
-        this._form.data = this._datiForm();
+        // tutti i moduli, non solo quello in cima: quello sotto teneva la
+        // fotografia vecchia e alla prima modifica la rimandava indietro
+        this._rinfrescaModuli();
         this._esito.textContent += T("Fatto:") + " " + esito.cancellati + " "
           + T("cancellati.") + " "
           + T("I valori me li sono segnati: se li rifai ripartono da li'.");

@@ -39,6 +39,26 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
           ? true : this._base.yt_cuore };
     }
     this._config = this._base;
+    // ENTITA' CAMBIATA = MEMORIA DA BUTTARE. Quello che mi ero segnato
+    // parla della vecchia entita', e tenerlo fa dire bugie alla casella:
+    // - `_ultimoBuono` e' l'ultimo valore valido letto, e chi disegna lo
+    //   rimette al posto di un "unknown". Non azzerandolo, cambiando entita'
+    //   (nell'editor succede a ogni carattere digitato, ma anche da YAML o
+    //   per una rinomina in Home Assistant) la casella mostrava il valore di
+    //   PRIMA col fumetto "Ultimo valore letto: adesso il sensore non
+    //   risponde": un numero di un'altra entita', spacciato per il suo.
+    // - `_modoColore` e' il tastino tinta/bianco, che ha senso solo per la
+    //   lampada di prima.
+    // - `_largoMax` e' la larghezza piu' grande mai vista, segnata sotto una
+    //   chiave fatta di entita' e nome: cambiata la chiave, il numero che ho
+    //   in mano non c'entra piu' niente e va riletto.
+    const firmaMemoria = (this._config.entity || "") + "|" + (this._config.name || "");
+    if (this._firmaMemoria !== undefined && this._firmaMemoria !== firmaMemoria) {
+      this._ultimoBuono = undefined;
+      this._modoColore = null;
+      this._largoMax = undefined;
+    }
+    this._firmaMemoria = firmaMemoria;
     // IL SEGNO DELLA COLONNA DI DESTRA. Ogni ritocco ridisegna la casella,
     // che per un attimo e' piu' corta: il browser tronca lo scorrimento e
     // lui perde di vista proprio la scheda che sta modificando. Mi segno
@@ -342,6 +362,14 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
           <div class="f-corpo"></div>
         </div>
       </div>`);
+    // Questi due non si prendono qui ma alla prima misura ("se non ce l'ho,
+    // cercalo"), e la scocca si rifa' davvero: al cambio di lingua _render
+    // richiama _costruisci, cosa che su un'installazione non italiana
+    // succede una volta per casella all'avvio. Senza azzerarli restavano
+    // puntati a elementi staccati, altoDi()/chiedi() tornavano 0 e la
+    // casella si teneva per sempre il nome schiacciato su una riga.
+    this._testa = null;
+    this._rigaIcona = null;
     this._card = root.querySelector("ha-card");
     this._nome = root.querySelector(".nome");
     this._sotto = root.querySelector(".sotto");
@@ -813,12 +841,24 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     let dove = null;
     if (st && st.attributes.latitude !== undefined && st.attributes.longitude !== undefined) {
       dove = st.attributes.latitude + "," + st.attributes.longitude;
-    } else if (c.sottotitolo_entita && this._hass) {
-      const alt = this._hass.states[c.sottotitolo_entita];
-      if (alt && alt.state && alt.state.length > 4) dove = alt.state;
-    } else if (st && st.state && st.state.length > 4) {
-      dove = st.state;
     }
+    // A CASCATA, non "o l'uno o l'altro". Prima era una catena di else if:
+    // bastava che il campo del sottotitolo fosse COMPILATO perche' lo stato
+    // dell'entita' principale non venisse mai guardato. Con un sensore di
+    // geocodifica vuoto - o fermo su "unknown", che essendo lungo sette
+    // caratteri passava anche lui per un indirizzo buono - partiva l'avviso
+    // "non dice dove si trova" pur avendo l'indirizzo a portata di mano.
+    // Ora provo i rami uno dopo l'altro finche' uno ne da' uno buono.
+    const buono = (v) => {
+      const t = String(v === undefined || v === null ? "" : v).trim();
+      if (t.length <= 4) return "";
+      return ["unknown", "unavailable", "none"].includes(t.toLowerCase()) ? "" : t;
+    };
+    if (!dove && c.sottotitolo_entita && this._hass) {
+      const alt = this._hass.states[c.sottotitolo_entita];
+      dove = (alt ? buono(alt.state) : "") || null;
+    }
+    if (!dove && st) dove = buono(st.state) || null;
     if (!dove) {
       window.alert("Questa entita non dice dove si trova: non ha ne le coordinate "
         + "ne un indirizzo. Scegli un'entita con la posizione, oppure indica "
@@ -930,6 +970,12 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
     // per sempre senza misura (era il caso della casellina del riquadro,
     // che veniva grande mentre l'anteprima era compatta)
     if (this._osserva && this._cartaOsservata !== card) {
+      // ...e la VECCHIA la lascio andare: la scocca si rifa' (cambio di
+      // lingua) e l'osservatore restava attaccato anche alla ha-card di
+      // prima, buttata via ma ancora sorvegliata - una in piu' a ogni giro.
+      if (this._cartaOsservata) {
+        try { this._osserva.unobserve(this._cartaOsservata); } catch (e) { /* pazienza */ }
+      }
       try { this._osserva.observe(card); this._cartaOsservata = card; } catch (e) { /* pazienza */ }
     }
     const q = card.getBoundingClientRect();
@@ -1751,7 +1797,16 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
         : "";
       // le due scritte le rifaccio solo se cambia la forma, se no basta il testo
       const forma = brano ? "due" : "una";
-      if (this._sotto.dataset.forma !== forma) {
+      // ...ma la forma segnata vale solo se gli span ci sono DAVVERO. Il
+      // segno vive su `.sotto` e i due span sono i suoi figli: gli altri
+      // rami qui sotto rifanno il contenuto e se li portano via. Il segno
+      // restava "due", tornando sulla musica la ricostruzione veniva
+      // saltata, querySelector(".brano") era null e la casella moriva con
+      // la scheda rossa dentro setConfig. Ora i rami il segno lo levano, e
+      // qui mi accerto comunque che i figli ci siano.
+      const gia = this._sotto.querySelector(".brano")
+        && (forma === "una" || this._sotto.querySelector(".artista"));
+      if (this._sotto.dataset.forma !== forma || !gia) {
         this._sotto.dataset.forma = forma;
         this._sotto.innerHTML = brano
           ? '<span class="brano"></span><span class="artista"></span>'
@@ -1766,13 +1821,26 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
       this._sotto.style.display = "";
     } else if (modo === "musica") {
       this._sotto.textContent = sotto;
+      // il segno della forma se ne va insieme ai figli: vedi il vinile
+      delete this._sotto.dataset.forma;
       this._sotto.style.display = sotto ? "" : "none";
     } else if (comePersona) {
       const parti = [];
+      // qui il contenuto di `.sotto` lo rifaccio da capo: il segno della
+      // forma del vinile non vale piu'
+      delete this._sotto.dataset.forma;
+      // E lo stato e l'indirizzo, che arrivano da fuori, dentro a innerHTML
+      // vanno protetti: tutto il resto del file scrive con textContent,
+      // qui no perche' la riga e' fatta di pezzi, e un valore che contiene
+      // un "<" (geocodifiche strane, nomi di posti) si mangiava il resto
+      // della riga.
+      const vivo = (t) => String(t === undefined || t === null ? "" : t)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
       if (st) {
         const quanto = c.mostra_da_quanto === false ? "" : daQuanto(st.last_changed);
         const via = this._quantoLontanoDaCasa(st);
-        parti.push('<span class="stato">' + this._valoreDi(st) + "</span>");
+        parti.push('<span class="stato">' + vivo(this._valoreDi(st)) + "</span>");
         const extra = [quanto, via].filter(Boolean).join(" \u00b7 ");
         if (extra) {
           parti.push('<span class="quando" title="Distanza in linea d’aria dal '
@@ -1780,11 +1848,13 @@ export class CasaTile extends ConMusica(ConPezzi(ConFinestra(ConAnteprima(ConGra
             + extra + "</span>");
         }
       }
-      if (sotto) parti.push('<span class="via">\uD83D\uDCCD ' + sotto + "</span>");
+      if (sotto) parti.push('<span class="via">\uD83D\uDCCD ' + vivo(sotto) + "</span>");
       this._sotto.innerHTML = TH(parti.join(""));
       this._sotto.style.display = parti.length ? "" : "none";
     } else {
       this._sotto.textContent = sotto;
+      // come sopra: chi si porta via i figli pulisce anche il segno
+      delete this._sotto.dataset.forma;
       this._sotto.style.display = sotto ? "" : "none";
     }
     // l'anello attorno alla foto dice dove si trova

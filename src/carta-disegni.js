@@ -4,7 +4,7 @@
 import { T } from './lingua.js';
 import { PARENTI, PAROLE, comeElenco, numeroVero, riempiRiquadro, statoTradotto } from './aiuti.js';
 import { METEO } from './colori.js';
-import { ICONA_METEO, ICONE, aspiraFuori, disegnoAspira, disegnoBatteria, disegnoMdi, disegnoTapparella, disegnoTermometro, iconaAutomatica, tagliaTapparella } from './icone.js';
+import { ICONA_METEO, ICONE, aspiraFuori, disegnoAspira, disegnoBatteria, disegnoMdi, disegnoTapparella, disegnoTermometro, disegnoUmidita, iconaAutomatica, tagliaTapparella } from './icone.js';
 import { valoreScritto } from './segni.js';
 
 export const ConDisegni = (Base) => class extends Base {
@@ -14,21 +14,55 @@ export const ConDisegni = (Base) => class extends Base {
     let perc = NaN;
     if (st) {
       const n = parseFloat(st.state);
-      const u = st.attributes.unit_of_measurement;
-      if (!isNaN(n) && (u === "%" || /batter|livello|level|soc/i.test(c.entity || ""))) {
+      const u = String(st.attributes.unit_of_measurement || "");
+      // SOLO una percentuale e' una percentuale. Prima bastava che
+      // l'entity_id contenesse "batter"/"livello"/"level"/"soc" e QUALSIASI
+      // unita' veniva presa per carica: una `sensor.batteria_tensione` da
+      // 12,8 V diventava una batteria rossa al 13%, a 48 V arancione al 48%.
+      // Col "%" e' una percentuale per definizione; senza unita' mi fido
+      // del nome; con qualunque altra unita' (V, A, Wh...) non lo e'.
+      const comePerc = u === "%"
+        || (!u && /batter|livello|level|soc/i.test(c.entity || ""));
+      if (!isNaN(n) && comePerc) {
         perc = n;
       } else if (st.attributes.battery_level !== undefined) {
         perc = parseFloat(st.attributes.battery_level);
+      } else if (String(st.attributes.device_class || "") === "battery"
+                 && String(st.entity_id || c.entity || "")
+                   .indexOf("binary_sensor.") === 0) {
+        // Un `binary_sensor` con device_class batteria non da' un numero:
+        // `on` vuol dire BATTERIA SCARICA, `off` vuol dire a posto. Senza
+        // questo restava NaN e il disegno la faceva piena e verde, cioe'
+        // l'esatto contrario di quello che diceva il sensore.
+        const t = String(st.state).toLowerCase();
+        if (t === "on") perc = 10;
+        else if (t === "off") perc = 100;
       }
     }
 
+    // "Not Charging" con lo SPAZIO (companion iOS, parecchie integrazioni
+    // Tuya, template scritti a mano) non entrava nella lista dei "no", che
+    // aveva "not_charging" col trattino basso: passava, e poi il confronto a
+    // sottostringa trovava "charging" dentro "not charging". Quindi prima
+    // normalizzo spazi e trattini bassi, poi confronto a PAROLE INTERE.
+    const normale = (valore) => String(valore === true ? "charging" : (valore || ""))
+      .toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+    // parola intera: metto gli spazi ai bordi, cosi' "charging" non si
+    // trova piu' dentro "discharging"
+    const contiene = (t, frase) => (" " + t + " ").indexOf(" " + frase + " ") >= 0;
+    const NO_CARICA = ["not charging", "not charged", "discharging", "discharged",
+                       "non in carica", "in scarica", "scarica", "none",
+                       "off", "unplugged", "unavailable", "unknown"];
+    const SI_CARICA = ["charging", "charged", "in carica", "carica", "ac", "usb",
+                       "wireless", "plugged", "on", "full"];
     const dice = (valore) => {
-      const t = String(valore === true ? "charging" : (valore || "")).toLowerCase();
+      const t = normale(valore);
       if (!t) return false;
-      if (["not_charging", "discharging", "non in carica", "scarica", "none",
-           "off", "unplugged"].some((x) => t.indexOf(x) >= 0)) return false;
-      return ["charging", "in carica", "carica", "ac", "usb", "wireless",
-              "plugged", "on", "full"].some((x) => t.indexOf(x) >= 0);
+      // i "no" PRIMA dei "si": "discharging" e "unplugged" vanno riconosciuti
+      // per quello che sono, se no finiscono fra i "si" per via di
+      // "charging" e "plugged"
+      if (NO_CARICA.some((x) => contiene(t, x))) return false;
+      return SI_CARICA.some((x) => contiene(t, x));
     };
 
     let carica = false;
@@ -63,11 +97,18 @@ export const ConDisegni = (Base) => class extends Base {
         if (dc === "battery_charging" && alt.state === "on") carica = true;
         if (/charg|carica/i.test(eid) && dice(alt.state)) carica = true;
         // anche se il NOME non parla di carica, il suo stato puo' dirlo
-        // ("In carica", "Charging"): qui pero' solo parole esplicite
-        const t = String(alt.state).toLowerCase();
-        if (t.indexOf("scarica") < 0 && t.indexOf("non in carica") < 0
-            && (t.indexOf("in carica") >= 0 || t.indexOf("charging") >= 0
-                || t.indexOf("plugged") >= 0)) {
+        // ("In carica", "Charging"): qui pero' solo parole esplicite.
+        // Questo pezzo prima scavalcava `dice()` e confrontava a
+        // sottostringa: "discharging" contiene "charging", "not_charging"
+        // contiene "charging", "unplugged" contiene "plugged", e cosi' un
+        // `sensor.*_battery_state` dell'app companion faceva disegnare "in
+        // carica" una batteria che si stava scaricando. Peggio: girando
+        // prima di `aParole` e vincendo su `scarica` (riga piu' in basso),
+        // sovrascriveva anche la logica giusta. Adesso usa lo stesso
+        // criterio di `dice()`: i "no" per primi, e a parole intere.
+        const t = normale(alt.state);
+        if (!NO_CARICA.some((x) => contiene(t, x))
+            && ["in carica", "charging", "plugged"].some((x) => contiene(t, x))) {
           carica = true;
         }
       });
@@ -139,7 +180,11 @@ export const ConDisegni = (Base) => class extends Base {
       // entita' della casa a ogni disegno costava carissimo
       if (PARENTI[c.entity] === undefined) {
         const trovate = [];
-        const pezzi = String(c.entity).split(".")[1].split("_");
+        // `entity` scritto male (senza il punto): `split(".")[1]` era
+        // undefined e il `.split("_")` dopo faceva morire tutto il disegno.
+        // Tutte le altre righe qui intorno sono difese, questa no.
+        const coda = String(c.entity).split(".")[1] || "";
+        const pezzi = coda ? coda.split("_") : [];
         for (let i = pezzi.length - 1; i >= 1 && !trovate.length; i -= 1) {
           const radice2 = pezzi.slice(0, i).join("_");
           if (radice2.length < 2) break;
@@ -234,6 +279,17 @@ export const ConDisegni = (Base) => class extends Base {
       // solo il fulmine cambia l'ingombro
       forma = b.carica ? "batteria|c" : "batteria|-";
     }
+    // L'umidita' ha il suo disegno (la goccia col livello): senza questo
+    // ramo si pescava la goccia statica al 55% e non seguiva la lettura.
+    if (nomeIcona === "umidita") {
+      const u = st && st.attributes ? st.attributes.unit_of_measurement : "";
+      const n = numeroVero(st ? st.state : null);
+      // solo una percentuale vera: un'umidita' assoluta in g/m3 non e' un livello
+      const perc = n !== null && (!u || u === "%") ? Math.max(0, Math.min(100, n)) : NaN;
+      disegno = disegnoUmidita(perc);
+      chiave = "umidita|" + (isFinite(perc) ? Math.round(perc) : "-");
+      forma = "umidita";
+    }
     if (nomeIcona === "termometro") {
       const gradi = this._gradiDi(st);
       if (gradi !== null) {
@@ -251,7 +307,18 @@ export const ConDisegni = (Base) => class extends Base {
       chiave = "aspira|" + (fuori ? "fuori" : "base");
       forma = "aspirapolvere";
     }
-    if (nomeIcona === "tapparella" && dove !== null) {
+    // Tapparella a rele': non ha `current_position`, sa solo aprire e
+    // chiudere, quindi `_quantoAperta` torna null e si cadeva sul disegno
+    // fisso delle ICONE - tre stecche a mezzo vano - percio' una tapparella
+    // CHIUSA si vedeva a meta' e non cambiava mai. Lo stato basta per
+    // disegnarla tutta giu' o tutta su.
+    let doveTap = dove;
+    if (nomeIcona === "tapparella" && doveTap === null && st) {
+      const s = String(st.state).toLowerCase();
+      if (s === "closed") doveTap = 0;
+      else if (s === "open") doveTap = 100;
+    }
+    if (nomeIcona === "tapparella" && doveTap !== null) {
       // si muove se lo dice Home Assistant o se lo sto ancora portando io
       let moto = (st && st.state === "opening") ? "su"
         : ((st && st.state === "closing") ? "giu" : "");
@@ -259,7 +326,9 @@ export const ConDisegni = (Base) => class extends Base {
       disegno = disegnoTapparella(moto);
       chiave = "tapparella|" + moto;
       forma = "tapparella|pos";
-      taglia = this._posizioneDisegno(st);
+      // col viaggio in corso comanda il viaggio; senza posizione vera
+      // (`_posizioneDisegno` tornerebbe null) vale quella dedotta dallo stato
+      taglia = dove !== null ? this._posizioneDisegno(st) : doveTap;
     }
     return { disegno: disegno, chiave: chiave, forma: forma, taglia: taglia };
   }
